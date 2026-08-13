@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DXF Georectifier & Vectorizer V2</title>
+  <meta name="description" content="Single-file interactive application to warp, rubber-sheet, and georectify historical DXF farm vectors onto ground-truth surveys, with embedded PDF vectorizer, subwindow selectors, and measurement tools.">
+  <!-- External Libraries: GeoTIFF & PDF.js -->
+  <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    /* Core Design System & Styling Tokens */
+    :root {
+      --bg-dark: #06080e;
+      --bg-panel: rgba(14, 19, 32, 0.94);
+      --bg-card: rgba(22, 30, 48, 0.75);
+      --border-color: rgba(255, 255, 255, 0.14);
+      --text-main: #f0f4f8;
+      --text-muted: #8a9bb0;
+
+      --accent-purple: #d500f9;
+      --accent-green: #00e676;
+      --accent-cyan: #00e5ff;
+      --accent-orange: #ff9100;
+      --accent-red: #ff1744;
+      --accent-yellow: #ffd600;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --shadow-glow: 0 0 20px rgba(0, 229, 255, 0.25);
+      --transition-fast: all 0.15s ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* App Header */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 100;
+      gap: 12px;
+      flex-wrap: wrap;
+      transition: all 0.2s ease;
+    }
+
+    .app-header.collapsed { display: none !important; }
+    .sidebar.collapsed { display: none !important; }
+
+    .floating-restore-btn {
+      position: absolute;
+      z-index: 500;
+      background: var(--bg-panel);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+      transition: var(--transition-fast);
+    }
+    .floating-restore-btn:hover { background: var(--accent-cyan); color: #000; }
+    .floating-restore-btn.header-restore { top: 8px; left: 16px; }
+    .floating-restore-btn.sidebar-restore { top: 8px; right: 16px; }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .logo-group h1 { font-size: 1.05rem; font-weight: 700; }
+    .logo-group .subtitle { font-size: 0.72rem; color: var(--text-muted); }
+
+    .header-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Subwindow Display Selector */
+    .measure-summary-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin-top: 6px;
+      margin-bottom: 8px;
+    }
+    
+    .layer-area-stats {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    
+    .window-selector-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 4px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      font-size: 0.78rem;
+    }
+
+    .window-selector-group label {
+      font-weight: 600;
+      color: var(--accent-cyan);
+    }
+
+    .window-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: var(--transition-fast);
+      user-select: none;
+    }
+
+    .window-checkbox:hover { background: rgba(255, 255, 255, 0.08); }
+
+    .window-checkbox input[type="checkbox"] {
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .preset-btn:hover { background: var(--accent-cyan); color: #000; }
+
+    /* Tool Modes & Controls */
+    .tool-mode-group {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .mode-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.06); }
+    .mode-btn.active {
+      background: rgba(0, 229, 255, 0.18);
+      color: var(--accent-cyan);
+      border-color: rgba(0, 229, 255, 0.4);
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+    }
+
+    /* Algorithm Selector */
+    .algorithm-selector-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+    .algorithm-selector-group label { font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600; }
+
+    .select-dropdown {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      cursor: pointer;
+    }
+    .select-dropdown option { background: #121824; color: #fff; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #2979ff, #1565c0); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.15); box-shadow: 0 0 10px rgba(41, 121, 255, 0.4); }
+
+    .btn-secondary { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: var(--text-main); }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.18); }
+
+    .btn-success { background: linear-gradient(135deg, #00c853, #00e676); color: #000; }
+    .btn-success:hover { filter: brightness(1.15); box-shadow: 0 0 10px rgba(0, 230, 118, 0.4); }
+
+    .btn-accent { background: linear-gradient(135deg, var(--accent-purple), #9c27b0); color: #fff; }
+    .btn-accent:hover { filter: brightness(1.15); box-shadow: 0 0 10px rgba(213, 0, 249, 0.4); }
+
+    .btn-warning { background: linear-gradient(135deg, #ff9100, #ff6d00); color: #000; }
+    .btn-warning:hover { filter: brightness(1.15); }
+
+    .btn-sm { padding: 3px 8px; font-size: 0.72rem; border-radius: 4px; }
+
+    /* Hidden File Inputs */
+    #geotiff-input, #escritura296-dxf-input, #escritura1073-dxf-input, #true-dxf-input { display: none; }
+
+    /* Main Workspace */
+    .app-workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Split Viewport Area */
+    .split-viewport-area {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      background: #040609;
+      overflow: hidden;
+    }
+
+    .viewport-card {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      min-width: 0;
+    }
+
+    .viewport-card.hidden { display: none !important; }
+
+    .viewport-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.45);
+      border-bottom: 1px solid var(--border-color);
+      gap: 8px;
+    }
+
+    .view-title { font-size: 0.84rem; font-weight: 700; white-space: nowrap; }
+    .title-296 { color: var(--accent-purple); }
+    .title-1073 { color: var(--accent-red); }
+    .title-true { color: var(--accent-green); }
+
+    .view-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
+
+    .view-badge {
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: rgba(213, 0, 249, 0.15);
+      color: var(--accent-purple);
+      border: 1px solid rgba(213, 0, 249, 0.3);
+    }
+    .view-badge.red { background: rgba(255, 23, 68, 0.15); color: var(--accent-red); border-color: rgba(255, 23, 68, 0.3); }
+    .view-badge.green { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border-color: rgba(0, 230, 118, 0.3); }
+
+    .btn-fit-view {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-fit-view:hover { background: rgba(0, 229, 255, 0.2); color: var(--accent-cyan); border-color: rgba(0, 229, 255, 0.4); }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #080b12;
+    }
+
+    .canvas-container canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    .viewport-hint {
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.35);
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Sidebar Controls */
+    .sidebar {
+      width: 360px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .panel-card.flex-grow { flex: 1; min-height: 180px; }
+
+    .panel-header { display: flex; align-items: center; justify-content: space-between; }
+    .panel-header h3 { font-size: 0.84rem; font-weight: 600; }
+
+    .btn-panel-toggle {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+    .btn-panel-toggle:hover { color: var(--accent-cyan); background: rgba(0, 229, 255, 0.15); }
+
+    .badge-rmse {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.12);
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 229, 255, 0.3);
+    }
+
+    /* Anchor Tables */
+    .table-wrapper {
+      flex: 1;
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+    }
+
+    .anchor-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.72rem;
+    }
+
+    .anchor-table th {
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--accent-cyan);
+      text-align: left;
+      padding: 5px 6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .anchor-table td {
+      padding: 5px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .btn-del-anchor {
+      background: rgba(255, 23, 68, 0.2);
+      border: 1px solid rgba(255, 23, 68, 0.4);
+      color: var(--accent-red);
+      padding: 1px 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.68rem;
+    }
+    .btn-del-anchor:hover { background: var(--accent-red); color: #fff; }
+
+    /* Measurement Info Floating Panel */
+    .measure-summary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 214, 0, 0.12);
+      border: 1px solid rgba(255, 214, 0, 0.35);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.76rem;
+      color: var(--accent-yellow);
+      font-weight: 600;
+    }
+
+    /* Modal Dialog for Integrated PolygonCreator Vectorizer */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.visible { display: flex; }
+
+    .vectorizer-modal {
+      width: 95vw;
+      height: 92vh;
+      background: var(--bg-dark);
+      border: 1px solid var(--accent-cyan);
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--accent-cyan); }
+
+    .modal-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .vectorizer-sidebar {
+      width: 300px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-color);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    .vectorizer-viewport {
+      flex: 1;
+      position: relative;
+      background: #080b12;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px;
+    }
+
+    .vectorizer-canvas-wrap {
+      position: relative;
+      display: inline-block;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+
+    #vec-pdf-canvas { display: block; background: #fff; }
+    #vec-draw-canvas { position: absolute; top: 0; left: 0; cursor: crosshair; }
+
+    /* Footer Status Bar */
+    .app-footer {
+      height: 28px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      z-index: 100;
+    }
+    .status-bar { color: var(--accent-cyan); }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-group">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div>
+          <h1>DXF Georectifier & Vectorizer V2</h1>
+          <p class="subtitle">Multi-Map Rubber-Sheeting, Embedded PDF Vectorization & Distance Measurement</p>
+        </div>
+      </div>
+
+      <!-- Subwindow Display Selector -->
+      <div class="window-selector-group">
+        <label class="window-checkbox" title="Toggle Escritura 296 Window">
+          <input type="checkbox" id="chk-show-296" checked>
+          <span style="color:var(--accent-purple);font-weight:600;">Escritura 296</span>
+        </label>
+        <label class="window-checkbox" title="Toggle Escritura 1073 Window">
+          <input type="checkbox" id="chk-show-1073" checked>
+          <span style="color:var(--accent-red);font-weight:600;">Escritura 1073</span>
+        </label>
+        <label class="window-checkbox" title="Toggle Field Window">
+          <input type="checkbox" id="chk-show-true" checked>
+          <span style="color:var(--accent-green);font-weight:600;">Field</span>
+        </label>
+        <button class="preset-btn" id="btn-view-all">All</button>
+        <button class="preset-btn" id="btn-view-296-true">296 + True</button>
+        <button class="preset-btn" id="btn-view-1073-true">1073 + True</button>
+      </div>
+
+      <!-- Tool Modes (Pan vs Anchor vs Measure) -->
+      <div class="tool-mode-group">
+        <button class="mode-btn active" id="btn-mode-pan" title="Pan Map Display [Hotkey: P]">🖐️ Pan Mode</button>
+        <button class="mode-btn" id="btn-mode-anchor" title="Drop Anchor Control Points [Hotkey: A]">🎯 Anchor Mode</button>
+        <button class="mode-btn" id="btn-mode-measure" title="Measure Distances in Meters [Hotkey: M]">📏 Measure Tool</button>
+      </div>
+
+      <!-- Algorithm Selector -->
+      <div class="algorithm-selector-group">
+        <label for="algorithm-select">Algorithm:</label>
+        <select id="algorithm-select" class="select-dropdown">
+          <option value="TPS" selected>Thin Plate Spline (TPS Rubber-Sheeting)</option>
+          <option value="AFFINE">Affine Transformation (6-Param)</option>
+          <option value="SIMILARITY">Helmert Similarity (Rigid Scale + Rotate)</option>
+          <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+        </select>
+      </div>
+
+      <!-- File Actions & Collapse Controls -->
+      <div class="header-section">
+
+
+        <button id="btn-export-dxf" class="btn btn-success" title="Export Rectified DXF File">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export DXF
+        </button>
+
+        <button class="preset-btn" id="btn-toggle-header" title="Minimize Header to maximize map area">▲ Hide Header</button>
+        <button class="preset-btn" id="btn-toggle-sidebar" title="Minimize Sidebar Controls">▶ Hide Sidebar</button>
+      </div>
+    </header>
+
+    <!-- Floating Restore Buttons (Visible when Header or Sidebar are minimized) -->
+    <button id="btn-show-header" class="floating-restore-btn header-restore" style="display:none;" title="Restore Header Bar">▼ Show Header</button>
+    <button id="btn-show-sidebar" class="floating-restore-btn sidebar-restore" style="display:none;" title="Restore Sidebar Panel">◀ Controls</button>
+
+    <!-- Workspace -->
+    <main class="app-workspace">
+      <!-- Split Viewports -->
+      <div class="split-viewport-area" id="viewport-area">
+        <!-- Escritura 296 Viewport -->
+        <div class="viewport-card" id="card-296">
+          <div class="viewport-header">
+            <span class="view-title title-296">📜 Escritura 296</span>
+            <div class="view-controls">
+              <button class="btn btn-accent btn-sm" id="btn-edit-296" title="Edit or Vectorize PDF for Escritura 296">✏️</button>
+              <button class="btn-fit-view" id="btn-fit-296" title="Center Map View">🎯</button>
+              <span id="status-296" class="view-badge">Preloaded DXF</span>
+            </div>
+          </div>
+          <div class="canvas-container" id="container-296">
+            <canvas id="canvas-296"></canvas>
+          </div>
+          <div class="viewport-hint" id="hint-296">🖐️ Pan Mode. Click '🎯 Anchor Mode' to add points. Click '✏️ Edit Polygon' to modify DXF.</div>
+        </div>
+
+        <!-- Escritura 1073 Viewport -->
+        <div class="viewport-card" id="card-1073">
+          <div class="viewport-header">
+            <span class="view-title title-1073">📜 Escritura 1073</span>
+            <div class="view-controls">
+              <button class="btn btn-accent btn-sm" id="btn-edit-1073" title="Edit or Vectorize PDF for Escritura 1073">✏️</button>
+              <button class="btn-fit-view" id="btn-fit-1073" title="Center Map View">🎯</button>
+              <span id="status-1073" class="view-badge red">Preloaded DXF</span>
+            </div>
+          </div>
+          <div class="canvas-container" id="container-1073">
+            <canvas id="canvas-1073"></canvas>
+          </div>
+          <div class="viewport-hint" id="hint-1073">🖐️ Pan Mode. Click '🎯 Anchor Mode' to add points. Click '✏️ Edit Polygon' to modify DXF.</div>
+        </div>
+
+        <!-- True Field Survey Viewport -->
+        <div class="viewport-card" id="card-true">
+          <div class="viewport-header">
+            <span class="view-title title-true">📍 Field data</span>
+            <div class="view-controls">
+              <label for="geotiff-input" class="btn btn-secondary btn-sm" style="margin-right:8px;" title="Load Shared GeoTIFF Background">🗺️ GeoTIFF</label>
+              <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff" style="display:none;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;" title="Load Custom True Survey DXF">
+                <input type="file" id="true-dxf-input" accept=".dxf">
+                <span class="btn btn-secondary btn-sm">Load True DXF</span>
+              </label>
+              <button class="btn-fit-view" id="btn-fit-true" title="Center Map View">🎯</button>
+              <span id="status-true" class="view-badge green">Target DXF</span>
+            </div>
+          </div>
+          <div class="canvas-container" id="container-true">
+            <canvas id="canvas-true"></canvas>
+          </div>
+          <div class="viewport-hint" id="hint-true">🖐️ Left click & drag to pan. 🎯 Anchor mode to match landmarks.</div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px;">
+          <span style="font-size:0.8rem; font-weight:700; color:var(--accent-cyan);">Control Panel</span>
+          <button class="preset-btn" id="btn-close-sidebar" title="Minimize Sidebar Panel">▶ Hide Sidebar</button>
+        </div>
+
+        <!-- Distance Measuring Active Info -->
+        <section class="panel-card" id="panel-measure">
+          <div class="panel-header">
+            <h3>📏 Distance Measurement (Meters)</h3>
+            <button class="btn-sm btn-secondary" id="btn-clear-measure">Clear Lines</button>
+          </div>
+          <div class="measure-summary-bar">
+            <span>Total Measured Distance:</span>
+            <span id="measure-total-val" style="font-size:0.92rem;font-weight:700;">0.00 m</span>
+          </div>
+          <p style="font-size:0.7rem;color:var(--text-muted);margin:0;">Click consecutive points on any map viewport to measure segment lengths and total perimeter/length in meters. Right click or click 'Clear Lines' to reset.</p>
+        </section>
+
+        <!-- Accuracy Analytics -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>Accuracy Metrics (RMSE)</h3>
+            <button class="btn-panel-toggle">▼</button>
+          </div>
+          <div style="display:flex; gap:8px; justify-content:space-between;">
+            <span id="rmse-296-display" class="badge-rmse" style="color:var(--accent-purple); border-color:var(--accent-purple);">296 RMSE: 0.00 m</span>
+            <span id="rmse-1073-display" class="badge-rmse" style="color:var(--accent-red); border-color:var(--accent-red);">1073 RMSE: 0.00 m</span>
+          </div>
+        </section>
+
+        <!-- DXF Area Stats Card -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>🗂️ DXF Layers Area</h3>
+            <button class="btn-panel-toggle">▼</button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:2px;">
+            <div class="layer-area-stats" id="area-stats-296" style="color:var(--accent-purple);">Area 296: --</div>
+            <div class="layer-area-stats" id="area-stats-1073" style="color:var(--accent-red);">Area 1073: --</div>
+            <div class="layer-area-stats" id="area-stats-true" style="color:var(--accent-green);">Area Field: --</div>
+          </div>
+        </section>
+
+
+        <!-- Anchor Pair Managers -->
+        <section class="panel-card flex-grow">
+          <div class="panel-header">
+            <h3>🎯 Anchor Control Points</h3>
+            <button class="btn-panel-toggle">▼</button>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px; flex:1;">
+            <div>
+              <div class="panel-header">
+                <h4 style="font-size:0.78rem;color:var(--accent-purple)">Escritura 296 Anchors</h4>
+                <button id="btn-clear-anchors-296" class="btn-sm btn-secondary">Clear 296</button>
+              </div>
+              <div class="table-wrapper" style="margin-top:4px;">
+                <table class="anchor-table">
+                  <thead><tr><th>#</th><th>296 (X, Y)</th><th>True (X, Y)</th><th>Err (m)</th><th>X</th></tr></thead>
+                  <tbody id="table-anchors-296"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div>
+              <div class="panel-header">
+                <h4 style="font-size:0.78rem;color:var(--accent-red)">Escritura 1073 Anchors</h4>
+                <button id="btn-clear-anchors-1073" class="btn-sm btn-secondary">Clear 1073</button>
+              </div>
+              <div class="table-wrapper" style="margin-top:4px;">
+                <table class="anchor-table">
+                  <thead><tr><th>#</th><th>1073 (X, Y)</th><th>True (X, Y)</th><th>Err (m)</th><th>X</th></tr></thead>
+                  <tbody id="table-anchors-1073"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <!-- Footer Status Bar -->
+    <footer class="app-footer">
+      <div id="status-bar" class="status-bar">Ready • Preloaded Escritura 296 and Escritura 1073 DXFs and PDFs.</div>
+      <div id="coords-bar">Coords: (0.00, 0.00) m</div>
+    </footer>
+  </div>
+
+  <!-- Integrated PolygonCreator Vectorizer Modal -->
+  <div class="modal-overlay" id="vectorizer-modal">
+    <div class="vectorizer-modal">
+      <div class="modal-header">
+        <span class="modal-title" id="vec-modal-title">✏️ Vectorize & Edit Polygon</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn btn-primary btn-sm" id="btn-vec-export-dxf" title="Save created polygon to DXF file on your computer">💾 Save DXF File</button>
+          <button class="btn btn-success btn-sm" id="btn-vec-apply">✅ Apply Edits to GeoRectifier</button>
+          <button class="btn btn-warning btn-sm" id="btn-vec-reset">🔄 Reset Defaults</button>
+          <button class="btn btn-secondary btn-sm" id="btn-vec-close">✕ Close</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <aside class="vectorizer-sidebar">
+          <section class="panel-card">
+            <h3>PDF Document Source</h3>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <button id="btn-vec-prev-page" class="btn-sm btn-secondary">◄ Prev</button>
+              <span id="vec-page-num" style="font-size:0.78rem;font-weight:600;">Page 1 of 1</span>
+              <button id="btn-vec-next-page" class="btn-sm btn-secondary">Next ►</button>
+            </div>
+            <label style="margin-top:6px; cursor:pointer;" class="btn btn-secondary btn-sm">
+              <input type="file" id="vec-pdf-file-input" accept="application/pdf" style="display:none;">
+              📁 Load Custom PDF File
+            </label>
+          </section>
+
+          <section class="panel-card">
+            <h3>Precision Zoom Controls</h3>
+            <div style="display:flex; gap:4px;">
+              <button class="preset-btn" data-veczoom="1.0">100%</button>
+              <button class="preset-btn" data-veczoom="2.0">200%</button>
+              <button class="preset-btn" data-veczoom="4.0">400%</button>
+              <button class="preset-btn" data-veczoom="8.0">800%</button>
+            </div>
+            <input type="range" id="vec-zoom-slider" min="0.5" max="8.0" step="0.1" value="1.5" style="margin-top:6px;accent-color:var(--accent-cyan);">
+          </section>
+
+          <section class="panel-card flex-grow">
+            <div class="panel-header">
+              <h3>Vectorized Polygons</h3>
+              <button class="btn btn-accent btn-sm" id="btn-vec-new-poly">+ New Polygon</button>
+            </div>
+            <div id="vec-poly-list" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;"></div>
+          </section>
+
+          <div style="font-size:0.7rem; color:var(--text-muted);">
+            💡 <strong>Tips:</strong> Left-click to drop polygon vertices. Click & drag vertices to move them. Right-click vertex to delete.
+          </div>
+        </aside>
+
+        <main class="vectorizer-viewport" id="vec-viewport">
+          <div class="vectorizer-canvas-wrap">
+            <canvas id="vec-pdf-canvas"></canvas>
+            <canvas id="vec-draw-canvas"></canvas>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script>
+/* ==========================================================================
+   DEFAULT PRELOADED DXF DATA (RAW DXF TEXT STRINGS)
+   ========================================================================== */
+const DEFAULT_DXF_296 = `0\nSECTION\n2\nENTITIES\n0\nPOLYLINE\n8\nPolygon_296\n66\n1\n70\n1\n0\nVERTEX\n8\nPolygon_296\n10\n116.920\n20\n407.920\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n128.920\n20\n423.670\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n187.170\n20\n435.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n213.170\n20\n448.170\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n232.500\n20\n422.670\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n246.250\n20\n436.170\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n280.250\n20\n418.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n267.000\n20\n388.170\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n261.000\n20\n367.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n242.250\n20\n367.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n234.000\n20\n353.920\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n233.500\n20\n343.920\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n242.500\n20\n343.920\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n250.000\n20\n334.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n259.000\n20\n312.920\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n230.000\n20\n306.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n219.750\n20\n291.920\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n203.500\n20\n287.670\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n196.250\n20\n290.670\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n175.750\n20\n269.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n156.500\n20\n238.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n141.920\n20\n232.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n128.420\n20\n228.670\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n120.420\n20\n225.920\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n121.420\n20\n243.920\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n124.170\n20\n252.420\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n124.670\n20\n262.920\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n139.920\n20\n270.170\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n143.920\n20\n278.170\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n153.420\n20\n284.170\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n154.510\n20\n289.330\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n149.100\n20\n298.040\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n149.100\n20\n305.800\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n151.920\n20\n311.220\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n148.160\n20\n316.630\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n127.920\n20\n322.510\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n117.570\n20\n342.040\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n117.100\n20\n361.100\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n120.860\n20\n370.040\n30\n0.0\n0\nVERTEX\n8\nPolygon_296\n10\n121.570\n20\n383.920\n30\n0.0\n0\nSEQEND\n0\nENDSEC\n0\nEOF\n`;
+
+const DEFAULT_DXF_1073 = `0\nSECTION\n2\nENTITIES\n0\nPOLYLINE\n8\nPolygon_1073\n66\n1\n70\n1\n0\nVERTEX\n8\nPolygon_1073\n10\n240.320\n20\n398.700\n30\n0.0\n0\nVERTEX\n8\nPolygon_1073\n10\n241.210\n20\n385.670\n30\n0.0\n0\nVERTEX\n8\nPolygon_1073\n10\n224.020\n20\n356.480\n30\n0.0\n0\nVERTEX\n8\nPolygon_1073\n10\n234.690\n20\n355.150\n30\n0.0\n0\nVERTEX\n8\nPolygon_1073\n10\n239.430\n20\n341.220\n30\n0.0\n0\nVERTEX\n8\nPolygon_1073\n10\n305.360\n20\n334.850\n30\n0.0\n0\nVERTEX\n8\nPolygon_1073\n10\n316.320\n20\n388.190\n30\n0.0\n0\nSEQEND\n0\nENDSEC\n0\nEOF\n`;
+
+/* Configure PDF.js Worker */
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* 1. DXF PARSER & SERIALIZER */
+class DXFParser {
+  static parse(dxfText) {
+    if (!dxfText) return [];
+    const lines = dxfText.split(/\r?\n/);
+    const entities = [];
+    let currentEntity = null;
+    let i = 0;
+    while (i < lines.length - 1) {
+      const code = parseInt(lines[i].trim(), 10);
+      const val = lines[i + 1].trim();
+      i += 2;
+      if (isNaN(code)) continue;
+
+      if (code === 0) {
+        const uVal = val.toUpperCase();
+        if (uVal === "VERTEX") {
+          let vx = 0, vy = 0;
+          while (i < lines.length - 1) {
+            const vCode = parseInt(lines[i].trim(), 10);
+            const vVal = lines[i + 1].trim();
+            if (vCode === 0) break;
+            i += 2;
+            if (vCode === 10) vx = parseFloat(vVal);
+            if (vCode === 20) vy = parseFloat(vVal);
+          }
+          if (currentEntity && (currentEntity.type === "POLYLINE" || currentEntity.type === "LWPOLYLINE")) {
+            currentEntity.points.push({ x: vx, y: vy });
+          }
+          continue;
+        }
+
+        if (uVal === "SEQEND") {
+          if (currentEntity) {
+            DXFParser.finalizeEntity(currentEntity);
+            if (currentEntity.points.length >= 1) entities.push(currentEntity);
+            currentEntity = null;
+          }
+          continue;
+        }
+
+        if (currentEntity) {
+          DXFParser.finalizeEntity(currentEntity);
+          if (currentEntity.points.length >= 1) entities.push(currentEntity);
+          currentEntity = null;
+        }
+
+        if (["POLYLINE", "LWPOLYLINE", "LINE", "ARC", "CIRCLE"].includes(uVal)) {
+          currentEntity = { type: uVal, layer: "0", closed: uVal === "CIRCLE", points: [], cx: 0, cy: 0, r: 0, startAngle: 0, endAngle: 360 };
+        }
+        continue;
+      }
+
+      if (!currentEntity) continue;
+      if (code === 8) currentEntity.layer = val;
+      if (code === 70) currentEntity.closed = (parseInt(val, 10) & 1) !== 0;
+      if (code === 10) {
+        const x = parseFloat(val);
+        let y = 0;
+        if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 20) {
+          y = parseFloat(lines[i + 1].trim());
+          i += 2;
+        }
+        currentEntity.points.push({ x, y });
+      }
+      if (code === 11) {
+        const x = parseFloat(val);
+        let y = 0;
+        if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 21) {
+          y = parseFloat(lines[i + 1].trim());
+          i += 2;
+        }
+        currentEntity.points.push({ x, y });
+      }
+    }
+    if (currentEntity) {
+      DXFParser.finalizeEntity(currentEntity);
+      if (currentEntity.points.length >= 1) entities.push(currentEntity);
+    }
+    return entities;
+  }
+
+  static finalizeEntity(entity) {
+    if (entity.type === "CIRCLE") {
+      for (let j = 0; j < 36; j++) {
+        const theta = (j / 36) * Math.PI * 2;
+        entity.points.push({ x: entity.cx + entity.r * Math.cos(theta), y: entity.cy + entity.r * Math.sin(theta) });
+      }
+    }
+  }
+
+  static serialize(entities) {
+    let dxf = "0\nSECTION\n2\nENTITIES\n";
+    entities.forEach((ent) => {
+      if (!ent.points || ent.points.length < 2) return;
+      const layer = (ent.layer || "RECTIFIED").replace(/[^a-zA-Z0-9_-]/g, "_");
+      const isClosed = ent.closed ? 1 : 0;
+      dxf += `0\nPOLYLINE\n8\n${layer}\n66\n1\n70\n${isClosed}\n`;
+      ent.points.forEach((pt) => { dxf += `0\nVERTEX\n8\n${layer}\n10\n${pt.x.toFixed(4)}\n20\n${pt.y.toFixed(4)}\n30\n0.0\n`; });
+      dxf += "0\nSEQEND\n";
+    });
+    dxf += "0\nENDSEC\n0\nEOF\n";
+    return dxf;
+  }
+}
+
+/* 2. TRANSFORMATION MATH ENGINE */
+class TransformMath {
+  static tpsKernel(r) { return (r <= 1e-9) ? 0 : r * r * Math.log(r); }
+
+  static solveLinearSystem(A, b) {
+    const n = A.length;
+    const M = A.map((row, i) => [...row, b[i]]);
+    for (let i = 0; i < n; i++) {
+      let maxRow = i;
+      for (let k = i + 1; k < n; k++) if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) maxRow = k;
+      const temp = M[i]; M[i] = M[maxRow]; M[maxRow] = temp;
+      if (Math.abs(M[i][i]) < 1e-12) throw new Error("Matrix singular");
+      for (let k = i + 1; k < n; k++) {
+        const factor = M[k][i] / M[i][i];
+        for (let j = i; j <= n; j++) M[k][j] -= factor * M[i][j];
+      }
+    }
+    const x = new Array(n).fill(0);
+    for (let i = n - 1; i >= 0; i--) {
+      let sum = M[i][n];
+      for (let j = i + 1; j < n; j++) sum -= M[i][j] * x[j];
+      x[i] = sum / M[i][i];
+    }
+    return x;
+  }
+
+  static buildTPSWarper(anchors) {
+    const N = anchors.length;
+    if (N < 3) throw new Error("TPS requires >= 3 anchor pairs.");
+    const sysSize = N + 3;
+    const K = Array.from({ length: sysSize }, () => new Array(sysSize).fill(0));
+    const bx = new Array(sysSize).fill(0), by = new Array(sysSize).fill(0);
+    for (let i = 0; i < N; i++) {
+      bx[i] = anchors[i].dst.x; by[i] = anchors[i].dst.y;
+      for (let j = 0; j < N; j++) {
+        if (i !== j) K[i][j] = TransformMath.tpsKernel(Math.hypot(anchors[i].src.x - anchors[j].src.x, anchors[i].src.y - anchors[j].src.y));
+      }
+      K[i][N] = 1; K[i][N + 1] = anchors[i].src.x; K[i][N + 2] = anchors[i].src.y;
+      K[N][i] = 1; K[N + 1][i] = anchors[i].src.x; K[N + 2][i] = anchors[i].src.y;
+    }
+    const solX = TransformMath.solveLinearSystem(K, bx);
+    const solY = TransformMath.solveLinearSystem(K, by);
+    return (pt) => {
+      let xWarp = solX[N] + solX[N + 1] * pt.x + solX[N + 2] * pt.y;
+      let yWarp = solY[N] + solY[N + 1] * pt.x + solY[N + 2] * pt.y;
+      for (let i = 0; i < N; i++) {
+        const U = TransformMath.tpsKernel(Math.hypot(pt.x - anchors[i].src.x, pt.y - anchors[i].src.y));
+        xWarp += solX[i] * U; yWarp += solY[i] * U;
+      }
+      return { x: xWarp, y: yWarp };
+    };
+  }
+
+  static buildSimilarityWarper(anchors) {
+    const A = Array.from({ length: 4 }, () => new Array(4).fill(0));
+    const B = new Array(4).fill(0);
+    anchors.forEach(anc => {
+      const x = anc.src.x, y = anc.src.y, x_ = anc.dst.x, y_ = anc.dst.y;
+      const rows = [[x, -y, 1, 0], [y, x, 0, 1]], targets = [x_, y_];
+      for (let r = 0; r < 2; r++) {
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) A[i][j] += rows[r][i] * rows[r][j];
+          B[i] += rows[r][i] * targets[r];
+        }
+      }
+    });
+    const c = TransformMath.solveLinearSystem(A, B);
+    return (pt) => ({ x: c[0] * pt.x - c[1] * pt.y + c[2], y: c[1] * pt.x + c[0] * pt.y + c[3] });
+  }
+
+  static createWarper(algorithm, anchors) {
+    if (!anchors || anchors.length === 0) return (pt) => ({ ...pt });
+    return anchors.length >= 3 ? TransformMath.buildTPSWarper(anchors) : TransformMath.buildSimilarityWarper(anchors);
+  }
+
+  static computeRMSE(warper, anchors) {
+    if (!anchors || anchors.length === 0) return 0;
+    let sumSqErr = 0;
+    anchors.forEach((anc) => {
+      const warped = warper(anc.src);
+      const err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y);
+      sumSqErr += err * err;
+    });
+    return Math.sqrt(sumSqErr / anchors.length);
+  }
+}
+
+/* 3. APPLICATION STATE */
+const state = {
+  entities296: [],
+  entities1073: [],
+  entitiesTrue: [],
+  anchors296: [],
+  anchors1073: [],
+  pendingSource: null, // { x, y, origin: '296' | '1073' }
+  algorithm: "TPS",
+  toolMode: "pan", // 'pan' | 'anchor' | 'measure'
+  
+  // Measurement Points per map
+  measurePoints: [],
+  
+  // Viewports
+  vp296: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+  vp1073: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+  vpTrue: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+  
+  // Background PDFs
+  pdf296Doc: null,
+  pdf1073Doc: null,
+  pdf296Canvas: null,
+  pdf1073Canvas: null,
+  pdf296Width: 0,
+  pdf296Height: 0,
+  pdf1073Width: 0,
+  pdf1073Height: 0,
+  showPdf296: true,
+  showPdf1073: true,
+
+  // GeoTIFF
+  geoTiff: null
+};
+
+const anchorColors = ["#ff1744", "#00e676", "#00e5ff", "#ff9100", "#d500f9", "#ffff00", "#76ff03"];
+
+// DOM Elements
+const canvas296 = document.getElementById("canvas-296");
+const ctx296    = canvas296.getContext("2d");
+const canvas1073 = document.getElementById("canvas-1073");
+const ctx1073    = canvas1073.getContext("2d");
+const canvasTrue = document.getElementById("canvas-true");
+const ctxTrue    = canvasTrue.getContext("2d");
+
+const card296  = document.getElementById("card-296");
+const card1073 = document.getElementById("card-1073");
+const cardTrue = document.getElementById("card-true");
+
+const chkShow296 = document.getElementById("chk-show-296");
+const chkShow1073 = document.getElementById("chk-show-1073");
+const chkShowTrue = document.getElementById("chk-show-true");
+
+
+const btnModePan = document.getElementById("btn-mode-pan");
+const btnModeAnchor = document.getElementById("btn-mode-anchor");
+const btnModeMeasure = document.getElementById("btn-mode-measure");
+
+const statusBar = document.getElementById("status-bar");
+const coordsBar = document.getElementById("coords-bar");
+
+const measureTotalVal = document.getElementById("measure-total-val");
+
+/* INITIALIZATION */
+window.addEventListener("DOMContentLoaded", () => {
+  const cached296 = localStorage.getItem("dxf_296");
+  const cached1073 = localStorage.getItem("dxf_1073");
+
+  state.entities296 = DXFParser.parse(cached296 || DEFAULT_DXF_296);
+  state.entities1073 = DXFParser.parse(cached1073 || DEFAULT_DXF_1073);
+  state.entitiesTrue = DXFParser.parse(DEFAULT_DXF_296);
+
+  loadDefaultPdf("Mapa2096_LaTrinidad.pdf", "296");
+  loadDefaultPdf("Mapa1073_FerminSuarez.pdf", "1073");
+  autoLoadGeoTiff();
+
+  setupEventListeners();
+  resizeCanvases();
+});
+
+function loadDefaultPdf(url, target) {
+  pdfjsLib.getDocument(url).promise.then((pdf) => {
+    if (target === "296") state.pdf296Doc = pdf;
+    if (target === "1073") state.pdf1073Doc = pdf;
+    renderPdfPage(pdf, 1, target);
+  }).catch((_) => {
+    // Graceful fallback if HTTP fetch unavailable
+  });
+}
+
+function renderPdfPage(pdfDoc, pageNum, target) {
+  pdfDoc.getPage(pageNum).then((page) => {
+    const viewport = page.getViewport({ scale: 2.0 });
+    const origViewport = page.getViewport({ scale: 1.0 });
+    const offCanvas = document.createElement("canvas");
+    offCanvas.width = viewport.width;
+    offCanvas.height = viewport.height;
+    const offCtx = offCanvas.getContext("2d");
+    page.render({ canvasContext: offCtx, viewport: viewport }).promise.then(() => {
+      if (target === "296") {
+        state.pdf296Canvas = offCanvas;
+        state.pdf296Width = origViewport.width;
+        state.pdf296Height = origViewport.height;
+      }
+      if (target === "1073") {
+        state.pdf1073Canvas = offCanvas;
+        state.pdf1073Width = origViewport.width;
+        state.pdf1073Height = origViewport.height;
+      }
+      redrawAll();
+    });
+  });
+}
+
+function computeBoundingBox(entities) {
+  const allPoints = [];
+  entities.forEach((ent) => { ent.points.forEach((pt) => { allPoints.push(pt); }); });
+  if (allPoints.length === 0) return { minX: 0, minY: 0, maxX: 400, maxY: 500, width: 400, height: 500 };
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  allPoints.forEach((pt) => {
+    if (pt.x < minX) minX = pt.x; if (pt.y < minY) minY = pt.y;
+    if (pt.x > maxX) maxX = pt.x; if (pt.y > maxY) maxY = pt.y;
+  });
+  return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+}
+
+function fitViewport(canvas, bbox) {
+  const padding = 35, w = canvas.width - padding * 2, h = canvas.height - padding * 2;
+  const scaleX = w / (bbox.width || 1), scaleY = h / (bbox.height || 1), scale = Math.min(scaleX, scaleY);
+  const offsetX = padding + (w - bbox.width * scale) / 2 - bbox.minX * scale;
+  const offsetY = padding + (h - bbox.height * scale) / 2 - bbox.minY * scale;
+  return { scale, offsetX, offsetY, bbox };
+}
+
+function worldToScreen(pt, viewport, canvasH) {
+  return { x: pt.x * viewport.scale + viewport.offsetX, y: canvasH - (pt.y * viewport.scale + viewport.offsetY) };
+}
+
+function screenToWorld(sx, sy, viewport, canvasH) {
+  return { x: (sx - viewport.offsetX) / viewport.scale, y: (canvasH - sy - viewport.offsetY) / viewport.scale };
+}
+
+function resizeCanvases() {
+  const c1 = document.getElementById("container-296");
+  const c2 = document.getElementById("container-1073");
+  const c3 = document.getElementById("container-true");
+
+  canvas296.width  = c1.clientWidth  || 300;
+  canvas296.height = c1.clientHeight || 500;
+  canvas1073.width  = c2.clientWidth  || 300;
+  canvas1073.height = c2.clientHeight || 500;
+  canvasTrue.width  = c3.clientWidth  || 300;
+  canvasTrue.height = c3.clientHeight || 500;
+
+  if (!state.vp296.bbox  && state.entities296.length  > 0) state.vp296  = fitViewport(canvas296,  computeBoundingBox(state.entities296));
+  if (!state.vp1073.bbox && state.entities1073.length > 0) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
+  if (!state.vpTrue.bbox && state.entitiesTrue.length > 0) state.vpTrue  = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue));
+
+  redrawAll();
+}
+window.addEventListener("resize", resizeCanvases);
+
+function redrawAll() {
+  drawViewport296();
+  drawViewport1073();
+  drawViewportTrue();
+  updateAnalyticsUI();
+}
+
+function drawGrid(ctx, w, h) {
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.04)"; ctx.lineWidth = 1;
+  for (let x = 0; x < w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+}
+
+function drawGeoTiff(ctx, tiff, vp, canvasH) {
+  if (!tiff || !tiff.offscreen || !vp || !vp.bbox) return;
+  const tl = worldToScreen({ x: tiff.bbox.minX, y: tiff.bbox.maxY }, vp, canvasH);
+  const br = worldToScreen({ x: tiff.bbox.maxX, y: tiff.bbox.minY }, vp, canvasH);
+  const sw = br.x - tl.x, sh = br.y - tl.y;
+  if (sw <= 0 || sh <= 0) return;
+  ctx.save(); ctx.globalAlpha = 0.7; ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh); ctx.restore();
+}
+
+async function autoLoadGeoTiff() {
+  try {
+    statusBar.textContent = "⏳ Auto-loading GeoTIFF...";
+    const response = await fetch("Trinidad_Dron.tif");
+    if (response.ok) {
+      const blob = await response.blob();
+      parseGeoTiff(blob);
+    } else {
+      console.error("Auto load GeoTIFF failed:", response.status);
+      statusBar.textContent = "ℹ️ Auto-load unavailable. Please click '🗺️ GeoTIFF' to load manually.";
+    }
+  } catch (err) {
+    console.error("Auto load GeoTIFF failed:", err);
+    statusBar.textContent = "ℹ️ Browser security prevents auto-loading local files. Please click '🗺️ GeoTIFF' to load manually.";
+  }
+}
+
+async function parseGeoTiff(fileOrBlob) {
+  try {
+    statusBar.textContent = "⏳ Parsing GeoTIFF metadata...";
+    const tiff = await GeoTIFF.fromBlob(fileOrBlob);
+    const fullImage = await tiff.getImage(0);
+    const fullW = fullImage.getWidth();
+    const fullH = fullImage.getHeight();
+
+    let bbox, hasGeoRef = false;
+    try {
+      const origin = fullImage.getOrigin();
+      const res    = fullImage.getResolution();
+      if (origin && res && origin.length >= 2 && Math.abs(res[0]) > 0) {
+        bbox = {
+          minX: origin[0],
+          maxY: origin[1],
+          maxX: origin[0] + fullW * Math.abs(res[0]),
+          minY: origin[1] - fullH * Math.abs(res[1])
+        };
+        hasGeoRef = true;
+      }
+    } catch(_) {}
+
+    if (!bbox) {
+      bbox = { minX: 0, minY: 0, maxX: fullW, maxY: fullH };
+    }
+
+    const imageCount = await tiff.getImageCount();
+    let readImage = fullImage;
+    const MAX_DISPLAY_DIM = 4096;
+    for (let lvl = 1; lvl < imageCount; lvl++) {
+      const img = await tiff.getImage(lvl);
+      const maxDim = Math.max(img.getWidth(), img.getHeight());
+      readImage = img;
+      if (maxDim <= MAX_DISPLAY_DIM) break;
+    }
+
+    const readW = readImage.getWidth();
+    const readH = readImage.getHeight();
+    const scale   = Math.min(1, MAX_DISPLAY_DIM / Math.max(readW, readH));
+    const targetW = Math.max(1, Math.round(readW * scale));
+    const targetH = Math.max(1, Math.round(readH * scale));
+
+    statusBar.textContent = `⏳ Decoding GeoTIFF (${targetW}×${targetH})...`;
+    // Force double animation frame render so browser repaints "Decoding..." before raster decode
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    const rasters         = await readImage.readRasters({ width: targetW, height: targetH, interleave: true });
+    const samplesPerPixel = readImage.getSamplesPerPixel();
+
+    const offscreen = document.createElement("canvas");
+    offscreen.width  = targetW;
+    offscreen.height = targetH;
+    const offCtx  = offscreen.getContext("2d");
+    const imgData = offCtx.createImageData(targetW, targetH);
+    const d       = imgData.data;
+
+    const clamp = v => {
+      if (v == null) return 0;
+      if (v >= 0 && v <= 255 && Number.isInteger(v)) return v;
+      if (v > 255) return Math.min(255, Math.round(v / 256));
+      if (v <= 1.0 && v >= 0) return Math.round(v * 255);
+      return Math.min(255, Math.max(0, Math.round(v)));
+    };
+
+    let mn = Infinity, mx2 = -Infinity;
+    if (samplesPerPixel === 1) {
+      for (let k = 0; k < rasters.length; k++) {
+        if (rasters[k] < mn) mn = rasters[k];
+        if (rasters[k] > mx2) mx2 = rasters[k];
+      }
+    }
+
+    const total = targetW * targetH;
+    for (let i = 0; i < total; i++) {
+      let r = 0, g = 0, b = 0, a = 255;
+      if (samplesPerPixel === 1) {
+        const norm = mx2 === mn ? 0.5 : (rasters[i] - mn) / (mx2 - mn);
+        r = g = b = Math.round(norm * 255);
+      } else if (samplesPerPixel === 3) {
+        r = clamp(rasters[i*3]); g = clamp(rasters[i*3+1]); b = clamp(rasters[i*3+2]);
+      } else if (samplesPerPixel >= 4) {
+        r = clamp(rasters[i*4]); g = clamp(rasters[i*4+1]); b = clamp(rasters[i*4+2]); a = clamp(rasters[i*4+3]);
+      }
+      d[i*4]=r; d[i*4+1]=g; d[i*4+2]=b; d[i*4+3]=a;
+    }
+    offCtx.putImageData(imgData, 0, 0);
+    bbox.width = Math.abs(bbox.maxX - bbox.minX);
+    bbox.height = Math.abs(bbox.maxY - bbox.minY);
+
+    state.geoTiff = { offscreen, bbox, hasGeoRef };
+    
+    // Fit the true viewport to the geotiff only if we don't have DXF data already loaded
+    if (state.entitiesTrue && state.entitiesTrue.length === 0) {
+      state.vpTrue = fitViewport(canvasTrue, bbox);
+    }
+    
+    statusBar.textContent = `✅ GeoTIFF loaded (${targetW}×${targetH})`;
+    redrawAll();
+  } catch(err) {
+    console.error("GeoTIFF error:", err);
+    statusBar.textContent = "❌ Error loading GeoTIFF.";
+  }
+}
+
+function drawBackgroundPdf(ctx, offCanvas, vp, canvasH, target) {
+  if (!offCanvas) return;
+  const pdfW = (target === "296") ? state.pdf296Width : state.pdf1073Width;
+  const pdfH = (target === "296") ? state.pdf296Height : state.pdf1073Height;
+  if (!pdfW || !pdfH) return;
+
+  // With Y-flipped coordinates: top-left of PDF is world (0, pdfH), bottom-right is (pdfW, 0)
+  const tl = worldToScreen({ x: 0,    y: pdfH }, vp, canvasH);
+  const br = worldToScreen({ x: pdfW, y: 0    }, vp, canvasH);
+  if (br.x <= tl.x || br.y <= tl.y) return;
+
+  ctx.save();
+  ctx.globalAlpha = 0.45;
+  ctx.drawImage(offCanvas, tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+  ctx.restore();
+}
+
+function drawViewport296() {
+  const w = canvas296.width, h = canvas296.height, vp = state.vp296;
+  ctx296.clearRect(0, 0, w, h);
+  drawGrid(ctx296, w, h);
+  drawGeoTiff(ctx296, state.geoTiff, vp, h);
+  drawBackgroundPdf(ctx296, state.pdf296Canvas, vp, h, "296");
+
+  drawEntities(ctx296, state.entities296, vp, h, "#d500f9");
+  drawAnchors(ctx296, state.anchors296, vp, h);
+  if (state.pendingSource && state.pendingSource.origin === "296") drawPendingAnchor(ctx296, state.pendingSource, vp, h);
+  drawMeasurements(ctx296, vp, h);
+}
+
+function drawViewport1073() {
+  const w = canvas1073.width, h = canvas1073.height, vp = state.vp1073;
+  ctx1073.clearRect(0, 0, w, h);
+  drawGrid(ctx1073, w, h);
+  drawGeoTiff(ctx1073, state.geoTiff, vp, h);
+  drawBackgroundPdf(ctx1073, state.pdf1073Canvas, vp, h, "1073");
+
+  drawEntities(ctx1073, state.entities1073, vp, h, "#ff1744");
+  drawAnchors(ctx1073, state.anchors1073, vp, h);
+  if (state.pendingSource && state.pendingSource.origin === "1073") drawPendingAnchor(ctx1073, state.pendingSource, vp, h);
+  drawMeasurements(ctx1073, vp, h);
+}
+
+function drawViewportTrue() {
+  const w = canvasTrue.width, h = canvasTrue.height, vp = state.vpTrue;
+  ctxTrue.clearRect(0, 0, w, h);
+  drawGrid(ctxTrue, w, h);
+  drawGeoTiff(ctxTrue, state.geoTiff, vp, h);
+
+  // Target DXF (Green)
+  drawEntities(ctxTrue, state.entitiesTrue, vp, h, "#00e676");
+
+  // Warped 296 overlay
+  if (state.anchors296.length >= 2) {
+    try {
+      const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
+      drawWarpedEntities(ctxTrue, state.entities296, warper, vp, h, "rgba(213, 0, 249, 0.85)");
+    } catch (_) {}
+  }
+
+  // Warped 1073 overlay
+  if (state.anchors1073.length >= 2) {
+    try {
+      const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
+      drawWarpedEntities(ctxTrue, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)");
+    } catch (_) {}
+  }
+
+  drawDestinationAnchors(ctxTrue, [...state.anchors296, ...state.anchors1073], vp, h);
+  drawMeasurements(ctxTrue, vp, h);
+}
+
+function drawEntities(ctx, entities, vp, h, color) {
+  entities.forEach((ent) => {
+    if (ent.points.length < 2) return;
+    ctx.beginPath();
+    const start = worldToScreen(ent.points[0], vp, h);
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i < ent.points.length; i++) {
+      const p = worldToScreen(ent.points[i], vp, h);
+      ctx.lineTo(p.x, p.y);
+    }
+    if (ent.closed) ctx.closePath();
+    ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.stroke();
+  });
+}
+
+function drawWarpedEntities(ctx, entities, warper, vp, h, color) {
+  entities.forEach((ent) => {
+    if (ent.points.length < 2) return;
+    ctx.beginPath();
+    const start = worldToScreen(warper(ent.points[0]), vp, h);
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i < ent.points.length; i++) {
+      const p = worldToScreen(warper(ent.points[i]), vp, h);
+      ctx.lineTo(p.x, p.y);
+    }
+    if (ent.closed) ctx.closePath();
+    ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.stroke();
+  });
+}
+
+function drawAnchors(ctx, anchors, vp, h) {
+  anchors.forEach((anc) => {
+    const sp = worldToScreen(anc.src, vp, h);
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = anc.color; ctx.fill();
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "#ffffff"; ctx.font = "bold 11px sans-serif";
+    ctx.fillText(`#${anc.id}`, sp.x + 9, sp.y - 5);
+  });
+}
+
+function drawDestinationAnchors(ctx, anchors, vp, h) {
+  anchors.forEach((anc) => {
+    const sp = worldToScreen(anc.dst, vp, h);
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = anc.color; ctx.fill();
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "#ffffff"; ctx.font = "bold 11px sans-serif";
+    ctx.fillText(`#${anc.id}`, sp.x + 9, sp.y - 5);
+  });
+}
+
+function drawPendingAnchor(ctx, pt, vp, h) {
+  const sp = worldToScreen(pt, vp, h);
+  ctx.beginPath(); ctx.arc(sp.x, sp.y, 10, 0, Math.PI * 2);
+  ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(sp.x, sp.y, 4, 0, Math.PI * 2);
+  ctx.fillStyle = "#00e5ff"; ctx.fill();
+}
+
+/* MEASUREMENT RENDERING ENGINE (METERS) */
+function drawMeasurements(ctx, vp, h) {
+  if (state.measurePoints.length === 0) return;
+  const pts = state.measurePoints;
+
+  ctx.beginPath();
+  const start = worldToScreen(pts[0], vp, h);
+  ctx.moveTo(start.x, start.y);
+  for (let i = 1; i < pts.length; i++) {
+    const p = worldToScreen(pts[i], vp, h);
+    ctx.lineTo(p.x, p.y);
+  }
+  ctx.strokeStyle = "#ffd600";
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  let totalDist = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const sp = worldToScreen(pts[i], vp, h);
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffd600"; ctx.fill();
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+
+    if (i > 0) {
+      const pPrev = pts[i - 1];
+      const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
+      totalDist += dist;
+
+      const spPrev = worldToScreen(pPrev, vp, h);
+      const midX = (sp.x + spPrev.x) / 2;
+      const midY = (sp.y + spPrev.y) / 2;
+
+      ctx.fillStyle = "rgba(0,0,0,0.75)";
+      ctx.fillRect(midX - 24, midY - 10, 48, 18);
+      ctx.strokeStyle = "#ffd600";
+      ctx.strokeRect(midX - 24, midY - 10, 48, 18);
+
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
+      ctx.textAlign = "left";
+    }
+  }
+
+  if (measureTotalVal) measureTotalVal.textContent = `${totalDist.toFixed(2)} m`;
+}
+
+/* EVENT LISTENERS & INTERACTION */
+function setupEventListeners() {
+  // Minimize Header & Sidebar Toggles
+  const appHeader = document.querySelector(".app-header");
+  const sidebar = document.querySelector(".sidebar");
+  const btnShowHeader = document.getElementById("btn-show-header");
+  const btnShowSidebar = document.getElementById("btn-show-sidebar");
+
+  function toggleHeader(collapse) {
+    const shouldCollapse = collapse !== undefined ? collapse : !appHeader.classList.contains("collapsed");
+    appHeader.classList.toggle("collapsed", shouldCollapse);
+    btnShowHeader.style.display = shouldCollapse ? "block" : "none";
+    setTimeout(resizeCanvases, 60);
+  }
+
+  function toggleSidebar(collapse) {
+    const shouldCollapse = collapse !== undefined ? collapse : !sidebar.classList.contains("collapsed");
+    sidebar.classList.toggle("collapsed", shouldCollapse);
+    btnShowSidebar.style.display = shouldCollapse ? "block" : "none";
+    setTimeout(resizeCanvases, 60);
+  }
+
+  document.getElementById("btn-toggle-header").addEventListener("click", () => toggleHeader(true));
+  btnShowHeader.addEventListener("click", () => toggleHeader(false));
+
+  document.getElementById("btn-toggle-sidebar").addEventListener("click", () => toggleSidebar(true));
+  document.getElementById("btn-close-sidebar").addEventListener("click", () => toggleSidebar(true));
+  btnShowSidebar.addEventListener("click", () => toggleSidebar(false));
+
+  // Subwindow Toggle Selector
+  chkShow296.addEventListener("change", updateWindowLayout);
+  chkShow1073.addEventListener("change", updateWindowLayout);
+  chkShowTrue.addEventListener("change", updateWindowLayout);
+
+  document.getElementById("btn-view-all").addEventListener("click", () => {
+    chkShow296.checked = true; chkShow1073.checked = true; chkShowTrue.checked = true;
+    updateWindowLayout();
+  });
+  document.getElementById("btn-view-296-true").addEventListener("click", () => {
+    chkShow296.checked = true; chkShow1073.checked = false; chkShowTrue.checked = true;
+    updateWindowLayout();
+  });
+  document.getElementById("btn-view-1073-true").addEventListener("click", () => {
+    chkShow296.checked = false; chkShow1073.checked = true; chkShowTrue.checked = true;
+    updateWindowLayout();
+  });
+
+  // Background PDF Toggles
+
+
+  // Tool Modes
+  btnModePan.addEventListener("click", () => setToolMode("pan"));
+  btnModeAnchor.addEventListener("click", () => setToolMode("anchor"));
+  btnModeMeasure.addEventListener("click", () => setToolMode("measure"));
+
+  document.getElementById("btn-clear-measure").addEventListener("click", () => {
+    state.measurePoints = [];
+    if (measureTotalVal) measureTotalVal.textContent = "0.00 m";
+    redrawAll();
+  });
+
+  // Canvas Mouse Actions (Pan, Anchor, Measure)
+  attachCanvasInteractions(canvas296,  "296");
+  attachCanvasInteractions(canvas1073, "1073");
+  attachCanvasInteractions(canvasTrue, "true");
+
+  // Center buttons
+  document.getElementById("btn-fit-296").addEventListener("click", () => { if (state.entities296.length) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296)); redrawAll(); });
+  document.getElementById("btn-fit-1073").addEventListener("click", () => { if (state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073)); redrawAll(); });
+  document.getElementById("btn-fit-true").addEventListener("click", () => { if (state.entities296.length) state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entities296)); redrawAll(); });
+
+  // Clear Anchors
+  document.getElementById("btn-clear-anchors-296").addEventListener("click", () => { state.anchors296 = []; state.pendingSource = null; redrawAll(); });
+  document.getElementById("btn-clear-anchors-1073").addEventListener("click", () => { state.anchors1073 = []; state.pendingSource = null; redrawAll(); });
+
+  // Export DXF
+  document.getElementById("btn-export-dxf").addEventListener("click", exportRectifiedDXF);
+
+  // Integrated Vectorizer Modal Triggers
+  document.getElementById("btn-edit-296").addEventListener("click", () => openVectorizerModal("296"));
+  document.getElementById("btn-edit-1073").addEventListener("click", () => openVectorizerModal("1073"));
+
+  document.getElementById("vec-pdf-file-input").addEventListener("change", (e) => handlePdfFileSelect(e.target.files[0], vecState.activeMapKey));
+  
+  const geoInput = document.getElementById("geotiff-input");
+  if (geoInput) geoInput.addEventListener("change", (e) => { if (e.target.files[0]) parseGeoTiff(e.target.files[0]); });
+
+  // Vectorizer zoom slider
+  const vecZoomSlider = document.getElementById("vec-zoom-slider");
+  if (vecZoomSlider) {
+    vecZoomSlider.addEventListener("input", (e) => {
+      vecState.scale = parseFloat(e.target.value);
+      renderVecPdfPage(vecState.pageNum);
+    });
+  }
+
+  // Vectorizer zoom presets
+  document.querySelectorAll(".preset-btn[data-veczoom]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const zoomVal = parseFloat(btn.getAttribute("data-veczoom"));
+      vecState.scale = zoomVal;
+      if (vecZoomSlider) vecZoomSlider.value = zoomVal;
+      renderVecPdfPage(vecState.pageNum);
+    });
+  });
+
+  // Vectorizer page navigation
+  const btnPrev = document.getElementById("btn-vec-prev-page");
+  const btnNext = document.getElementById("btn-vec-next-page");
+  if (btnPrev && btnNext) {
+    btnPrev.addEventListener("click", () => {
+      if (vecState.pageNum > 1) {
+        vecState.pageNum--;
+        renderVecPdfPage(vecState.pageNum);
+      }
+    });
+    btnNext.addEventListener("click", () => {
+      if (vecState.pdfDoc && vecState.pageNum < vecState.pdfDoc.numPages) {
+        vecState.pageNum++;
+        renderVecPdfPage(vecState.pageNum);
+      }
+    });
+  }
+}
+
+function handlePdfFileSelect(file, targetKey) {
+  if (!file || file.type !== "application/pdf") return;
+  const reader = new FileReader();
+  reader.onload = function () {
+    const typedArray = new Uint8Array(this.result);
+    pdfjsLib.getDocument(typedArray).promise.then((pdfDoc) => {
+      if (targetKey === "296") {
+        state.pdf296Doc = pdfDoc;
+        renderPdfPage(pdfDoc, 1, "296");
+        document.getElementById("status-296").textContent = "PDF & DXF Loaded";
+      } else {
+        state.pdf1073Doc = pdfDoc;
+        renderPdfPage(pdfDoc, 1, "1073");
+        document.getElementById("status-1073").textContent = "PDF & DXF Loaded";
+      }
+
+      if (vecModal.classList.contains("visible") && vecState.activeMapKey === targetKey) {
+        vecState.pdfDoc = pdfDoc;
+        renderVecPdfPage(1);
+      }
+    }).catch((err) => console.error("PDF Load Error:", err));
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function updateWindowLayout() {
+  card296.classList.toggle("hidden", !chkShow296.checked);
+  card1073.classList.toggle("hidden", !chkShow1073.checked);
+  cardTrue.classList.toggle("hidden", !chkShowTrue.checked);
+  setTimeout(resizeCanvases, 50);
+}
+
+function setToolMode(mode) {
+  state.toolMode = mode;
+  btnModePan.classList.toggle("active", mode === "pan");
+  btnModeAnchor.classList.toggle("active", mode === "anchor");
+  btnModeMeasure.classList.toggle("active", mode === "measure");
+  const cur = mode === "pan" ? "grab" : "crosshair";
+  canvas296.style.cursor = cur;
+  canvas1073.style.cursor = cur;
+  canvasTrue.style.cursor = cur;
+  statusBar.textContent = mode === "measure"
+    ? "📏 Measure Mode: Click points on any map to calculate distances in meters."
+    : (mode === "anchor"
+      ? "🎯 Anchor Mode: Click a landmark on Escritura 296 or 1073, then click its match on True Field map."
+      : "🖐️ Pan Mode: Drag to move map. Scroll to zoom.");
+}
+
+function hitTestAnchor(mouseX, mouseY, vp, canvas, mapName) {
+  const HIT_RADIUS = 14; // pixels
+  const h = canvas.height;
+  const candidates = [];
+  if (mapName === "296") {
+    state.anchors296.forEach(a => candidates.push({ list: state.anchors296, anc: a, field: "src" }));
+  } else if (mapName === "1073") {
+    state.anchors1073.forEach(a => candidates.push({ list: state.anchors1073, anc: a, field: "src" }));
+  } else if (mapName === "true") {
+    state.anchors296.forEach(a => candidates.push({ list: state.anchors296, anc: a, field: "dst" }));
+    state.anchors1073.forEach(a => candidates.push({ list: state.anchors1073, anc: a, field: "dst" }));
+  }
+  for (const c of candidates) {
+    const sp = worldToScreen(c.anc[c.field], vp, h);
+    if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) return c;
+  }
+  return null;
+}
+
+function attachCanvasInteractions(canvas, mapName) {
+  let isPanning = false;
+  let lastX = 0, lastY = 0;
+  let draggingAnchor = null; // { list, anc, field }
+
+  // Always read the CURRENT viewport from state — fitViewport() creates new objects,
+  // so a captured reference from call time would go stale immediately.
+  function getVP() {
+    if (mapName === "296")   return state.vp296;
+    if (mapName === "1073")  return state.vp1073;
+    return state.vpTrue;
+  }
+
+  function getCanvasXY(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  canvas.addEventListener("mousedown", (e) => {
+    if (e.button === 2) {
+      state.measurePoints = [];
+      redrawAll();
+      return;
+    }
+
+    const { x: mouseX, y: mouseY } = getCanvasXY(e);
+    const vp = getVP();
+
+    if (state.toolMode === "pan" || e.button === 1) {
+      isPanning = true;
+      lastX = e.clientX; lastY = e.clientY;
+      canvas.style.cursor = "grabbing";
+      return;
+    }
+
+    if (state.toolMode === "anchor" && e.button === 0) {
+      const hit = hitTestAnchor(mouseX, mouseY, vp, canvas, mapName);
+      if (hit) {
+        draggingAnchor = hit;
+        canvas.style.cursor = "move";
+        return;
+      }
+
+      const pt = screenToWorld(mouseX, mouseY, vp, canvas.height);
+      if (mapName === "296" || mapName === "1073") {
+        state.pendingSource = { x: pt.x, y: pt.y, origin: mapName };
+        statusBar.textContent = `🎯 Source set on ${mapName === "296" ? "Escritura 296" : "Escritura 1073"}. Click matching point on True Field map!`;
+      } else if (mapName === "true") {
+        if (!state.pendingSource) {
+          statusBar.textContent = "⚠️ Click a landmark on Escritura 296 or 1073 first.";
+          return;
+        }
+        const origin = state.pendingSource.origin;
+        const anchorsArr = origin === "296" ? state.anchors296 : state.anchors1073;
+        anchorsArr.push({
+          id: anchorsArr.length + 1,
+          src: { x: state.pendingSource.x, y: state.pendingSource.y },
+          dst: { x: pt.x, y: pt.y },
+          color: anchorColors[anchorsArr.length % anchorColors.length]
+        });
+        state.pendingSource = null;
+        statusBar.textContent = "✅ Anchor pair recorded!";
+      }
+      redrawAll();
+    } else if (state.toolMode === "measure" && e.button === 0) {
+      const pt = screenToWorld(mouseX, mouseY, vp, canvas.height);
+      state.measurePoints.push(pt);
+      redrawAll();
+    }
+  });
+
+  canvas.addEventListener("mousemove", (e) => {
+    const { x: mouseX, y: mouseY } = getCanvasXY(e);
+    const vp = getVP();
+    const worldPt = screenToWorld(mouseX, mouseY, vp, canvas.height);
+
+    coordsBar.textContent = `${mapName.toUpperCase()} Coords: (${worldPt.x.toFixed(2)}, ${worldPt.y.toFixed(2)}) m`;
+
+    if (isPanning && (e.buttons & 1)) {
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      vp.offsetX += dx;
+      vp.offsetY -= dy;
+      redrawAll();
+      return;
+    }
+
+    if (draggingAnchor) {
+      draggingAnchor.anc[draggingAnchor.field] = { x: worldPt.x, y: worldPt.y };
+      redrawAll();
+      return;
+    }
+
+    if (state.toolMode === "anchor") {
+      const hit = hitTestAnchor(mouseX, mouseY, vp, canvas, mapName);
+      canvas.style.cursor = hit ? "move" : "crosshair";
+    } else if (state.toolMode === "pan") {
+      canvas.style.cursor = isPanning ? "grabbing" : "grab";
+    }
+  });
+
+  canvas.addEventListener("mouseup", (e) => {
+    const vp = getVP();
+    if (draggingAnchor) {
+      const { x: mouseX, y: mouseY } = getCanvasXY(e);
+      const worldPt = screenToWorld(mouseX, mouseY, vp, canvas.height);
+      draggingAnchor.anc[draggingAnchor.field] = { x: worldPt.x, y: worldPt.y };
+      statusBar.textContent = `Moved Anchor #${draggingAnchor.anc.id} to (${worldPt.x.toFixed(2)}, ${worldPt.y.toFixed(2)}) m.`;
+      draggingAnchor = null;
+      redrawAll();
+    }
+    isPanning = false;
+    canvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+  });
+
+  canvas.addEventListener("mouseleave", () => {
+    isPanning = false;
+    if (draggingAnchor) { draggingAnchor = null; redrawAll(); }
+  });
+
+  canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const { x: mouseX, y: mouseY } = getCanvasXY(e);
+    const vp = getVP();
+    const ptBefore = screenToWorld(mouseX, mouseY, vp, canvas.height);
+    const factor = e.deltaY < 0 ? 1.15 : 0.87;
+    vp.scale *= factor;
+    const ptAfter = screenToWorld(mouseX, mouseY, vp, canvas.height);
+    vp.offsetX += (ptAfter.x - ptBefore.x) * vp.scale;
+    vp.offsetY += (ptAfter.y - ptBefore.y) * vp.scale;
+    redrawAll();
+  }, { passive: false });
+}
+function calculatePolygonArea(points) {
+  let area = 0;
+  for (let i = 0; i < points.length; i++) {
+    const j = (i + 1) % points.length;
+    area += points[i].x * points[j].y - points[j].x * points[i].y;
+  }
+  return Math.abs(area) / 2;
+}
+
+function updateAreaStats() {
+  const calcLayerArea = (entities, warper) => {
+    let totalArea = 0;
+    entities.forEach(ent => {
+      if (ent.closed && ent.points.length >= 3) {
+        const polygonPoints = warper ? ent.points.map(p => warper(p)) : ent.points;
+        totalArea += calculatePolygonArea(polygonPoints);
+      }
+    });
+    return totalArea;
+  };
+
+  const formatArea = (areaM2) => {
+    if (areaM2 === 0) return "0.00 ha (0.00 plazas)";
+    const ha = areaM2 / 10000;
+    const plazas = areaM2 / 6400;
+    return `${ha.toFixed(2)} ha (${plazas.toFixed(2)} plazas)`;
+  };
+
+  const el296 = document.getElementById("area-stats-296");
+  const el1073 = document.getElementById("area-stats-1073");
+  const elTrue  = document.getElementById("area-stats-true");
+
+  if (elTrue) elTrue.textContent = "Area Field: " + formatArea(calcLayerArea(state.entitiesTrue, null));
+
+  let warper296 = null;
+  if (state.anchors296.length >= 2) {
+    try { warper296 = TransformMath.createWarper(state.algorithm, state.anchors296); } catch(_) {}
+  }
+  if (el296) el296.textContent = "Area 296: " + formatArea(calcLayerArea(state.entities296, warper296));
+
+  let warper1073 = null;
+  if (state.anchors1073.length >= 2) {
+    try { warper1073 = TransformMath.createWarper(state.algorithm, state.anchors1073); } catch(_) {}
+  }
+  if (el1073) el1073.textContent = "Area 1073: " + formatArea(calcLayerArea(state.entities1073, warper1073));
+}
+
+function updateAnalyticsUI() {
+  updateAreaStats();
+  const rmse296 = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors296), state.anchors296);
+  const rmse1073 = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors1073), state.anchors1073);
+
+  document.getElementById("rmse-296-display").textContent = `296 RMSE: ${rmse296.toFixed(2)} m`;
+  document.getElementById("rmse-1073-display").textContent = `1073 RMSE: ${rmse1073.toFixed(2)} m`;
+
+  renderAnchorTable("table-anchors-296", state.anchors296, "296");
+  renderAnchorTable("table-anchors-1073", state.anchors1073, "1073");
+}
+
+function renderAnchorTable(tableId, anchors, targetKey) {
+  const tbody = document.getElementById(tableId);
+  tbody.innerHTML = "";
+  anchors.forEach((anc, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span style="color:${anc.color}">#${anc.id}</span></td>
+      <td>(${anc.src.x.toFixed(1)}, ${anc.src.y.toFixed(1)})</td>
+      <td>(${anc.dst.x.toFixed(1)}, ${anc.dst.y.toFixed(1)})</td>
+      <td>0.0m</td>
+      <td><button class="btn-del-anchor" onclick="deleteAnchor('${targetKey}', ${idx})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function deleteAnchor(targetKey, index) {
+  if (targetKey === "296") state.anchors296.splice(index, 1);
+  if (targetKey === "1073") state.anchors1073.splice(index, 1);
+  redrawAll();
+}
+
+function exportRectifiedDXF() {
+  let combinedEntities = [];
+  if (state.anchors296.length >= 2) {
+    const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
+    state.entities296.forEach((ent) => {
+      combinedEntities.push({ ...ent, layer: "RECTIFIED_296", points: ent.points.map(p => warper(p)) });
+    });
+  }
+  if (state.anchors1073.length >= 2) {
+    const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
+    state.entities1073.forEach((ent) => {
+      combinedEntities.push({ ...ent, layer: "RECTIFIED_1073", points: ent.points.map(p => warper(p)) });
+    });
+  }
+
+  const dxfText = DXFParser.serialize(combinedEntities.length > 0 ? combinedEntities : state.entities296);
+  const blob = new Blob([dxfText], { type: "application/dxf" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "GeoRectified_Combined.dxf";
+  a.click();
+}
+
+/* ==========================================================================
+   INTEGRATED POLYGON CREATOR (PDF VECTORIZER MODAL)
+   ========================================================================== */
+const vecState = {
+  activeMapKey: "296",
+  pdfDoc: null,
+  pageNum: 1,
+  scale: 1.5,
+  polygons: [],
+  activePolyIndex: 0,
+  isDraggingVertex: false,
+  draggedVertexIndex: null
+};
+
+const vecModal = document.getElementById("vectorizer-modal");
+const vecPdfCanvas = document.getElementById("vec-pdf-canvas");
+const vecPdfCtx = vecPdfCanvas.getContext("2d");
+const vecDrawCanvas = document.getElementById("vec-draw-canvas");
+const vecDrawCtx = vecDrawCanvas.getContext("2d");
+
+function openVectorizerModal(mapKey) {
+  vecState.activeMapKey = mapKey;
+  const mapTitle = mapKey === "296" ? "Escritura 296 (Mapa2096_LaTrinidad.pdf)" : "Escritura 1073 (Mapa1073_FerminSuarez.pdf)";
+  document.getElementById("vec-modal-title").textContent = `✏️ Vectorize & Edit Polygon — ${mapTitle}`;
+
+  // Initialize polygon state from current active entities
+  const sourceEntities = mapKey === "296" ? state.entities296 : state.entities1073;
+  vecState.polygons = sourceEntities.map((ent, idx) => ({
+    id: idx + 1,
+    name: ent.layer || `Polygon_${idx + 1}`,
+    color: anchorColors[idx % anchorColors.length],
+    points: ent.points.map(p => ({ x: p.x, y: p.y }))
+  }));
+  if (vecState.polygons.length === 0) {
+    vecState.polygons.push({ id: 1, name: "Polygon_1", color: "#d500f9", points: [] });
+  }
+  vecState.activePolyIndex = 0;
+
+  vecModal.classList.add("visible");
+  renderVecPolygonList();
+
+  const activePdfDoc = mapKey === "296" ? state.pdf296Doc : state.pdf1073Doc;
+  if (activePdfDoc) {
+    vecState.pdfDoc = activePdfDoc;
+    renderVecPdfPage(1);
+  } else {
+    // Prompt user to select PDF file if browser blocked relative fetch
+    const fileInput = document.getElementById("vec-pdf-file-input");
+    if (fileInput) fileInput.click();
+  }
+}
+
+function renderVecPdfPage(pageNum) {
+  if (!vecState.pdfDoc) return;
+  vecState.pdfDoc.getPage(pageNum).then((page) => {
+    const viewport = page.getViewport({ scale: vecState.scale });
+    vecPdfCanvas.width = viewport.width; vecPdfCanvas.height = viewport.height;
+    vecDrawCanvas.width = viewport.width; vecDrawCanvas.height = viewport.height;
+
+    page.render({ canvasContext: vecPdfCtx, viewport: viewport }).promise.then(() => {
+      redrawVecDrawCanvas();
+    });
+  });
+}
+
+function redrawVecDrawCanvas() {
+  vecDrawCtx.clearRect(0, 0, vecDrawCanvas.width, vecDrawCanvas.height);
+  vecState.polygons.forEach((poly, pIdx) => {
+    if (poly.points.length === 0) return;
+    const isActive = pIdx === vecState.activePolyIndex;
+
+    vecDrawCtx.beginPath();
+    vecDrawCtx.moveTo(poly.points[0].x * vecState.scale, poly.points[0].y * vecState.scale);
+    for (let i = 1; i < poly.points.length; i++) {
+      vecDrawCtx.lineTo(poly.points[i].x * vecState.scale, poly.points[i].y * vecState.scale);
+    }
+    vecDrawCtx.closePath();
+    vecDrawCtx.strokeStyle = poly.color;
+    vecDrawCtx.lineWidth = isActive ? 3 : 1.8;
+    vecDrawCtx.stroke();
+
+    poly.points.forEach((pt, idx) => {
+      const handleRadius = isActive ? 6 : 4;
+      const sx = pt.x * vecState.scale;
+      const sy = pt.y * vecState.scale;
+      vecDrawCtx.beginPath(); vecDrawCtx.arc(sx, sy, handleRadius, 0, Math.PI * 2);
+      vecDrawCtx.fillStyle = isActive ? "#ffffff" : poly.color; vecDrawCtx.fill();
+      vecDrawCtx.strokeStyle = poly.color; vecDrawCtx.lineWidth = 2; vecDrawCtx.stroke();
+
+      if (isActive) {
+        vecDrawCtx.beginPath();
+        vecDrawCtx.moveTo(sx - 8, sy); vecDrawCtx.lineTo(sx + 8, sy);
+        vecDrawCtx.moveTo(sx, sy - 8); vecDrawCtx.lineTo(sx, sy + 8);
+        vecDrawCtx.strokeStyle = "rgba(255, 255, 255, 0.6)"; vecDrawCtx.lineWidth = 1; vecDrawCtx.stroke();
+      }
+    });
+  });
+}
+
+function renderVecPolygonList() {
+  const container = document.getElementById("vec-poly-list");
+  container.innerHTML = "";
+  vecState.polygons.forEach((poly, idx) => {
+    const isActive = idx === vecState.activePolyIndex;
+    const card = document.createElement("div");
+    card.className = `layer-toggle-item ${isActive ? 'layer-active' : ''}`;
+    card.style.display = "flex";
+    card.style.justifyContent = "space-between";
+    card.style.alignItems = "center";
+    card.innerHTML = `
+      <div class="layer-title-row">
+        <span class="layer-dot" style="background:${poly.color}"></span>
+        <span>${poly.name} (${poly.points.length} pts)</span>
+      </div>
+      <button class="btn-del-anchor" title="Delete Polygon Layer" onclick="event.stopPropagation(); deleteVecPolygon(${idx})">✕</button>
+    `;
+    card.addEventListener("click", () => { vecState.activePolyIndex = idx; renderVecPolygonList(); redrawVecDrawCanvas(); });
+    container.appendChild(card);
+  });
+}
+
+function deleteVecPolygon(index) {
+  vecState.polygons.splice(index, 1);
+  if (vecState.activePolyIndex >= vecState.polygons.length) {
+    vecState.activePolyIndex = Math.max(0, vecState.polygons.length - 1);
+  }
+  renderVecPolygonList();
+  redrawVecDrawCanvas();
+}
+
+function findVecVertexAt(poly, canvasX, canvasY, radius = 10) {
+  if (!poly || !poly.points) return -1;
+  for (let i = 0; i < poly.points.length; i++) {
+    const pt = poly.points[i];
+    const sx = pt.x * vecState.scale;
+    const sy = pt.y * vecState.scale;
+    if (Math.hypot(sx - canvasX, sy - canvasY) <= radius) return i;
+  }
+  return -1;
+}
+
+// Vectorizer Canvas Interaction (Add, Move/Drag, Delete Vertex)
+vecDrawCanvas.addEventListener("mousedown", (e) => {
+  const rect = vecDrawCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const activePoly = vecState.polygons[vecState.activePolyIndex];
+  if (!activePoly) return;
+
+  const hitIdx = findVecVertexAt(activePoly, x, y);
+
+  if (e.button === 0) { // Left Click: Drag vertex or Add new vertex
+    if (hitIdx !== -1) {
+      vecState.isDraggingVertex = true;
+      vecState.draggedVertexIndex = hitIdx;
+    } else {
+      const worldPt = { x: Math.round((x / vecState.scale) * 100) / 100, y: Math.round((y / vecState.scale) * 100) / 100 };
+      activePoly.points.push(worldPt);
+      renderVecPolygonList();
+      redrawVecDrawCanvas();
+    }
+  } else if (e.button === 2) { // Right Click: Delete vertex
+    e.preventDefault();
+    if (hitIdx !== -1) {
+      activePoly.points.splice(hitIdx, 1);
+      renderVecPolygonList();
+      redrawVecDrawCanvas();
+    }
+  }
+});
+
+vecDrawCanvas.addEventListener("mousemove", (e) => {
+  if (vecState.isDraggingVertex && vecState.draggedVertexIndex !== null) {
+    const rect = vecDrawCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    const activePoly = vecState.polygons[vecState.activePolyIndex];
+    if (activePoly && activePoly.points[vecState.draggedVertexIndex]) {
+      activePoly.points[vecState.draggedVertexIndex] = {
+        x: Math.round((x / vecState.scale) * 100) / 100,
+        y: Math.round((y / vecState.scale) * 100) / 100
+      };
+      redrawVecDrawCanvas();
+    }
+  }
+});
+
+vecDrawCanvas.addEventListener("mouseup", () => {
+  vecState.isDraggingVertex = false;
+  vecState.draggedVertexIndex = null;
+});
+
+vecDrawCanvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+document.getElementById("btn-vec-new-poly").addEventListener("click", () => {
+  const newId = vecState.polygons.length + 1;
+  vecState.polygons.push({ id: newId, name: `Polygon_${newId}`, color: anchorColors[newId % anchorColors.length], points: [] });
+  vecState.activePolyIndex = vecState.polygons.length - 1;
+  renderVecPolygonList();
+  redrawVecDrawCanvas();
+});
+
+// Save Created Polygon to Local File (.dxf)
+document.getElementById("btn-vec-export-dxf").addEventListener("click", () => {
+  const entitiesToExport = vecState.polygons.map((p) => ({
+    type: "POLYLINE",
+    layer: p.name,
+    closed: true,
+    points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
+  }));
+
+  const dxfContent = DXFParser.serialize(entitiesToExport);
+  const blob = new Blob([dxfContent], { type: "application/dxf" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${vecState.activeMapKey === "296" ? "Escritura296_Edited" : "Escritura1073_Edited"}.dxf`;
+  a.click();
+});
+
+document.getElementById("btn-vec-apply").addEventListener("click", () => {
+  const newEntities = vecState.polygons.map((p) => ({
+    type: "POLYLINE",
+    layer: p.name,
+    closed: true,
+    points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
+  }));
+
+  if (vecState.activeMapKey === "296") {
+    state.entities296 = newEntities;
+    localStorage.setItem("dxf_296", DXFParser.serialize(newEntities));
+  } else {
+    state.entities1073 = newEntities;
+    localStorage.setItem("dxf_1073", DXFParser.serialize(newEntities));
+  }
+
+  vecModal.classList.remove("visible");
+  redrawAll();
+});
+
+document.getElementById("btn-vec-reset").addEventListener("click", () => {
+  if (vecState.activeMapKey === "296") {
+    localStorage.removeItem("dxf_296");
+    state.entities296 = DXFParser.parse(DEFAULT_DXF_296);
+  } else {
+    localStorage.removeItem("dxf_1073");
+    state.entities1073 = DXFParser.parse(DEFAULT_DXF_1073);
+  }
+  vecModal.classList.remove("visible");
+  redrawAll();
+});
+
+document.getElementById("btn-vec-close").addEventListener("click", () => vecModal.classList.remove("visible"));
+  </script>
+</body>
+</html>

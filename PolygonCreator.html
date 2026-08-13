@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Polygon & Polyline Vectorizer</title>
+  <meta name="description" content="Interactive web application to load PDF documents, click to draw polygons and polylines with high precision zoom, and export directly to AutoCAD DXF.">
+  <style>
+/* Core Design System & Styling Tokens */
+:root {
+  --bg-dark: #0a0d14;
+  --bg-panel: rgba(18, 24, 38, 0.88);
+  --bg-card: rgba(28, 36, 56, 0.65);
+  --border-color: rgba(255, 255, 255, 0.12);
+  --text-main: #f0f4f8;
+  --text-muted: #8a9bb0;
+  
+  --accent-purple: #d500f9;
+  --accent-green: #00e676;
+  --accent-cyan: #00e5ff;
+  --accent-orange: #ff9100;
+  --accent-red: #ff1744;
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --shadow-glow: 0 0 20px rgba(0, 229, 255, 0.25);
+  --transition-fast: all 0.15s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Header Bar */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 100;
+  gap: 16px;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: var(--shadow-glow);
+}
+
+.logo-group h1 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.logo-group .subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Header Zoom Toolbar */
+.header-zoom-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.toolbar-label {
+  font-size: 0.78rem;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.zoom-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  min-width: 48px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.preset-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  border-left: 1px solid var(--border-color);
+  padding-left: 8px;
+}
+
+.btn-preset {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-preset:hover {
+  background: var(--accent-cyan);
+  color: #000;
+  border-color: var(--accent-cyan);
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#pdf-file-input { display: none; }
+
+.divider {
+  width: 1px;
+  height: 22px;
+  background-color: var(--border-color);
+  margin: 0 2px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2979ff, #1565c0);
+  color: #fff;
+}
+.btn-primary:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 10px rgba(41, 121, 255, 0.4);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent-purple), #9c27b0);
+  color: #fff;
+}
+.btn-accent:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 10px rgba(213, 0, 249, 0.4);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #00c853, #00e676);
+  color: #000;
+}
+.btn-success:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Workspace Layout */
+.app-workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 320px;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  overflow-y: auto;
+}
+
+.panel-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel-card.flex-grow {
+  flex: 1;
+}
+
+.panel-card h3 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  color: var(--accent-cyan);
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.zoom-slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.zoom-slider-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent-cyan);
+  cursor: pointer;
+}
+
+/* Directional Navigation D-Pad */
+.dpad-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(3, 36px);
+  gap: 4px;
+  justify-content: center;
+  margin: 4px auto;
+}
+
+.dpad-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.dpad-btn:hover {
+  background: var(--accent-cyan);
+  color: #000;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+}
+
+.dpad-btn.up { grid-column: 2; grid-row: 1; }
+.dpad-btn.left { grid-column: 1; grid-row: 2; }
+.dpad-btn.center { grid-column: 2; grid-row: 2; background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); }
+.dpad-btn.right { grid-column: 3; grid-row: 2; }
+.dpad-btn.down { grid-column: 2; grid-row: 3; }
+
+.hint-box {
+  background: rgba(0, 229, 255, 0.05);
+  border: 1px dashed rgba(0, 229, 255, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hint-box code {
+  background: rgba(255, 255, 255, 0.12);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #fff;
+}
+
+/* Polygons List */
+.polygons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.polygon-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.polygon-card.active {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 229, 255, 0.08);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+}
+
+.polygon-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.polygon-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-picker-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+
+.polygon-name-input {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 0.82rem;
+  width: 130px;
+}
+
+.polygon-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+/* VIEWPORT CONTAINER - GUARANTEED SCROLLBARS FOR SIDEWAYS & VERTICAL PANNING */
+.viewport-container {
+  flex: 1;
+  position: relative;
+  background: #06080c;
+  overflow-x: scroll !important;
+  overflow-y: scroll !important;
+  padding: 30px;
+}
+
+/* Custom Styled High-Visibility Scrollbars */
+.viewport-container::-webkit-scrollbar {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.viewport-container::-webkit-scrollbar-track {
+  background: rgba(10, 13, 20, 0.95);
+  border: 1px solid var(--border-color);
+}
+
+.viewport-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--accent-cyan), #00b0ff);
+  border-radius: 7px;
+  border: 2px solid rgba(10, 13, 20, 0.95);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+}
+
+.viewport-container::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-green);
+}
+
+/* Floating Canvas Zoom & Pan Bar */
+.floating-zoom-bar {
+  position: fixed;
+  bottom: 50px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 90;
+  background: rgba(18, 24, 38, 0.92);
+  padding: 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent-cyan);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.float-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.float-btn:hover {
+  background: var(--accent-cyan);
+  color: #000;
+  border-color: var(--accent-cyan);
+}
+
+.float-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 2px 0;
+}
+
+.canvas-wrapper {
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.85);
+  border-radius: 4px;
+  overflow: hidden;
+  display: inline-block;
+  margin: 0 auto;
+}
+
+#pdf-canvas {
+  display: block;
+  background-color: #ffffff;
+}
+
+#drawing-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: crosshair;
+}
+
+#drawing-canvas.panning {
+  cursor: grab;
+}
+#drawing-canvas.panning:active {
+  cursor: grabbing;
+}
+
+.no-pdf-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10, 13, 20, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.no-pdf-overlay.hidden { display: none; }
+
+.empty-state {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-muted);
+}
+
+/* Footer Status Bar */
+.app-footer {
+  height: 30px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  z-index: 100;
+}
+
+.status-bar { color: var(--accent-cyan); }
+
+</style>
+  <!-- PDF.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header Bar -->
+    <header class="app-header">
+      <div class="logo-group">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <h1>PDF Polygon Vectorizer</h1>
+          <p class="subtitle">Load PDF • Precision Zoom • Export DXF</p>
+        </div>
+      </div>
+
+      <!-- Quick Zoom & Pan Toolbar in Header -->
+      <div class="header-zoom-toolbar">
+        <span class="toolbar-label">Precision Zoom:</span>
+        <button id="btn-hdr-zoom-out" class="btn btn-sm btn-secondary" title="Zoom Out (-)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Zoom -
+        </button>
+        <span id="hdr-zoom-display" class="zoom-badge">150%</span>
+        <button id="btn-hdr-zoom-in" class="btn btn-sm btn-secondary" title="Zoom In (+)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Zoom +
+        </button>
+
+        <div class="preset-group">
+          <button class="btn-preset" data-zoom="1.0">100%</button>
+          <button class="btn-preset" data-zoom="2.0">200%</button>
+          <button class="btn-preset" data-zoom="4.0">400%</button>
+          <button class="btn-preset" data-zoom="8.0">800%</button>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- File Picker -->
+        <label for="pdf-file-input" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          Load PDF
+        </label>
+        <input type="file" id="pdf-file-input" accept="application/pdf">
+
+        <!-- New Polygon Button -->
+        <button id="btn-new-polygon" class="btn btn-accent">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          New Polygon
+        </button>
+
+        <div class="divider"></div>
+
+        <!-- Export Group -->
+        <button id="btn-export-dxf" class="btn btn-success">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          Export DXF
+        </button>
+
+        <button id="btn-export-svg" class="btn btn-secondary">SVG</button>
+        <button id="btn-export-csv" class="btn btn-secondary">CSV</button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-workspace">
+      <!-- Sidebar Controls -->
+      <aside class="sidebar">
+        <!-- Page & Viewport Controls -->
+        <section class="panel-card">
+          <h3>Viewport & Zoom Controls</h3>
+          <div class="page-controls">
+            <button id="btn-prev-page" class="btn-icon" title="Previous Page">◄</button>
+            <span id="page-num-display">Page 1 of 1</span>
+            <button id="btn-next-page" class="btn-icon" title="Next Page">►</button>
+          </div>
+          
+          <div class="zoom-slider-group">
+            <label for="zoom-slider">Precision Scale:</label>
+            <input type="range" id="zoom-slider" min="0.5" max="10.0" step="0.1" value="1.5">
+          </div>
+          
+          <!-- Directional Navigation Pad -->
+          <div class="dpad-container">
+            <label>Sideways & Vertical Pan:</label>
+            <div class="dpad">
+              <button id="btn-pan-up" class="dpad-btn up" title="Pan Up">▲</button>
+              <button id="btn-pan-left" class="dpad-btn left" title="Pan Left">◄</button>
+              <button id="btn-pan-center" class="dpad-btn center" title="Center View">⦿</button>
+              <button id="btn-pan-right" class="dpad-btn right" title="Pan Right">►</button>
+              <button id="btn-pan-down" class="dpad-btn down" title="Pan Down">▼</button>
+            </div>
+          </div>
+
+          <div class="hint-box">
+            <span>💡 <strong>Move Sideways:</strong> Use horizontal scrollbar at bottom, or <code>Shift + Wheel</code>, or <code>◄ / ►</code> D-Pad buttons above.</span>
+            <span>💡 <strong>Pan Map:</strong> Hold <code>Spacebar</code> + Drag mouse to Pan.</span>
+          </div>
+        </section>
+
+        <!-- Polygon Layers Manager -->
+        <section class="panel-card flex-grow">
+          <div class="panel-header">
+            <h3>Polygons & Layers</h3>
+            <span id="polygon-count-badge" class="badge">0 Layers</span>
+          </div>
+
+          <div id="polygons-list" class="polygons-list">
+            <!-- Dynamic polygon cards inserted here -->
+          </div>
+        </section>
+
+        <!-- Precision Tips Panel -->
+        <section class="panel-card info-card">
+          <h4>Precision Editing Tips</h4>
+          <ul>
+            <li><strong>Zoom to 400%-800%</strong> for pixel-accurate vertex placement.</li>
+            <li><strong>Left-Click</strong> on image to add a vertex point.</li>
+            <li><strong>Click & Drag</strong> any vertex to fine-tune position.</li>
+            <li><strong>Right-Click</strong> a vertex to remove it.</li>
+            <li><strong>Export DXF</strong> when your shapes are ready.</li>
+          </ul>
+        </section>
+      </aside>
+
+      <!-- Viewport / Canvas Display -->
+      <section class="viewport-container" id="viewport">
+        <!-- Floating Canvas Controls Overlay -->
+        <div class="floating-zoom-bar">
+          <button id="btn-float-zoom-in" class="float-btn" title="Zoom In (+)">+</button>
+          <button id="btn-float-zoom-out" class="float-btn" title="Zoom Out (-)">-</button>
+          <button id="btn-float-zoom-reset" class="float-btn" title="Reset Zoom">100%</button>
+          <div class="float-divider"></div>
+          <button id="btn-float-pan-left" class="float-btn" title="Move Left (◄)">◄</button>
+          <button id="btn-float-pan-right" class="float-btn" title="Move Right (►)">►</button>
+        </div>
+
+        <div class="canvas-wrapper" id="canvas-wrapper">
+          <!-- Rendered PDF Image Canvas -->
+          <canvas id="pdf-canvas"></canvas>
+          <!-- Interactive Vector Drawing Canvas -->
+          <canvas id="drawing-canvas"></canvas>
+        </div>
+
+        <div id="no-pdf-overlay" class="no-pdf-overlay hidden">
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <p>No PDF Loaded</p>
+            <button onclick="document.getElementById('pdf-file-input').click()" class="btn btn-primary">Choose PDF File</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer Bar -->
+    <footer class="app-footer">
+      <div id="status-bar" class="status-bar">Ready • Use bottom scrollbar or ◄ ► buttons to move sideways.</div>
+      <div id="coords-bar" class="coords-bar">X: 0.00, Y: 0.00 pt • Scale: 150%</div>
+    </footer>
+  </div>
+
+  <script>
+// Initialize PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// Application State
+const state = {
+  pdfDoc: null,
+  pageNum: 1,
+  scale: 1.5, // 150% default scale
+  polygons: [],
+  activePolygonId: null,
+  isDraggingVertex: false,
+  draggedVertexIndex: null,
+  isPanning: false,
+  panStart: { x: 0, y: 0 },
+  scrollStart: { x: 0, y: 0 },
+  isSpacePressed: false,
+  mousePos: { x: 0, y: 0 }
+};
+
+const colorPalette = ["#d500f9", "#00e676", "#00e5ff", "#ff9100", "#ff1744", "#ffff00", "#76ff03"];
+
+// DOM Elements
+const pdfCanvas = document.getElementById("pdf-canvas");
+const pdfCtx = pdfCanvas.getContext("2d");
+const drawCanvas = document.getElementById("drawing-canvas");
+const drawCtx = drawCanvas.getContext("2d");
+const viewportContainer = document.getElementById("viewport");
+const canvasWrapper = document.getElementById("canvas-wrapper");
+
+const fileInput = document.getElementById("pdf-file-input");
+const btnNewPolygon = document.getElementById("btn-new-polygon");
+const btnExportDxf = document.getElementById("btn-export-dxf");
+const btnExportSvg = document.getElementById("btn-export-svg");
+const btnExportCsv = document.getElementById("btn-export-csv");
+
+const btnPrevPage = document.getElementById("btn-prev-page");
+const btnNextPage = document.getElementById("btn-next-page");
+const pageNumDisplay = document.getElementById("page-num-display");
+
+// Zoom Control Elements
+const hdrZoomDisplay = document.getElementById("hdr-zoom-display");
+const btnHdrZoomIn = document.getElementById("btn-hdr-zoom-in");
+const btnHdrZoomOut = document.getElementById("btn-hdr-zoom-out");
+const zoomSlider = document.getElementById("zoom-slider");
+
+const btnFloatZoomIn = document.getElementById("btn-float-zoom-in");
+const btnFloatZoomOut = document.getElementById("btn-float-zoom-out");
+const btnFloatZoomReset = document.getElementById("btn-float-zoom-reset");
+const btnFloatPanLeft = document.getElementById("btn-float-pan-left");
+const btnFloatPanRight = document.getElementById("btn-float-pan-right");
+
+const presetButtons = document.querySelectorAll(".btn-preset");
+
+// D-Pad Navigation Buttons
+const btnPanUp = document.getElementById("btn-pan-up");
+const btnPanLeft = document.getElementById("btn-pan-left");
+const btnPanCenter = document.getElementById("btn-pan-center");
+const btnPanRight = document.getElementById("btn-pan-right");
+const btnPanDown = document.getElementById("btn-pan-down");
+
+const polygonsList = document.getElementById("polygons-list");
+const polygonCountBadge = document.getElementById("polygon-count-badge");
+const statusBar = document.getElementById("status-bar");
+const coordsBar = document.getElementById("coords-bar");
+const noPdfOverlay = document.getElementById("no-pdf-overlay");
+
+// Initialize Sample Layers
+function initDefaultPolygons() {
+  state.polygons = [
+    {
+      id: 1,
+      name: "Purple Historical Polygon",
+      color: "#d500f9",
+      closed: true,
+      points: [
+        { x: 120, y: 220 },
+        { x: 130, y: 420 },
+        { x: 215, y: 445 },
+        { x: 278, y: 418 },
+        { x: 260, y: 367 },
+        { x: 233, y: 350 },
+        { x: 257, y: 311 }
+      ]
+    },
+    {
+      id: 2,
+      name: "Green Polyline Plano 2",
+      color: "#00e676",
+      closed: false,
+      points: [
+        { x: 128, y: 230 },
+        { x: 153, y: 237 },
+        { x: 195, y: 290 },
+        { x: 225, y: 312 },
+        { x: 245, y: 320 }
+      ]
+    }
+  ];
+  state.activePolygonId = 1;
+}
+
+// Render PDF Page at Current Scale
+async function renderPage() {
+  if (!state.pdfDoc) return;
+
+  const page = await state.pdfDoc.getPage(state.pageNum);
+  const viewport = page.getViewport({ scale: state.scale });
+
+  pdfCanvas.width = viewport.width;
+  pdfCanvas.height = viewport.height;
+  drawCanvas.width = viewport.width;
+  drawCanvas.height = viewport.height;
+
+  const renderContext = {
+    canvasContext: pdfCtx,
+    viewport: viewport
+  };
+
+  await page.render(renderContext).promise;
+  noPdfOverlay.classList.add("hidden");
+  
+  pageNumDisplay.textContent = `Page ${state.pageNum} of ${state.pdfDoc.numPages}`;
+  updateZoomDisplays();
+
+  redrawCanvas();
+}
+
+// Update Zoom UI Displays
+function updateZoomDisplays() {
+  const zoomPct = `${Math.round(state.scale * 100)}%`;
+  hdrZoomDisplay.textContent = zoomPct;
+  zoomSlider.value = state.scale;
+  coordsBar.textContent = `X: 0.00, Y: 0.00 pt • Scale: ${zoomPct}`;
+}
+
+// Set Scale Function
+function setScale(newScale) {
+  state.scale = Math.min(Math.max(0.4, newScale), 10.0);
+  renderPage();
+  updateStatus(`Zoom updated to ${Math.round(state.scale * 100)}%`);
+}
+
+// Sideways and Vertical Pan Helpers
+function panViewport(dx, dy) {
+  viewportContainer.scrollLeft += dx;
+  viewportContainer.scrollTop += dy;
+}
+
+function centerViewport() {
+  const scrollW = viewportContainer.scrollWidth;
+  const clientW = viewportContainer.clientWidth;
+  viewportContainer.scrollLeft = (scrollW - clientW) / 2;
+}
+
+// D-Pad Button Events
+btnPanLeft.addEventListener("click", () => panViewport(-150, 0));
+btnPanRight.addEventListener("click", () => panViewport(150, 0));
+btnPanUp.addEventListener("click", () => panViewport(0, -150));
+btnPanDown.addEventListener("click", () => panViewport(0, 150));
+btnPanCenter.addEventListener("click", () => centerViewport());
+
+if (btnFloatPanLeft) btnFloatPanLeft.addEventListener("click", () => panViewport(-200, 0));
+if (btnFloatPanRight) btnFloatPanRight.addEventListener("click", () => panViewport(200, 0));
+
+// Load PDF Data
+async function loadPDFData(data) {
+  try {
+    state.pdfDoc = await pdfjsLib.getDocument(data).promise;
+    state.pageNum = 1;
+    await renderPage();
+    centerViewport();
+    updateStatus("PDF Loaded successfully. Use bottom scrollbar or ◄ ► buttons to move sideways.");
+  } catch (err) {
+    console.error("PDF Load Error:", err);
+    updateStatus("Failed to load PDF file.");
+  }
+}
+
+// File Input Change
+fileInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (file && file.type === "application/pdf") {
+    const reader = new FileReader();
+    reader.onload = function () {
+      loadPDFData(new Uint8Array(this.result));
+    };
+    reader.readAsArrayBuffer(file);
+  }
+});
+
+// Zoom Controls Event Handlers
+btnHdrZoomIn.addEventListener("click", () => setScale(state.scale + 0.5));
+btnHdrZoomOut.addEventListener("click", () => setScale(state.scale - 0.5));
+btnFloatZoomIn.addEventListener("click", () => setScale(state.scale + 0.5));
+btnFloatZoomOut.addEventListener("click", () => setScale(state.scale - 0.5));
+btnFloatZoomReset.addEventListener("click", () => setScale(1.0));
+
+zoomSlider.addEventListener("input", (e) => setScale(parseFloat(e.target.value)));
+
+presetButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const zoomVal = parseFloat(btn.getAttribute("data-zoom"));
+    setScale(zoomVal);
+  });
+});
+
+// Mouse Wheel Zooming & Sideways Panning
+viewportContainer.addEventListener("wheel", (e) => {
+  if (e.shiftKey) {
+    // Shift + Wheel = Sideways Scroll
+    viewportContainer.scrollLeft += e.deltaY;
+  } else if (e.ctrlKey || e.altKey) {
+    e.preventDefault();
+    const zoomDelta = e.deltaY < 0 ? 0.25 : -0.25;
+    setScale(state.scale + zoomDelta);
+  }
+}, { passive: false });
+
+// Spacebar Pan Tracking
+window.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && !state.isSpacePressed) {
+    state.isSpacePressed = true;
+    drawCanvas.classList.add("panning");
+  }
+});
+
+window.addEventListener("keyup", (e) => {
+  if (e.code === "Space") {
+    state.isSpacePressed = false;
+    state.isPanning = false;
+    drawCanvas.classList.remove("panning");
+  }
+});
+
+// Create New Polygon
+btnNewPolygon.addEventListener("click", () => {
+  const nextId = state.polygons.length > 0 ? Math.max(...state.polygons.map(p => p.id)) + 1 : 1;
+  const color = colorPalette[(nextId - 1) % colorPalette.length];
+  
+  const newPoly = {
+    id: nextId,
+    name: `Polygon ${nextId}`,
+    color: color,
+    closed: true,
+    points: []
+  };
+
+  state.polygons.push(newPoly);
+  state.activePolygonId = nextId;
+  
+  updatePolygonsListUI();
+  redrawCanvas();
+  updateStatus(`Created '${newPoly.name}'. Click on image to add precision vertices.`);
+});
+
+// Canvas Rendering Loop
+function redrawCanvas() {
+  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+
+  state.polygons.forEach((poly) => {
+    const isActive = poly.id === state.activePolygonId;
+    const pts = poly.points;
+
+    if (pts.length === 0) return;
+
+    // Draw Lines
+    drawCtx.beginPath();
+    drawCtx.moveTo(pts[0].x * state.scale, pts[0].y * state.scale);
+
+    for (let i = 1; i < pts.length; i++) {
+      drawCtx.lineTo(pts[i].x * state.scale, pts[i].y * state.scale);
+    }
+
+    if (poly.closed && pts.length > 2) {
+      drawCtx.closePath();
+      drawCtx.fillStyle = hexToRgba(poly.color, isActive ? 0.22 : 0.08);
+      drawCtx.fill();
+    }
+
+    drawCtx.strokeStyle = poly.color;
+    drawCtx.lineWidth = isActive ? Math.max(2, 2.5 * (state.scale / 2)) : 1.8;
+    drawCtx.setLineDash(isActive ? [] : [4, 4]);
+    drawCtx.stroke();
+    drawCtx.setLineDash([]);
+
+    // Draw Vertex Handles & Labels
+    pts.forEach((pt, idx) => {
+      const sx = pt.x * state.scale;
+      const sy = pt.y * state.scale;
+      const handleRadius = isActive ? Math.max(5, 7) : 4;
+
+      // Handle circle
+      drawCtx.beginPath();
+      drawCtx.arc(sx, sy, handleRadius, 0, Math.PI * 2);
+      drawCtx.fillStyle = isActive ? "#ffffff" : poly.color;
+      drawCtx.fill();
+      drawCtx.strokeStyle = poly.color;
+      drawCtx.lineWidth = 2;
+      drawCtx.stroke();
+
+      // Precision Crosshairs for Active Handles
+      if (isActive) {
+        drawCtx.beginPath();
+        drawCtx.moveTo(sx - 10, sy); drawCtx.lineTo(sx + 10, sy);
+        drawCtx.moveTo(sx, sy - 10); drawCtx.lineTo(sx, sy + 10);
+        drawCtx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+        drawCtx.lineWidth = 1;
+        drawCtx.stroke();
+
+        // Index Label
+        drawCtx.fillStyle = "#ffffff";
+        drawCtx.font = "bold 12px sans-serif";
+        drawCtx.fillText(`${idx + 1}`, sx + 10, sy - 8);
+      }
+    });
+  });
+
+  // Rubberband line to cursor
+  const activePoly = getActivePolygon();
+  if (activePoly && activePoly.points.length > 0 && !state.isDraggingVertex && !state.isPanning) {
+    const lastPt = activePoly.points[activePoly.points.length - 1];
+    drawCtx.beginPath();
+    drawCtx.moveTo(lastPt.x * state.scale, lastPt.y * state.scale);
+    drawCtx.lineTo(state.mousePos.x, state.mousePos.y);
+    drawCtx.strokeStyle = hexToRgba(activePoly.color, 0.6);
+    drawCtx.lineWidth = 1.5;
+    drawCtx.setLineDash([5, 5]);
+    drawCtx.stroke();
+    drawCtx.setLineDash([]);
+  }
+}
+
+// Canvas Mouse Interactions
+drawCanvas.addEventListener("mousedown", (e) => {
+  if (state.isSpacePressed || e.button === 1) {
+    state.isPanning = true;
+    state.panStart = { x: e.clientX, y: e.clientY };
+    state.scrollStart = { x: viewportContainer.scrollLeft, y: viewportContainer.scrollTop };
+    return;
+  }
+
+  if (!state.activePolygonId) return;
+
+  const rect = drawCanvas.getBoundingClientRect();
+  const clickX = (e.clientX - rect.left) / state.scale;
+  const clickY = (e.clientY - rect.top) / state.scale;
+
+  const activePoly = getActivePolygon();
+  if (!activePoly) return;
+
+  const hitIndex = findVertexAt(activePoly, clickX, clickY);
+
+  if (e.button === 0) { // Left Click
+    if (hitIndex !== -1) {
+      state.isDraggingVertex = true;
+      state.draggedVertexIndex = hitIndex;
+    } else {
+      activePoly.points.push({ x: Math.round(clickX * 100) / 100, y: Math.round(clickY * 100) / 100 });
+      updatePolygonsListUI();
+      redrawCanvas();
+    }
+  } else if (e.button === 2) { // Right Click
+    e.preventDefault();
+    if (hitIndex !== -1) {
+      activePoly.points.splice(hitIndex, 1);
+      updatePolygonsListUI();
+      redrawCanvas();
+      updateStatus(`Deleted vertex ${hitIndex + 1}.`);
+    }
+  }
+});
+
+drawCanvas.addEventListener("mousemove", (e) => {
+  if (state.isPanning) {
+    const dx = e.clientX - state.panStart.x;
+    const dy = e.clientY - state.panStart.y;
+    viewportContainer.scrollLeft = state.scrollStart.x - dx;
+    viewportContainer.scrollTop = state.scrollStart.y - dy;
+    return;
+  }
+
+  const rect = drawCanvas.getBoundingClientRect();
+  state.mousePos.x = e.clientX - rect.left;
+  state.mousePos.y = e.clientY - rect.top;
+
+  const pdfX = (state.mousePos.x / state.scale).toFixed(2);
+  const pdfY = (state.mousePos.y / state.scale).toFixed(2);
+  const zoomPct = Math.round(state.scale * 100);
+  coordsBar.textContent = `X: ${pdfX}, Y: ${pdfY} pt • Scale: ${zoomPct}%`;
+
+  if (state.isDraggingVertex && state.draggedVertexIndex !== null) {
+    const activePoly = getActivePolygon();
+    if (activePoly) {
+      activePoly.points[state.draggedVertexIndex] = {
+        x: parseFloat(pdfX),
+        y: parseFloat(pdfY)
+      };
+      redrawCanvas();
+    }
+  } else {
+    redrawCanvas();
+  }
+});
+
+drawCanvas.addEventListener("mouseup", () => {
+  state.isDraggingVertex = false;
+  state.draggedVertexIndex = null;
+  state.isPanning = false;
+});
+
+drawCanvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+// Helper Functions
+function getActivePolygon() {
+  return state.polygons.find(p => p.id === state.activePolygonId);
+}
+
+function findVertexAt(poly, x, y, thresholdRadius = 12) {
+  const effThreshold = thresholdRadius / state.scale;
+  for (let i = 0; i < poly.points.length; i++) {
+    const pt = poly.points[i];
+    const dist = Math.hypot(pt.x - x, pt.y - y);
+    if (dist <= Math.max(effThreshold, 6)) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function updateStatus(msg) {
+  statusBar.textContent = msg;
+}
+
+// Polygon Sidebar List UI
+function updatePolygonsListUI() {
+  polygonsList.innerHTML = "";
+  polygonCountBadge.textContent = `${state.polygons.length} Layers`;
+
+  state.polygons.forEach((poly) => {
+    const isActive = poly.id === state.activePolygonId;
+
+    const card = document.createElement("div");
+    card.className = `polygon-card ${isActive ? "active" : ""}`;
+    card.onclick = () => {
+      state.activePolygonId = poly.id;
+      updatePolygonsListUI();
+      redrawCanvas();
+    };
+
+    card.innerHTML = `
+      <div class="polygon-card-header">
+        <div class="polygon-title-group">
+          <input type="color" value="${poly.color}" class="color-picker-dot" onclick="event.stopPropagation()" onchange="updatePolyColor(${poly.id}, this.value)">
+          <input type="text" value="${poly.name}" class="polygon-name-input" onclick="event.stopPropagation()" onchange="updatePolyName(${poly.id}, this.value)">
+        </div>
+        <button class="btn-icon" title="Delete Polygon" onclick="event.stopPropagation(); deletePolygon(${poly.id})">✕</button>
+      </div>
+      <div class="polygon-card-actions">
+        <span>${poly.points.length} Vertices</span>
+        <label class="toggle-label" onclick="event.stopPropagation()">
+          <input type="checkbox" ${poly.closed ? "checked" : ""} onchange="togglePolyClosed(${poly.id}, this.checked)"> Closed Shape
+        </label>
+      </div>
+    `;
+
+    polygonsList.appendChild(card);
+  });
+}
+
+window.updatePolyColor = (id, color) => {
+  const poly = state.polygons.find(p => p.id === id);
+  if (poly) {
+    poly.color = color;
+    redrawCanvas();
+  }
+};
+
+window.updatePolyName = (id, name) => {
+  const poly = state.polygons.find(p => p.id === id);
+  if (poly) poly.name = name;
+};
+
+window.togglePolyClosed = (id, closed) => {
+  const poly = state.polygons.find(p => p.id === id);
+  if (poly) {
+    poly.closed = closed;
+    redrawCanvas();
+  }
+};
+
+window.deletePolygon = (id) => {
+  state.polygons = state.polygons.filter(p => p.id !== id);
+  if (state.activePolygonId === id) {
+    state.activePolygonId = state.polygons.length > 0 ? state.polygons[0].id : null;
+  }
+  updatePolygonsListUI();
+  redrawCanvas();
+};
+
+// Page Navigation
+btnPrevPage.addEventListener("click", () => {
+  if (state.pageNum > 1) {
+    state.pageNum--;
+    renderPage();
+  }
+});
+
+btnNextPage.addEventListener("click", () => {
+  if (state.pdfDoc && state.pageNum < state.pdfDoc.numPages) {
+    state.pageNum++;
+    renderPage();
+  }
+});
+
+// EXPORT TO DXF (AutoCAD ASCII R12 format)
+btnExportDxf.addEventListener("click", () => {
+  if (state.polygons.length === 0) {
+    alert("No polygons to export!");
+    return;
+  }
+
+  const pageH = pdfCanvas.height / state.scale;
+  let dxf = "0\nSECTION\n2\nENTITIES\n";
+
+  state.polygons.forEach((poly) => {
+    if (poly.points.length < 2) return;
+
+    const layerName = poly.name.replace(/[^a-zA-Z0-9_-]/g, "_");
+    const isClosed = poly.closed ? 1 : 0;
+
+    dxf += `0\nPOLYLINE\n8\n${layerName}\n66\n1\n70\n${isClosed}\n`;
+
+    poly.points.forEach((pt) => {
+      const cadY = pageH - pt.y;
+      dxf += `0\nVERTEX\n8\n${layerName}\n10\n${pt.x.toFixed(3)}\n20\n${cadY.toFixed(3)}\n30\n0.0\n`;
+    });
+
+    dxf += "0\nSEQEND\n";
+  });
+
+  dxf += "0\nENDSEC\n0\nEOF\n";
+
+  downloadFile("polygons_export.dxf", dxf, "application/dxf");
+  updateStatus("DXF File downloaded successfully!");
+});
+
+// EXPORT TO SVG
+btnExportSvg.addEventListener("click", () => {
+  const w = pdfCanvas.width / state.scale;
+  const h = pdfCanvas.height / state.scale;
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">\n`;
+  svg += '  <rect width="100%" height="100%" fill="#121212"/>\n';
+
+  state.polygons.forEach((poly) => {
+    if (poly.points.length < 2) return;
+    const ptsStr = poly.points.map(p => `${p.x},${p.y}`).join(" ");
+
+    if (poly.closed) {
+      svg += `  <polygon points="${ptsStr}" fill="none" stroke="${poly.color}" stroke-width="2"/>\n`;
+    } else {
+      svg += `  <polyline points="${ptsStr}" fill="none" stroke="${poly.color}" stroke-width="2"/>\n`;
+    }
+  });
+
+  svg += "</svg>\n";
+
+  downloadFile("polygons_export.svg", svg, "image/svg+xml");
+});
+
+// EXPORT TO CSV
+btnExportCsv.addEventListener("click", () => {
+  let csv = "Polygon_ID,Polygon_Name,Vertex_Index,X_Pt,Y_Pt\n";
+
+  state.polygons.forEach((poly) => {
+    poly.points.forEach((pt, idx) => {
+      csv += `${poly.id},"${poly.name}",${idx + 1},${pt.x},${pt.y}\n`;
+    });
+  });
+
+  downloadFile("polygons_coordinates.csv", csv, "text/csv");
+});
+
+function downloadFile(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Auto-load setup
+initDefaultPolygons();
+updatePolygonsListUI();
+
+fetch("http://localhost:8080/pdf_source.pdf")
+  .then(res => res.arrayBuffer())
+  .then(buffer => loadPDFData(new Uint8Array(buffer)))
+  .catch(() => {
+    noPdfOverlay.classList.remove("hidden");
+  });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,2263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DXF Georectifier & Rubber-Sheeting App</title>
+  <meta name="description" content="Single-file interactive application to warp, rubber-sheet, and georectify historical DXF farm vectors onto true ground-truth field surveys using unlimited anchor pairs and real-time live preview.">
+  <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+  <style>
+    /* Core Design Tokens & Glassmorphic Dark Styling */
+    :root {
+      --bg-dark: #07090e;
+      --bg-panel: rgba(15, 20, 32, 0.92);
+      --bg-card: rgba(24, 32, 50, 0.7);
+      --border-color: rgba(255, 255, 255, 0.14);
+      --text-main: #f0f4f8;
+      --text-muted: #8a9bb0;
+
+      --accent-purple: #d500f9;
+      --accent-green: #00e676;
+      --accent-cyan: #00e5ff;
+      --accent-orange: #ff9100;
+      --accent-red: #ff1744;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+
+      --shadow-glow: 0 0 20px rgba(0, 229, 255, 0.25);
+      --transition-fast: all 0.15s ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 100;
+      gap: 16px;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .logo-group h1 { font-size: 1.05rem; font-weight: 700; }
+    .logo-group .subtitle { font-size: 0.75rem; color: var(--text-muted); }
+
+    .header-inputs {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #hist1-dxf-input, #hist2-dxf-input, #true-dxf-input { display: none; }
+
+    .algorithm-selector-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 5px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .algorithm-selector-group label {
+      font-size: 0.78rem;
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .select-dropdown {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .select-dropdown option { background: #121824; color: #fff; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #2979ff, #1565c0); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.15); box-shadow: 0 0 10px rgba(41, 121, 255, 0.4); }
+
+    .btn-secondary { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: var(--text-main); }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.18); }
+
+    .btn-success { background: linear-gradient(135deg, #00c853, #00e676); color: #000; }
+    .btn-success:hover { filter: brightness(1.15); box-shadow: 0 0 10px rgba(0, 230, 118, 0.4); }
+
+    .btn-sm { padding: 3px 8px; font-size: 0.72rem; border-radius: 4px; }
+
+    /* Workspace Layout */
+    .app-workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .split-viewport-area {
+      flex: 1;
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: #040609;
+    }
+
+    .viewport-card {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .viewport-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: rgba(0, 0, 0, 0.4);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .view-title { font-size: 0.85rem; font-weight: 700; }
+    .historical-title { color: var(--accent-purple); }
+    .true-title { color: var(--accent-green); }
+
+    .view-badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(213, 0, 249, 0.15);
+      color: var(--accent-purple);
+      border: 1px solid rgba(213, 0, 249, 0.3);
+    }
+    .view-badge.green {
+      background: rgba(0, 230, 118, 0.15);
+      color: var(--accent-green);
+      border-color: rgba(0, 230, 118, 0.3);
+    }
+
+    .view-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .toggle-overlay { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #080b12;
+    }
+
+    .canvas-container canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    .viewport-hint {
+      padding: 6px 12px;
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 380px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+      overflow-y: auto;
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .panel-card.flex-grow { flex: 1; min-height: 180px; }
+
+    .panel-header { display: flex; align-items: center; justify-content: space-between; }
+    .panel-header h3 { font-size: 0.88rem; font-weight: 600; }
+
+    .btn-panel-toggle {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+      line-height: 1;
+    }
+    .btn-panel-toggle:hover {
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.15);
+      border-color: rgba(0, 229, 255, 0.4);
+    }
+
+    /* ---- Maximize (Fullscreen) Button ---- */
+    .btn-maximize {
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      color: var(--accent-cyan);
+      cursor: pointer;
+      font-size: 0.72rem;
+      padding: 3px 9px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      transition: all 0.2s ease;
+      line-height: 1.4;
+    }
+    .btn-maximize:hover {
+      background: rgba(0, 229, 255, 0.25);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 8px rgba(0,229,255,0.3);
+    }
+
+    /* ---- DXF Layer Toggle Items ---- */
+    .layer-toggle-item {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 4px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .layer-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+    .layer-area-stats {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-left: 22px;
+      line-height: 1.2;
+    }
+    .layer-toggle-item:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .layer-toggle-item input[type="checkbox"] {
+      accent-color: var(--accent-cyan);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+    .layer-toggle-item.layer-active {
+      border-color: rgba(0, 229, 255, 0.4);
+      background: rgba(0, 229, 255, 0.08);
+    }
+    .layer-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ---- GeoTIFF Fullscreen Overlay ---- */
+    .geotiff-fullscreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #07090e;
+      flex-direction: column;
+    }
+    .geotiff-fullscreen.visible {
+      display: flex;
+    }
+    .geotiff-fullscreen-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 18px;
+      background: rgba(11, 16, 28, 0.98);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      backdrop-filter: blur(8px);
+      flex-shrink: 0;
+    }
+    .geotiff-fullscreen-canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      cursor: grab;
+    }
+    .geotiff-fullscreen-canvas-wrap:active {
+      cursor: grabbing;
+    }
+    #geotiff-fs-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .btn-fs-close {
+      background: rgba(255, 23, 68, 0.15);
+      border: 1px solid rgba(255, 23, 68, 0.45);
+      color: #ff5370;
+      cursor: pointer;
+      padding: 5px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn-fs-close:hover {
+      background: rgba(255, 23, 68, 0.3);
+      border-color: #ff5370;
+      box-shadow: 0 0 8px rgba(255,23,68,0.3);
+    }
+    #fs-opacity-slider {
+      -webkit-appearance: none;
+      height: 3px;
+      border-radius: 3px;
+      background: linear-gradient(to right, var(--accent-cyan) 70%, rgba(255,255,255,0.15) 70%);
+      outline: none;
+      cursor: pointer;
+    }
+    #fs-opacity-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+    }
+    .panel-card.collapsed > *:not(.panel-header) {
+      display: none !important;
+    }
+    .panel-card.collapsed {
+      gap: 0 !important;
+      flex: 0 0 auto !important;
+      min-height: 0 !important;
+    }
+    .panel-card.collapsed .btn-panel-toggle,
+    .table-section.collapsed .btn-panel-toggle {
+      transform: rotate(-90deg);
+    }
+    .table-section.collapsed > *:not(.panel-header) {
+      display: none !important;
+    }
+    .table-section.collapsed {
+      flex: 0 0 auto !important;
+    }
+
+    .badge-rmse {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.12);
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 229, 255, 0.3);
+    }
+
+    .rmse-subtitle { font-size: 0.72rem; color: var(--text-muted); }
+
+    /* Algorithm Comparison Panel */
+    .algo-compare-list { display: flex; flex-direction: column; gap: 7px; }
+
+    .algo-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: rgba(0,0,0,0.25);
+      transition: border-color 0.25s, background 0.25s;
+      cursor: pointer;
+    }
+    .algo-row:hover { background: rgba(255,255,255,0.04); }
+    .algo-row.algo-active {
+      border-color: rgba(0, 229, 255, 0.6);
+      background: rgba(0, 229, 255, 0.07);
+    }
+    .algo-row.algo-best {
+      border-color: rgba(0, 230, 118, 0.7);
+      background: rgba(0, 230, 118, 0.08);
+    }
+    .algo-row.algo-best.algo-active {
+      border-color: rgba(0, 230, 118, 0.9);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+    }
+
+    .algo-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .algo-name { font-size: 0.78rem; font-weight: 600; color: var(--text-main); }
+    .algo-badges { display: flex; align-items: center; gap: 5px; }
+
+    .badge-rank {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      color: var(--text-muted);
+    }
+    .badge-rank.rank-1 { background: rgba(0,230,118,0.25); color: #00e676; }
+    .badge-rank.rank-2 { background: rgba(255,214,0,0.2); color: #ffd600; }
+    .badge-rank.rank-3 { background: rgba(255,145,0,0.2); color: #ff9100; }
+    .badge-rank.rank-4 { background: rgba(255,23,68,0.2); color: #ff1744; }
+
+    .badge-best {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 8px;
+      background: rgba(0,230,118,0.3);
+      color: #00e676;
+      border: 1px solid rgba(0,230,118,0.5);
+      letter-spacing: 0.04em;
+    }
+    .badge-active-tag {
+      font-size: 0.65rem;
+      padding: 1px 6px;
+      border-radius: 8px;
+      background: rgba(0,229,255,0.2);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(0,229,255,0.4);
+    }
+
+    .algo-rmse-val { font-size: 0.78rem; font-weight: 700; color: var(--text-main); }
+
+    .algo-bar-track {
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.07);
+      overflow: hidden;
+    }
+    .algo-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .algo-mins-label { font-size: 0.68rem; color: var(--text-muted); }
+
+    .compare-note {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 4px 0 0;
+    }
+
+    /* Anchor Table */
+    .table-wrapper {
+      flex: 1;
+      max-height: 380px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+    }
+
+    .anchor-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+
+    .anchor-table th {
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--accent-cyan);
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .anchor-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .anchor-badge {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 18px;
+      font-weight: bold;
+      font-size: 0.7rem;
+      color: #000;
+    }
+
+    .btn-del-anchor {
+      background: rgba(255, 23, 68, 0.2);
+      border: 1px solid rgba(255, 23, 68, 0.4);
+      color: var(--accent-red);
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.7rem;
+    }
+    .btn-del-anchor:hover { background: var(--accent-red); color: #fff; }
+
+    /* Info Card */
+    .info-card h4 { font-size: 0.82rem; color: var(--accent-cyan); }
+    .info-card ol { padding-left: 16px; font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* GeoTIFF Controls */
+    .btn-tiff {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: var(--radius-sm);
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      background: rgba(0,229,255,0.12); color: var(--accent-cyan);
+      border: 1px solid rgba(0,229,255,0.3); transition: opacity 0.18s;
+    }
+    .btn-tiff:hover { opacity: 0.8; }
+    .geotiff-panel { display: flex; flex-direction: column; gap: 10px; }
+    .geotiff-row {
+      background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm); padding: 8px 10px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .geotiff-row-header { display: flex; align-items: center; justify-content: space-between; }
+    .geotiff-row-label { font-size: 0.75rem; font-weight: 600; }
+    .geotiff-status {
+      font-size: 0.66rem; padding: 1px 7px; border-radius: 8px;
+      background: rgba(255,255,255,0.08); color: var(--text-muted);
+      max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .geotiff-status.ok { background: rgba(0,230,118,0.18); color: #00e676; }
+    .opacity-row { display: flex; align-items: center; gap: 8px; }
+    .opacity-row label { font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0; }
+    .opacity-slider {
+      flex: 1; -webkit-appearance: none; height: 4px;
+      border-radius: 2px; background: rgba(255,255,255,0.12); outline: none;
+    }
+    .opacity-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 13px; height: 13px;
+      border-radius: 50%; background: var(--accent-cyan); cursor: pointer;
+    }
+    .opacity-val { font-size: 0.68rem; color: var(--accent-cyan); font-family: monospace; min-width: 32px; text-align: right; }
+    .geotiff-note { font-size: 0.67rem; color: var(--text-muted); line-height: 1.4; }
+
+    /* Tool Mode Bar & Fit Buttons */
+    .tool-mode-group {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+    }
+    .mode-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .mode-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .mode-btn.active {
+      background: rgba(0, 229, 255, 0.18);
+      color: var(--accent-cyan);
+      border-color: rgba(0, 229, 255, 0.4);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+    }
+    .btn-fit-view {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-fit-view:hover {
+      background: rgba(0, 229, 255, 0.2);
+      color: var(--accent-cyan);
+      border-color: rgba(0, 229, 255, 0.4);
+    }
+
+    /* Footer Status Bar */
+    .app-footer {
+      height: 30px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      z-index: 100;
+    }
+    .status-bar { color: var(--accent-cyan); }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header Controls -->
+    <header class="app-header">
+      <div class="logo-group">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div>
+          <h1>DXF Georectifier</h1>
+          <p class="subtitle">Rubber-Sheeting & Vector Georectification</p>
+        </div>
+      </div>
+
+      <!-- File Loaders -->
+      <div class="header-inputs">
+        <label for="geotiff-input" class="btn-tiff" title="Load Shared GeoTIFF Background for All Canvases">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          🗺️ GeoTIFF
+        </label>
+        <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff">
+
+        <label for="hist1-dxf-input" class="btn btn-secondary" title="Load Historical Map 1 DXF">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Hist 1 DXF
+        </label>
+        <input type="file" id="hist1-dxf-input" accept=".dxf">
+
+        <label for="hist2-dxf-input" class="btn btn-secondary" title="Load Historical Map 2 DXF">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Hist 2 DXF
+        </label>
+        <input type="file" id="hist2-dxf-input" accept=".dxf">
+
+        <label for="true-dxf-input" class="btn btn-primary" title="Load True Ground-Truth Field Survey DXF">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          True DXF
+        </label>
+        <input type="file" id="true-dxf-input" accept=".dxf">
+      </div>
+
+      <!-- Tool Mode Selector (Pan vs Anchor) -->
+      <div class="tool-mode-group">
+        <button class="mode-btn active" id="btn-mode-pan" title="Move & Pan Map Display [Hotkey: P]">
+          🖐️ Pan Mode
+        </button>
+        <button class="mode-btn" id="btn-mode-anchor" title="Place Anchor Control Points [Hotkey: A]">
+          🎯 Anchor Mode
+        </button>
+      </div>
+
+      <!-- Algorithm Selector Dropdown -->
+      <div class="algorithm-selector-group">
+        <label for="algorithm-select">Algorithm:</label>
+        <select id="algorithm-select" class="select-dropdown">
+          <option value="TPS" selected>Thin Plate Spline (TPS Rubber-Sheeting)</option>
+          <option value="AFFINE">Affine Transformation (6-Param)</option>
+          <option value="SIMILARITY">Helmert Similarity (Rigid Scale + Rotate)</option>
+          <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+        </select>
+      </div>
+
+      <!-- Export Action -->
+      <div class="header-actions">
+        <button id="btn-export-dxf" class="btn btn-success">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export Rectified DXF
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-workspace">
+      <!-- Split Canvases Area -->
+      <div class="split-viewport-area">
+        <!-- Left Window: Historical Map 1 -->
+        <div class="viewport-card">
+          <div class="viewport-header">
+            <span class="view-title historical-title">📜 Hist 1 (Source)</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="btn-fit-view" id="btn-fit-hist1" title="Fit & Center Display">🎯 Center</button>
+              <span id="hist1-status" class="view-badge">No DXF</span>
+            </div>
+          </div>
+          <div class="canvas-container" id="hist1-container">
+            <canvas id="hist1-canvas"></canvas>
+          </div>
+          <div class="viewport-hint" id="hist1-hint">🖐️ Pan. 🎯 Anchor Mode.</div>
+        </div>
+
+        <!-- Middle Window: Historical Map 2 -->
+        <div class="viewport-card">
+          <div class="viewport-header">
+            <span class="view-title historical-title" style="color:var(--accent-red)">📜 Hist 2 (Source)</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="btn-fit-view" id="btn-fit-hist2" title="Fit & Center Display">🎯 Center</button>
+              <span id="hist2-status" class="view-badge">No DXF</span>
+            </div>
+          </div>
+          <div class="canvas-container" id="hist2-container">
+            <canvas id="hist2-canvas"></canvas>
+          </div>
+          <div class="viewport-hint" id="hist2-hint">🖐️ Pan. 🎯 Anchor Mode.</div>
+        </div>
+
+        <!-- Right Window: True Field Survey DXF + Live Transformed Overlay -->
+        <div class="viewport-card">
+          <div class="viewport-header">
+            <span class="view-title true-title">📍 True Field Survey (Target)</span>
+            <div class="view-controls">
+              <button class="btn-fit-view" id="btn-fit-true" title="Fit & Center Display">🎯 Center View</button>
+              <label class="toggle-overlay"><input type="checkbox" id="chk-show-overlay" checked> Live Warped Overlay</label>
+              <span id="true-status" class="view-badge">No DXF file</span>
+            </div>
+          </div>
+          <div class="canvas-container" id="true-container">
+            <canvas id="true-canvas"></canvas>
+          </div>
+          <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to move map display. Click '🎯 Anchor Mode' to drop points.</div>
+        </div>
+      </div>
+
+      <!-- Sidebar: Anchors & Transformation Analytics -->
+      <aside class="sidebar">
+        <!-- Transformation Accuracy & Analytics Card -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>Alignment Accuracy</h3>
+            <button class="btn-panel-toggle" title="Toggle Alignment Accuracy Panel">▼</button>
+          </div>
+          <div style="display:flex; gap:10px; justify-content:space-between;">
+            <span id="rmse1-display" class="badge-rmse" style="color:var(--accent-purple); border-color:var(--accent-purple);">H1 RMSE: 0.00</span>
+            <span id="rmse2-display" class="badge-rmse" style="color:var(--accent-red); border-color:var(--accent-red);">H2 RMSE: 0.00</span>
+          </div>
+        </section>
+
+        <!-- Algorithm Comparison Scoreboard -->
+        <section class="panel-card" id="algo-compare-card">
+          <div class="panel-header">
+            <h3>🏆 Algorithm Comparison</h3>
+            <button class="btn-panel-toggle" title="Toggle Algorithm Comparison Panel">▼</button>
+          </div>
+          <div class="algo-compare-list" id="algo-compare-list">
+            <p class="compare-note">Add ≥ 3 anchor pairs to compare algorithms.</p>
+          </div>
+          <p class="compare-note">Click any row to switch to that algorithm.</p>
+        </section>
+
+        <!-- Anchor Pairs Manager -->
+        <section class="panel-card flex-grow" style="display:flex; flex-direction:column; gap:10px; flex:1; min-height:220px; overflow:hidden;">
+          <div class="panel-header">
+            <h3>🎯 Anchor Control Points</h3>
+            <button class="btn-panel-toggle" title="Toggle Anchor Control Points Card">▼</button>
+          </div>
+
+          <div class="table-section" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+            <div class="panel-header">
+              <h3 style="color:var(--accent-purple)">Hist 1 Anchors</h3>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button id="btn-clear-anchors1" class="btn-sm btn-secondary">Clear H1</button>
+                <button class="btn-panel-toggle" title="Toggle Hist 1 Table">▼</button>
+              </div>
+            </div>
+            <div class="table-wrapper" style="flex:1; overflow-y:auto; margin-top:4px;">
+              <table class="anchor-table">
+                <thead><tr><th>#</th><th>H1 (X, Y)</th><th>True (X, Y)</th><th>Err</th><th>X</th></tr></thead>
+                <tbody id="anchor-table-body1"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="table-section" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+            <div class="panel-header" style="margin-top:6px;">
+              <h3 style="color:var(--accent-red)">Hist 2 Anchors</h3>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button id="btn-clear-anchors2" class="btn-sm btn-secondary">Clear H2</button>
+                <button class="btn-panel-toggle" title="Toggle Hist 2 Table">▼</button>
+              </div>
+            </div>
+            <div class="table-wrapper" style="flex:1; overflow-y:auto; margin-top:4px;">
+              <table class="anchor-table">
+                <thead><tr><th>#</th><th>H2 (X, Y)</th><th>True (X, Y)</th><th>Err</th><th>X</th></tr></thead>
+                <tbody id="anchor-table-body2"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- GeoTIFF Background Card -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>🗺️ GeoTIFF Background</h3>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span class="geotiff-status" id="geotiff-status">No image loaded</span>
+              <button id="btn-geotiff-fullscreen" class="btn-maximize" title="Open GeoTIFF Fullscreen View">⛶ Maximize</button>
+              <button class="btn-panel-toggle" title="Toggle GeoTIFF Panel">▼</button>
+            </div>
+          </div>
+          <div class="geotiff-panel">
+            <div class="opacity-row">
+              <label>Opacity</label>
+              <input type="range" class="opacity-slider" id="geotiff-opacity" min="0" max="100" value="70">
+              <span class="opacity-val" id="geotiff-opacity-val">70%</span>
+            </div>
+            <p class="geotiff-note">The loaded GeoTIFF is displayed as the shared background in all windows. Use Maximize to open a dedicated full-screen view.</p>
+          </div>
+        </section>
+
+        <!-- DXF Layers in GeoTIFF View Card -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>🗂️ DXF Layers in GeoTIFF View</h3>
+            <button class="btn-panel-toggle" title="Toggle DXF Layers Panel">▼</button>
+          </div>
+          <p style="font-size:0.7rem; color:var(--text-muted); margin:0;">Toggle which DXF vectors are displayed in the fullscreen GeoTIFF view.</p>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:2px;">
+            <label class="layer-toggle-item" id="layer-item-hist1">
+              <div class="layer-title-row">
+                <input type="checkbox" id="chk-layer-hist1">
+                <span class="layer-dot" style="background:#d500f9;"></span>
+                <span>Hist 1 (Purple)</span>
+              </div>
+              <div class="layer-area-stats" id="area-stats-hist1">Area: --</div>
+            </label>
+            <label class="layer-toggle-item" id="layer-item-hist2">
+              <div class="layer-title-row">
+                <input type="checkbox" id="chk-layer-hist2">
+                <span class="layer-dot" style="background:#ff1744;"></span>
+                <span>Hist 2 (Red)</span>
+              </div>
+              <div class="layer-area-stats" id="area-stats-hist2">Area: --</div>
+            </label>
+            <label class="layer-toggle-item" id="layer-item-true">
+              <div class="layer-title-row">
+                <input type="checkbox" id="chk-layer-true">
+                <span class="layer-dot" style="background:#00e676;"></span>
+                <span>True Field (Green)</span>
+              </div>
+              <div class="layer-area-stats" id="area-stats-true">Area: --</div>
+            </label>
+          </div>
+        </section>
+
+        <!-- Instructions Card -->
+        <section class="panel-card info-card">
+          <div class="panel-header">
+            <h4>How to Georectify</h4>
+            <button class="btn-panel-toggle" title="Toggle Instructions Panel">▼</button>
+          </div>
+          <ol>
+            <li>Click <strong>🗺️ Load GeoTIFF Background</strong> to display your satellite/aerial image.</li>
+            <li>Load your <strong>Historical DXF</strong> (left) and <strong>True Field DXF</strong> (right) vectors.</li>
+            <li><strong>Click a landmark</strong> on the Historical Map to place a Source Anchor.</li>
+            <li><strong>Click the matching point</strong> on the True Survey Map to complete the pair.</li>
+            <li>Add 3+ pairs to activate real-time rubber-sheeting!</li>
+            <li>Click <strong>Export Rectified DXF</strong> when satisfied!</li>
+          </ol>
+        </section>
+      </aside>
+    </main>
+
+    <!-- Footer Status Bar -->
+    <footer class="app-footer">
+      <div id="status-bar" class="status-bar">Ready • Click a point on the Historical Map to begin pairing anchors.</div>
+      <div id="coords-bar" class="coords-bar">Hist: (0, 0) • True: (0, 0)</div>
+    </footer>
+  </div>
+
+  <!-- GeoTIFF Fullscreen Overlay -->
+  <div class="geotiff-fullscreen" id="geotiff-fullscreen-overlay">
+    <div class="geotiff-fullscreen-header">
+      <span style="font-size:0.92rem;font-weight:700;color:var(--text-main);">🗺️ GeoTIFF — Full View</span>
+      <div style="display:flex;gap:14px;align-items:center;">
+        <span style="font-size:0.75rem;color:var(--text-muted);">DXF Layers:</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;">
+          <input type="checkbox" id="chk-fs-hist1">
+          <span class="layer-dot" style="background:#d500f9;"></span>
+          <span style="color:#d500f9;font-weight:600;">Hist 1</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;">
+          <input type="checkbox" id="chk-fs-hist2">
+          <span class="layer-dot" style="background:#ff1744;"></span>
+          <span style="color:#ff1744;font-weight:600;">Hist 2</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;">
+          <input type="checkbox" id="chk-fs-true">
+          <span class="layer-dot" style="background:#00e676;"></span>
+          <span style="color:#00e676;font-weight:600;">True Field</span>
+        </label>
+        <div style="width:1px;height:20px;background:var(--border-color);"></div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;cursor:pointer;">
+          <span style="color:var(--text-muted);">Opacity</span>
+          <input type="range" id="fs-opacity-slider" min="0" max="100" value="70" style="width:80px;">
+          <span id="fs-opacity-val" style="color:var(--text-muted);min-width:30px;">70%</span>
+        </label>
+      </div>
+      <button class="btn-fs-close" id="btn-geotiff-fs-close">✕ Close  <kbd style="font-size:0.65rem;opacity:0.6;">Esc</kbd></button>
+    </div>
+    <div class="geotiff-fullscreen-canvas-wrap" id="geotiff-fs-wrap">
+      <canvas id="geotiff-fs-canvas"></canvas>
+    </div>
+  </div>
+
+  <script>
+/* ==========================================================================
+   DXF GEORECTIFIER V1 - MULTI-MAP RECTIFICATION ENGINE
+   ========================================================================== */
+
+/* 1. DXF PARSER & SERIALIZER */
+class DXFParser {
+  static parse(dxfText) {
+    if (!dxfText) return [];
+    const lines = dxfText.split(/\r?\n/);
+    const entities = [];
+    let currentEntity = null;
+    let i = 0;
+    while (i < lines.length - 1) {
+      const code = parseInt(lines[i].trim(), 10);
+      const val = lines[i + 1].trim();
+      i += 2;
+      if (isNaN(code)) continue;
+
+      if (code === 0) {
+        const uVal = val.toUpperCase();
+        if (uVal === "VERTEX") {
+          let vx = 0, vy = 0;
+          while (i < lines.length - 1) {
+            const vCode = parseInt(lines[i].trim(), 10);
+            const vVal = lines[i + 1].trim();
+            if (vCode === 0) break;
+            i += 2;
+            if (vCode === 10) vx = parseFloat(vVal);
+            if (vCode === 20) vy = parseFloat(vVal);
+          }
+          if (currentEntity && (currentEntity.type === "POLYLINE" || currentEntity.type === "LWPOLYLINE")) {
+            currentEntity.points.push({ x: vx, y: vy });
+          }
+          continue;
+        }
+
+        if (uVal === "SEQEND") {
+          if (currentEntity) {
+            DXFParser.finalizeEntity(currentEntity);
+            if (currentEntity.points.length >= 1) entities.push(currentEntity);
+            currentEntity = null;
+          }
+          continue;
+        }
+
+        if (currentEntity) {
+          DXFParser.finalizeEntity(currentEntity);
+          if (currentEntity.points.length >= 1) entities.push(currentEntity);
+          currentEntity = null;
+        }
+
+        if (["POLYLINE", "LWPOLYLINE", "LINE", "ARC", "CIRCLE"].includes(uVal)) {
+          currentEntity = { type: uVal, layer: "0", closed: uVal === "CIRCLE", points: [], cx: 0, cy: 0, r: 0, startAngle: 0, endAngle: 360 };
+        }
+        continue;
+      }
+
+      if (!currentEntity) continue;
+      if (code === 8) currentEntity.layer = val;
+      if (code === 70) currentEntity.closed = (parseInt(val, 10) & 1) !== 0;
+      if (code === 10) {
+        const x = parseFloat(val);
+        let y = 0;
+        if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 20) {
+          y = parseFloat(lines[i + 1].trim());
+          i += 2;
+        }
+        if (currentEntity.type === "ARC" || currentEntity.type === "CIRCLE") {
+          currentEntity.cx = x; currentEntity.cy = y;
+        } else {
+          currentEntity.points.push({ x, y });
+        }
+      }
+      if (code === 11) {
+        const x = parseFloat(val);
+        let y = 0;
+        if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 21) {
+          y = parseFloat(lines[i + 1].trim());
+          i += 2;
+        }
+        currentEntity.points.push({ x, y });
+      }
+      if (code === 40) currentEntity.r = parseFloat(val);
+      if (code === 50) currentEntity.startAngle = parseFloat(val);
+      if (code === 51) currentEntity.endAngle = parseFloat(val);
+    }
+    if (currentEntity) {
+      DXFParser.finalizeEntity(currentEntity);
+      if (currentEntity.points.length >= 1) entities.push(currentEntity);
+    }
+    return entities;
+  }
+
+  static finalizeEntity(entity) {
+    if (entity.type === "CIRCLE") {
+      const numSegments = 36;
+      for (let j = 0; j < numSegments; j++) {
+        const theta = (j / numSegments) * Math.PI * 2;
+        entity.points.push({ x: entity.cx + entity.r * Math.cos(theta), y: entity.cy + entity.r * Math.sin(theta) });
+      }
+    } else if (entity.type === "ARC") {
+      let startRad = entity.startAngle * Math.PI / 180;
+      let endRad = entity.endAngle * Math.PI / 180;
+      if (endRad < startRad) endRad += Math.PI * 2;
+      const numSegments = 18;
+      for (let j = 0; j <= numSegments; j++) {
+        const theta = startRad + (j / numSegments) * (endRad - startRad);
+        entity.points.push({ x: entity.cx + entity.r * Math.cos(theta), y: entity.cy + entity.r * Math.sin(theta) });
+      }
+    }
+  }
+
+  static serialize(entities) {
+    let dxf = "0\nSECTION\n2\nENTITIES\n";
+    entities.forEach((ent) => {
+      if (!ent.points || ent.points.length < 2) return;
+      const layer = (ent.layer || "RECTIFIED").replace(/[^a-zA-Z0-9_-]/g, "_");
+      const isClosed = ent.closed ? 1 : 0;
+      dxf += `0\nPOLYLINE\n8\n${layer}\n66\n1\n70\n${isClosed}\n`;
+      ent.points.forEach((pt) => { dxf += `0\nVERTEX\n8\n${layer}\n10\n${pt.x.toFixed(4)}\n20\n${pt.y.toFixed(4)}\n30\n0.0\n`; });
+      dxf += "0\nSEQEND\n";
+    });
+    dxf += "0\nENDSEC\n0\nEOF\n";
+    return dxf;
+  }
+}
+
+/* 2. TRANSFORMATION MATH ENGINE */
+class TransformMath {
+  static tpsKernel(r) { return (r <= 1e-9) ? 0 : r * r * Math.log(r); }
+
+  static solveLinearSystem(A, b) {
+    const n = A.length;
+    const M = A.map((row, i) => [...row, b[i]]);
+    for (let i = 0; i < n; i++) {
+      let maxRow = i;
+      for (let k = i + 1; k < n; k++) if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) maxRow = k;
+      const temp = M[i]; M[i] = M[maxRow]; M[maxRow] = temp;
+      if (Math.abs(M[i][i]) < 1e-12) throw new Error("Matrix singular");
+      for (let k = i + 1; k < n; k++) {
+        const factor = M[k][i] / M[i][i];
+        for (let j = i; j <= n; j++) M[k][j] -= factor * M[i][j];
+      }
+    }
+    const x = new Array(n).fill(0);
+    for (let i = n - 1; i >= 0; i--) {
+      let sum = M[i][n];
+      for (let j = i + 1; j < n; j++) sum -= M[i][j] * x[j];
+      x[i] = sum / M[i][i];
+    }
+    return x;
+  }
+
+  static buildTPSWarper(anchors) {
+    const N = anchors.length;
+    if (N < 3) throw new Error("TPS requires >= 3 anchor pairs.");
+    const sysSize = N + 3;
+    const K = Array.from({ length: sysSize }, () => new Array(sysSize).fill(0));
+    const bx = new Array(sysSize).fill(0), by = new Array(sysSize).fill(0);
+    for (let i = 0; i < N; i++) {
+      bx[i] = anchors[i].dst.x; by[i] = anchors[i].dst.y;
+      for (let j = 0; j < N; j++) {
+        if (i !== j) K[i][j] = TransformMath.tpsKernel(Math.hypot(anchors[i].src.x - anchors[j].src.x, anchors[i].src.y - anchors[j].src.y));
+      }
+      K[i][N] = 1; K[i][N + 1] = anchors[i].src.x; K[i][N + 2] = anchors[i].src.y;
+      K[N][i] = 1; K[N + 1][i] = anchors[i].src.x; K[N + 2][i] = anchors[i].src.y;
+    }
+    const solX = TransformMath.solveLinearSystem(K, bx);
+    const solY = TransformMath.solveLinearSystem(K, by);
+    return (pt) => {
+      let xWarp = solX[N] + solX[N + 1] * pt.x + solX[N + 2] * pt.y;
+      let yWarp = solY[N] + solY[N + 1] * pt.x + solY[N + 2] * pt.y;
+      for (let i = 0; i < N; i++) {
+        const U = TransformMath.tpsKernel(Math.hypot(pt.x - anchors[i].src.x, pt.y - anchors[i].src.y));
+        xWarp += solX[i] * U; yWarp += solY[i] * U;
+      }
+      return { x: xWarp, y: yWarp };
+    };
+  }
+
+  static buildAffineWarper(anchors) {
+    const AtA = Array.from({ length: 3 }, () => new Array(3).fill(0));
+    const AtBx = new Array(3).fill(0), AtBy = new Array(3).fill(0);
+    anchors.forEach(a => {
+      const row = [a.src.x, a.src.y, 1];
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) AtA[i][j] += row[i] * row[j];
+        AtBx[i] += row[i] * a.dst.x; AtBy[i] += row[i] * a.dst.y;
+      }
+    });
+    const cX = TransformMath.solveLinearSystem(AtA, AtBx), cY = TransformMath.solveLinearSystem(AtA, AtBy);
+    return (pt) => ({ x: cX[0] * pt.x + cX[1] * pt.y + cX[2], y: cY[0] * pt.x + cY[1] * pt.y + cY[2] });
+  }
+
+  static buildSimilarityWarper(anchors) {
+    const A = Array.from({ length: 4 }, () => new Array(4).fill(0));
+    const B = new Array(4).fill(0);
+    anchors.forEach(anc => {
+      const x = anc.src.x, y = anc.src.y, x_ = anc.dst.x, y_ = anc.dst.y;
+      const rows = [[x, -y, 1, 0], [y, x, 0, 1]], targets = [x_, y_];
+      for (let r = 0; r < 2; r++) {
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) A[i][j] += rows[r][i] * rows[r][j];
+          B[i] += rows[r][i] * targets[r];
+        }
+      }
+    });
+    const c = TransformMath.solveLinearSystem(A, B);
+    return (pt) => ({ x: c[0] * pt.x - c[1] * pt.y + c[2], y: c[1] * pt.x + c[0] * pt.y + c[3] });
+  }
+
+  static buildProjectiveWarper(anchors) {
+    const A = Array.from({ length: 8 }, () => new Array(8).fill(0));
+    const B = new Array(8).fill(0);
+    anchors.forEach(anc => {
+      const x = anc.src.x, y = anc.src.y, x_ = anc.dst.x, y_ = anc.dst.y;
+      const rows = [[x, y, 1, 0, 0, 0, -x * x_, -y * x_], [0, 0, 0, x, y, 1, -x * y_, -y * y_]];
+      const targets = [x_, y_];
+      for (let r = 0; r < 2; r++) {
+        for (let i = 0; i < 8; i++) {
+          for (let j = 0; j < 8; j++) A[i][j] += rows[r][i] * rows[r][j];
+          B[i] += rows[r][i] * targets[r];
+        }
+      }
+    });
+    const h = TransformMath.solveLinearSystem(A, B);
+    return (pt) => {
+      const denom = h[6] * pt.x + h[7] * pt.y + 1;
+      return { x: (h[0] * pt.x + h[1] * pt.y + h[2]) / denom, y: (h[3] * pt.x + h[4] * pt.y + h[5]) / denom };
+    };
+  }
+
+  static createWarper(algorithm, anchors) {
+    if (!anchors || anchors.length === 0) return (pt) => ({ ...pt });
+    switch (algorithm) {
+      case "TPS": return anchors.length >= 3 ? TransformMath.buildTPSWarper(anchors) : TransformMath.buildSimilarityWarper(anchors);
+      case "AFFINE": return anchors.length >= 3 ? TransformMath.buildAffineWarper(anchors) : TransformMath.buildSimilarityWarper(anchors);
+      case "PROJECTIVE": return anchors.length >= 4 ? TransformMath.buildProjectiveWarper(anchors) : (anchors.length >= 3 ? TransformMath.buildAffineWarper(anchors) : TransformMath.buildSimilarityWarper(anchors));
+      case "SIMILARITY":
+      default: return TransformMath.buildSimilarityWarper(anchors);
+    }
+  }
+
+  static computeRMSE(warper, anchors) {
+    if (!anchors || anchors.length === 0) return { totalRMSE: 0, residuals: [] };
+    let sumSqErr = 0;
+    const residuals = anchors.map((anc) => {
+      const warped = warper(anc.src);
+      const err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y);
+      sumSqErr += err * err;
+      return err;
+    });
+    return { totalRMSE: Math.sqrt(sumSqErr / anchors.length), residuals };
+  }
+}
+
+/* 3. APPLICATION STATE & CONTROLLER */
+const state = {
+  hist1Entities: [],
+  hist2Entities: [],
+  trueEntities: [],
+  anchors1: [],
+  anchors2: [],
+  pendingSource: null, // { x, y, origin: 'hist1' | 'hist2' }
+  algorithm: "TPS",
+  toolMode: "pan",
+  showOverlay: true,
+  hist1Viewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+  hist2Viewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+  trueViewport:  { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+  geoTiff: null,
+  geoTiffOpacity: 0.7,
+  layerVisibility: { hist1: true, hist2: true, true: true },
+  fsViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null }
+};
+
+const anchorColors = ["#ff1744", "#00e676", "#00e5ff", "#ff9100", "#d500f9", "#ffff00", "#76ff03", "#f50057"];
+
+// DOM Elements
+const hist1Canvas = document.getElementById("hist1-canvas");
+const hist1Ctx    = hist1Canvas.getContext("2d");
+const hist2Canvas = document.getElementById("hist2-canvas");
+const hist2Ctx    = hist2Canvas.getContext("2d");
+const trueCanvas  = document.getElementById("true-canvas");
+const trueCtx     = trueCanvas.getContext("2d");
+
+const hist1Input   = document.getElementById("hist1-dxf-input");
+const hist2Input   = document.getElementById("hist2-dxf-input");
+const trueInput    = document.getElementById("true-dxf-input");
+const algorithmSelect = document.getElementById("algorithm-select");
+const btnExportDxf = document.getElementById("btn-export-dxf");
+const btnClearAnchors1 = document.getElementById("btn-clear-anchors1");
+const btnClearAnchors2 = document.getElementById("btn-clear-anchors2");
+const hist1Status  = document.getElementById("hist1-status");
+const hist2Status  = document.getElementById("hist2-status");
+const trueStatus   = document.getElementById("true-status");
+const rmse1Display = document.getElementById("rmse1-display");
+const rmse2Display = document.getElementById("rmse2-display");
+const anchorTableBody1 = document.getElementById("anchor-table-body1");
+const anchorTableBody2 = document.getElementById("anchor-table-body2");
+const chkShowOverlay   = document.getElementById("chk-show-overlay");
+const statusBar    = document.getElementById("status-bar");
+const coordsBar    = document.getElementById("coords-bar");
+
+const fsOverlay      = document.getElementById("geotiff-fullscreen-overlay");
+const fsCanvas       = document.getElementById("geotiff-fs-canvas");
+const fsCtx          = fsCanvas ? fsCanvas.getContext("2d") : null;
+const btnFsClose     = document.getElementById("btn-geotiff-fs-close");
+const btnFsMaximize  = document.getElementById("btn-geotiff-fullscreen");
+
+const chkLayerHist1  = document.getElementById("chk-layer-hist1");
+const chkLayerHist2  = document.getElementById("chk-layer-hist2");
+const chkLayerTrue   = document.getElementById("chk-layer-true");
+const chkFsHist1     = document.getElementById("chk-fs-hist1");
+const chkFsHist2     = document.getElementById("chk-fs-hist2");
+const chkFsTrue      = document.getElementById("chk-fs-true");
+const fsOpacitySlider= document.getElementById("fs-opacity-slider");
+const fsOpacityVal   = document.getElementById("fs-opacity-val");
+
+function updateStatus(msg) {
+  if (statusBar) statusBar.textContent = msg;
+}
+
+function computeBoundingBox(entities) {
+  const allPoints = [];
+  entities.forEach((ent) => { ent.points.forEach((pt) => { allPoints.push(pt); }); });
+  if (allPoints.length === 0) return { minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 };
+  const nonZeroPoints = allPoints.filter(p => Math.abs(p.x) > 1e-4 || Math.abs(p.y) > 1e-4);
+  const candidates = (nonZeroPoints.length > 0 && nonZeroPoints.length < allPoints.length) ? nonZeroPoints : allPoints;
+  if (candidates.length === 0) return { minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 };
+
+  const xs = candidates.map(p => p.x).sort((a, b) => a - b);
+  const ys = candidates.map(p => p.y).sort((a, b) => a - b);
+  const medianX = xs[Math.floor(xs.length / 2)], medianY = ys[Math.floor(ys.length / 2)];
+  const q1X = xs[Math.floor(xs.length * 0.25)], q3X = xs[Math.floor(xs.length * 0.75)], iqrX = Math.max(q3X - q1X, 1.0);
+  const q1Y = ys[Math.floor(ys.length * 0.25)], q3Y = ys[Math.floor(ys.length * 0.75)], iqrY = Math.max(q3Y - q1Y, 1.0);
+  const thresholdX = 4.5 * iqrX, thresholdY = 4.5 * iqrY;
+  const cleanPoints = candidates.filter(p => Math.abs(p.x - medianX) <= thresholdX && Math.abs(p.y - medianY) <= thresholdY);
+  const finalPoints = cleanPoints.length > 0 ? cleanPoints : candidates;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  finalPoints.forEach((pt) => {
+    if (pt.x < minX) minX = pt.x; if (pt.y < minY) minY = pt.y;
+    if (pt.x > maxX) maxX = pt.x; if (pt.y > maxY) maxY = pt.y;
+  });
+  if (minX === Infinity || minX === maxX) return { minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 };
+  return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+}
+
+function fitViewport(canvas, bbox) {
+  const padding = 40, w = canvas.width - padding * 2, h = canvas.height - padding * 2;
+  const scaleX = w / (bbox.width || 1), scaleY = h / (bbox.height || 1), scale = Math.min(scaleX, scaleY);
+  const offsetX = padding + (w - bbox.width * scale) / 2 - bbox.minX * scale;
+  const offsetY = padding + (h - bbox.height * scale) / 2 - bbox.minY * scale;
+  return { scale, offsetX, offsetY, bbox };
+}
+
+function worldToScreen(pt, viewport, canvasH) {
+  return { x: pt.x * viewport.scale + viewport.offsetX, y: canvasH - (pt.y * viewport.scale + viewport.offsetY) };
+}
+
+function screenToWorld(sx, sy, viewport, canvasH) {
+  return { x: (sx - viewport.offsetX) / viewport.scale, y: (canvasH - sy - viewport.offsetY) / viewport.scale };
+}
+
+function resizeCanvases() {
+  const c1 = document.getElementById("hist1-container");
+  const c2 = document.getElementById("hist2-container");
+  const c3 = document.getElementById("true-container");
+  hist1Canvas.width  = c1.clientWidth  || 300;
+  hist1Canvas.height = c1.clientHeight || 500;
+  hist2Canvas.width  = c2.clientWidth  || 300;
+  hist2Canvas.height = c2.clientHeight || 500;
+  trueCanvas.width   = c3.clientWidth  || 300;
+  trueCanvas.height  = c3.clientHeight || 500;
+
+  if (fsCanvas) {
+    const fsWrap = document.getElementById("geotiff-fs-wrap");
+    if (fsWrap) {
+      fsCanvas.width = fsWrap.clientWidth || 800;
+      fsCanvas.height = fsWrap.clientHeight || 600;
+    }
+  }
+
+  if (!state.hist1Viewport.bbox) {
+    const bbox1 = state.hist1Entities.length > 0 ? computeBoundingBox(state.hist1Entities) : (state.geoTiff ? state.geoTiff.bbox : null);
+    if (bbox1) state.hist1Viewport = fitViewport(hist1Canvas, bbox1);
+  }
+  if (!state.hist2Viewport.bbox) {
+    const bbox2 = state.hist2Entities.length > 0 ? computeBoundingBox(state.hist2Entities) : (state.geoTiff ? state.geoTiff.bbox : null);
+    if (bbox2) state.hist2Viewport = fitViewport(hist2Canvas, bbox2);
+  }
+  if (!state.trueViewport.bbox) {
+    const bboxT = state.trueEntities.length > 0 ? computeBoundingBox(state.trueEntities) : (state.geoTiff ? state.geoTiff.bbox : null);
+    if (bboxT) state.trueViewport = fitViewport(trueCanvas, bboxT);
+  }
+  redrawAll();
+}
+window.addEventListener("resize", resizeCanvases);
+
+function redrawAll() {
+  redrawHist1Canvas();
+  redrawHist2Canvas();
+  redrawTrueCanvas();
+  drawFullscreenCanvas();
+  updateAnalyticsUI();
+}
+
+function drawGrid(ctx, w, h) {
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.04)"; ctx.lineWidth = 1;
+  for (let x = 0; x < w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+}
+
+function drawGeoTiff(ctx, tiff, vp, canvasH, opacity) {
+  if (!tiff || !tiff.offscreen || !vp || !vp.bbox) return;
+  const tl = worldToScreen({ x: tiff.bbox.minX, y: tiff.bbox.maxY }, vp, canvasH);
+  const br = worldToScreen({ x: tiff.bbox.maxX, y: tiff.bbox.minY }, vp, canvasH);
+  const sw = br.x - tl.x, sh = br.y - tl.y;
+  if (sw <= 0 || sh <= 0) return;
+  ctx.save(); ctx.globalAlpha = opacity; ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh); ctx.restore();
+}
+
+function drawSourceCanvas(ctx, canvas, entities, vp, anchors, accentColor, originName) {
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  drawGrid(ctx, w, h);
+  drawGeoTiff(ctx, state.geoTiff, vp, h, state.geoTiffOpacity);
+
+  entities.forEach((ent) => {
+    if (ent.points.length < 2) return;
+    ctx.beginPath();
+    const start = worldToScreen(ent.points[0], vp, h);
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i < ent.points.length; i++) {
+      const p = worldToScreen(ent.points[i], vp, h);
+      ctx.lineTo(p.x, p.y);
+    }
+    if (ent.closed) ctx.closePath();
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  });
+
+  if (state.pendingSource && state.pendingSource.origin === originName) {
+    const sp = worldToScreen(state.pendingSource, vp, h);
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, 10, 0, Math.PI * 2);
+    ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 2.5;
+    ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = "#00e5ff"; ctx.fill();
+  }
+
+  anchors.forEach((anc) => {
+    const sp = worldToScreen(anc.src, vp, h);
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = anc.color; ctx.fill();
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = "#ffffff"; ctx.font = "bold 11px sans-serif";
+    ctx.fillText(`#${anc.id}`, sp.x + 10, sp.y - 6);
+  });
+}
+
+function redrawHist1Canvas() {
+  drawSourceCanvas(hist1Ctx, hist1Canvas, state.hist1Entities, state.hist1Viewport, state.anchors1, "#d500f9", "hist1");
+}
+function redrawHist2Canvas() {
+  drawSourceCanvas(hist2Ctx, hist2Canvas, state.hist2Entities, state.hist2Viewport, state.anchors2, "#ff1744", "hist2");
+}
+
+function redrawTrueCanvas() {
+  const w = trueCanvas.width, h = trueCanvas.height;
+  const vp = state.trueViewport;
+  trueCtx.clearRect(0, 0, w, h);
+  drawGrid(trueCtx, w, h);
+  drawGeoTiff(trueCtx, state.geoTiff, vp, h, state.geoTiffOpacity);
+
+  // Draw True Entities (Green)
+  if (state.layerVisibility.true) {
+    state.trueEntities.forEach((ent) => {
+      if (ent.points.length < 2) return;
+      trueCtx.beginPath();
+      const start = worldToScreen(ent.points[0], vp, h);
+      trueCtx.moveTo(start.x, start.y);
+      for (let i = 1; i < ent.points.length; i++) {
+        const p = worldToScreen(ent.points[i], vp, h);
+        trueCtx.lineTo(p.x, p.y);
+      }
+      if (ent.closed) trueCtx.closePath();
+      trueCtx.strokeStyle = "#00e676"; trueCtx.lineWidth = 2.5; trueCtx.stroke();
+    });
+  }
+
+  // Draw warped Historical 1 overlay (purple)
+  if (state.layerVisibility.hist1 && state.anchors1.length >= 2) {
+    try {
+      const warper1 = TransformMath.createWarper(state.algorithm, state.anchors1);
+      state.hist1Entities.forEach((ent) => {
+        if (ent.points.length < 2) return;
+        trueCtx.beginPath();
+        const start = worldToScreen(warper1(ent.points[0]), vp, h);
+        trueCtx.moveTo(start.x, start.y);
+        for (let i = 1; i < ent.points.length; i++) {
+          const p = worldToScreen(warper1(ent.points[i]), vp, h);
+          trueCtx.lineTo(p.x, p.y);
+        }
+        if (ent.closed) trueCtx.closePath();
+        trueCtx.strokeStyle = "rgba(213, 0, 249, 0.85)"; trueCtx.lineWidth = 1.5; trueCtx.stroke();
+      });
+    } catch (_) {}
+  }
+
+  // Draw warped Historical 2 overlay (red)
+  if (state.layerVisibility.hist2 && state.anchors2.length >= 2) {
+    try {
+      const warper2 = TransformMath.createWarper(state.algorithm, state.anchors2);
+      state.hist2Entities.forEach((ent) => {
+        if (ent.points.length < 2) return;
+        trueCtx.beginPath();
+        const start = worldToScreen(warper2(ent.points[0]), vp, h);
+        trueCtx.moveTo(start.x, start.y);
+        for (let i = 1; i < ent.points.length; i++) {
+          const p = worldToScreen(warper2(ent.points[i]), vp, h);
+          trueCtx.lineTo(p.x, p.y);
+        }
+        if (ent.closed) trueCtx.closePath();
+        trueCtx.strokeStyle = "rgba(255, 23, 68, 0.85)"; trueCtx.lineWidth = 1.5; trueCtx.stroke();
+      });
+    } catch (_) {}
+  }
+
+  // Draw destination anchor dots on true canvas for both sets
+  [...state.anchors1, ...state.anchors2].forEach((anc) => {
+    const tp = worldToScreen(anc.dst, vp, h);
+    trueCtx.beginPath(); trueCtx.arc(tp.x, tp.y, 7, 0, Math.PI * 2);
+    trueCtx.fillStyle = anc.color; trueCtx.fill();
+    trueCtx.strokeStyle = "#ffffff"; trueCtx.lineWidth = 2; trueCtx.stroke();
+    trueCtx.fillStyle = "#ffffff"; trueCtx.font = "bold 11px sans-serif";
+    trueCtx.fillText(`#${anc.id}`, tp.x + 10, tp.y - 6);
+  });
+}
+
+function drawFullscreenCanvas() {
+  if (!fsCanvas || !fsCtx || !fsOverlay.classList.contains("visible")) return;
+  const w = fsCanvas.width, h = fsCanvas.height;
+  const vp = state.fsViewport;
+  fsCtx.clearRect(0, 0, w, h);
+  drawGrid(fsCtx, w, h);
+  drawGeoTiff(fsCtx, state.geoTiff, vp, h, state.geoTiffOpacity);
+
+  // Draw True Entities (Green)
+  if (state.layerVisibility.true) {
+    state.trueEntities.forEach((ent) => {
+      if (ent.points.length < 2) return;
+      fsCtx.beginPath();
+      const start = worldToScreen(ent.points[0], vp, h);
+      fsCtx.moveTo(start.x, start.y);
+      for (let i = 1; i < ent.points.length; i++) {
+        const p = worldToScreen(ent.points[i], vp, h);
+        fsCtx.lineTo(p.x, p.y);
+      }
+      if (ent.closed) fsCtx.closePath();
+      fsCtx.strokeStyle = "#00e676"; fsCtx.lineWidth = 2.5; fsCtx.stroke();
+    });
+  }
+
+  // Draw warped Historical 1 overlay (purple)
+  if (state.layerVisibility.hist1 && state.anchors1.length >= 2) {
+    try {
+      const warper1 = TransformMath.createWarper(state.algorithm, state.anchors1);
+      state.hist1Entities.forEach((ent) => {
+        if (ent.points.length < 2) return;
+        fsCtx.beginPath();
+        const start = worldToScreen(warper1(ent.points[0]), vp, h);
+        fsCtx.moveTo(start.x, start.y);
+        for (let i = 1; i < ent.points.length; i++) {
+          const p = worldToScreen(warper1(ent.points[i]), vp, h);
+          fsCtx.lineTo(p.x, p.y);
+        }
+        if (ent.closed) fsCtx.closePath();
+        fsCtx.strokeStyle = "rgba(213, 0, 249, 0.85)"; fsCtx.lineWidth = 1.5; fsCtx.stroke();
+      });
+    } catch (_) {}
+  }
+
+  // Draw warped Historical 2 overlay (red)
+  if (state.layerVisibility.hist2 && state.anchors2.length >= 2) {
+    try {
+      const warper2 = TransformMath.createWarper(state.algorithm, state.anchors2);
+      state.hist2Entities.forEach((ent) => {
+        if (ent.points.length < 2) return;
+        fsCtx.beginPath();
+        const start = worldToScreen(warper2(ent.points[0]), vp, h);
+        fsCtx.moveTo(start.x, start.y);
+        for (let i = 1; i < ent.points.length; i++) {
+          const p = worldToScreen(warper2(ent.points[i]), vp, h);
+          fsCtx.lineTo(p.x, p.y);
+        }
+        if (ent.closed) fsCtx.closePath();
+        fsCtx.strokeStyle = "rgba(255, 23, 68, 0.85)"; fsCtx.lineWidth = 1.5; fsCtx.stroke();
+      });
+    } catch (_) {}
+  }
+}
+
+function calculatePolygonArea(points) {
+  let area = 0;
+  for (let i = 0; i < points.length; i++) {
+    const j = (i + 1) % points.length;
+    area += points[i].x * points[j].y - points[j].x * points[i].y;
+  }
+  return Math.abs(area) / 2;
+}
+
+function updateAreaStats() {
+  const calcLayerArea = (entities, warper) => {
+    let totalArea = 0;
+    entities.forEach(ent => {
+      if (ent.closed && ent.points.length >= 3) {
+        const polygonPoints = warper ? ent.points.map(p => warper(p)) : ent.points;
+        totalArea += calculatePolygonArea(polygonPoints);
+      }
+    });
+    return totalArea;
+  };
+
+  const formatArea = (areaM2) => {
+    if (areaM2 === 0) return "Area: 0.00 ha (0.00 plazas)";
+    const ha = areaM2 / 10000;
+    const plazas = areaM2 / 6400;
+    return `Area: ${ha.toFixed(2)} ha (${plazas.toFixed(2)} plazas)`;
+  };
+
+  const elHist1 = document.getElementById("area-stats-hist1");
+  const elHist2 = document.getElementById("area-stats-hist2");
+  const elTrue  = document.getElementById("area-stats-true");
+
+  if (elTrue) elTrue.textContent = formatArea(calcLayerArea(state.trueEntities, null));
+
+  let warper1 = null;
+  if (state.anchors1.length >= 2) {
+    try { warper1 = TransformMath.createWarper(state.algorithm, state.anchors1); } catch(_) {}
+  }
+  if (elHist1) elHist1.textContent = formatArea(calcLayerArea(state.hist1Entities, warper1));
+
+  let warper2 = null;
+  if (state.anchors2.length >= 2) {
+    try { warper2 = TransformMath.createWarper(state.algorithm, state.anchors2); } catch(_) {}
+  }
+  if (elHist2) elHist2.textContent = formatArea(calcLayerArea(state.hist2Entities, warper2));
+}
+
+function updateAnalyticsUI() {
+  updateAreaStats();
+  const computeRMSEForSet = (anchors, display, name) => {
+    if (anchors.length >= 2) {
+      try {
+        const w = TransformMath.createWarper(state.algorithm, anchors);
+        const res = TransformMath.computeRMSE(w, anchors);
+        display.textContent = `${name} RMSE: ${res.totalRMSE.toFixed(3)}`;
+        anchors.forEach((a, i) => a.residual = res.residuals[i]);
+      } catch(e) { display.textContent = `${name} RMSE: Error`; }
+    } else {
+      display.textContent = `${name} RMSE: 0.00`;
+      anchors.forEach(a => a.residual = 0);
+    }
+  };
+  computeRMSEForSet(state.anchors1, rmse1Display, "H1");
+  computeRMSEForSet(state.anchors2, rmse2Display, "H2");
+
+  const fillTable = (tbody, anchors, prefix) => {
+    tbody.innerHTML = "";
+    anchors.forEach((anc) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><span class="anchor-badge" style="background:${anc.color}">${anc.id}</span></td>
+        <td>${anc.src.x.toFixed(1)}, ${anc.src.y.toFixed(1)}</td>
+        <td>${anc.dst.x.toFixed(1)}, ${anc.dst.y.toFixed(1)}</td>
+        <td>${(anc.residual || 0).toFixed(2)}</td>
+        <td><button class="btn-del-anchor" onclick="deleteAnchor('${prefix}', ${anc.id})">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  };
+  fillTable(anchorTableBody1, state.anchors1, 'hist1');
+  fillTable(anchorTableBody2, state.anchors2, 'hist2');
+
+  const anchorsForCompare = state.anchors1.length >= 2 ? state.anchors1 : (state.anchors2.length >= 2 ? state.anchors2 : []);
+  const algorithms = [
+    { key: "TPS",         label: "Thin Plate Spline",  minAnchors: 3 },
+    { key: "AFFINE",      label: "Affine",             minAnchors: 3 },
+    { key: "SIMILARITY",  label: "Similarity",         minAnchors: 2 },
+    { key: "PROJECTIVE",  label: "Projective",         minAnchors: 4 }
+  ];
+  let allRmse = {};
+  algorithms.forEach(algo => {
+    if (anchorsForCompare.length >= algo.minAnchors) {
+      try {
+        const w = TransformMath.createWarper(algo.key, anchorsForCompare);
+        allRmse[algo.key] = TransformMath.computeRMSE(w, anchorsForCompare).totalRMSE;
+      } catch(_) { allRmse[algo.key] = null; }
+    } else { allRmse[algo.key] = null; }
+  });
+
+  const algoCompareList = document.getElementById("algo-compare-list");
+  if (!algoCompareList) return;
+  const validAlgos = algorithms.filter(a => allRmse[a.key] !== null);
+  if (validAlgos.length === 0) {
+    algoCompareList.innerHTML = `<p class="compare-note">Add ≥ 3 anchor pairs to compare algorithms.</p>`;
+    return;
+  }
+  const bestKey = validAlgos.reduce((best, a) => allRmse[a.key] < allRmse[best.key] ? a : best, validAlgos[0]).key;
+  const maxRmse = Math.max(...validAlgos.map(a => allRmse[a.key]));
+  algoCompareList.innerHTML = "";
+  [...algorithms].sort((a, b) => {
+    if (allRmse[a.key] === null) return 1;
+    if (allRmse[b.key] === null) return -1;
+    return allRmse[a.key] - allRmse[b.key];
+  }).forEach((algo, idx) => {
+    const rmse = allRmse[algo.key];
+    const rank = idx + 1;
+    const isBest = algo.key === bestKey;
+    const isActive = algo.key === state.algorithm;
+    const rmseText = rmse !== null ? rmse.toFixed(3) : "—";
+    const barPct = rmse !== null ? Math.max(4, (1 - rmse / (maxRmse || 1)) * 100) : 0;
+    const barColor = isBest ? "var(--accent-green)" : isActive ? "var(--accent-cyan)" : "var(--accent-purple)";
+    const row = document.createElement("div");
+    row.className = `algo-row${isActive ? " active" : ""}`;
+    row.title = `Click to switch to ${algo.label}`;
+    row.innerHTML = `
+      <div class="algo-row-header">
+        <span class="algo-name">${algo.label}</span>
+        <div class="algo-badges">
+          ${isBest && rmse !== null ? `<span class="badge-best">✦ BEST</span>` : ""}
+          ${isActive ? `<span class="badge-active-tag">Active</span>` : ""}
+          <span class="badge-rank rank-${Math.min(rank, 4)}">#${rank}</span>
+          <span class="algo-rmse-val">${rmseText}</span>
+        </div>
+      </div>
+      <div class="algo-bar-track">
+        <div class="algo-bar-fill" style="width:${barPct}%; background:${barColor};"></div>
+      </div>
+    `;
+    row.addEventListener("click", () => {
+      state.algorithm = algo.key;
+      algorithmSelect.value = algo.key;
+      redrawAll();
+      updateStatus(`Switched to ${algo.label} (RMSE: ${rmseText})`);
+    });
+    algoCompareList.appendChild(row);
+  });
+}
+
+window.deleteAnchor = function(prefix, id) {
+  if (prefix === 'hist1') state.anchors1 = state.anchors1.filter(a => a.id !== id);
+  if (prefix === 'hist2') state.anchors2 = state.anchors2.filter(a => a.id !== id);
+  redrawAll();
+  updateStatus(`Deleted Anchor Pair #${id} from ${prefix}.`);
+};
+
+function setToolMode(mode) {
+  state.toolMode = mode;
+  const btnPan    = document.getElementById("btn-mode-pan");
+  const btnAnchor = document.getElementById("btn-mode-anchor");
+  if (mode === "pan") {
+    btnPan.classList.add("active"); btnAnchor.classList.remove("active");
+    hist1Canvas.style.cursor = "grab"; hist2Canvas.style.cursor = "grab"; trueCanvas.style.cursor = "grab";
+  } else {
+    btnAnchor.classList.add("active"); btnPan.classList.remove("active");
+    hist1Canvas.style.cursor = "crosshair"; hist2Canvas.style.cursor = "crosshair"; trueCanvas.style.cursor = "crosshair";
+  }
+}
+
+function hitTestAnchor(mouseX, mouseY, vp, canvas, type) {
+  // Returns { anchorList, anchor, field } if within HIT_RADIUS pixels of an existing anchor dot.
+  const HIT_RADIUS = 14; // pixels
+  const h = canvas.height;
+  const candidates = [];
+  if (type === "hist1") {
+    state.anchors1.forEach(a => candidates.push({ list: state.anchors1, anc: a, field: "src" }));
+  } else if (type === "hist2") {
+    state.anchors2.forEach(a => candidates.push({ list: state.anchors2, anc: a, field: "src" }));
+  } else { // true canvas — dst handles for both sets
+    state.anchors1.forEach(a => candidates.push({ list: state.anchors1, anc: a, field: "dst" }));
+    state.anchors2.forEach(a => candidates.push({ list: state.anchors2, anc: a, field: "dst" }));
+  }
+  for (const c of candidates) {
+    const sp = worldToScreen(c.anc[c.field], vp, h);
+    if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) return c;
+  }
+  return null;
+}
+
+function setupCanvasInteractions(canvas, type) {
+  let isPanning = false, lastX = 0, lastY = 0;
+  let dragging = null; // { list, anc, field } while dragging an anchor
+  const getVP = () => type === "hist1" ? state.hist1Viewport : type === "hist2" ? state.hist2Viewport : state.trueViewport;
+
+  canvas.addEventListener("mousedown", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const vp = getVP();
+
+    if (state.toolMode === "pan") {
+      isPanning = true;
+      lastX = e.clientX; lastY = e.clientY;
+      canvas.style.cursor = "grabbing";
+      return;
+    }
+
+    if (state.toolMode === "anchor" && e.button === 0) {
+      // — Check if clicking near an existing anchor first —
+      const hit = hitTestAnchor(mouseX, mouseY, vp, canvas, type);
+      if (hit) {
+        dragging = hit;
+        canvas.style.cursor = "move";
+        return;
+      }
+
+      // — Otherwise place a new anchor —
+      const worldPt = screenToWorld(mouseX, mouseY, vp, canvas.height);
+      if (type === "hist1" || type === "hist2") {
+        state.pendingSource = { x: worldPt.x, y: worldPt.y, origin: type };
+        updateStatus(`Source point set on ${type}. Now click the matching location on the True Survey map.`);
+        redrawAll();
+      } else if (type === "true") {
+        if (!state.pendingSource) {
+          updateStatus("Click a point on Historical Map 1 or 2 first to start a pair.");
+          return;
+        }
+        const origin = state.pendingSource.origin;
+        const targetAnchors = origin === "hist1" ? state.anchors1 : state.anchors2;
+        const nextId = targetAnchors.length > 0 ? Math.max(...targetAnchors.map(a => a.id)) + 1 : 1;
+        const baseOffset = origin === "hist1" ? 0 : 4;
+        const color = anchorColors[(baseOffset + nextId - 1) % anchorColors.length];
+        targetAnchors.push({
+          id: nextId, color,
+          src: { x: state.pendingSource.x, y: state.pendingSource.y },
+          dst: { x: worldPt.x, y: worldPt.y }
+        });
+        state.pendingSource = null;
+        updateStatus(`Anchor Pair #${nextId} added for ${origin}! Add more pairs or export.`);
+        redrawAll();
+      }
+    }
+  });
+
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const vp = getVP();
+    const worldPt = screenToWorld(mouseX, mouseY, vp, canvas.height);
+    coordsBar.textContent = `${type.toUpperCase()} X: ${worldPt.x.toFixed(2)}, Y: ${worldPt.y.toFixed(2)}`;
+
+    // Panning
+    if (isPanning && state.toolMode === "pan") {
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      vp.offsetX += dx;
+      vp.offsetY -= dy;
+      redrawAll();
+      return;
+    }
+
+    // Dragging an anchor
+    if (dragging) {
+      dragging.anc[dragging.field] = { x: worldPt.x, y: worldPt.y };
+      redrawAll();
+      return;
+    }
+
+    // Hover cursor: show "move" when over an existing anchor dot in anchor mode
+    if (state.toolMode === "anchor") {
+      const hit = hitTestAnchor(mouseX, mouseY, vp, canvas, type);
+      canvas.style.cursor = hit ? "move" : "crosshair";
+    }
+  });
+
+  canvas.addEventListener("mouseup", (e) => {
+    if (dragging) {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const vp = getVP();
+      const worldPt = screenToWorld(mouseX, mouseY, vp, canvas.height);
+      dragging.anc[dragging.field] = { x: worldPt.x, y: worldPt.y };
+      updateStatus(`Anchor #${dragging.anc.id} moved to (${worldPt.x.toFixed(2)}, ${worldPt.y.toFixed(2)}).`);
+      dragging = null;
+      redrawAll();
+      return;
+    }
+    isPanning = false;
+    canvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+  });
+
+  canvas.addEventListener("mouseleave", () => {
+    isPanning = false;
+    if (dragging) {
+      // Keep dragging = null so we don't ghost an anchor off screen
+      dragging = null;
+      redrawAll();
+    }
+  });
+
+  canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const vp = getVP();
+    const ptBefore = screenToWorld(mouseX, mouseY, vp, canvas.height);
+    const factor = e.deltaY < 0 ? 1.15 : 0.87;
+    vp.scale *= factor;
+    const ptAfter = screenToWorld(mouseX, mouseY, vp, canvas.height);
+    vp.offsetX += (ptAfter.x - ptBefore.x) * vp.scale;
+    vp.offsetY += (ptAfter.y - ptBefore.y) * vp.scale;
+    redrawAll();
+  }, { passive: false });
+}
+
+setupCanvasInteractions(hist1Canvas, "hist1");
+setupCanvasInteractions(hist2Canvas, "hist2");
+setupCanvasInteractions(trueCanvas, "true");
+
+// DXF File Input Listeners
+const loadDXF = (file, type) => {
+  const reader = new FileReader();
+  reader.onload = function() {
+    const entities = DXFParser.parse(this.result);
+    if (entities.length === 0) {
+      alert(`No valid DXF entities found in ${file.name}`);
+      return;
+    }
+    const bbox = computeBoundingBox(entities);
+    if (type === "hist1") {
+      state.hist1Entities = entities;
+      hist1Status.textContent = `Loaded (${entities.length} entities)`;
+      state.hist1Viewport = fitViewport(hist1Canvas, bbox);
+    }
+    if (type === "hist2") {
+      state.hist2Entities = entities;
+      hist2Status.textContent = `Loaded (${entities.length} entities)`;
+      state.hist2Viewport = fitViewport(hist2Canvas, bbox);
+    }
+    if (type === "true")  {
+      state.trueEntities  = entities;
+      trueStatus.textContent  = `Loaded (${entities.length} entities)`;
+      state.trueViewport  = fitViewport(trueCanvas, bbox);
+    }
+    state.pendingSource = null;
+    redrawAll();
+    updateStatus(`Loaded ${file.name} → ${type} (${entities.length} entities). Viewport centered on DXF.`);
+  };
+  reader.readAsText(file);
+};
+
+hist1Input.addEventListener("change", (e) => { if(e.target.files[0]) loadDXF(e.target.files[0], "hist1"); });
+hist2Input.addEventListener("change", (e) => { if(e.target.files[0]) loadDXF(e.target.files[0], "hist2"); });
+trueInput.addEventListener("change",  (e) => { if(e.target.files[0]) loadDXF(e.target.files[0], "true"); });
+
+document.getElementById("btn-fit-hist1").addEventListener("click", () => {
+  const bbox = state.hist1Entities.length > 0 ? computeBoundingBox(state.hist1Entities) : state.geoTiff?.bbox;
+  if (bbox) state.hist1Viewport = fitViewport(hist1Canvas, bbox);
+  redrawAll();
+});
+document.getElementById("btn-fit-hist2").addEventListener("click", () => {
+  const bbox = state.hist2Entities.length > 0 ? computeBoundingBox(state.hist2Entities) : state.geoTiff?.bbox;
+  if (bbox) state.hist2Viewport = fitViewport(hist2Canvas, bbox);
+  redrawAll();
+});
+document.getElementById("btn-fit-true").addEventListener("click", () => {
+  const bbox = state.trueEntities.length > 0 ? computeBoundingBox(state.trueEntities) : state.geoTiff?.bbox;
+  if (bbox) state.trueViewport = fitViewport(trueCanvas, bbox);
+  redrawAll();
+});
+
+document.getElementById("btn-mode-pan").addEventListener("click", () => setToolMode("pan"));
+document.getElementById("btn-mode-anchor").addEventListener("click", () => setToolMode("anchor"));
+chkShowOverlay.addEventListener("change", (e) => { state.showOverlay = e.target.checked; redrawAll(); });
+algorithmSelect.addEventListener("change", (e) => { state.algorithm = e.target.value; redrawAll(); });
+
+btnClearAnchors1.addEventListener("click", () => {
+  state.anchors1 = []; state.pendingSource = null;
+  redrawAll(); updateStatus("Hist 1 anchor pairs cleared.");
+});
+btnClearAnchors2.addEventListener("click", () => {
+  state.anchors2 = []; state.pendingSource = null;
+  redrawAll(); updateStatus("Hist 2 anchor pairs cleared.");
+});
+
+btnExportDxf.addEventListener("click", () => {
+  const combined = [];
+  if (state.anchors1.length >= 2) {
+    try {
+      const w1 = TransformMath.createWarper(state.algorithm, state.anchors1);
+      state.hist1Entities.forEach(ent => combined.push({ ...ent, layer: (ent.layer||"H1")+"_RECTIFIED", points: ent.points.map(p => w1(p)) }));
+    } catch(e) {}
+  }
+  if (state.anchors2.length >= 2) {
+    try {
+      const w2 = TransformMath.createWarper(state.algorithm, state.anchors2);
+      state.hist2Entities.forEach(ent => combined.push({ ...ent, layer: (ent.layer||"H2")+"_RECTIFIED", points: ent.points.map(p => w2(p)) }));
+    } catch(e) {}
+  }
+  if (combined.length === 0) { alert("Add at least 2 anchor pairs for one of the historical maps first."); return; }
+  const blob = new Blob([DXFParser.serialize(combined)], { type: "application/dxf" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "multimap_rectified.dxf";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+});
+
+/* GEOTIFF LOADING ENGINE (Streaming & Pyramid downsampling) */
+const MAX_DISPLAY_DIM = 4096;
+
+async function parseGeoTiff(file) {
+  const statusEl = document.getElementById("geotiff-status");
+  statusEl.textContent = "⏳ Reading…";
+  statusEl.className = "geotiff-status";
+  updateStatus(`Loading GeoTIFF (${(file.size / 1024 / 1024).toFixed(1)} MB) — please wait…`);
+
+  // Force double animation frame render so the browser paints the "Reading..." text
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  try {
+    const tiff = await GeoTIFF.fromBlob(file);
+    const fullImage = await tiff.getImage(0);
+    const fullW = fullImage.getWidth();
+    const fullH = fullImage.getHeight();
+
+    let bbox, hasGeoRef = false;
+    try {
+      const origin = fullImage.getOrigin();
+      const res    = fullImage.getResolution();
+      if (origin && res && origin.length >= 2 && Math.abs(res[0]) > 0) {
+        bbox = {
+          minX: origin[0],
+          maxY: origin[1],
+          maxX: origin[0] + fullW * Math.abs(res[0]),
+          minY: origin[1] - fullH * Math.abs(res[1])
+        };
+        hasGeoRef = true;
+      }
+    } catch(_) {}
+
+    if (!bbox) {
+      bbox = { minX: 0, minY: 0, maxX: fullW, maxY: fullH };
+    }
+
+    const imageCount = await tiff.getImageCount();
+    let readImage = fullImage;
+    for (let lvl = 1; lvl < imageCount; lvl++) {
+      const img = await tiff.getImage(lvl);
+      const maxDim = Math.max(img.getWidth(), img.getHeight());
+      readImage = img;
+      if (maxDim <= MAX_DISPLAY_DIM) break;
+    }
+
+    const readW = readImage.getWidth();
+    const readH = readImage.getHeight();
+    const scale   = Math.min(1, MAX_DISPLAY_DIM / Math.max(readW, readH));
+    const targetW = Math.max(1, Math.round(readW * scale));
+    const targetH = Math.max(1, Math.round(readH * scale));
+
+    statusEl.textContent = `⏳ Decoding ${targetW}×${targetH}…`;
+    updateStatus(`Decoding GeoTIFF at ${targetW}×${targetH} (from ${fullW}×${fullH} original)…`);
+
+    // Force double animation frame render so browser repaints "Decoding..." before raster decode
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    const rasters         = await readImage.readRasters({ width: targetW, height: targetH, interleave: true });
+    const samplesPerPixel = readImage.getSamplesPerPixel();
+
+    const offscreen = document.createElement("canvas");
+    offscreen.width  = targetW;
+    offscreen.height = targetH;
+    const offCtx  = offscreen.getContext("2d");
+    const imgData = offCtx.createImageData(targetW, targetH);
+    const d       = imgData.data;
+
+    const clamp = v => {
+      if (v == null) return 0;
+      if (v >= 0 && v <= 255 && Number.isInteger(v)) return v;
+      if (v > 255) return Math.min(255, Math.round(v / 256));
+      if (v <= 1.0 && v >= 0) return Math.round(v * 255);
+      return Math.min(255, Math.max(0, Math.round(v)));
+    };
+
+    let mn = Infinity, mx2 = -Infinity;
+    if (samplesPerPixel === 1) {
+      for (let k = 0; k < rasters.length; k++) {
+        if (rasters[k] < mn) mn = rasters[k];
+        if (rasters[k] > mx2) mx2 = rasters[k];
+      }
+    }
+
+    const total = targetW * targetH;
+    for (let i = 0; i < total; i++) {
+      let r = 0, g = 0, b = 0, a = 255;
+      if (samplesPerPixel === 1) {
+        const norm = mx2 === mn ? 0.5 : (rasters[i] - mn) / (mx2 - mn);
+        r = g = b = Math.round(norm * 255);
+      } else if (samplesPerPixel === 3) {
+        r = clamp(rasters[i*3]); g = clamp(rasters[i*3+1]); b = clamp(rasters[i*3+2]);
+      } else if (samplesPerPixel >= 4) {
+        r = clamp(rasters[i*4]); g = clamp(rasters[i*4+1]); b = clamp(rasters[i*4+2]); a = clamp(rasters[i*4+3]);
+      }
+      d[i*4]=r; d[i*4+1]=g; d[i*4+2]=b; d[i*4+3]=a;
+    }
+    offCtx.putImageData(imgData, 0, 0);
+
+    bbox.width = Math.abs(bbox.maxX - bbox.minX);
+    bbox.height = Math.abs(bbox.maxY - bbox.minY);
+
+    state.geoTiff = { offscreen, bbox, hasGeoRef };
+    if (state.hist1Entities.length === 0) state.hist1Viewport = fitViewport(hist1Canvas, bbox);
+    if (state.hist2Entities.length === 0) state.hist2Viewport = fitViewport(hist2Canvas, bbox);
+    if (state.trueEntities.length  === 0) state.trueViewport  = fitViewport(trueCanvas,  bbox);
+
+    const georefNote = hasGeoRef ? "Georef ✓" : "No georef tag";
+    statusEl.textContent = `${targetW}×${targetH} · ${georefNote}`;
+    statusEl.className   = "geotiff-status ok";
+    updateStatus(`GeoTIFF loaded (${targetW}×${targetH}). Viewports aligned to image bounds.`);
+    redrawAll();
+
+  } catch(err) {
+    console.error("GeoTIFF error:", err);
+    statusEl.textContent = "Error loading";
+    statusEl.className = "geotiff-status";
+    updateStatus(`GeoTIFF failed to load: ${err.message}`);
+  }
+}
+
+document.getElementById("geotiff-input").addEventListener("change", e => { if (e.target.files[0]) parseGeoTiff(e.target.files[0]); });
+document.getElementById("geotiff-opacity").addEventListener("input", e => {
+  state.geoTiffOpacity = parseInt(e.target.value, 10) / 100;
+  document.getElementById("geotiff-opacity-val").textContent = `${e.target.value}%`;
+  redrawAll();
+});
+
+window.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === 'p') setToolMode("pan");
+  if (e.key.toLowerCase() === 'a') setToolMode("anchor");
+});
+
+// Collapsible Sidebar Panels Toggle Listener
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".btn-panel-toggle");
+  if (btn) {
+    const targetEl = btn.closest(".table-section") || btn.closest(".panel-card");
+    if (targetEl) targetEl.classList.toggle("collapsed");
+  }
+});
+
+// --- Fullscreen and Layer Visibility Handlers ---
+function syncLayerCheckboxes() {
+  chkLayerHist1.checked = state.layerVisibility.hist1;
+  chkLayerHist2.checked = state.layerVisibility.hist2;
+  chkLayerTrue.checked  = state.layerVisibility.true;
+  chkFsHist1.checked    = state.layerVisibility.hist1;
+  chkFsHist2.checked    = state.layerVisibility.hist2;
+  chkFsTrue.checked     = state.layerVisibility.true;
+
+  document.getElementById("layer-item-hist1").classList.toggle("layer-active", state.layerVisibility.hist1);
+  document.getElementById("layer-item-hist2").classList.toggle("layer-active", state.layerVisibility.hist2);
+  document.getElementById("layer-item-true").classList.toggle("layer-active", state.layerVisibility.true);
+}
+
+function toggleLayer(layerName, isVisible) {
+  state.layerVisibility[layerName] = isVisible;
+  syncLayerCheckboxes();
+  redrawAll();
+}
+
+chkLayerHist1.addEventListener("change", (e) => toggleLayer("hist1", e.target.checked));
+chkLayerHist2.addEventListener("change", (e) => toggleLayer("hist2", e.target.checked));
+chkLayerTrue.addEventListener("change",  (e) => toggleLayer("true", e.target.checked));
+chkFsHist1.addEventListener("change",    (e) => toggleLayer("hist1", e.target.checked));
+chkFsHist2.addEventListener("change",    (e) => toggleLayer("hist2", e.target.checked));
+chkFsTrue.addEventListener("change",     (e) => toggleLayer("true", e.target.checked));
+
+btnFsMaximize.addEventListener("click", () => {
+  fsOverlay.classList.add("visible");
+  if (!state.fsViewport.bbox && state.geoTiff) {
+    state.fsViewport = fitViewport(fsCanvas, state.geoTiff.bbox);
+  }
+  resizeCanvases(); // Ensure fsCanvas gets correct dimensions
+});
+
+btnFsClose.addEventListener("click", () => fsOverlay.classList.remove("visible"));
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && fsOverlay.classList.contains("visible")) {
+    fsOverlay.classList.remove("visible");
+  }
+});
+
+fsOpacitySlider.addEventListener("input", (e) => {
+  state.geoTiffOpacity = parseInt(e.target.value, 10) / 100;
+  document.getElementById("geotiff-opacity").value = e.target.value;
+  document.getElementById("geotiff-opacity-val").textContent = `${e.target.value}%`;
+  fsOpacityVal.textContent = `${e.target.value}%`;
+  redrawAll();
+});
+document.getElementById("geotiff-opacity").addEventListener("input", (e) => {
+  fsOpacitySlider.value = e.target.value;
+  fsOpacityVal.textContent = `${e.target.value}%`;
+});
+
+// Fullscreen Canvas Pan/Zoom
+let fsPanning = false, fsLastX = 0, fsLastY = 0;
+if (fsCanvas) {
+  fsCanvas.addEventListener("mousedown", (e) => {
+    fsPanning = true;
+    fsLastX = e.clientX; fsLastY = e.clientY;
+  });
+  fsCanvas.addEventListener("mousemove", (e) => {
+    if (fsPanning) {
+      state.fsViewport.offsetX += (e.clientX - fsLastX);
+      state.fsViewport.offsetY -= (e.clientY - fsLastY);
+      fsLastX = e.clientX; fsLastY = e.clientY;
+      drawFullscreenCanvas();
+    }
+  });
+  fsCanvas.addEventListener("mouseup", () => fsPanning = false);
+  fsCanvas.addEventListener("mouseleave", () => fsPanning = false);
+  fsCanvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const rect = fsCanvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const vp = state.fsViewport;
+    const ptBefore = screenToWorld(mouseX, mouseY, vp, fsCanvas.height);
+    const factor = e.deltaY < 0 ? 1.15 : 0.87;
+    vp.scale *= factor;
+    const ptAfter = screenToWorld(mouseX, mouseY, vp, fsCanvas.height);
+    vp.offsetX += (ptAfter.x - ptBefore.x) * vp.scale;
+    vp.offsetY += (ptAfter.y - ptBefore.y) * vp.scale;
+    drawFullscreenCanvas();
+  }, { passive: false });
+}
+
+// Startup Initialization
+hist1Status.textContent = "No DXF file";
+hist2Status.textContent = "No DXF file";
+trueStatus.textContent  = "No DXF file";
+setToolMode("pan");
+updateStatus("Ready • Click '🗺️ GeoTIFF' to load background image.");
+syncLayerCheckboxes();
+
+setTimeout(() => {
+  resizeCanvases();
+}, 100);
+
+</script>
+</body>
+</html>
