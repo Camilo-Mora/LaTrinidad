@@ -1122,11 +1122,13 @@ window.addEventListener("DOMContentLoaded", () => {
 
   state.entities296 = DXFParser.parse(cached296 || DEFAULT_DXF_296);
   state.entities1073 = DXFParser.parse(cached1073 || DEFAULT_DXF_1073);
-  state.entitiesTrue = DXFParser.parse(DEFAULT_DXF_296);
+  // entitiesTrue starts empty — loaded from Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf
+  state.entitiesTrue = [];
 
   loadDefaultPdf("Mapa2096_LaTrinidad.pdf", "296");
   loadDefaultPdf("Mapa1073_FerminSuarez.pdf", "1073");
   autoLoadGeoTiff();
+  autoLoadTrueDXF();
 
   setupEventListeners();
   resizeCanvases();
@@ -1235,6 +1237,31 @@ function drawGeoTiff(ctx, tiff, vp, canvasH) {
   const sw = br.x - tl.x, sh = br.y - tl.y;
   if (sw <= 0 || sh <= 0) return;
   ctx.save(); ctx.globalAlpha = 0.7; ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh); ctx.restore();
+}
+
+async function autoLoadTrueDXF() {
+  try {
+    const filename = "Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf";
+    const response = await fetch(encodeURIComponent(filename));
+    if (response.ok) {
+      const text = await response.text();
+      const entities = DXFParser.parse(text);
+      state.entitiesTrue = entities;
+      if (entities.length > 0) {
+        state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(entities));
+        statusBar.textContent = `✅ Field DXF auto-loaded (${entities.length} entities)`;
+      }
+      const statusEl = document.getElementById("status-true");
+      if (statusEl) statusEl.textContent = `${entities.length} entities`;
+      redrawAll();
+    } else {
+      // Not available locally — user must load manually
+      statusBar.textContent = "ℹ️ Click 'Load True DXF' to load the Field survey DXF manually.";
+    }
+  } catch (err) {
+    // Browser security blocks fetch on file:// — user must load manually
+    statusBar.textContent = "ℹ️ Click 'Load True DXF' to load the Field survey DXF manually.";
+  }
 }
 
 async function autoLoadGeoTiff() {
@@ -1610,7 +1637,28 @@ function setupEventListeners() {
   // Center buttons
   document.getElementById("btn-fit-296").addEventListener("click", () => { if (state.entities296.length) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296)); redrawAll(); });
   document.getElementById("btn-fit-1073").addEventListener("click", () => { if (state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073)); redrawAll(); });
-  document.getElementById("btn-fit-true").addEventListener("click", () => { if (state.entities296.length) state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entities296)); redrawAll(); });
+  document.getElementById("btn-fit-true").addEventListener("click", () => { if (state.entitiesTrue.length) state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue)); else if (state.geoTiff) state.vpTrue = fitViewport(canvasTrue, state.geoTiff.bbox); redrawAll(); });
+
+  // True (Field) DXF manual file picker
+  const trueDxfInput = document.getElementById("true-dxf-input");
+  if (trueDxfInput) {
+    trueDxfInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const entities = DXFParser.parse(ev.target.result);
+        state.entitiesTrue = entities;
+        if (entities.length > 0) {
+          state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(entities));
+          statusBar.textContent = `✅ Field DXF loaded (${entities.length} entities) from ${file.name}`;
+        }
+        document.getElementById("status-true").textContent = `${entities.length} entities`;
+        redrawAll();
+      };
+      reader.readAsText(file);
+    });
+  }
 
   // Clear Anchors
   document.getElementById("btn-clear-anchors-296").addEventListener("click", () => { state.anchors296 = []; state.pendingSource = null; redrawAll(); });
