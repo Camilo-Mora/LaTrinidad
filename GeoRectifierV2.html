@@ -597,9 +597,6 @@
           <input type="checkbox" id="chk-show-true" checked>
           <span style="color:var(--accent-green);font-weight:600;">Field</span>
         </label>
-        <button class="preset-btn" id="btn-view-all">All</button>
-        <button class="preset-btn" id="btn-view-296-true">296 + True</button>
-        <button class="preset-btn" id="btn-view-1073-true">1073 + True</button>
       </div>
 
       <!-- Tool Modes (Pan vs Anchor vs Measure) -->
@@ -647,6 +644,7 @@
           <div class="viewport-header">
             <span class="view-title title-296">📜 Escritura 296</span>
             <div class="view-controls">
+              <button class="btn btn-secondary btn-sm" id="btn-flip-296" title="Flip DXF Vertically">🔃 Flip V</button>
               <button class="btn btn-accent btn-sm" id="btn-edit-296" title="Edit or Vectorize PDF for Escritura 296">✏️</button>
               <button class="btn-fit-view" id="btn-fit-296" title="Center Map View">🎯</button>
               <span id="status-296" class="view-badge">Preloaded DXF</span>
@@ -663,6 +661,7 @@
           <div class="viewport-header">
             <span class="view-title title-1073">📜 Escritura 1073</span>
             <div class="view-controls">
+              <button class="btn btn-secondary btn-sm" id="btn-flip-1073" title="Flip DXF Vertically">🔃 Flip V</button>
               <button class="btn btn-accent btn-sm" id="btn-edit-1073" title="Edit or Vectorize PDF for Escritura 1073">✏️</button>
               <button class="btn-fit-view" id="btn-fit-1073" title="Center Map View">🎯</button>
               <span id="status-1073" class="view-badge red">Preloaded DXF</span>
@@ -679,6 +678,7 @@
           <div class="viewport-header">
             <span class="view-title title-true">📍 Field data</span>
             <div class="view-controls">
+              <button class="btn btn-secondary btn-sm" id="btn-flip-true" title="Flip DXF Vertically">🔃 Flip V</button>
               <label for="geotiff-input" class="btn btn-secondary btn-sm" style="margin-right:8px;" title="Load Shared GeoTIFF Background">🗺️ GeoTIFF</label>
               <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff" style="display:none;">
               <label style="display:flex;align-items:center;gap:4px;cursor:pointer;" title="Load Custom True Survey DXF">
@@ -1120,8 +1120,18 @@ window.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("dxf_296");
   localStorage.removeItem("dxf_1073");
 
+  function invertEntitiesY(entities) {
+    if (!entities || entities.length === 0) return entities;
+    const bbox = computeBoundingBox(entities);
+    const sumY = bbox.minY + bbox.maxY;
+    entities.forEach(ent => {
+      ent.points.forEach(pt => { pt.y = sumY - pt.y; });
+    });
+    return entities;
+  }
+
   state.entities296 = DXFParser.parse(DEFAULT_DXF_296);
-  state.entities1073 = DXFParser.parse(DEFAULT_DXF_1073);
+  state.entities1073 = invertEntitiesY(DXFParser.parse(DEFAULT_DXF_1073));
   // entitiesTrue starts empty — loaded from Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf
   state.entitiesTrue = [];
 
@@ -1601,18 +1611,12 @@ function setupEventListeners() {
   chkShow1073.addEventListener("change", updateWindowLayout);
   chkShowTrue.addEventListener("change", updateWindowLayout);
 
-  document.getElementById("btn-view-all").addEventListener("click", () => {
-    chkShow296.checked = true; chkShow1073.checked = true; chkShowTrue.checked = true;
-    updateWindowLayout();
-  });
-  document.getElementById("btn-view-296-true").addEventListener("click", () => {
-    chkShow296.checked = true; chkShow1073.checked = false; chkShowTrue.checked = true;
-    updateWindowLayout();
-  });
-  document.getElementById("btn-view-1073-true").addEventListener("click", () => {
-    chkShow296.checked = false; chkShow1073.checked = true; chkShowTrue.checked = true;
-    updateWindowLayout();
-  });
+  const bAll = document.getElementById("btn-view-all");
+  if (bAll) bAll.addEventListener("click", () => { chkShow296.checked = true; chkShow1073.checked = true; chkShowTrue.checked = true; updateWindowLayout(); });
+  const b296T = document.getElementById("btn-view-296-true");
+  if (b296T) b296T.addEventListener("click", () => { chkShow296.checked = true; chkShow1073.checked = false; chkShowTrue.checked = true; updateWindowLayout(); });
+  const b1073T = document.getElementById("btn-view-1073-true");
+  if (b1073T) b1073T.addEventListener("click", () => { chkShow296.checked = false; chkShow1073.checked = true; chkShowTrue.checked = true; updateWindowLayout(); });
 
   // Background PDF Toggles
 
@@ -1632,6 +1636,24 @@ function setupEventListeners() {
   attachCanvasInteractions(canvas296,  "296");
   attachCanvasInteractions(canvas1073, "1073");
   attachCanvasInteractions(canvasTrue, "true");
+
+  // Flip DXF Vertically Quick Actions
+  function flipEntitiesVertically(entities) {
+    if (!entities || entities.length === 0) return;
+    const bbox = computeBoundingBox(entities);
+    const sumY = bbox.minY + bbox.maxY;
+    entities.forEach(ent => {
+      ent.points.forEach(pt => { pt.y = sumY - pt.y; });
+    });
+    redrawAll();
+  }
+
+  const f296 = document.getElementById("btn-flip-296");
+  if (f296) f296.addEventListener("click", () => { flipEntitiesVertically(state.entities296); statusBar.textContent = "🔃 Escritura 296 flipped vertically."; });
+  const f1073 = document.getElementById("btn-flip-1073");
+  if (f1073) f1073.addEventListener("click", () => { flipEntitiesVertically(state.entities1073); statusBar.textContent = "🔃 Escritura 1073 flipped vertically."; });
+  const fTrue = document.getElementById("btn-flip-true");
+  if (fTrue) fTrue.addEventListener("click", () => { flipEntitiesVertically(state.entitiesTrue); statusBar.textContent = "🔃 Field DXF flipped vertically."; });
 
   // Center buttons
   document.getElementById("btn-fit-296").addEventListener("click", () => { if (state.entities296.length) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296)); redrawAll(); });
