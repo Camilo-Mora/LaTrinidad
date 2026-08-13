@@ -1117,11 +1117,11 @@ const measureTotalVal = document.getElementById("measure-total-val");
 
 /* INITIALIZATION */
 window.addEventListener("DOMContentLoaded", () => {
-  const cached296 = localStorage.getItem("dxf_296");
-  const cached1073 = localStorage.getItem("dxf_1073");
+  localStorage.removeItem("dxf_296");
+  localStorage.removeItem("dxf_1073");
 
-  state.entities296 = DXFParser.parse(cached296 || DEFAULT_DXF_296);
-  state.entities1073 = DXFParser.parse(cached1073 || DEFAULT_DXF_1073);
+  state.entities296 = DXFParser.parse(DEFAULT_DXF_296);
+  state.entities1073 = DXFParser.parse(DEFAULT_DXF_1073);
   // entitiesTrue starts empty — loaded from Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf
   state.entitiesTrue = [];
 
@@ -1190,11 +1190,11 @@ function fitViewport(canvas, bbox) {
 }
 
 function worldToScreen(pt, viewport, canvasH) {
-  return { x: pt.x * viewport.scale + viewport.offsetX, y: pt.y * viewport.scale + viewport.offsetY };
+  return { x: pt.x * viewport.scale + viewport.offsetX, y: canvasH - (pt.y * viewport.scale + viewport.offsetY) };
 }
 
 function screenToWorld(sx, sy, viewport, canvasH) {
-  return { x: (sx - viewport.offsetX) / viewport.scale, y: (sy - viewport.offsetY) / viewport.scale };
+  return { x: (sx - viewport.offsetX) / viewport.scale, y: (canvasH - sy - viewport.offsetY) / viewport.scale };
 }
 
 function resizeCanvases() {
@@ -1232,8 +1232,8 @@ function drawGrid(ctx, w, h) {
 
 function drawGeoTiff(ctx, tiff, vp, canvasH) {
   if (!tiff || !tiff.offscreen || !vp || !vp.bbox) return;
-  const tl = worldToScreen({ x: tiff.bbox.minX, y: tiff.bbox.minY }, vp, canvasH);
-  const br = worldToScreen({ x: tiff.bbox.maxX, y: tiff.bbox.maxY }, vp, canvasH);
+  const tl = worldToScreen({ x: tiff.bbox.minX, y: tiff.bbox.maxY }, vp, canvasH);
+  const br = worldToScreen({ x: tiff.bbox.maxX, y: tiff.bbox.minY }, vp, canvasH);
   const sw = br.x - tl.x, sh = br.y - tl.y;
   if (sw <= 0 || sh <= 0) return;
   ctx.save(); ctx.globalAlpha = 0.7; ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh); ctx.restore();
@@ -1392,8 +1392,8 @@ function drawBackgroundPdf(ctx, offCanvas, vp, canvasH, target) {
   const pdfH = (target === "296") ? state.pdf296Height : state.pdf1073Height;
   if (!pdfW || !pdfH) return;
 
-  const tl = worldToScreen({ x: 0,    y: 0 }, vp, canvasH);
-  const br = worldToScreen({ x: pdfW, y: pdfH }, vp, canvasH);
+  const tl = worldToScreen({ x: 0,    y: pdfH }, vp, canvasH);
+  const br = worldToScreen({ x: pdfW, y: 0    }, vp, canvasH);
   if (br.x <= tl.x || br.y <= tl.y) return;
 
   ctx.save();
