@@ -1120,13 +1120,15 @@ window.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("dxf_296");
   localStorage.removeItem("dxf_1073");
 
-  state.entities296 = DXFParser.parse(DEFAULT_DXF_296);
-  state.entities1073 = DXFParser.parse(DEFAULT_DXF_1073);
-  // entitiesTrue starts empty — loaded from Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf
+  // DXFs auto-loaded from files; entitiesTrue from field survey
+  state.entities296 = [];
+  state.entities1073 = [];
   state.entitiesTrue = [];
 
   loadDefaultPdf("Mapa2096_LaTrinidad.pdf", "296");
   loadDefaultPdf("Mapa1073_FerminSuarez.pdf", "1073");
+  autoLoadDXF296();
+  autoLoadDXF1073();
   autoLoadGeoTiff();
   autoLoadTrueDXF();
   autoLoadAnchors();
@@ -1288,10 +1290,52 @@ async function autoLoadTrueDXF() {
   }
 }
 
+async function autoLoadDXF296() {
+  try {
+    const response = await fetch("Polygon_Escritura296.dxf");
+    if (response.ok) {
+      const text = await response.text();
+      state.entities296 = DXFParser.parse(text);
+      if (state.entities296.length > 0) {
+        state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
+      }
+      const el = document.getElementById("status-296");
+      if (el) el.textContent = `DXF Loaded (${state.entities296.length} entities)`;
+      redrawAll();
+    } else {
+      console.warn("Polygon_Escritura296.dxf not found — panel will be empty.");
+    }
+  } catch (err) {
+    console.log("autoLoadDXF296 skipped (CORS or missing file):", err);
+  }
+}
+
+async function autoLoadDXF1073() {
+  try {
+    const response = await fetch("Polygon_Escritura1073_FerminSuarez.dxf");
+    if (response.ok) {
+      const text = await response.text();
+      state.entities1073 = DXFParser.parse(text);
+      if (state.entities1073.length > 0) {
+        state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
+      }
+      const el = document.getElementById("status-1073");
+      if (el) el.textContent = `DXF Loaded (${state.entities1073.length} entities)`;
+      redrawAll();
+    } else {
+      console.warn("Polygon_Escritura1073_FerminSuarez.dxf not found — panel will be empty.");
+    }
+  } catch (err) {
+    console.log("autoLoadDXF1073 skipped (CORS or missing file):", err);
+  }
+}
+
+
 async function autoLoadGeoTiff() {
   try {
     statusBar.textContent = "⏳ Auto-loading GeoTIFF...";
-    const response = await fetch("Trinidad_Dron.tif");
+    const response = await fetch("Trinidad_Dron_Resized.tif");
+
     if (response.ok) {
       const blob = await response.blob();
       parseGeoTiff(blob);
@@ -2383,10 +2427,10 @@ document.getElementById("btn-vec-apply").addEventListener("click", () => {
 document.getElementById("btn-vec-reset").addEventListener("click", () => {
   if (vecState.activeMapKey === "296") {
     localStorage.removeItem("dxf_296");
-    state.entities296 = DXFParser.parse(DEFAULT_DXF_296);
+    autoLoadDXF296();
   } else {
     localStorage.removeItem("dxf_1073");
-    state.entities1073 = DXFParser.parse(DEFAULT_DXF_1073);
+    autoLoadDXF1073();
   }
   vecModal.classList.remove("visible");
   redrawAll();
