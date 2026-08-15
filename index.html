@@ -361,16 +361,37 @@
     }
 
     .viewport-hint {
-      padding: 4px 10px;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      background: rgba(0, 0, 0, 0.35);
+      padding: 3px 8px;
+      font-size: 0.78rem;
+      background: rgba(0, 0, 0, 0.45);
       border-top: 1px solid var(--border-color);
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
     }
+
+    .vp-tool-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .vp-tool-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.07); }
+    .vp-tool-btn.vp-active {
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--accent-cyan);
+      border-color: rgba(0, 229, 255, 0.35);
+    }
+    .vp-tool-sep { width: 1px; height: 16px; background: var(--border-color); margin: 0 2px; }
 
     /* Sidebar Controls */
     .sidebar {
@@ -624,12 +645,7 @@
         </label>
       </div>
 
-      <!-- Tool Modes (Pan vs Anchor vs Measure) -->
-      <div class="tool-mode-group">
-        <button class="mode-btn active" id="btn-mode-pan" title="Pan Map Display [Hotkey: P]">🖐️ Pan Mode</button>
-        <button class="mode-btn" id="btn-mode-anchor" title="Drop Anchor Control Points [Hotkey: A]">🎯 Anchor Mode</button>
-        <button class="mode-btn" id="btn-mode-measure" title="Measure Distances in Meters [Hotkey: M]">📏 Measure Tool</button>
-      </div>
+
 
       <!-- Algorithm Selector -->
       <div class="algorithm-selector-group">
@@ -664,20 +680,32 @@
     <main class="app-workspace">
       <!-- Split Viewports -->
       <div class="split-viewport-area" id="viewport-area">
-        <!-- Escritura 296 Viewport -->
         <div class="viewport-card" id="card-296">
           <div class="viewport-header">
             <span class="view-title title-296">📜 Escritura 296</span>
             <div class="view-controls">
               <button class="btn btn-accent btn-sm" id="btn-edit-296" title="Edit or Vectorize PDF for Escritura 296">✏️</button>
-              <button class="btn-fit-view" id="btn-fit-296" title="Center Map View">🎯</button>
               <span id="status-296" class="view-badge">Preloaded DXF</span>
             </div>
           </div>
           <div class="canvas-container" id="container-296">
             <canvas id="canvas-296"></canvas>
           </div>
-          <div class="viewport-hint" id="hint-296">🖐️ Pan Mode. Click '🎯 Anchor Mode' to add points. Click '✏️ Edit Polygon' to modify DXF.</div>
+          <div class="viewport-hint" id="hint-296">
+            <button class="vp-tool-btn vp-active" id="vp-pan-296" title="Pan [P]">🖐️ Pan</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" id="vp-anchor-296" title="Anchor Mode [A]">🎯 Anchor</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" id="vp-center-296" title="Fit to View">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+              Fit
+            </button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" id="vp-measure-296" title="Measure [M]">📏 Measure</button>
+          </div>
         </div>
 
         <!-- Escritura 1073 Viewport -->
@@ -686,14 +714,27 @@
             <span class="view-title title-1073">📜 Escritura 1073</span>
             <div class="view-controls">
               <button class="btn btn-accent btn-sm" id="btn-edit-1073" title="Edit or Vectorize PDF for Escritura 1073">✏️</button>
-              <button class="btn-fit-view" id="btn-fit-1073" title="Center Map View">🎯</button>
               <span id="status-1073" class="view-badge red">Preloaded DXF</span>
             </div>
           </div>
           <div class="canvas-container" id="container-1073">
             <canvas id="canvas-1073"></canvas>
           </div>
-          <div class="viewport-hint" id="hint-1073">🖐️ Pan Mode. Click '🎯 Anchor Mode' to add points. Click '✏️ Edit Polygon' to modify DXF.</div>
+          <div class="viewport-hint" id="hint-1073">
+            <button class="vp-tool-btn vp-active" id="vp-pan-1073" title="Pan [P]">🖐️ Pan</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" id="vp-anchor-1073" title="Anchor Mode [A]">🎯 Anchor</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" id="vp-center-1073" title="Fit to View">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+              Fit
+            </button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" id="vp-measure-1073" title="Measure [M]">📏 Measure</button>
+          </div>
         </div>
 
         <!-- True Field Survey Viewport -->
@@ -707,14 +748,27 @@
                 <input type="file" id="true-dxf-input" accept=".dxf">
                 <span class="btn btn-secondary btn-sm">Load True DXF</span>
               </label>
-              <button class="btn-fit-view" id="btn-fit-true" title="Center Map View">🎯</button>
               <span id="status-true" class="view-badge green">Target DXF</span>
             </div>
           </div>
           <div class="canvas-container" id="container-true">
             <canvas id="canvas-true"></canvas>
           </div>
-          <div class="viewport-hint" id="hint-true">🖐️ Left click & drag to pan. 🎯 Anchor mode to match landmarks.</div>
+          <div class="viewport-hint" id="hint-true">
+            <button class="vp-tool-btn vp-active" id="vp-pan-true" title="Pan [P]">🖐️ Pan</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" id="vp-anchor-true" title="Anchor Mode [A]">🎯 Anchor</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" id="vp-center-true" title="Fit to View">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+              Fit
+            </button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" id="vp-measure-true" title="Measure [M]">📏 Measure</button>
+          </div>
         </div>
       </div>
 
@@ -732,10 +786,11 @@
             <button class="btn-sm btn-secondary" id="btn-clear-measure">Clear Lines</button>
           </div>
           <div class="measure-summary-bar">
-            <span>Total Measured Distance:</span>
+            <span>Total Distance:</span>
             <span id="measure-total-val" style="font-size:0.92rem;font-weight:700;">0.00 m</span>
           </div>
-          <p style="font-size:0.7rem;color:var(--text-muted);margin:0;">Click consecutive points on any map viewport to measure segment lengths and total perimeter/length in meters. Right click or click 'Clear Lines' to reset.</p>
+          <div id="measure-segments-list" style="display:flex;flex-direction:column;gap:3px;max-height:140px;overflow-y:auto;"></div>
+          <p style="font-size:0.7rem;color:var(--text-muted);margin:0;">Click points on any map to measure. Drag markers to adjust. Right-click or 'Clear Lines' to reset.</p>
         </section>
 
         <!-- Accuracy Analytics -->
@@ -1090,6 +1145,7 @@ const state = {
   
   // Measurement Points per map
   measurePoints: [],
+  draggingMeasurePt: null, // index into measurePoints being dragged
   
   // Viewports
   vp296: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
@@ -1679,6 +1735,35 @@ function drawMeasurementsGIS(ctx, vp, h) {
   }
 
   if (measureTotalVal) measureTotalVal.textContent = `${totalDist.toFixed(2)} m`;
+  updateMeasureSegmentsList(pts);
+}
+
+function updateMeasureSegmentsList(pts) {
+  const list = document.getElementById("measure-segments-list");
+  if (!list) return;
+  list.innerHTML = "";
+  for (let i = 1; i < pts.length; i++) {
+    const dist = Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y);
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;justify-content:space-between;align-items:center;background:rgba(255,214,0,0.07);border:1px solid rgba(255,214,0,0.2);border-radius:4px;padding:3px 8px;font-size:0.74rem;";
+    row.innerHTML = `
+      <span style="color:var(--text-muted);">Seg ${i}</span>
+      <span style="color:var(--accent-yellow);font-weight:700;font-family:monospace;">${dist.toFixed(2)} m</span>
+    `;
+    list.appendChild(row);
+  }
+}
+
+function findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName) {
+  if (state.measurePoints.length === 0) return -1;
+  const toScreen = mapName === "true" ? worldToScreenGIS : worldToScreen;
+  const h = canvas.height;
+  const HIT = 10;
+  for (let i = 0; i < state.measurePoints.length; i++) {
+    const sp = toScreen(state.measurePoints[i], vp, h);
+    if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT) return i;
+  }
+  return -1;
 }
 
 function drawPendingAnchor(ctx, pt, vp, h) {
@@ -1799,10 +1884,17 @@ function setupEventListeners() {
   attachCanvasInteractions(canvas1073, "1073");
   attachCanvasInteractions(canvasTrue, "true");
 
-  // Center buttons
-  document.getElementById("btn-fit-296").addEventListener("click", () => { if (state.entities296.length) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296)); redrawAll(); });
-  document.getElementById("btn-fit-1073").addEventListener("click", () => { if (state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073)); redrawAll(); });
-  document.getElementById("btn-fit-true").addEventListener("click", () => { if (state.entitiesTrue.length) state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue)); else if (state.geoTiff) state.vpTrue = fitViewport(canvasTrue, state.geoTiff.bbox); redrawAll(); });
+  // Center buttons (per-viewport)
+  document.getElementById("vp-center-296").addEventListener("click", () => { if (state.entities296.length) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296)); redrawAll(); });
+  document.getElementById("vp-center-1073").addEventListener("click", () => { if (state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073)); redrawAll(); });
+  document.getElementById("vp-center-true").addEventListener("click", () => { if (state.entitiesTrue.length) state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue)); else if (state.geoTiff) state.vpTrue = fitViewport(canvasTrue, state.geoTiff.bbox); redrawAll(); });
+
+  // Per-viewport Pan/Anchor/Measure buttons
+  ["296", "1073", "true"].forEach(vp => {
+    document.getElementById(`vp-pan-${vp}`).addEventListener("click", () => setToolMode("pan"));
+    document.getElementById(`vp-anchor-${vp}`).addEventListener("click", () => setToolMode("anchor"));
+    document.getElementById(`vp-measure-${vp}`).addEventListener("click", () => setToolMode("measure"));
+  });
 
   // True (Field) DXF manual file picker
   const trueDxfInput = document.getElementById("true-dxf-input");
@@ -1931,9 +2023,19 @@ function updateWindowLayout() {
 
 function setToolMode(mode) {
   state.toolMode = mode;
-  btnModePan.classList.toggle("active", mode === "pan");
-  btnModeAnchor.classList.toggle("active", mode === "anchor");
-  btnModeMeasure.classList.toggle("active", mode === "measure");
+  // Update header buttons (kept as hidden targets for hotkeys)
+  if (btnModePan) btnModePan.classList.toggle("active", mode === "pan");
+  if (btnModeAnchor) btnModeAnchor.classList.toggle("active", mode === "anchor");
+  if (btnModeMeasure) btnModeMeasure.classList.toggle("active", mode === "measure");
+  // Update per-viewport toolbar buttons
+  ["296", "1073", "true"].forEach(vp => {
+    const panBtn    = document.getElementById(`vp-pan-${vp}`);
+    const anchorBtn = document.getElementById(`vp-anchor-${vp}`);
+    const measureBtn= document.getElementById(`vp-measure-${vp}`);
+    if (panBtn)    panBtn.classList.toggle("vp-active", mode === "pan");
+    if (anchorBtn) anchorBtn.classList.toggle("vp-active", mode === "anchor");
+    if (measureBtn)measureBtn.classList.toggle("vp-active", mode === "measure");
+  });
   const cur = mode === "pan" ? "grab" : "crosshair";
   canvas296.style.cursor = cur;
   canvas1073.style.cursor = cur;
@@ -2032,9 +2134,22 @@ function attachCanvasInteractions(canvas, mapName) {
       }
       redrawAll();
     } else if (state.toolMode === "measure" && e.button === 0) {
-      const pt = toWorld(mouseX, mouseY, vp, canvas.height);
-      state.measurePoints.push(pt);
-      redrawAll();
+      const hitIdx = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
+      if (hitIdx !== -1) {
+        state.draggingMeasurePt = hitIdx;
+      } else {
+        const pt = toWorld(mouseX, mouseY, vp, canvas.height);
+        state.measurePoints.push(pt);
+        redrawAll();
+      }
+    } else if (state.toolMode === "measure" && e.button === 2) {
+      e.preventDefault();
+      // Right-click removes closest marker if near one
+      const hitIdx = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
+      if (hitIdx !== -1) {
+        state.measurePoints.splice(hitIdx, 1);
+        redrawAll();
+      }
     }
   });
 
@@ -2066,11 +2181,20 @@ function attachCanvasInteractions(canvas, mapName) {
       return;
     }
 
+    if (state.toolMode === "measure" && state.draggingMeasurePt !== null) {
+      state.measurePoints[state.draggingMeasurePt] = { x: worldPt.x, y: worldPt.y };
+      redrawAll();
+      return;
+    }
+
     if (state.toolMode === "anchor") {
       const hit = hitTestAnchor(mouseX, mouseY, vp, canvas, mapName);
       canvas.style.cursor = hit ? "move" : "crosshair";
     } else if (state.toolMode === "pan") {
       canvas.style.cursor = isPanning ? "grabbing" : "grab";
+    } else if (state.toolMode === "measure") {
+      const hitIdx = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
+      canvas.style.cursor = hitIdx !== -1 ? "move" : "crosshair";
     }
   });
 
@@ -2085,6 +2209,10 @@ function attachCanvasInteractions(canvas, mapName) {
       draggingAnchor = null;
       redrawAll();
     }
+    if (state.draggingMeasurePt !== null) {
+      state.draggingMeasurePt = null;
+      redrawAll();
+    }
     isPanning = false;
     canvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
   });
@@ -2092,6 +2220,7 @@ function attachCanvasInteractions(canvas, mapName) {
   canvas.addEventListener("mouseleave", () => {
     isPanning = false;
     if (draggingAnchor) { draggingAnchor = null; redrawAll(); }
+    if (state.draggingMeasurePt !== null) { state.draggingMeasurePt = null; }
   });
 
   canvas.addEventListener("wheel", (e) => {
