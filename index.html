@@ -527,6 +527,31 @@
       gap: 10px;
       overflow-y: auto;
     }
+    
+    .layer-toggle-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .layer-toggle-item.layer-active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.08);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+    }
+    .layer-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .layer-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+    }
 
     .vectorizer-viewport {
       flex: 1;
@@ -2286,6 +2311,22 @@ function redrawVecDrawCanvas() {
   });
 }
 
+window.updatePolyName = function(idx, val) {
+  if (vecState.polygons[idx]) vecState.polygons[idx].name = val;
+};
+
+window.activatePolyFromInput = function(idx) {
+  if (vecState.activePolyIndex !== idx) {
+    vecState.activePolyIndex = idx;
+    renderVecPolygonList();
+    redrawVecDrawCanvas();
+    setTimeout(() => {
+      const el = document.getElementById('poly-input-' + idx);
+      if (el) el.focus();
+    }, 10);
+  }
+};
+
 function renderVecPolygonList() {
   const container = document.getElementById("vec-poly-list");
   container.innerHTML = "";
@@ -2293,17 +2334,31 @@ function renderVecPolygonList() {
     const isActive = idx === vecState.activePolyIndex;
     const card = document.createElement("div");
     card.className = `layer-toggle-item ${isActive ? 'layer-active' : ''}`;
-    card.style.display = "flex";
-    card.style.justifyContent = "space-between";
-    card.style.alignItems = "center";
     card.innerHTML = `
-      <div class="layer-title-row">
-        <span class="layer-dot" style="background:${poly.color}"></span>
-        <span>${poly.name} (${poly.points.length} pts)</span>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="layer-title-row">
+          <span class="layer-dot" style="background:${poly.color}"></span>
+          <input type="text" id="poly-input-${idx}" value="${poly.name}" 
+                 style="background:transparent; border:none; border-bottom:1px solid transparent; color:inherit; font:weight:600; font-size:0.85rem; outline:none; width:120px;"
+                 onfocus="this.style.borderBottom='1px dashed var(--text-muted)'"
+                 onblur="this.style.borderBottom='1px solid transparent'"
+                 oninput="updatePolyName(${idx}, this.value)"
+                 onclick="activatePolyFromInput(${idx}); event.stopPropagation();"
+                 onkeydown="event.stopPropagation();">
+        </div>
+        <button class="btn-del-anchor" title="Delete Polygon Layer" onclick="event.stopPropagation(); deleteVecPolygon(${idx})">✕</button>
       </div>
-      <button class="btn-del-anchor" title="Delete Polygon Layer" onclick="event.stopPropagation(); deleteVecPolygon(${idx})">✕</button>
+      <div style="font-size:0.75rem; color:var(--text-muted); margin-left: 20px;">
+        ${poly.points.length} Vertices
+      </div>
     `;
-    card.addEventListener("click", () => { vecState.activePolyIndex = idx; renderVecPolygonList(); redrawVecDrawCanvas(); });
+    card.addEventListener("click", () => { 
+      if (vecState.activePolyIndex !== idx) {
+        vecState.activePolyIndex = idx; 
+        renderVecPolygonList(); 
+        redrawVecDrawCanvas(); 
+      }
+    });
     container.appendChild(card);
   });
 }
@@ -2317,40 +2372,51 @@ function deleteVecPolygon(index) {
   redrawVecDrawCanvas();
 }
 
-function findVecVertexAt(poly, canvasX, canvasY, radius = 10) {
-  if (!poly || !poly.points) return -1;
-  for (let i = 0; i < poly.points.length; i++) {
-    const pt = poly.points[i];
-    const sx = pt.x * vecState.scale;
-    const sy = pt.y * vecState.scale;
-    if (Math.hypot(sx - canvasX, sy - canvasY) <= radius) return i;
+function findVecPolygonAndVertexAt(canvasX, canvasY, radius = 10) {
+  for (let pIdx = vecState.polygons.length - 1; pIdx >= 0; pIdx--) {
+    const poly = vecState.polygons[pIdx];
+    for (let i = 0; i < poly.points.length; i++) {
+      const pt = poly.points[i];
+      const sx = pt.x * vecState.scale;
+      const sy = pt.y * vecState.scale;
+      if (Math.hypot(sx - canvasX, sy - canvasY) <= radius) return { pIdx, vIdx: i };
+    }
   }
-  return -1;
+  return null;
 }
 
 // Vectorizer Canvas Interaction (Add, Move/Drag, Delete Vertex)
 vecDrawCanvas.addEventListener("mousedown", (e) => {
   const rect = vecDrawCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left, y = e.clientY - rect.top;
-  const activePoly = vecState.polygons[vecState.activePolyIndex];
-  if (!activePoly) return;
-
-  const hitIdx = findVecVertexAt(activePoly, x, y);
+  
+  const hit = findVecPolygonAndVertexAt(x, y);
 
   if (e.button === 0) { // Left Click: Drag vertex or Add new vertex
-    if (hitIdx !== -1) {
+    if (hit) {
+      if (vecState.activePolyIndex !== hit.pIdx) {
+        vecState.activePolyIndex = hit.pIdx;
+        renderVecPolygonList();
+      }
       vecState.isDraggingVertex = true;
-      vecState.draggedVertexIndex = hitIdx;
-    } else {
-      const worldPt = { x: Math.round((x / vecState.scale) * 100) / 100, y: Math.round((y / vecState.scale) * 100) / 100 };
-      activePoly.points.push(worldPt);
-      renderVecPolygonList();
+      vecState.draggedVertexIndex = hit.vIdx;
       redrawVecDrawCanvas();
+    } else {
+      const activePoly = vecState.polygons[vecState.activePolyIndex];
+      if (activePoly) {
+        const worldPt = { x: Math.round((x / vecState.scale) * 100) / 100, y: Math.round((y / vecState.scale) * 100) / 100 };
+        activePoly.points.push(worldPt);
+        renderVecPolygonList();
+        redrawVecDrawCanvas();
+      }
     }
   } else if (e.button === 2) { // Right Click: Delete vertex
     e.preventDefault();
-    if (hitIdx !== -1) {
-      activePoly.points.splice(hitIdx, 1);
+    if (hit) {
+      if (vecState.activePolyIndex !== hit.pIdx) {
+        vecState.activePolyIndex = hit.pIdx;
+      }
+      vecState.polygons[vecState.activePolyIndex].points.splice(hit.vIdx, 1);
       renderVecPolygonList();
       redrawVecDrawCanvas();
     }
