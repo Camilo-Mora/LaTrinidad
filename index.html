@@ -65,23 +65,44 @@
     .app-header.collapsed { display: none !important; }
     .sidebar.collapsed { display: none !important; }
 
-    .floating-restore-btn {
+    /* Floating header-restore strip (only visible when header is hidden) */
+    .header-restore-strip {
       position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 500;
+      display: none;
       background: var(--bg-panel);
-      border: 1px solid var(--accent-cyan);
-      color: var(--accent-cyan);
-      font-size: 0.74rem;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      padding: 2px 14px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
-      transition: var(--transition-fast);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
     }
-    .floating-restore-btn:hover { background: var(--accent-cyan); color: #000; }
-    .floating-restore-btn.header-restore { top: 8px; left: 16px; }
-    .floating-restore-btn.sidebar-restore { top: 8px; right: 16px; }
+    .header-restore-strip:hover { color: var(--accent-cyan); background: rgba(0,229,255,0.08); }
+
+    /* Triangle toggle buttons inside the header */
+    .tri-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .tri-btn:hover { background: rgba(0,229,255,0.15); color: var(--accent-cyan); border-color: rgba(0,229,255,0.4); }
 
     .logo-group {
       display: flex;
@@ -210,29 +231,9 @@
     }
 
     /* Algorithm Selector */
-    .algorithm-selector-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 4px 10px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-color);
-    }
-    .algorithm-selector-group label { font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600; }
 
-    .select-dropdown {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--border-color);
-      color: #fff;
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 4px 8px;
-      border-radius: var(--radius-sm);
-      outline: none;
-      cursor: pointer;
-    }
     .select-dropdown option { background: #121824; color: #fff; }
+
 
     /* Buttons */
     .btn {
@@ -361,15 +362,40 @@
     }
 
     .viewport-hint {
-      padding: 4px 10px;
-      font-size: 0.7rem;
-      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 4px 8px;
       background: rgba(0, 0, 0, 0.35);
       border-top: 1px solid var(--border-color);
-      text-align: center;
+    }
+    .vp-tool-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    }
+    .vp-tool-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.07); }
+    .vp-tool-btn.active {
+      background: rgba(0,229,255,0.18);
+      color: var(--accent-cyan);
+      border-color: rgba(0,229,255,0.4);
+      box-shadow: 0 0 6px rgba(0,229,255,0.18);
+    }
+    .vp-tool-sep {
+      width: 1px;
+      height: 14px;
+      background: var(--border-color);
+      margin: 0 2px;
     }
 
     /* Sidebar Controls */
@@ -624,41 +650,22 @@
         </label>
       </div>
 
-      <!-- Tool Modes (Pan vs Anchor vs Measure) -->
-      <div class="tool-mode-group">
-        <button class="mode-btn active" id="btn-mode-pan" title="Pan Map Display [Hotkey: P]">🖐️ Pan Mode</button>
-        <button class="mode-btn" id="btn-mode-anchor" title="Drop Anchor Control Points [Hotkey: A]">🎯 Anchor Mode</button>
-        <button class="mode-btn" id="btn-mode-measure" title="Measure Distances in Meters [Hotkey: M]">📏 Measure Tool</button>
-      </div>
 
-      <!-- Algorithm Selector -->
-      <div class="algorithm-selector-group">
-        <label for="algorithm-select">Algorithm:</label>
-        <select id="algorithm-select" class="select-dropdown">
-          <option value="TPS" selected>Thin Plate Spline (TPS Rubber-Sheeting)</option>
-          <option value="AFFINE">Affine Transformation (6-Param)</option>
-          <option value="SIMILARITY">Helmert Similarity (Rigid Scale + Rotate)</option>
-          <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
-        </select>
-      </div>
 
       <!-- File Actions & Collapse Controls -->
       <div class="header-section">
-
-
         <button id="btn-export-dxf" class="btn btn-success" title="Export Rectified DXF File">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           Export DXF
         </button>
 
-        <button class="preset-btn" id="btn-toggle-header" title="Minimize Header to maximize map area">▲ Hide Header</button>
-        <button class="preset-btn" id="btn-toggle-sidebar" title="Minimize Sidebar Controls">▶ Hide Sidebar</button>
+        <button class="tri-btn" id="btn-toggle-header" title="Hide header to maximize map area">▲</button>
+        <button class="tri-btn" id="btn-toggle-sidebar" title="Collapse / expand sidebar">▶</button>
       </div>
     </header>
 
-    <!-- Floating Restore Buttons (Visible when Header or Sidebar are minimized) -->
-    <button id="btn-show-header" class="floating-restore-btn header-restore" style="display:none;" title="Restore Header Bar">▼ Show Header</button>
-    <button id="btn-show-sidebar" class="floating-restore-btn sidebar-restore" style="display:none;" title="Restore Sidebar Panel">◀ Controls</button>
+    <!-- Floating strip to restore header (only visible when header is hidden) -->
+    <button id="btn-show-header" class="header-restore-strip" title="Restore header">▼</button>
 
     <!-- Workspace -->
     <main class="app-workspace">
@@ -670,14 +677,21 @@
             <span class="view-title title-296">📜 Escritura 296</span>
             <div class="view-controls">
               <button class="btn btn-accent btn-sm" id="btn-edit-296" title="Edit or Vectorize PDF for Escritura 296">✏️</button>
-              <button class="btn-fit-view" id="btn-fit-296" title="Center Map View">🎯</button>
               <span id="status-296" class="view-badge">Preloaded DXF</span>
             </div>
           </div>
           <div class="canvas-container" id="container-296">
             <canvas id="canvas-296"></canvas>
           </div>
-          <div class="viewport-hint" id="hint-296">🖐️ Pan Mode. Click '🎯 Anchor Mode' to add points. Click '✏️ Edit Polygon' to modify DXF.</div>
+          <div class="viewport-hint" id="hint-296">
+            <button class="vp-tool-btn active" data-map="296" data-mode="pan" title="Pan Mode [P]">🖐️ Pan</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="296" data-mode="anchor" title="Anchor Mode [A]">🎯 Anchoring</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="296" data-mode="fit" title="Center Map View">⛶ Center</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="296" data-mode="measure" title="Measure Distances [M]">📏 Measure</button>
+          </div>
         </div>
 
         <!-- Escritura 1073 Viewport -->
@@ -686,14 +700,21 @@
             <span class="view-title title-1073">📜 Escritura 1073</span>
             <div class="view-controls">
               <button class="btn btn-accent btn-sm" id="btn-edit-1073" title="Edit or Vectorize PDF for Escritura 1073">✏️</button>
-              <button class="btn-fit-view" id="btn-fit-1073" title="Center Map View">🎯</button>
               <span id="status-1073" class="view-badge red">Preloaded DXF</span>
             </div>
           </div>
           <div class="canvas-container" id="container-1073">
             <canvas id="canvas-1073"></canvas>
           </div>
-          <div class="viewport-hint" id="hint-1073">🖐️ Pan Mode. Click '🎯 Anchor Mode' to add points. Click '✏️ Edit Polygon' to modify DXF.</div>
+          <div class="viewport-hint" id="hint-1073">
+            <button class="vp-tool-btn active" data-map="1073" data-mode="pan" title="Pan Mode [P]">🖐️ Pan</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="1073" data-mode="anchor" title="Anchor Mode [A]">🎯 Anchoring</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="1073" data-mode="fit" title="Center Map View">⛶ Center</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="1073" data-mode="measure" title="Measure Distances [M]">📏 Measure</button>
+          </div>
         </div>
 
         <!-- True Field Survey Viewport -->
@@ -707,14 +728,21 @@
                 <input type="file" id="true-dxf-input" accept=".dxf">
                 <span class="btn btn-secondary btn-sm">Load True DXF</span>
               </label>
-              <button class="btn-fit-view" id="btn-fit-true" title="Center Map View">🎯</button>
               <span id="status-true" class="view-badge green">Target DXF</span>
             </div>
           </div>
           <div class="canvas-container" id="container-true">
             <canvas id="canvas-true"></canvas>
           </div>
-          <div class="viewport-hint" id="hint-true">🖐️ Left click & drag to pan. 🎯 Anchor mode to match landmarks.</div>
+          <div class="viewport-hint" id="hint-true">
+            <button class="vp-tool-btn active" data-map="true" data-mode="pan" title="Pan Mode [P]">🖐️ Pan</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="true" data-mode="anchor" title="Anchor Mode [A]">🎯 Anchoring</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View">⛶ Center</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="true" data-mode="measure" title="Measure Distances [M]">📏 Measure</button>
+          </div>
         </div>
       </div>
 
@@ -722,7 +750,6 @@
       <aside class="sidebar">
         <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px;">
           <span style="font-size:0.8rem; font-weight:700; color:var(--accent-cyan);">Control Panel</span>
-          <button class="preset-btn" id="btn-close-sidebar" title="Minimize Sidebar Panel">▶ Hide Sidebar</button>
         </div>
 
         <!-- Distance Measuring Active Info -->
@@ -1133,9 +1160,9 @@ const chkShow1073 = document.getElementById("chk-show-1073");
 const chkShowTrue = document.getElementById("chk-show-true");
 
 
-const btnModePan = document.getElementById("btn-mode-pan");
-const btnModeAnchor = document.getElementById("btn-mode-anchor");
-const btnModeMeasure = document.getElementById("btn-mode-measure");
+
+// vp-tool-btn buttons are queried dynamically in setToolMode
+
 
 const statusBar = document.getElementById("status-bar");
 const coordsBar = document.getElementById("coords-bar");
@@ -1776,28 +1803,30 @@ function setupEventListeners() {
   const appHeader = document.querySelector(".app-header");
   const sidebar = document.querySelector(".sidebar");
   const btnShowHeader = document.getElementById("btn-show-header");
-  const btnShowSidebar = document.getElementById("btn-show-sidebar");
+  const btnToggleHeader = document.getElementById("btn-toggle-header");
+  const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
 
   function toggleHeader(collapse) {
     const shouldCollapse = collapse !== undefined ? collapse : !appHeader.classList.contains("collapsed");
     appHeader.classList.toggle("collapsed", shouldCollapse);
+    // Floating restore strip appears when header is hidden
     btnShowHeader.style.display = shouldCollapse ? "block" : "none";
+    // Triangle flips: ▲ = visible (click to hide), ▼ = inside strip to restore
     setTimeout(resizeCanvases, 60);
   }
 
   function toggleSidebar(collapse) {
     const shouldCollapse = collapse !== undefined ? collapse : !sidebar.classList.contains("collapsed");
     sidebar.classList.toggle("collapsed", shouldCollapse);
-    btnShowSidebar.style.display = shouldCollapse ? "block" : "none";
+    // Triangle flips: ▶ = expanded (click to collapse), ◀ = collapsed (click to expand)
+    btnToggleSidebar.textContent = shouldCollapse ? "◀" : "▶";
+    btnToggleSidebar.title = shouldCollapse ? "Expand sidebar" : "Collapse sidebar";
     setTimeout(resizeCanvases, 60);
   }
 
-  document.getElementById("btn-toggle-header").addEventListener("click", () => toggleHeader(true));
+  btnToggleHeader.addEventListener("click", () => toggleHeader(true));
   btnShowHeader.addEventListener("click", () => toggleHeader(false));
-
-  document.getElementById("btn-toggle-sidebar").addEventListener("click", () => toggleSidebar(true));
-  document.getElementById("btn-close-sidebar").addEventListener("click", () => toggleSidebar(true));
-  btnShowSidebar.addEventListener("click", () => toggleSidebar(false));
+  btnToggleSidebar.addEventListener("click", () => toggleSidebar());
 
   // Subwindow Toggle Selector
   chkShow296.addEventListener("change", updateWindowLayout);
@@ -1815,9 +1844,25 @@ function setupEventListeners() {
 
 
   // Tool Modes
-  btnModePan.addEventListener("click", () => setToolMode("pan"));
-  btnModeAnchor.addEventListener("click", () => setToolMode("anchor"));
-  btnModeMeasure.addEventListener("click", () => setToolMode("measure"));
+  // Per-panel toolbar buttons (Pan / Anchor / Center / Measure)
+  document.querySelectorAll(".vp-tool-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.mode;
+      const map  = btn.dataset.map;
+      if (mode === "fit") {
+        // Center the specific map
+        if (map === "296"  && state.entities296.length)  state.vp296  = fitViewport(canvas296,  computeBoundingBox(state.entities296));
+        if (map === "1073" && state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
+        if (map === "true") {
+          if (state.entitiesTrue.length) state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue));
+          else if (state.geoTiff) state.vpTrue = fitViewport(canvasTrue, state.geoTiff.bbox);
+        }
+        redrawAll();
+      } else {
+        setToolMode(mode);
+      }
+    });
+  });
 
   document.getElementById("btn-clear-measure").addEventListener("click", () => {
     state.measurePoints = [];
@@ -1830,10 +1875,7 @@ function setupEventListeners() {
   attachCanvasInteractions(canvas1073, "1073");
   attachCanvasInteractions(canvasTrue, "true");
 
-  // Center buttons
-  document.getElementById("btn-fit-296").addEventListener("click", () => { if (state.entities296.length) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296)); redrawAll(); });
-  document.getElementById("btn-fit-1073").addEventListener("click", () => { if (state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073)); redrawAll(); });
-  document.getElementById("btn-fit-true").addEventListener("click", () => { if (state.entitiesTrue.length) state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue)); else if (state.geoTiff) state.vpTrue = fitViewport(canvasTrue, state.geoTiff.bbox); redrawAll(); });
+  // (Center buttons are now in the per-panel toolbars above)
 
   // True (Field) DXF manual file picker
   const trueDxfInput = document.getElementById("true-dxf-input");
@@ -1962,9 +2004,10 @@ function updateWindowLayout() {
 
 function setToolMode(mode) {
   state.toolMode = mode;
-  btnModePan.classList.toggle("active", mode === "pan");
-  btnModeAnchor.classList.toggle("active", mode === "anchor");
-  btnModeMeasure.classList.toggle("active", mode === "measure");
+  // Update all per-panel vp-tool-btn buttons
+  document.querySelectorAll(".vp-tool-btn[data-mode='pan']").forEach(b => b.classList.toggle("active", mode === "pan"));
+  document.querySelectorAll(".vp-tool-btn[data-mode='anchor']").forEach(b => b.classList.toggle("active", mode === "anchor"));
+  document.querySelectorAll(".vp-tool-btn[data-mode='measure']").forEach(b => b.classList.toggle("active", mode === "measure"));
   const cur = mode === "pan" ? "grab" : "crosshair";
   canvas296.style.cursor = cur;
   canvas1073.style.cursor = cur;
