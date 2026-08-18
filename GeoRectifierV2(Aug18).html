@@ -755,25 +755,15 @@
         <!-- Distance Measuring Active Info -->
         <section class="panel-card" id="panel-measure">
           <div class="panel-header">
-            <h3>📏 Distance & Area Measurement</h3>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-yellow); margin:0; cursor:pointer;" title="Close polygon vertices and compute total area">
-                <input type="checkbox" id="chk-measure-area">
-                <span>Area</span>
-              </label>
-              <button class="btn-sm btn-secondary" id="btn-clear-measure">Clear</button>
-            </div>
+            <h3>📏 Distance Measurement (Meters)</h3>
+            <button class="btn-sm btn-secondary" id="btn-clear-measure">Clear Lines</button>
           </div>
           <div class="measure-summary-bar">
             <span>Total Distance:</span>
             <span id="measure-total-val" style="font-size:0.92rem;font-weight:700;">0.00 m</span>
           </div>
-          <div class="measure-summary-bar" id="measure-area-container" style="display:none; margin-top:4px; background:rgba(0,229,255,0.1); border-color:rgba(0,229,255,0.3); color:var(--accent-cyan);">
-            <span>Enclosed Area:</span>
-            <span id="measure-area-val" style="font-size:0.85rem;font-weight:700;text-align:right;">0.00 m² (0.00 plazas)</span>
-          </div>
-          <div id="measure-segments-list" style="display:flex;flex-direction:column;gap:3px;max-height:140px;overflow-y:auto;margin-top:4px;"></div>
-          <p style="font-size:0.7rem;color:var(--text-muted);margin:0;">Click points on any map to measure. Drag markers to adjust. Right-click or 'Clear' to reset.</p>
+          <div id="measure-segments-list" style="display:flex;flex-direction:column;gap:3px;max-height:140px;overflow-y:auto;"></div>
+          <p style="font-size:0.7rem;color:var(--text-muted);margin:0;">Click points on any map to measure. Drag markers to adjust. Right-click or 'Clear Lines' to reset.</p>
         </section>
 
         <!-- Accuracy Analytics -->
@@ -1128,7 +1118,6 @@ const state = {
   
   // Measurement Points per map
   measurePoints: [],
-  measureArea: false,
   draggingMeasurePt: null, // index into measurePoints being dragged
   
   // Viewports
@@ -1179,9 +1168,6 @@ const statusBar = document.getElementById("status-bar");
 const coordsBar = document.getElementById("coords-bar");
 
 const measureTotalVal = document.getElementById("measure-total-val");
-const chkMeasureArea = document.getElementById("chk-measure-area");
-const measureAreaContainer = document.getElementById("measure-area-container");
-const measureAreaVal = document.getElementById("measure-area-val");
 
 /* INITIALIZATION */
 window.addEventListener("DOMContentLoaded", () => {
@@ -1301,7 +1287,6 @@ function redrawAll() {
   drawViewport1073();
   drawViewportTrue();
   updateAnalyticsUI();
-  updateMeasurementUI(state.measurePoints);
 }
 
 function drawGrid(ctx, w, h) {
@@ -1676,28 +1661,53 @@ function drawDestinationAnchorsGIS(ctx, anchors, vp, h) {
   });
 }
 
-function updateMeasurementUI(pts) {
-  let totalDist = 0;
+function drawMeasurementsGIS(ctx, vp, h) {
+  if (state.measurePoints.length === 0) return;
+  const pts = state.measurePoints;
+
+  ctx.beginPath();
+  const start = worldToScreenGIS(pts[0], vp, h);
+  ctx.moveTo(start.x, start.y);
   for (let i = 1; i < pts.length; i++) {
-    totalDist += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+    const p = worldToScreenGIS(pts[i], vp, h);
+    ctx.lineTo(p.x, p.y);
   }
-  if (state.measureArea && pts.length >= 3) {
-    totalDist += Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
+  ctx.strokeStyle = "#ffd600";
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  let totalDist = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const sp = worldToScreenGIS(pts[i], vp, h);
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffd600"; ctx.fill();
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+
+    if (i > 0) {
+      const pPrev = pts[i - 1];
+      const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
+      totalDist += dist;
+
+      const spPrev = worldToScreenGIS(pPrev, vp, h);
+      const midX = (sp.x + spPrev.x) / 2;
+      const midY = (sp.y + spPrev.y) / 2;
+
+      ctx.fillStyle = "rgba(0,0,0,0.75)";
+      ctx.fillRect(midX - 24, midY - 10, 48, 18);
+      ctx.strokeStyle = "#ffd600";
+      ctx.strokeRect(midX - 24, midY - 10, 48, 18);
+
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
+      ctx.textAlign = "left";
+    }
   }
 
   if (measureTotalVal) measureTotalVal.textContent = `${totalDist.toFixed(2)} m`;
-
-  if (state.measureArea) {
-    if (measureAreaContainer) measureAreaContainer.style.display = "flex";
-    const areaM2 = pts.length >= 3 ? calculatePolygonArea(pts) : 0;
-    const plazas = areaM2 / 6400;
-    if (measureAreaVal) {
-      measureAreaVal.textContent = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m² (${plazas.toFixed(2)} plazas)`;
-    }
-  } else {
-    if (measureAreaContainer) measureAreaContainer.style.display = "none";
-  }
-
   updateMeasureSegmentsList(pts);
 }
 
@@ -1706,22 +1716,12 @@ function updateMeasureSegmentsList(pts) {
   if (!list) return;
   list.innerHTML = "";
   for (let i = 1; i < pts.length; i++) {
-    const dist = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+    const dist = Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y);
     const row = document.createElement("div");
     row.style.cssText = "display:flex;justify-content:space-between;align-items:center;background:rgba(255,214,0,0.07);border:1px solid rgba(255,214,0,0.2);border-radius:4px;padding:3px 8px;font-size:0.74rem;";
     row.innerHTML = `
       <span style="color:var(--text-muted);">Seg ${i}</span>
       <span style="color:var(--accent-yellow);font-weight:700;font-family:monospace;">${dist.toFixed(2)} m</span>
-    `;
-    list.appendChild(row);
-  }
-  if (state.measureArea && pts.length >= 3) {
-    const closeDist = Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
-    const row = document.createElement("div");
-    row.style.cssText = "display:flex;justify-content:space-between;align-items:center;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);border-radius:4px;padding:3px 8px;font-size:0.74rem;";
-    row.innerHTML = `
-      <span style="color:var(--accent-cyan);">Seg ${pts.length} (Close)</span>
-      <span style="color:var(--accent-cyan);font-weight:700;font-family:monospace;">${closeDist.toFixed(2)} m</span>
     `;
     list.appendChild(row);
   }
@@ -1747,7 +1747,7 @@ function drawPendingAnchor(ctx, pt, vp, h) {
   ctx.fillStyle = "#00e5ff"; ctx.fill();
 }
 
-/* MEASUREMENT RENDERING ENGINE (METERS & AREA) */
+/* MEASUREMENT RENDERING ENGINE (METERS) */
 function drawMeasurements(ctx, vp, h) {
   if (state.measurePoints.length === 0) return;
   const pts = state.measurePoints;
@@ -1759,19 +1759,13 @@ function drawMeasurements(ctx, vp, h) {
     const p = worldToScreen(pts[i], vp, h);
     ctx.lineTo(p.x, p.y);
   }
-
-  if (state.measureArea && pts.length >= 3) {
-    ctx.closePath();
-    ctx.fillStyle = "rgba(255, 214, 0, 0.12)";
-    ctx.fill();
-  }
-
   ctx.strokeStyle = "#ffd600";
   ctx.lineWidth = 2.5;
   ctx.setLineDash([6, 4]);
   ctx.stroke();
   ctx.setLineDash([]);
 
+  let totalDist = 0;
   for (let i = 0; i < pts.length; i++) {
     const sp = worldToScreen(pts[i], vp, h);
     ctx.beginPath(); ctx.arc(sp.x, sp.y, 5, 0, Math.PI * 2);
@@ -1781,6 +1775,8 @@ function drawMeasurements(ctx, vp, h) {
     if (i > 0) {
       const pPrev = pts[i - 1];
       const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
+      totalDist += dist;
+
       const spPrev = worldToScreen(pPrev, vp, h);
       const midX = (sp.x + spPrev.x) / 2;
       const midY = (sp.y + spPrev.y) / 2;
@@ -1798,150 +1794,7 @@ function drawMeasurements(ctx, vp, h) {
     }
   }
 
-  if (state.measureArea && pts.length >= 3) {
-    const pLast = pts[pts.length - 1];
-    const pFirst = pts[0];
-    const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
-    const spLast = worldToScreen(pLast, vp, h);
-    const spFirst = worldToScreen(pFirst, vp, h);
-    const midX = (spLast.x + spFirst.x) / 2;
-    const midY = (spLast.y + spFirst.y) / 2;
-
-    ctx.fillStyle = "rgba(0,0,0,0.75)";
-    ctx.fillRect(midX - 24, midY - 10, 48, 18);
-    ctx.strokeStyle = "#00e5ff";
-    ctx.strokeRect(midX - 24, midY - 10, 48, 18);
-
-    ctx.fillStyle = "#00e5ff";
-    ctx.font = "bold 10px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
-    ctx.textAlign = "left";
-
-    let cx = 0, cy = 0;
-    pts.forEach(pt => { cx += pt.x; cy += pt.y; });
-    cx /= pts.length; cy /= pts.length;
-    const sc = worldToScreen({ x: cx, y: cy }, vp, h);
-    const areaM2 = calculatePolygonArea(pts);
-    const plazas = areaM2 / 6400;
-
-    const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-    const txt2 = `${plazas.toFixed(2)} plazas`;
-
-    const bw = 104, bh = 32;
-    ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
-    ctx.strokeStyle = "#00e5ff";
-    ctx.lineWidth = 1.5;
-    ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-    ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-
-    ctx.fillStyle = "#00e5ff";
-    ctx.font = "bold 10px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(txt1, sc.x, sc.y - 3);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "9px sans-serif";
-    ctx.fillText(txt2, sc.x, sc.y + 9);
-    ctx.textAlign = "left";
-  }
-}
-
-function drawMeasurementsGIS(ctx, vp, h) {
-  if (state.measurePoints.length === 0) return;
-  const pts = state.measurePoints;
-
-  ctx.beginPath();
-  const start = worldToScreenGIS(pts[0], vp, h);
-  ctx.moveTo(start.x, start.y);
-  for (let i = 1; i < pts.length; i++) {
-    const p = worldToScreenGIS(pts[i], vp, h);
-    ctx.lineTo(p.x, p.y);
-  }
-
-  if (state.measureArea && pts.length >= 3) {
-    ctx.closePath();
-    ctx.fillStyle = "rgba(255, 214, 0, 0.12)";
-    ctx.fill();
-  }
-
-  ctx.strokeStyle = "#ffd600";
-  ctx.lineWidth = 2.5;
-  ctx.setLineDash([6, 4]);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  for (let i = 0; i < pts.length; i++) {
-    const sp = worldToScreenGIS(pts[i], vp, h);
-    ctx.beginPath(); ctx.arc(sp.x, sp.y, 5, 0, Math.PI * 2);
-    ctx.fillStyle = "#ffd600"; ctx.fill();
-    ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
-
-    if (i > 0) {
-      const pPrev = pts[i - 1];
-      const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
-      const spPrev = worldToScreenGIS(pPrev, vp, h);
-      const midX = (sp.x + spPrev.x) / 2;
-      const midY = (sp.y + spPrev.y) / 2;
-
-      ctx.fillStyle = "rgba(0,0,0,0.75)";
-      ctx.fillRect(midX - 24, midY - 10, 48, 18);
-      ctx.strokeStyle = "#ffd600";
-      ctx.strokeRect(midX - 24, midY - 10, 48, 18);
-
-      ctx.fillStyle = "#ffd600";
-      ctx.font = "bold 10px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
-      ctx.textAlign = "left";
-    }
-  }
-
-  if (state.measureArea && pts.length >= 3) {
-    const pLast = pts[pts.length - 1];
-    const pFirst = pts[0];
-    const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
-    const spLast = worldToScreenGIS(pLast, vp, h);
-    const spFirst = worldToScreenGIS(pFirst, vp, h);
-    const midX = (spLast.x + spFirst.x) / 2;
-    const midY = (spLast.y + spFirst.y) / 2;
-
-    ctx.fillStyle = "rgba(0,0,0,0.75)";
-    ctx.fillRect(midX - 24, midY - 10, 48, 18);
-    ctx.strokeStyle = "#00e5ff";
-    ctx.strokeRect(midX - 24, midY - 10, 48, 18);
-
-    ctx.fillStyle = "#00e5ff";
-    ctx.font = "bold 10px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
-    ctx.textAlign = "left";
-
-    let cx = 0, cy = 0;
-    pts.forEach(pt => { cx += pt.x; cy += pt.y; });
-    cx /= pts.length; cy /= pts.length;
-    const sc = worldToScreenGIS({ x: cx, y: cy }, vp, h);
-    const areaM2 = calculatePolygonArea(pts);
-    const plazas = areaM2 / 6400;
-
-    const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-    const txt2 = `${plazas.toFixed(2)} plazas`;
-
-    const bw = 104, bh = 32;
-    ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
-    ctx.strokeStyle = "#00e5ff";
-    ctx.lineWidth = 1.5;
-    ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-    ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-
-    ctx.fillStyle = "#00e5ff";
-    ctx.font = "bold 10px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(txt1, sc.x, sc.y - 3);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "9px sans-serif";
-    ctx.fillText(txt2, sc.x, sc.y + 9);
-    ctx.textAlign = "left";
-  }
+  if (measureTotalVal) measureTotalVal.textContent = `${totalDist.toFixed(2)} m`;
 }
 
 /* EVENT LISTENERS & INTERACTION */
@@ -2016,13 +1869,6 @@ function setupEventListeners() {
     if (measureTotalVal) measureTotalVal.textContent = "0.00 m";
     redrawAll();
   });
-
-  if (chkMeasureArea) {
-    chkMeasureArea.addEventListener("change", (e) => {
-      state.measureArea = e.target.checked;
-      redrawAll();
-    });
-  }
 
   // Canvas Mouse Actions (Pan, Anchor, Measure)
   attachCanvasInteractions(canvas296,  "296");
@@ -2212,27 +2058,16 @@ function attachCanvasInteractions(canvas, mapName) {
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   }
 
-  canvas.addEventListener("contextmenu", (e) => {
-    if (state.toolMode === "measure") e.preventDefault();
-  });
-
   canvas.addEventListener("mousedown", (e) => {
+    if (e.button === 2) {
+      state.measurePoints = [];
+      redrawAll();
+      return;
+    }
+
     const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
     const { x: mouseX, y: mouseY } = getCanvasXY(e);
     const vp = getVP();
-
-    if (e.button === 2) {
-      if (state.toolMode === "measure") {
-        const hitIdx = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
-        if (hitIdx !== -1) {
-          state.measurePoints.splice(hitIdx, 1);
-        } else {
-          state.measurePoints = [];
-        }
-        redrawAll();
-      }
-      return;
-    }
 
     if (state.toolMode === "pan" || e.button === 1) {
       isPanning = true;
@@ -2277,6 +2112,14 @@ function attachCanvasInteractions(canvas, mapName) {
       } else {
         const pt = toWorld(mouseX, mouseY, vp, canvas.height);
         state.measurePoints.push(pt);
+        redrawAll();
+      }
+    } else if (state.toolMode === "measure" && e.button === 2) {
+      e.preventDefault();
+      // Right-click removes closest marker if near one
+      const hitIdx = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
+      if (hitIdx !== -1) {
+        state.measurePoints.splice(hitIdx, 1);
         redrawAll();
       }
     }
