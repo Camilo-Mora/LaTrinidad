@@ -722,12 +722,8 @@
           <div class="viewport-header">
             <span class="view-title title-true">📍 Field data</span>
             <div class="view-controls">
-              <label for="geotiff-input" class="btn btn-secondary btn-sm" title="Load Shared GeoTIFF Background">🗺️ GeoTIFF</label>
+              <label for="geotiff-input" class="btn btn-secondary btn-sm" style="margin-right:8px;" title="Load Shared GeoTIFF Background">🗺️ GeoTIFF</label>
               <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff" style="display:none;">
-              <label class="window-checkbox" style="font-size:0.72rem; margin-right:4px;" title="Check to load full native original resolution without downsampling. Uncheck for fast 4K display.">
-                <input type="checkbox" id="chk-geotiff-fullres">
-                <span style="color:var(--accent-cyan);font-weight:600;">Full Res</span>
-              </label>
               <label style="display:flex;align-items:center;gap:4px;cursor:pointer;" title="Load Custom True Survey DXF">
                 <input type="file" id="true-dxf-input" accept=".dxf">
                 <span class="btn btn-secondary btn-sm">Load True DXF</span>
@@ -849,16 +845,8 @@
 
     <!-- Footer Status Bar -->
     <footer class="app-footer">
-      <div style="display:flex; align-items:center; gap:10px; min-width:0; overflow:hidden;">
-        <div id="status-bar" class="status-bar" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Ready • Preloaded Escritura 296 and Escritura 1073 DXFs and PDFs.</div>
-        <div id="geotiff-progress-container" style="display:none; align-items:center; gap:6px; flex-shrink:0;">
-          <div style="width:110px; height:6px; background:rgba(255,255,255,0.15); border-radius:3px; overflow:hidden;">
-            <div id="geotiff-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--accent-cyan), var(--accent-green)); transition:width 0.1s ease;"></div>
-          </div>
-          <span id="geotiff-progress-text" style="font-size:0.7rem; color:var(--accent-cyan); font-family:monospace; font-weight:700;">0%</span>
-        </div>
-      </div>
-      <div id="coords-bar" style="flex-shrink:0;">Coords: (0.00, 0.00) m</div>
+      <div id="status-bar" class="status-bar">Ready • Preloaded Escritura 296 and Escritura 1073 DXFs and PDFs.</div>
+      <div id="coords-bar">Coords: (0.00, 0.00) m</div>
     </footer>
   </div>
 
@@ -1161,9 +1149,7 @@ const state = {
   showPdf1073: true,
 
   // GeoTIFF
-  geoTiff: null,
-  geotiffFullRes: false,
-  lastGeoTiffBlob: null
+  geoTiff: null
 };
 
 const anchorColors = ["#ff1744", "#00e676", "#00e5ff", "#ff9100", "#d500f9", "#ffff00", "#76ff03"];
@@ -1183,9 +1169,11 @@ const cardTrue = document.getElementById("card-true");
 const chkShow296 = document.getElementById("chk-show-296");
 const chkShow1073 = document.getElementById("chk-show-1073");
 const chkShowTrue = document.getElementById("chk-show-true");
-const chkGeoTiffFullRes = document.getElementById("chk-geotiff-fullres");
+
+
 
 // vp-tool-btn buttons are queried dynamically in setToolMode
+
 
 const statusBar = document.getElementById("status-bar");
 const coordsBar = document.getElementById("coords-bar");
@@ -1412,75 +1400,27 @@ async function autoLoadDXF1073() {
 }
 
 
-function updateGeoTiffProgress(percent, text) {
-  const container = document.getElementById("geotiff-progress-container");
-  const bar = document.getElementById("geotiff-progress-bar");
-  const pText = document.getElementById("geotiff-progress-text");
-  if (percent !== null && percent >= 0 && percent < 100) {
-    if (container) container.style.display = "inline-flex";
-    if (bar) bar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
-    if (pText) pText.textContent = `${Math.round(percent)}%`;
-  } else {
-    if (container) container.style.display = "none";
-    if (bar) bar.style.width = "0%";
-  }
-  if (text) {
-    statusBar.textContent = text;
-  }
-}
-
 async function autoLoadGeoTiff() {
   try {
-    updateGeoTiffProgress(5, "⏳ Requesting GeoTIFF file...");
+    statusBar.textContent = "⏳ Auto-loading GeoTIFF...";
     const response = await fetch("Trinidad_Dron_Resized.tif");
 
     if (response.ok) {
-      const contentLength = response.headers.get("Content-Length");
-      const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
-      let loadedBytes = 0;
-      const reader = response.body ? response.body.getReader() : null;
-      let blob;
-
-      if (reader) {
-        const chunks = [];
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
-          loadedBytes += value.length;
-          if (totalBytes > 0) {
-            const pct = (loadedBytes / totalBytes) * 45; // 0% to 45%
-            const loadedMB = (loadedBytes / (1024 * 1024)).toFixed(1);
-            const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
-            updateGeoTiffProgress(pct, `⏳ Downloading GeoTIFF: ${loadedMB} MB / ${totalMB} MB (${Math.round((loadedBytes / totalBytes) * 100)}%)...`);
-          } else {
-            const loadedMB = (loadedBytes / (1024 * 1024)).toFixed(1);
-            updateGeoTiffProgress(20, `⏳ Downloading GeoTIFF: ${loadedMB} MB...`);
-          }
-        }
-        updateGeoTiffProgress(48, "⏳ Assembling GeoTIFF binary data...");
-        blob = new Blob(chunks);
-      } else {
-        blob = await response.blob();
-      }
-
-      state.lastGeoTiffBlob = blob;
-      await parseGeoTiff(blob);
+      const blob = await response.blob();
+      parseGeoTiff(blob);
     } else {
       console.error("Auto load GeoTIFF failed:", response.status);
-      updateGeoTiffProgress(null, "ℹ️ Auto-load unavailable. Please click '🗺️ GeoTIFF' to load manually.");
+      statusBar.textContent = "ℹ️ Auto-load unavailable. Please click '🗺️ GeoTIFF' to load manually.";
     }
   } catch (err) {
     console.error("Auto load GeoTIFF failed:", err);
-    updateGeoTiffProgress(null, "ℹ️ Browser security prevents auto-loading local files. Please click '🗺️ GeoTIFF' to load manually.");
+    statusBar.textContent = "ℹ️ Browser security prevents auto-loading local files. Please click '🗺️ GeoTIFF' to load manually.";
   }
 }
 
 async function parseGeoTiff(fileOrBlob) {
   try {
-    updateGeoTiffProgress(50, "⏳ Parsing GeoTIFF metadata & headers...");
-    await new Promise(r => requestAnimationFrame(r));
-
+    statusBar.textContent = "⏳ Parsing GeoTIFF metadata...";
     const tiff = await GeoTIFF.fromBlob(fileOrBlob);
     const fullImage = await tiff.getImage(0);
     const fullW = fullImage.getWidth();
@@ -1507,34 +1447,26 @@ async function parseGeoTiff(fileOrBlob) {
 
     const imageCount = await tiff.getImageCount();
     let readImage = fullImage;
-    let targetW = fullW;
-    let targetH = fullH;
-
-    const useFullRes = state.geotiffFullRes;
-
-    if (!useFullRes) {
-      const MAX_DISPLAY_DIM = 4096;
-      for (let lvl = 1; lvl < imageCount; lvl++) {
-        const img = await tiff.getImage(lvl);
-        const maxDim = Math.max(img.getWidth(), img.getHeight());
-        readImage = img;
-        if (maxDim <= MAX_DISPLAY_DIM) break;
-      }
-      const readW = readImage.getWidth();
-      const readH = readImage.getHeight();
-      const scale   = Math.min(1, MAX_DISPLAY_DIM / Math.max(readW, readH));
-      targetW = Math.max(1, Math.round(readW * scale));
-      targetH = Math.max(1, Math.round(readH * scale));
+    const MAX_DISPLAY_DIM = 4096;
+    for (let lvl = 1; lvl < imageCount; lvl++) {
+      const img = await tiff.getImage(lvl);
+      const maxDim = Math.max(img.getWidth(), img.getHeight());
+      readImage = img;
+      if (maxDim <= MAX_DISPLAY_DIM) break;
     }
 
-    updateGeoTiffProgress(60, `⏳ Decoding raster bands (${targetW}×${targetH} px ${useFullRes ? "[Full Native Res]" : "[4K Display]"})...`);
-    await new Promise(r => requestAnimationFrame(r));
+    const readW = readImage.getWidth();
+    const readH = readImage.getHeight();
+    const scale   = Math.min(1, MAX_DISPLAY_DIM / Math.max(readW, readH));
+    const targetW = Math.max(1, Math.round(readW * scale));
+    const targetH = Math.max(1, Math.round(readH * scale));
+
+    statusBar.textContent = `⏳ Decoding GeoTIFF (${targetW}×${targetH})...`;
+    // Force double animation frame render so browser repaints "Decoding..." before raster decode
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     const rasters         = await readImage.readRasters({ width: targetW, height: targetH, interleave: true });
     const samplesPerPixel = readImage.getSamplesPerPixel();
-
-    updateGeoTiffProgress(75, `⏳ Processing ${(targetW * targetH).toLocaleString()} pixels into canvas...`);
-    await new Promise(r => requestAnimationFrame(r));
 
     const offscreen = document.createElement("canvas");
     offscreen.width  = targetW;
@@ -1560,29 +1492,18 @@ async function parseGeoTiff(fileOrBlob) {
     }
 
     const total = targetW * targetH;
-    const CHUNK_SIZE = 500000;
-
-    for (let offset = 0; offset < total; offset += CHUNK_SIZE) {
-      const end = Math.min(total, offset + CHUNK_SIZE);
-      for (let i = offset; i < end; i++) {
-        let r = 0, g = 0, b = 0, a = 255;
-        if (samplesPerPixel === 1) {
-          const norm = mx2 === mn ? 0.5 : (rasters[i] - mn) / (mx2 - mn);
-          r = g = b = Math.round(norm * 255);
-        } else if (samplesPerPixel === 3) {
-          r = clamp(rasters[i * 3]); g = clamp(rasters[i * 3 + 1]); b = clamp(rasters[i * 3 + 2]);
-        } else if (samplesPerPixel >= 4) {
-          r = clamp(rasters[i * 4]); g = clamp(rasters[i * 4 + 1]); b = clamp(rasters[i * 4 + 2]); a = clamp(rasters[i * 4 + 3]);
-        }
-        d[i * 4] = r; d[i * 4 + 1] = g; d[i * 4 + 2] = b; d[i * 4 + 3] = a;
+    for (let i = 0; i < total; i++) {
+      let r = 0, g = 0, b = 0, a = 255;
+      if (samplesPerPixel === 1) {
+        const norm = mx2 === mn ? 0.5 : (rasters[i] - mn) / (mx2 - mn);
+        r = g = b = Math.round(norm * 255);
+      } else if (samplesPerPixel === 3) {
+        r = clamp(rasters[i*3]); g = clamp(rasters[i*3+1]); b = clamp(rasters[i*3+2]);
+      } else if (samplesPerPixel >= 4) {
+        r = clamp(rasters[i*4]); g = clamp(rasters[i*4+1]); b = clamp(rasters[i*4+2]); a = clamp(rasters[i*4+3]);
       }
-      if (total > CHUNK_SIZE) {
-        const pixelProgress = 75 + Math.round((end / total) * 23); // 75% to 98%
-        updateGeoTiffProgress(pixelProgress, `⏳ Converting pixels: ${Math.round((end / total) * 100)}% (${end.toLocaleString()} / ${total.toLocaleString()})...`);
-        await new Promise(r => setTimeout(r, 0));
-      }
+      d[i*4]=r; d[i*4+1]=g; d[i*4+2]=b; d[i*4+3]=a;
     }
-
     offCtx.putImageData(imgData, 0, 0);
     bbox.width = Math.abs(bbox.maxX - bbox.minX);
     bbox.height = Math.abs(bbox.maxY - bbox.minY);
@@ -1594,11 +1515,11 @@ async function parseGeoTiff(fileOrBlob) {
       state.vpTrue = fitViewport(canvasTrue, bbox);
     }
     
-    updateGeoTiffProgress(null, `✅ GeoTIFF loaded (${targetW}×${targetH} px, ${useFullRes ? "Full Native Res" : "4K Display"}) • Ready`);
+    statusBar.textContent = `✅ GeoTIFF loaded (${targetW}×${targetH})`;
     redrawAll();
   } catch(err) {
     console.error("GeoTIFF error:", err);
-    updateGeoTiffProgress(null, "❌ Error loading GeoTIFF image.");
+    statusBar.textContent = "❌ Error loading GeoTIFF.";
   }
 }
 
@@ -2163,26 +2084,7 @@ function setupEventListeners() {
   document.getElementById("vec-pdf-file-input").addEventListener("change", (e) => handlePdfFileSelect(e.target.files[0], vecState.activeMapKey));
   
   const geoInput = document.getElementById("geotiff-input");
-  if (geoInput) {
-    geoInput.addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      state.lastGeoTiffBlob = file;
-      updateGeoTiffProgress(10, `⏳ Loading local GeoTIFF: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`);
-      await parseGeoTiff(file);
-    });
-  }
-
-  if (chkGeoTiffFullRes) {
-    chkGeoTiffFullRes.addEventListener("change", async (e) => {
-      state.geotiffFullRes = e.target.checked;
-      if (state.lastGeoTiffBlob) {
-        await parseGeoTiff(state.lastGeoTiffBlob);
-      } else {
-        statusBar.textContent = `ℹ️ GeoTIFF mode: ${state.geotiffFullRes ? "Full Native Resolution" : "4K Downsampled"}. Click '🗺️ GeoTIFF' to load image.`;
-      }
-    });
-  }
+  if (geoInput) geoInput.addEventListener("change", (e) => { if (e.target.files[0]) parseGeoTiff(e.target.files[0]); });
 
   // Vectorizer zoom slider
   const vecZoomSlider = document.getElementById("vec-zoom-slider");
