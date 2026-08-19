@@ -759,11 +759,15 @@
         <!-- Distance Measuring Active Info -->
         <section class="panel-card" id="panel-measure">
           <div class="panel-header">
-            <h3>📏 Distance & Area Measurement</h3>
+            <h3>📏 Distance & Area</h3>
             <div style="display:flex; align-items:center; gap:8px;">
               <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-yellow); margin:0; cursor:pointer;" title="Close polygon vertices and compute total area">
                 <input type="checkbox" id="chk-measure-area">
                 <span>Area</span>
+              </label>
+              <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-cyan); margin:0; cursor:pointer;" title="Display distance numbers and area badges on the map canvas">
+                <input type="checkbox" id="chk-measure-labels" checked>
+                <span>Labels</span>
               </label>
               <button class="btn-sm btn-secondary" id="btn-clear-measure">Clear</button>
             </div>
@@ -1141,6 +1145,7 @@ const state = {
   // Measurement Points per map
   measurePoints: [],
   measureArea: false,
+  measureLabels: true,
   draggingMeasurePt: null, // index into measurePoints being dragged
   
   // Viewports
@@ -1192,6 +1197,7 @@ const coordsBar = document.getElementById("coords-bar");
 
 const measureTotalVal = document.getElementById("measure-total-val");
 const chkMeasureArea = document.getElementById("chk-measure-area");
+const chkMeasureLabels = document.getElementById("chk-measure-labels");
 const measureAreaContainer = document.getElementById("measure-area-container");
 const measureAreaVal = document.getElementById("measure-area-val");
 
@@ -1857,7 +1863,7 @@ function drawMeasurements(ctx, vp, h) {
     ctx.fillStyle = "#ffd600"; ctx.fill();
     ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
 
-    if (i > 0) {
+    if (i > 0 && state.measureLabels !== false) {
       const pPrev = pts[i - 1];
       const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
       const spPrev = worldToScreen(pPrev, vp, h);
@@ -1877,7 +1883,7 @@ function drawMeasurements(ctx, vp, h) {
     }
   }
 
-  if (state.measureArea && pts.length >= 3) {
+  if (state.measureArea && pts.length >= 3 && state.measureLabels !== false) {
     const pLast = pts[pts.length - 1];
     const pFirst = pts[0];
     const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
@@ -1955,7 +1961,7 @@ function drawMeasurementsGIS(ctx, vp, h) {
     ctx.fillStyle = "#ffd600"; ctx.fill();
     ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
 
-    if (i > 0) {
+    if (i > 0 && state.measureLabels !== false) {
       const pPrev = pts[i - 1];
       const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
       const spPrev = worldToScreenGIS(pPrev, vp, h);
@@ -1975,7 +1981,7 @@ function drawMeasurementsGIS(ctx, vp, h) {
     }
   }
 
-  if (state.measureArea && pts.length >= 3) {
+  if (state.measureArea && pts.length >= 3 && state.measureLabels !== false) {
     const pLast = pts[pts.length - 1];
     const pFirst = pts[0];
     const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
@@ -2099,6 +2105,13 @@ function setupEventListeners() {
   if (chkMeasureArea) {
     chkMeasureArea.addEventListener("change", (e) => {
       state.measureArea = e.target.checked;
+      redrawAll();
+    });
+  }
+
+  if (chkMeasureLabels) {
+    chkMeasureLabels.addEventListener("change", (e) => {
+      state.measureLabels = e.target.checked;
       redrawAll();
     });
   }
