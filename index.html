@@ -2628,7 +2628,7 @@ function drawWarpedEntitiesGISExport(ctx, entities, warper, vp, canvasH, color, 
   });
 }
 
-async function getHighResPdfCanvas(pdfDoc, pageNum, fallbackUrl, entities, vectorColor) {
+async function getHighResPdfCanvas(pdfDoc, pageNum, fallbackUrl, entities, vectorColor, anchors) {
   let doc = pdfDoc;
   if (!doc && fallbackUrl) {
     try {
@@ -2652,10 +2652,11 @@ async function getHighResPdfCanvas(pdfDoc, pageNum, fallbackUrl, entities, vecto
 
     await page.render({ canvasContext: ctx, viewport }).promise;
 
+    const origW = origViewport.width;
+    const vpScale = canvas.width / origW;
+
     // Overlay DXF vector boundary if provided
     if (entities && entities.length > 0) {
-      const origW = origViewport.width;
-      const vpScale = canvas.width / origW;
       entities.forEach(ent => {
         if (!ent.points || ent.points.length < 2) return;
         ctx.beginPath();
@@ -2669,6 +2670,33 @@ async function getHighResPdfCanvas(pdfDoc, pageNum, fallbackUrl, entities, vecto
         ctx.strokeStyle = vectorColor || "#d500f9";
         ctx.lineWidth = 8.5;
         ctx.stroke();
+      });
+    }
+
+    // Overlay source anchor control points (from anchors.json)
+    if (anchors && anchors.length > 0) {
+      anchors.forEach(anc => {
+        const sx = anc.src.x * vpScale;
+        const sy = anc.src.y * vpScale;
+        const r = 18;
+
+        // Filled circle
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, Math.PI * 2);
+        ctx.fillStyle = anc.color || "#00e5ff";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Label with dark background
+        const label = `#${anc.id}`;
+        ctx.font = `bold ${r * 1.3}px sans-serif`;
+        const txtW = ctx.measureText(label).width;
+        ctx.fillStyle = "rgba(0,0,0,0.72)";
+        ctx.fillRect(sx + r + 4, sy - r * 0.9, txtW + 10, r * 1.6);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(label, sx + r + 9, sy + r * 0.45);
       });
     }
 
@@ -2836,9 +2864,9 @@ async function exportMultiPagePDF() {
     pdf.addImage(img1Data, "JPEG", margin, margin, mapAreaWidth, mapAreaHeight);
 
     // --- 4. Render Inset 1: Escritura 296 ---
-    statusBar.textContent = "⏳ Rendering high-res inset for Escritura 296...";
+    statusBar.textContent = "⏳ Rendering high-res inset for Escritura 296 (with anchor points)...";
     await new Promise(r => requestAnimationFrame(r));
-    const c296 = await getHighResPdfCanvas(state.pdf296Doc, 1, "Mapa2096_LaTrinidad.pdf", state.entities296, "#d500f9");
+    const c296 = await getHighResPdfCanvas(state.pdf296Doc, 1, "Mapa2096_LaTrinidad.pdf", state.entities296, "#d500f9", state.anchors296);
 
     const topInsetY = margin;
     if (c296) {
@@ -2865,9 +2893,9 @@ async function exportMultiPagePDF() {
     }
 
     // --- 5. Render Inset 2: Escritura 1073 ---
-    statusBar.textContent = "⏳ Rendering high-res inset for Escritura 1073...";
+    statusBar.textContent = "⏳ Rendering high-res inset for Escritura 1073 (with anchor points)...";
     await new Promise(r => requestAnimationFrame(r));
-    const c1073 = await getHighResPdfCanvas(state.pdf1073Doc, 1, "Mapa1073_FerminSuarez.pdf", state.entities1073, "#ff1744");
+    const c1073 = await getHighResPdfCanvas(state.pdf1073Doc, 1, "Mapa1073_FerminSuarez.pdf", state.entities1073, "#ff1744", state.anchors1073);
 
     const botInsetY = margin + insetSlotHeight + margin;
     if (c1073) {
