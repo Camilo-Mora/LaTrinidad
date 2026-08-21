@@ -2841,23 +2841,27 @@ async function exportMultiPagePDF() {
     const c296 = await getHighResPdfCanvas(state.pdf296Doc, 1, "Mapa2096_LaTrinidad.pdf", state.entities296, "#d500f9");
 
     const topInsetY = margin;
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(13);
-    pdf.setTextColor(213, 0, 249);
-    pdf.text("Escritura 296", insetsLeft, topInsetY + 5);
-
     if (c296) {
-      const titleOffset = 8;
+      const titleHeight = 7; // mm
       const slotAvailW = insetsWidth;
-      const slotAvailH = insetSlotHeight - titleOffset;
+      const slotAvailH = insetSlotHeight - titleHeight;
       const scaleImg = Math.min(slotAvailW / c296.width, slotAvailH / c296.height);
       const drawW = c296.width * scaleImg;
       const drawH = c296.height * scaleImg;
+
+      const totalBlockH = titleHeight + drawH;
+      const blockTopY = topInsetY + (insetSlotHeight - totalBlockH) / 2;
       const posX = insetsLeft + (slotAvailW - drawW) / 2;
-      const posY = topInsetY + titleOffset + (slotAvailH - drawH) / 2;
+      const titleY = blockTopY + 4.5;
+      const imgY = blockTopY + titleHeight;
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(14);
+      pdf.setTextColor(170, 0, 255);
+      pdf.text("Escritura 296", posX, titleY);
 
       const img2Data = c296.toDataURL("image/jpeg", 0.94);
-      pdf.addImage(img2Data, "JPEG", posX, posY, drawW, drawH);
+      pdf.addImage(img2Data, "JPEG", posX, imgY, drawW, drawH);
     }
 
     // --- 5. Render Inset 2: Escritura 1073 ---
@@ -2866,23 +2870,27 @@ async function exportMultiPagePDF() {
     const c1073 = await getHighResPdfCanvas(state.pdf1073Doc, 1, "Mapa1073_FerminSuarez.pdf", state.entities1073, "#ff1744");
 
     const botInsetY = margin + insetSlotHeight + margin;
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(13);
-    pdf.setTextColor(255, 23, 68);
-    pdf.text("Escritura 1073", insetsLeft, botInsetY + 5);
-
     if (c1073) {
-      const titleOffset = 8;
+      const titleHeight = 7; // mm
       const slotAvailW = insetsWidth;
-      const slotAvailH = insetSlotHeight - titleOffset;
+      const slotAvailH = insetSlotHeight - titleHeight;
       const scaleImg = Math.min(slotAvailW / c1073.width, slotAvailH / c1073.height);
       const drawW = c1073.width * scaleImg;
       const drawH = c1073.height * scaleImg;
+
+      const totalBlockH = titleHeight + drawH;
+      const blockTopY = botInsetY + (insetSlotHeight - totalBlockH) / 2;
       const posX = insetsLeft + (slotAvailW - drawW) / 2;
-      const posY = botInsetY + titleOffset + (slotAvailH - drawH) / 2;
+      const titleY = blockTopY + 4.5;
+      const imgY = blockTopY + titleHeight;
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(14);
+      pdf.setTextColor(213, 0, 0);
+      pdf.text("Escritura 1073", posX, titleY);
 
       const img3Data = c1073.toDataURL("image/jpeg", 0.94);
-      pdf.addImage(img3Data, "JPEG", posX, posY, drawW, drawH);
+      pdf.addImage(img3Data, "JPEG", posX, imgY, drawW, drawH);
     }
 
     // Save and download poster PDF
