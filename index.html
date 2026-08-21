@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Trinidad</title>
   <meta name="description" content="Single-file interactive application to warp, rubber-sheet, and georectify historical DXF farm vectors onto ground-truth surveys, with embedded PDF vectorizer, subwindow selectors, and measurement tools.">
-  <!-- External Libraries: GeoTIFF & PDF.js -->
+  <!-- External Libraries: GeoTIFF, PDF.js & jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     /* Core Design System & Styling Tokens */
     :root {
@@ -732,6 +733,7 @@
                 <input type="file" id="true-dxf-input" accept=".dxf">
                 <span class="btn btn-secondary btn-sm">Load DXF</span>
               </label>
+              <button id="btn-export-pdf" class="btn btn-primary btn-sm" title="Export composite map and historical escrituras as high-resolution PDF">📄 Export PDF</button>
               <span id="status-true" class="view-badge green">Target DXF</span>
             </div>
           </div>
@@ -2166,8 +2168,12 @@ function setupEventListeners() {
     });
   }
 
-  // Export DXF
+  // Export DXF & PDF
   document.getElementById("btn-export-dxf").addEventListener("click", exportRectifiedDXF);
+  const btnExportPdf = document.getElementById("btn-export-pdf");
+  if (btnExportPdf) {
+    btnExportPdf.addEventListener("click", exportMultiPagePDF);
+  }
 
   // Integrated Vectorizer Modal Triggers
   document.getElementById("btn-edit-296").addEventListener("click", () => openVectorizerModal("296"));
@@ -2579,6 +2585,307 @@ function exportRectifiedDXF() {
   a.href = URL.createObjectURL(blob);
   a.download = "GeoRectified_Combined.dxf";
   a.click();
+}
+
+/* ==========================================================================
+   HIGH-RESOLUTION MULTI-PAGE PDF EXPORT (COMPOSITE FIELD + ESCRITURAS)
+   ========================================================================== */
+function worldToScreenGISExport(pt, vp, canvasH) {
+  return { x: pt.x * vp.scale + vp.offsetX, y: canvasH - (pt.y * vp.scale + vp.offsetY) };
+}
+
+function drawEntitiesGISExport(ctx, entities, vp, canvasH, color, lineWidth = 4) {
+  entities.forEach((ent) => {
+    if (!ent.points || ent.points.length < 2) return;
+    ctx.beginPath();
+    const start = worldToScreenGISExport(ent.points[0], vp, canvasH);
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i < ent.points.length; i++) {
+      const p = worldToScreenGISExport(ent.points[i], vp, canvasH);
+      ctx.lineTo(p.x, p.y);
+    }
+    if (ent.closed) ctx.closePath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+  });
+}
+
+function drawWarpedEntitiesGISExport(ctx, entities, warper, vp, canvasH, color, lineWidth = 4) {
+  entities.forEach((ent) => {
+    if (!ent.points || ent.points.length < 2) return;
+    ctx.beginPath();
+    const start = worldToScreenGISExport(warper(ent.points[0]), vp, canvasH);
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i < ent.points.length; i++) {
+      const p = worldToScreenGISExport(warper(ent.points[i]), vp, canvasH);
+      ctx.lineTo(p.x, p.y);
+    }
+    if (ent.closed) ctx.closePath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+  });
+}
+
+async function getHighResPdfCanvas(pdfDoc, pageNum, fallbackUrl, entities, vectorColor) {
+  let doc = pdfDoc;
+  if (!doc && fallbackUrl) {
+    try {
+      doc = await pdfjsLib.getDocument(fallbackUrl).promise;
+    } catch (e) {
+      console.warn("Could not load fallback PDF:", fallbackUrl, e);
+    }
+  }
+  if (!doc) return null;
+
+  try {
+    const page = await doc.getPage(pageNum || 1);
+    const scale = 3.5; // ~300 DPI high resolution
+    const viewport = page.getViewport({ scale });
+    const origViewport = page.getViewport({ scale: 1.0 });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d");
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    // Overlay DXF vector boundary if provided
+    if (entities && entities.length > 0) {
+      const origW = origViewport.width;
+      const vpScale = canvas.width / origW;
+      entities.forEach(ent => {
+        if (!ent.points || ent.points.length < 2) return;
+        ctx.beginPath();
+        const start = { x: ent.points[0].x * vpScale, y: ent.points[0].y * vpScale };
+        ctx.moveTo(start.x, start.y);
+        for (let i = 1; i < ent.points.length; i++) {
+          const p = { x: ent.points[i].x * vpScale, y: ent.points[i].y * vpScale };
+          ctx.lineTo(p.x, p.y);
+        }
+        if (ent.closed) ctx.closePath();
+        ctx.strokeStyle = vectorColor || "#d500f9";
+        ctx.lineWidth = 4.0;
+        ctx.stroke();
+      });
+    }
+
+    return canvas;
+  } catch (err) {
+    console.error("Error rendering high-res PDF canvas:", err);
+    return null;
+  }
+}
+
+async function exportMultiPagePDF() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    statusBar.textContent = "❌ jsPDF library not ready. Please verify network connection.";
+    return;
+  }
+
+  statusBar.textContent = "⏳ Generating ultra-high-resolution poster PDF (Single Page)...";
+  await new Promise(r => requestAnimationFrame(r));
+
+  try {
+    const { jsPDF } = window.jspdf;
+    // Standard Arch / Poster format: A1 Landscape (841 mm x 594 mm)
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a1" });
+    const pageWidth = pdf.internal.pageSize.getWidth();   // 841 mm
+    const pageHeight = pdf.internal.pageSize.getHeight(); // 594 mm
+
+    // --- 1. Compute Combined GIS Bounding Box ---
+    let bboxes = [];
+    if (state.geoTiff && state.geoTiff.bbox) bboxes.push(state.geoTiff.bbox);
+    if (state.entitiesTrue && state.entitiesTrue.length > 0) bboxes.push(computeBoundingBox(state.entitiesTrue));
+
+    let warper296 = null;
+    if (state.anchors296.length >= 2) {
+      try {
+        warper296 = TransformMath.createWarper(state.algorithm, state.anchors296);
+        const pts296 = [];
+        state.entities296.forEach(e => e.points.forEach(p => pts296.push(warper296(p))));
+        if (pts296.length > 0) {
+          let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+          pts296.forEach(pt => {
+            if (pt.x < minX) minX = pt.x; if (pt.y < minY) minY = pt.y;
+            if (pt.x > maxX) maxX = pt.x; if (pt.y > maxY) maxY = pt.y;
+          });
+          bboxes.push({ minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
+        }
+      } catch (_) {}
+    }
+
+    let warper1073 = null;
+    if (state.anchors1073.length >= 2) {
+      try {
+        warper1073 = TransformMath.createWarper(state.algorithm, state.anchors1073);
+        const pts1073 = [];
+        state.entities1073.forEach(e => e.points.forEach(p => pts1073.push(warper1073(p))));
+        if (pts1073.length > 0) {
+          let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+          pts1073.forEach(pt => {
+            if (pt.x < minX) minX = pt.x; if (pt.y < minY) minY = pt.y;
+            if (pt.x > maxX) maxX = pt.x; if (pt.y > maxY) maxY = pt.y;
+          });
+          bboxes.push({ minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
+        }
+      } catch (_) {}
+    }
+
+    let combMinX = Infinity, combMinY = Infinity, combMaxX = -Infinity, combMaxY = -Infinity;
+    if (bboxes.length === 0) {
+      combMinX = 0; combMinY = 0; combMaxX = 1000; combMaxY = 1000;
+    } else {
+      bboxes.forEach(b => {
+        if (b.minX < combMinX) combMinX = b.minX;
+        if (b.minY < combMinY) combMinY = b.minY;
+        if (b.maxX > combMaxX) combMaxX = b.maxX;
+        if (b.maxY > combMaxY) combMaxY = b.maxY;
+      });
+    }
+    const combinedBBox = {
+      minX: combMinX,
+      minY: combMinY,
+      maxX: combMaxX,
+      maxY: combMaxY,
+      width: Math.max(1, combMaxX - combMinX),
+      height: Math.max(1, combMaxY - combMinY)
+    };
+
+    // --- 2. Render Main Composite Map (GeoTIFF + 3 DXFs) on Master Ultra-HD Canvas ---
+    statusBar.textContent = "⏳ Rendering ultra-high-resolution GeoTIFF & DXF overlays...";
+    await new Promise(r => requestAnimationFrame(r));
+
+    const mapW = 4800;
+    const mapH = Math.round(mapW * (combinedBBox.height / combinedBBox.width));
+    const finalMapH = Math.max(2600, Math.min(5200, mapH));
+    const compCanvas = document.createElement("canvas");
+    compCanvas.width = mapW;
+    compCanvas.height = finalMapH;
+    const compCtx = compCanvas.getContext("2d");
+
+    // Clean dark background
+    compCtx.fillStyle = "#06080e";
+    compCtx.fillRect(0, 0, mapW, finalMapH);
+
+    // Setup viewport
+    const pad = 100;
+    const avW = mapW - pad * 2, avH = finalMapH - pad * 2;
+    const sc = Math.min(avW / combinedBBox.width, avH / combinedBBox.height);
+    const vpExp = {
+      scale: sc,
+      offsetX: pad + (avW - combinedBBox.width * sc) / 2 - combinedBBox.minX * sc,
+      offsetY: pad + (avH - combinedBBox.height * sc) / 2 - combinedBBox.minY * sc,
+      bbox: combinedBBox
+    };
+
+    // Draw GeoTIFF if loaded
+    if (state.geoTiff && state.geoTiff.offscreen) {
+      const tl = worldToScreenGISExport({ x: state.geoTiff.bbox.minX, y: state.geoTiff.bbox.maxY }, vpExp, finalMapH);
+      const br = worldToScreenGISExport({ x: state.geoTiff.bbox.maxX, y: state.geoTiff.bbox.minY }, vpExp, finalMapH);
+      compCtx.save();
+      compCtx.globalAlpha = 0.88;
+      compCtx.drawImage(state.geoTiff.offscreen, tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+      compCtx.restore();
+    }
+
+    // Draw True Field Survey DXF (Green)
+    if (state.entitiesTrue && state.entitiesTrue.length > 0) {
+      drawEntitiesGISExport(compCtx, state.entitiesTrue, vpExp, finalMapH, "#00e676", 7.0);
+    }
+
+    // Draw Warped 296 DXF (Purple)
+    if (warper296 && state.entities296.length > 0) {
+      drawWarpedEntitiesGISExport(compCtx, state.entities296, warper296, vpExp, finalMapH, "rgba(213, 0, 249, 0.95)", 5.5);
+    }
+
+    // Draw Warped 1073 DXF (Red)
+    if (warper1073 && state.entities1073.length > 0) {
+      drawWarpedEntitiesGISExport(compCtx, state.entities1073, warper1073, vpExp, finalMapH, "rgba(255, 23, 68, 0.95)", 5.5);
+    }
+
+    // Draw Destination Anchors
+    const allAnchors = [...state.anchors296, ...state.anchors1073];
+    allAnchors.forEach(anc => {
+      const sp = worldToScreenGISExport(anc.dst, vpExp, finalMapH);
+      compCtx.beginPath(); compCtx.arc(sp.x, sp.y, 13, 0, Math.PI * 2);
+      compCtx.fillStyle = anc.color || "#00e5ff"; compCtx.fill();
+      compCtx.strokeStyle = "#ffffff"; compCtx.lineWidth = 3.5; compCtx.stroke();
+      compCtx.fillStyle = "#ffffff"; compCtx.font = "bold 20px sans-serif";
+      compCtx.fillText(`#${anc.id}`, sp.x + 16, sp.y - 9);
+    });
+
+    // --- 3. Poster Layout Dimensions (90% Main Map, 10% Margin Insets) ---
+    const margin = 8; // mm
+    const mapAreaWidth = (pageWidth - margin * 3) * 0.88; // 88% width
+    const mapAreaHeight = pageHeight - margin * 2;
+    const insetsLeft = margin + mapAreaWidth + margin;
+    const insetsWidth = pageWidth - insetsLeft - margin; // ~10-12% width
+    const insetSlotHeight = (mapAreaHeight - margin) / 2;
+
+    // Draw main composite map into PDF
+    const img1Data = compCanvas.toDataURL("image/jpeg", 0.94);
+    pdf.addImage(img1Data, "JPEG", margin, margin, mapAreaWidth, mapAreaHeight);
+
+    // --- 4. Render Inset 1: Escritura 296 ---
+    statusBar.textContent = "⏳ Rendering high-res inset for Escritura 296...";
+    await new Promise(r => requestAnimationFrame(r));
+    const c296 = await getHighResPdfCanvas(state.pdf296Doc, 1, "Mapa2096_LaTrinidad.pdf", state.entities296, "#d500f9");
+
+    const topInsetY = margin;
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(13);
+    pdf.setTextColor(213, 0, 249);
+    pdf.text("Escritura 296", insetsLeft, topInsetY + 5);
+
+    if (c296) {
+      const titleOffset = 8;
+      const slotAvailW = insetsWidth;
+      const slotAvailH = insetSlotHeight - titleOffset;
+      const scaleImg = Math.min(slotAvailW / c296.width, slotAvailH / c296.height);
+      const drawW = c296.width * scaleImg;
+      const drawH = c296.height * scaleImg;
+      const posX = insetsLeft + (slotAvailW - drawW) / 2;
+      const posY = topInsetY + titleOffset + (slotAvailH - drawH) / 2;
+
+      const img2Data = c296.toDataURL("image/jpeg", 0.94);
+      pdf.addImage(img2Data, "JPEG", posX, posY, drawW, drawH);
+    }
+
+    // --- 5. Render Inset 2: Escritura 1073 ---
+    statusBar.textContent = "⏳ Rendering high-res inset for Escritura 1073...";
+    await new Promise(r => requestAnimationFrame(r));
+    const c1073 = await getHighResPdfCanvas(state.pdf1073Doc, 1, "Mapa1073_FerminSuarez.pdf", state.entities1073, "#ff1744");
+
+    const botInsetY = margin + insetSlotHeight + margin;
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(13);
+    pdf.setTextColor(255, 23, 68);
+    pdf.text("Escritura 1073", insetsLeft, botInsetY + 5);
+
+    if (c1073) {
+      const titleOffset = 8;
+      const slotAvailW = insetsWidth;
+      const slotAvailH = insetSlotHeight - titleOffset;
+      const scaleImg = Math.min(slotAvailW / c1073.width, slotAvailH / c1073.height);
+      const drawW = c1073.width * scaleImg;
+      const drawH = c1073.height * scaleImg;
+      const posX = insetsLeft + (slotAvailW - drawW) / 2;
+      const posY = botInsetY + titleOffset + (slotAvailH - drawH) / 2;
+
+      const img3Data = c1073.toDataURL("image/jpeg", 0.94);
+      pdf.addImage(img3Data, "JPEG", posX, posY, drawW, drawH);
+    }
+
+    // Save and download poster PDF
+    pdf.save("LaTrinidad_Plano_Poster.pdf");
+    statusBar.textContent = "✅ Poster PDF downloaded (Single page: 90% GeoTIFF + 3 DXFs, with Escrituras 296 & 1073 insets)!";
+  } catch (err) {
+    console.error("PDF poster generation failed:", err);
+    statusBar.textContent = "❌ Error generating poster PDF: " + err.message;
+  }
 }
 
 /* ==========================================================================
