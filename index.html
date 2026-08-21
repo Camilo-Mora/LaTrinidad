@@ -2667,7 +2667,7 @@ async function getHighResPdfCanvas(pdfDoc, pageNum, fallbackUrl, entities, vecto
         }
         if (ent.closed) ctx.closePath();
         ctx.strokeStyle = vectorColor || "#d500f9";
-        ctx.lineWidth = 4.0;
+        ctx.lineWidth = 8.5;
         ctx.stroke();
       });
     }
@@ -2766,12 +2766,12 @@ async function exportMultiPagePDF() {
     compCanvas.height = finalMapH;
     const compCtx = compCanvas.getContext("2d");
 
-    // Clean dark background
-    compCtx.fillStyle = "#06080e";
+    // Clean white background for ink-saving print
+    compCtx.fillStyle = "#ffffff";
     compCtx.fillRect(0, 0, mapW, finalMapH);
 
     // Setup viewport
-    const pad = 100;
+    const pad = 60;
     const avW = mapW - pad * 2, avH = finalMapH - pad * 2;
     const sc = Math.min(avW / combinedBBox.width, avH / combinedBBox.height);
     const vpExp = {
@@ -2781,40 +2781,46 @@ async function exportMultiPagePDF() {
       bbox: combinedBBox
     };
 
-    // Draw GeoTIFF if loaded
+    // Draw GeoTIFF if loaded (100% opacity, clean on white)
     if (state.geoTiff && state.geoTiff.offscreen) {
       const tl = worldToScreenGISExport({ x: state.geoTiff.bbox.minX, y: state.geoTiff.bbox.maxY }, vpExp, finalMapH);
       const br = worldToScreenGISExport({ x: state.geoTiff.bbox.maxX, y: state.geoTiff.bbox.minY }, vpExp, finalMapH);
       compCtx.save();
-      compCtx.globalAlpha = 0.88;
+      compCtx.globalAlpha = 1.0;
       compCtx.drawImage(state.geoTiff.offscreen, tl.x, tl.y, br.x - tl.x, br.y - tl.y);
       compCtx.restore();
     }
 
-    // Draw True Field Survey DXF (Green)
+    // Draw True Field Survey DXF (Green - Bold)
     if (state.entitiesTrue && state.entitiesTrue.length > 0) {
-      drawEntitiesGISExport(compCtx, state.entitiesTrue, vpExp, finalMapH, "#00e676", 7.0);
+      drawEntitiesGISExport(compCtx, state.entitiesTrue, vpExp, finalMapH, "#00a843", 16.0);
     }
 
-    // Draw Warped 296 DXF (Purple)
+    // Draw Warped 296 DXF (Purple - Bold)
     if (warper296 && state.entities296.length > 0) {
-      drawWarpedEntitiesGISExport(compCtx, state.entities296, warper296, vpExp, finalMapH, "rgba(213, 0, 249, 0.95)", 5.5);
+      drawWarpedEntitiesGISExport(compCtx, state.entities296, warper296, vpExp, finalMapH, "#aa00ff", 14.0);
     }
 
-    // Draw Warped 1073 DXF (Red)
+    // Draw Warped 1073 DXF (Red - Bold)
     if (warper1073 && state.entities1073.length > 0) {
-      drawWarpedEntitiesGISExport(compCtx, state.entities1073, warper1073, vpExp, finalMapH, "rgba(255, 23, 68, 0.95)", 5.5);
+      drawWarpedEntitiesGISExport(compCtx, state.entities1073, warper1073, vpExp, finalMapH, "#d50000", 14.0);
     }
 
-    // Draw Destination Anchors
+    // Draw Destination Anchors with high-contrast text badges
     const allAnchors = [...state.anchors296, ...state.anchors1073];
     allAnchors.forEach(anc => {
       const sp = worldToScreenGISExport(anc.dst, vpExp, finalMapH);
-      compCtx.beginPath(); compCtx.arc(sp.x, sp.y, 13, 0, Math.PI * 2);
-      compCtx.fillStyle = anc.color || "#00e5ff"; compCtx.fill();
-      compCtx.strokeStyle = "#ffffff"; compCtx.lineWidth = 3.5; compCtx.stroke();
-      compCtx.fillStyle = "#ffffff"; compCtx.font = "bold 20px sans-serif";
-      compCtx.fillText(`#${anc.id}`, sp.x + 16, sp.y - 9);
+      compCtx.beginPath(); compCtx.arc(sp.x, sp.y, 14, 0, Math.PI * 2);
+      compCtx.fillStyle = anc.color || "#0091ea"; compCtx.fill();
+      compCtx.strokeStyle = "#ffffff"; compCtx.lineWidth = 4; compCtx.stroke();
+      
+      const label = `#${anc.id}`;
+      compCtx.font = "bold 18px sans-serif";
+      const txtW = compCtx.measureText(label).width;
+      compCtx.fillStyle = "rgba(0, 0, 0, 0.75)";
+      compCtx.fillRect(sp.x + 12, sp.y - 20, txtW + 8, 22);
+      compCtx.fillStyle = "#ffffff";
+      compCtx.fillText(label, sp.x + 16, sp.y - 4);
     });
 
     // --- 3. Poster Layout Dimensions (90% Main Map, 10% Margin Insets) ---
