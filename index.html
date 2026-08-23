@@ -1785,8 +1785,16 @@ function updateMeasurementUI() {
     const headerRow = document.createElement("div");
     headerRow.style.cssText = "display:flex;align-items:center;gap:5px;";
 
-    const dot = document.createElement("span");
-    dot.style.cssText = `width:10px;height:10px;border-radius:50%;background:${poly.color};flex-shrink:0;display:inline-block;`;
+    const colorInput = document.createElement("input");
+    colorInput.type = "color";
+    colorInput.value = poly.color;
+    colorInput.title = "Change polygon color";
+    colorInput.style.cssText = `width:16px;height:16px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:0;background:transparent;cursor:pointer;flex-shrink:0;outline:none;`;
+    colorInput.addEventListener("click", (e) => e.stopPropagation());
+    colorInput.addEventListener("input", (e) => {
+      state.measurePolygons[idx].color = e.target.value;
+      redrawAll();
+    });
 
     const nameInput = document.createElement("input");
     nameInput.type = "text";
@@ -1809,7 +1817,7 @@ function updateMeasurementUI() {
       redrawAll();
     });
 
-    headerRow.appendChild(dot);
+    headerRow.appendChild(colorInput);
     headerRow.appendChild(nameInput);
     headerRow.appendChild(clearBtn);
 
