@@ -762,7 +762,7 @@
         <section class="panel-card" id="panel-measure">
           <div class="panel-header">
             <h3>📏 Distance & Area</h3>
-            <div style="display:flex; align-items:center; gap:6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
               <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-yellow); margin:0; cursor:pointer;" title="Close polygon vertices and compute total area">
                 <input type="checkbox" id="chk-measure-area">
                 <span>Area</span>
@@ -771,13 +771,19 @@
                 <input type="checkbox" id="chk-measure-labels" checked>
                 <span>Labels</span>
               </label>
+              <button class="btn-sm btn-secondary" id="btn-clear-measure">Clear</button>
             </div>
           </div>
-          <!-- Per-polygon cards rendered by JS -->
-          <div id="measure-polygon-list" style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;margin-top:4px;"></div>
-          <!-- New Polygon button -->
-          <button id="btn-new-measure-polygon" class="btn btn-primary btn-sm" style="width:100%;margin-top:6px;" title="Seal the current polygon and start a new one with a different color">＋ New Polygon</button>
-          <p style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;margin-bottom:0;">Click points on any map to measure. Drag markers to adjust. Right-click a marker to delete it; right-click empty space to clear active polygon.</p>
+          <div class="measure-summary-bar">
+            <span>Total Distance:</span>
+            <span id="measure-total-val" style="font-size:0.92rem;font-weight:700;">0.00 m</span>
+          </div>
+          <div class="measure-summary-bar" id="measure-area-container" style="display:none; margin-top:4px; background:rgba(0,229,255,0.1); border-color:rgba(0,229,255,0.3); color:var(--accent-cyan);">
+            <span>Enclosed Area:</span>
+            <span id="measure-area-val" style="font-size:0.85rem;font-weight:700;text-align:right;">0.00 m² (0.00 plazas)</span>
+          </div>
+          <div id="measure-segments-list" style="display:flex;flex-direction:column;gap:3px;max-height:140px;overflow-y:auto;margin-top:4px;"></div>
+          <p style="font-size:0.7rem;color:var(--text-muted);margin:0;">Click points on any map to measure. Drag markers to adjust. Right-click or 'Clear' to reset.</p>
         </section>
 
         <!-- Accuracy Analytics -->
@@ -1138,13 +1144,11 @@ const state = {
   algorithm: "TPS",
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
   
-  // Measurement polygons (multi-polygon support)
-  measurePolygons: [{ id: 1, name: "Polygon 1", color: "#00e5ff", points: [] }],
-  activeMeasureIdx: 0,
+  // Measurement Points per map
+  measurePoints: [],
   measureArea: false,
   measureLabels: true,
-  draggingMeasurePt: null, // { polyIdx, ptIdx } for the point being dragged
-
+  draggingMeasurePt: null, // index into measurePoints being dragged
   
   // Viewports
   vp296: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
@@ -1193,9 +1197,11 @@ const chkGeoTiffFullRes = document.getElementById("chk-geotiff-fullres");
 const statusBar = document.getElementById("status-bar");
 const coordsBar = document.getElementById("coords-bar");
 
+const measureTotalVal = document.getElementById("measure-total-val");
 const chkMeasureArea = document.getElementById("chk-measure-area");
 const chkMeasureLabels = document.getElementById("chk-measure-labels");
-const measurePolygonList = document.getElementById("measure-polygon-list");
+const measureAreaContainer = document.getElementById("measure-area-container");
+const measureAreaVal = document.getElementById("measure-area-val");
 
 /* INITIALIZATION */
 window.addEventListener("DOMContentLoaded", () => {
@@ -1315,7 +1321,7 @@ function redrawAll() {
   drawViewport1073();
   drawViewportTrue();
   updateAnalyticsUI();
-  updateMeasurementUI();
+  updateMeasurementUI(state.measurePoints);
 }
 
 function drawGrid(ctx, w, h) {
@@ -1757,127 +1763,67 @@ function drawDestinationAnchorsGIS(ctx, anchors, vp, h) {
   });
 }
 
-function updateMeasurementUI() {
-  if (!measurePolygonList) return;
-  measurePolygonList.innerHTML = "";
+function updateMeasurementUI(pts) {
+  let totalDist = 0;
+  for (let i = 1; i < pts.length; i++) {
+    totalDist += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+  }
+  if (state.measureArea && pts.length >= 3) {
+    totalDist += Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
+  }
 
-  state.measurePolygons.forEach((poly, idx) => {
-    const pts = poly.points;
-    const isActive = idx === state.activeMeasureIdx;
+  if (measureTotalVal) measureTotalVal.textContent = `${totalDist.toFixed(2)} m`;
 
-    // Compute totals for this polygon
-    let totalDist = 0;
-    for (let i = 1; i < pts.length; i++) {
-      totalDist += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
-    }
-    if (state.measureArea && pts.length >= 3) {
-      totalDist += Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
-    }
-    const areaM2 = state.measureArea && pts.length >= 3 ? calculatePolygonArea(pts) : 0;
+  if (state.measureArea) {
+    if (measureAreaContainer) measureAreaContainer.style.display = "flex";
+    const areaM2 = pts.length >= 3 ? calculatePolygonArea(pts) : 0;
     const plazas = areaM2 / 6400;
-
-    // Card container
-    const card = document.createElement("div");
-    card.style.cssText = `border:1.5px solid ${isActive ? poly.color : "rgba(255,255,255,0.12)"};border-radius:6px;padding:5px 7px;background:${isActive ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.18)"};cursor:pointer;transition:border 0.15s;`;
-    card.title = isActive ? "Active polygon" : "Click to activate this polygon";
-
-    // Header row: colored dot + editable name + Clear btn
-    const headerRow = document.createElement("div");
-    headerRow.style.cssText = "display:flex;align-items:center;gap:5px;";
-
-    const dot = document.createElement("span");
-    dot.style.cssText = `width:10px;height:10px;border-radius:50%;background:${poly.color};flex-shrink:0;display:inline-block;`;
-
-    const nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.value = poly.name;
-    nameInput.style.cssText = `flex:1;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.18);color:#f0f4f8;font-size:0.76rem;font-weight:600;padding:1px 2px;min-width:0;outline:none;`;
-    nameInput.addEventListener("click", (e) => e.stopPropagation());
-    nameInput.addEventListener("change", (e) => {
-      state.measurePolygons[idx].name = e.target.value.trim() || `Polygon ${idx + 1}`;
-    });
-
-    const clearBtn = document.createElement("button");
-    clearBtn.textContent = "Clear";
-    clearBtn.className = "btn-sm btn-secondary";
-    clearBtn.style.cssText = "font-size:0.68rem;padding:1px 6px;flex-shrink:0;";
-    clearBtn.title = "Clear this polygon's points";
-    clearBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      state.measurePolygons[idx].points = [];
-      state.activeMeasureIdx = idx;
-      redrawAll();
-    });
-
-    headerRow.appendChild(dot);
-    headerRow.appendChild(nameInput);
-    headerRow.appendChild(clearBtn);
-
-    // Stats row: distance
-    const statsRow = document.createElement("div");
-    statsRow.style.cssText = "display:flex;justify-content:space-between;margin-top:3px;font-size:0.74rem;";
-    statsRow.innerHTML = `<span style="color:var(--text-muted);">Distance</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${totalDist.toFixed(2)} m</span>`;
-
-    card.appendChild(headerRow);
-    card.appendChild(statsRow);
-
-    // Area row (only if Area checkbox checked and enough points)
-    if (state.measureArea && pts.length >= 3) {
-      const areaRow = document.createElement("div");
-      areaRow.style.cssText = "display:flex;justify-content:space-between;margin-top:2px;font-size:0.72rem;";
-      areaRow.innerHTML = `<span style="color:var(--text-muted);">Area</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${areaM2.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} m² (${plazas.toFixed(2)} plazas)</span>`;
-      card.appendChild(areaRow);
+    if (measureAreaVal) {
+      measureAreaVal.textContent = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m² (${plazas.toFixed(2)} plazas)`;
     }
+  } else {
+    if (measureAreaContainer) measureAreaContainer.style.display = "none";
+  }
 
-    // Segments list (only for active polygon)
-    if (isActive && pts.length > 1) {
-      const segList = buildSegmentsList(poly);
-      card.appendChild(segList);
-    }
-
-    // Clicking the card activates it
-    card.addEventListener("click", () => {
-      state.activeMeasureIdx = idx;
-      redrawAll();
-    });
-
-    measurePolygonList.appendChild(card);
-  });
+  updateMeasureSegmentsList(pts);
 }
 
-function buildSegmentsList(poly) {
-  const pts = poly.points;
-  const container = document.createElement("div");
-  container.style.cssText = "display:flex;flex-direction:column;gap:2px;max-height:110px;overflow-y:auto;margin-top:4px;";
-
+function updateMeasureSegmentsList(pts) {
+  const list = document.getElementById("measure-segments-list");
+  if (!list) return;
+  list.innerHTML = "";
   for (let i = 1; i < pts.length; i++) {
     const dist = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
     const row = document.createElement("div");
-    row.style.cssText = `display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:2px 7px;font-size:0.72rem;`;
-    row.innerHTML = `<span style="color:var(--text-muted);">Seg ${i}</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${dist.toFixed(2)} m</span>`;
-    container.appendChild(row);
+    row.style.cssText = "display:flex;justify-content:space-between;align-items:center;background:rgba(255,214,0,0.07);border:1px solid rgba(255,214,0,0.2);border-radius:4px;padding:3px 8px;font-size:0.74rem;";
+    row.innerHTML = `
+      <span style="color:var(--text-muted);">Seg ${i}</span>
+      <span style="color:var(--accent-yellow);font-weight:700;font-family:monospace;">${dist.toFixed(2)} m</span>
+    `;
+    list.appendChild(row);
   }
   if (state.measureArea && pts.length >= 3) {
     const closeDist = Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
     const row = document.createElement("div");
-    row.style.cssText = `display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:2px 7px;font-size:0.72rem;`;
-    row.innerHTML = `<span style="color:var(--text-muted);">Seg ${pts.length} (Close)</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${closeDist.toFixed(2)} m</span>`;
-    container.appendChild(row);
+    row.style.cssText = "display:flex;justify-content:space-between;align-items:center;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);border-radius:4px;padding:3px 8px;font-size:0.74rem;";
+    row.innerHTML = `
+      <span style="color:var(--accent-cyan);">Seg ${pts.length} (Close)</span>
+      <span style="color:var(--accent-cyan);font-weight:700;font-family:monospace;">${closeDist.toFixed(2)} m</span>
+    `;
+    list.appendChild(row);
   }
-  return container;
 }
 
 function findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName) {
+  if (state.measurePoints.length === 0) return -1;
   const toScreen = mapName === "true" ? worldToScreenGIS : worldToScreen;
   const h = canvas.height;
   const HIT = 10;
-  const polyIdx = state.activeMeasureIdx;
-  const pts = state.measurePolygons[polyIdx] ? state.measurePolygons[polyIdx].points : [];
-  for (let i = 0; i < pts.length; i++) {
-    const sp = toScreen(pts[i], vp, h);
-    if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT) return { polyIdx, ptIdx: i };
+  for (let i = 0; i < state.measurePoints.length; i++) {
+    const sp = toScreen(state.measurePoints[i], vp, h);
+    if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT) return i;
   }
-  return null;
+  return -1;
 }
 
 function drawPendingAnchor(ctx, pt, vp, h) {
@@ -1890,212 +1836,199 @@ function drawPendingAnchor(ctx, pt, vp, h) {
 
 /* MEASUREMENT RENDERING ENGINE (METERS & AREA) */
 function drawMeasurements(ctx, vp, h) {
-  state.measurePolygons.forEach((poly, polyIdx) => {
-    const pts = poly.points;
-    if (pts.length === 0) return;
-    const isActive = polyIdx === state.activeMeasureIdx;
-    const color = poly.color;
+  if (state.measurePoints.length === 0) return;
+  const pts = state.measurePoints;
 
-    ctx.beginPath();
-    const start = worldToScreen(pts[0], vp, h);
-    ctx.moveTo(start.x, start.y);
-    for (let i = 1; i < pts.length; i++) {
-      const p = worldToScreen(pts[i], vp, h);
-      ctx.lineTo(p.x, p.y);
-    }
+  ctx.beginPath();
+  const start = worldToScreen(pts[0], vp, h);
+  ctx.moveTo(start.x, start.y);
+  for (let i = 1; i < pts.length; i++) {
+    const p = worldToScreen(pts[i], vp, h);
+    ctx.lineTo(p.x, p.y);
+  }
 
-    if (state.measureArea && pts.length >= 3) {
-      ctx.closePath();
-      // Fill with polygon color at low opacity
-      const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
-      ctx.fillStyle = `rgba(${r},${g},${b},0.10)`;
-      ctx.fill();
-    }
+  if (state.measureArea && pts.length >= 3) {
+    ctx.closePath();
+    ctx.fillStyle = "rgba(255, 214, 0, 0.12)";
+    ctx.fill();
+  }
 
-    ctx.strokeStyle = color;
-    ctx.lineWidth = isActive ? 2.5 : 1.8;
-    ctx.setLineDash([6, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+  ctx.strokeStyle = "#ffd600";
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
 
-    const dotR = isActive ? 5 : 4;
-    for (let i = 0; i < pts.length; i++) {
-      const sp = worldToScreen(pts[i], vp, h);
-      ctx.beginPath(); ctx.arc(sp.x, sp.y, dotR, 0, Math.PI * 2);
-      ctx.fillStyle = color; ctx.fill();
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+  for (let i = 0; i < pts.length; i++) {
+    const sp = worldToScreen(pts[i], vp, h);
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffd600"; ctx.fill();
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
 
-      if (i > 0 && state.measureLabels !== false) {
-        const pPrev = pts[i - 1];
-        const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
-        const spPrev = worldToScreen(pPrev, vp, h);
-        const midX = (sp.x + spPrev.x) / 2;
-        const midY = (sp.y + spPrev.y) / 2;
-
-        ctx.fillStyle = "rgba(0,0,0,0.75)";
-        ctx.fillRect(midX - 24, midY - 10, 48, 18);
-        ctx.strokeStyle = color;
-        ctx.strokeRect(midX - 24, midY - 10, 48, 18);
-
-        ctx.fillStyle = color;
-        ctx.font = "bold 10px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
-        ctx.textAlign = "left";
-      }
-    }
-
-    if (state.measureArea && pts.length >= 3 && state.measureLabels !== false) {
-      const pLast = pts[pts.length - 1];
-      const pFirst = pts[0];
-      const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
-      const spLast = worldToScreen(pLast, vp, h);
-      const spFirst = worldToScreen(pFirst, vp, h);
-      const midX = (spLast.x + spFirst.x) / 2;
-      const midY = (spLast.y + spFirst.y) / 2;
+    if (i > 0 && state.measureLabels !== false) {
+      const pPrev = pts[i - 1];
+      const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
+      const spPrev = worldToScreen(pPrev, vp, h);
+      const midX = (sp.x + spPrev.x) / 2;
+      const midY = (sp.y + spPrev.y) / 2;
 
       ctx.fillStyle = "rgba(0,0,0,0.75)";
       ctx.fillRect(midX - 24, midY - 10, 48, 18);
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = "#ffd600";
       ctx.strokeRect(midX - 24, midY - 10, 48, 18);
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = "#ffd600";
       ctx.font = "bold 10px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
-      ctx.textAlign = "left";
-
-      let cx = 0, cy = 0;
-      pts.forEach(pt => { cx += pt.x; cy += pt.y; });
-      cx /= pts.length; cy /= pts.length;
-      const sc = worldToScreen({ x: cx, y: cy }, vp, h);
-      const areaM2 = calculatePolygonArea(pts);
-      const plazas = areaM2 / 6400;
-
-      const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-      const txt2 = `${plazas.toFixed(2)} plazas`;
-
-      const bw = 104, bh = 32;
-      ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-      ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-
-      ctx.fillStyle = color;
-      ctx.font = "bold 10px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(txt1, sc.x, sc.y - 3);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "9px sans-serif";
-      ctx.fillText(txt2, sc.x, sc.y + 9);
+      ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
       ctx.textAlign = "left";
     }
-  });
+  }
+
+  if (state.measureArea && pts.length >= 3 && state.measureLabels !== false) {
+    const pLast = pts[pts.length - 1];
+    const pFirst = pts[0];
+    const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
+    const spLast = worldToScreen(pLast, vp, h);
+    const spFirst = worldToScreen(pFirst, vp, h);
+    const midX = (spLast.x + spFirst.x) / 2;
+    const midY = (spLast.y + spFirst.y) / 2;
+
+    ctx.fillStyle = "rgba(0,0,0,0.75)";
+    ctx.fillRect(midX - 24, midY - 10, 48, 18);
+    ctx.strokeStyle = "#00e5ff";
+    ctx.strokeRect(midX - 24, midY - 10, 48, 18);
+
+    ctx.fillStyle = "#00e5ff";
+    ctx.font = "bold 10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
+    ctx.textAlign = "left";
+
+    let cx = 0, cy = 0;
+    pts.forEach(pt => { cx += pt.x; cy += pt.y; });
+    cx /= pts.length; cy /= pts.length;
+    const sc = worldToScreen({ x: cx, y: cy }, vp, h);
+    const areaM2 = calculatePolygonArea(pts);
+    const plazas = areaM2 / 6400;
+
+    const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
+    const txt2 = `${plazas.toFixed(2)} plazas`;
+
+    const bw = 104, bh = 32;
+    ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
+    ctx.strokeStyle = "#00e5ff";
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+    ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+
+    ctx.fillStyle = "#00e5ff";
+    ctx.font = "bold 10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(txt1, sc.x, sc.y - 3);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "9px sans-serif";
+    ctx.fillText(txt2, sc.x, sc.y + 9);
+    ctx.textAlign = "left";
+  }
 }
 
 function drawMeasurementsGIS(ctx, vp, h) {
-  state.measurePolygons.forEach((poly, polyIdx) => {
-    const pts = poly.points;
-    if (pts.length === 0) return;
-    const isActive = polyIdx === state.activeMeasureIdx;
-    const color = poly.color;
+  if (state.measurePoints.length === 0) return;
+  const pts = state.measurePoints;
 
-    ctx.beginPath();
-    const start = worldToScreenGIS(pts[0], vp, h);
-    ctx.moveTo(start.x, start.y);
-    for (let i = 1; i < pts.length; i++) {
-      const p = worldToScreenGIS(pts[i], vp, h);
-      ctx.lineTo(p.x, p.y);
-    }
+  ctx.beginPath();
+  const start = worldToScreenGIS(pts[0], vp, h);
+  ctx.moveTo(start.x, start.y);
+  for (let i = 1; i < pts.length; i++) {
+    const p = worldToScreenGIS(pts[i], vp, h);
+    ctx.lineTo(p.x, p.y);
+  }
 
-    if (state.measureArea && pts.length >= 3) {
-      ctx.closePath();
-      const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
-      ctx.fillStyle = `rgba(${r},${g},${b},0.10)`;
-      ctx.fill();
-    }
+  if (state.measureArea && pts.length >= 3) {
+    ctx.closePath();
+    ctx.fillStyle = "rgba(255, 214, 0, 0.12)";
+    ctx.fill();
+  }
 
-    ctx.strokeStyle = color;
-    ctx.lineWidth = isActive ? 2.5 : 1.8;
-    ctx.setLineDash([6, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+  ctx.strokeStyle = "#ffd600";
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
 
-    const dotR = isActive ? 5 : 4;
-    for (let i = 0; i < pts.length; i++) {
-      const sp = worldToScreenGIS(pts[i], vp, h);
-      ctx.beginPath(); ctx.arc(sp.x, sp.y, dotR, 0, Math.PI * 2);
-      ctx.fillStyle = color; ctx.fill();
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+  for (let i = 0; i < pts.length; i++) {
+    const sp = worldToScreenGIS(pts[i], vp, h);
+    ctx.beginPath(); ctx.arc(sp.x, sp.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffd600"; ctx.fill();
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
 
-      if (i > 0 && state.measureLabels !== false) {
-        const pPrev = pts[i - 1];
-        const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
-        const spPrev = worldToScreenGIS(pPrev, vp, h);
-        const midX = (sp.x + spPrev.x) / 2;
-        const midY = (sp.y + spPrev.y) / 2;
-
-        ctx.fillStyle = "rgba(0,0,0,0.75)";
-        ctx.fillRect(midX - 24, midY - 10, 48, 18);
-        ctx.strokeStyle = color;
-        ctx.strokeRect(midX - 24, midY - 10, 48, 18);
-
-        ctx.fillStyle = color;
-        ctx.font = "bold 10px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
-        ctx.textAlign = "left";
-      }
-    }
-
-    if (state.measureArea && pts.length >= 3 && state.measureLabels !== false) {
-      const pLast = pts[pts.length - 1];
-      const pFirst = pts[0];
-      const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
-      const spLast = worldToScreenGIS(pLast, vp, h);
-      const spFirst = worldToScreenGIS(pFirst, vp, h);
-      const midX = (spLast.x + spFirst.x) / 2;
-      const midY = (spLast.y + spFirst.y) / 2;
+    if (i > 0 && state.measureLabels !== false) {
+      const pPrev = pts[i - 1];
+      const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
+      const spPrev = worldToScreenGIS(pPrev, vp, h);
+      const midX = (sp.x + spPrev.x) / 2;
+      const midY = (sp.y + spPrev.y) / 2;
 
       ctx.fillStyle = "rgba(0,0,0,0.75)";
       ctx.fillRect(midX - 24, midY - 10, 48, 18);
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = "#ffd600";
       ctx.strokeRect(midX - 24, midY - 10, 48, 18);
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = "#ffd600";
       ctx.font = "bold 10px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
-      ctx.textAlign = "left";
-
-      let cx = 0, cy = 0;
-      pts.forEach(pt => { cx += pt.x; cy += pt.y; });
-      cx /= pts.length; cy /= pts.length;
-      const sc = worldToScreenGIS({ x: cx, y: cy }, vp, h);
-      const areaM2 = calculatePolygonArea(pts);
-      const plazas = areaM2 / 6400;
-
-      const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-      const txt2 = `${plazas.toFixed(2)} plazas`;
-
-      const bw = 104, bh = 32;
-      ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-      ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-
-      ctx.fillStyle = color;
-      ctx.font = "bold 10px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(txt1, sc.x, sc.y - 3);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "9px sans-serif";
-      ctx.fillText(txt2, sc.x, sc.y + 9);
+      ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
       ctx.textAlign = "left";
     }
-  });
+  }
+
+  if (state.measureArea && pts.length >= 3 && state.measureLabels !== false) {
+    const pLast = pts[pts.length - 1];
+    const pFirst = pts[0];
+    const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
+    const spLast = worldToScreenGIS(pLast, vp, h);
+    const spFirst = worldToScreenGIS(pFirst, vp, h);
+    const midX = (spLast.x + spFirst.x) / 2;
+    const midY = (spLast.y + spFirst.y) / 2;
+
+    ctx.fillStyle = "rgba(0,0,0,0.75)";
+    ctx.fillRect(midX - 24, midY - 10, 48, 18);
+    ctx.strokeStyle = "#00e5ff";
+    ctx.strokeRect(midX - 24, midY - 10, 48, 18);
+
+    ctx.fillStyle = "#00e5ff";
+    ctx.font = "bold 10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
+    ctx.textAlign = "left";
+
+    let cx = 0, cy = 0;
+    pts.forEach(pt => { cx += pt.x; cy += pt.y; });
+    cx /= pts.length; cy /= pts.length;
+    const sc = worldToScreenGIS({ x: cx, y: cy }, vp, h);
+    const areaM2 = calculatePolygonArea(pts);
+    const plazas = areaM2 / 6400;
+
+    const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
+    const txt2 = `${plazas.toFixed(2)} plazas`;
+
+    const bw = 104, bh = 32;
+    ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
+    ctx.strokeStyle = "#00e5ff";
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+    ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+
+    ctx.fillStyle = "#00e5ff";
+    ctx.font = "bold 10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(txt1, sc.x, sc.y - 3);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "9px sans-serif";
+    ctx.fillText(txt2, sc.x, sc.y + 9);
+    ctx.textAlign = "left";
+  }
 }
 
 /* EVENT LISTENERS & INTERACTION */
@@ -2165,18 +2098,11 @@ function setupEventListeners() {
     });
   });
 
-
-  // Palette of colors for new measurement polygons (cycles through accent colors)
-  const measureColors = ["#00e5ff", "#00e676", "#ff9100", "#ffd600", "#d500f9", "#ff1744", "#40c4ff", "#69f0ae"];
-
-  document.getElementById("btn-new-measure-polygon").addEventListener("click", () => {
-    const nextColor = measureColors[state.measurePolygons.length % measureColors.length];
-    const newId = state.measurePolygons.length + 1;
-    state.measurePolygons.push({ id: newId, name: `Polygon ${newId}`, color: nextColor, points: [] });
-    state.activeMeasureIdx = state.measurePolygons.length - 1;
+  document.getElementById("btn-clear-measure").addEventListener("click", () => {
+    state.measurePoints = [];
+    if (measureTotalVal) measureTotalVal.textContent = "0.00 m";
     redrawAll();
   });
-
 
   if (chkMeasureArea) {
     chkMeasureArea.addEventListener("change", (e) => {
@@ -2414,12 +2340,11 @@ function attachCanvasInteractions(canvas, mapName) {
 
     if (e.button === 2) {
       if (state.toolMode === "measure") {
-        const hit = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
-        const activePoly = state.measurePolygons[state.activeMeasureIdx];
-        if (hit) {
-          activePoly.points.splice(hit.ptIdx, 1);
+        const hitIdx = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
+        if (hitIdx !== -1) {
+          state.measurePoints.splice(hitIdx, 1);
         } else {
-          if (activePoly) activePoly.points = [];
+          state.measurePoints = [];
         }
         redrawAll();
       }
@@ -2463,13 +2388,12 @@ function attachCanvasInteractions(canvas, mapName) {
       }
       redrawAll();
     } else if (state.toolMode === "measure" && e.button === 0) {
-      const hit = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
-      if (hit) {
-        state.draggingMeasurePt = hit;
+      const hitIdx = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
+      if (hitIdx !== -1) {
+        state.draggingMeasurePt = hitIdx;
       } else {
         const pt = toWorld(mouseX, mouseY, vp, canvas.height);
-        const activePoly = state.measurePolygons[state.activeMeasureIdx];
-        if (activePoly) activePoly.points.push(pt);
+        state.measurePoints.push(pt);
         redrawAll();
       }
     }
@@ -2504,9 +2428,7 @@ function attachCanvasInteractions(canvas, mapName) {
     }
 
     if (state.toolMode === "measure" && state.draggingMeasurePt !== null) {
-      const { polyIdx, ptIdx } = state.draggingMeasurePt;
-      const poly = state.measurePolygons[polyIdx];
-      if (poly) poly.points[ptIdx] = { x: worldPt.x, y: worldPt.y };
+      state.measurePoints[state.draggingMeasurePt] = { x: worldPt.x, y: worldPt.y };
       redrawAll();
       return;
     }
@@ -2517,8 +2439,8 @@ function attachCanvasInteractions(canvas, mapName) {
     } else if (state.toolMode === "pan") {
       canvas.style.cursor = isPanning ? "grabbing" : "grab";
     } else if (state.toolMode === "measure") {
-      const hit = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
-      canvas.style.cursor = hit ? "move" : "crosshair";
+      const hitIdx = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
+      canvas.style.cursor = hitIdx !== -1 ? "move" : "crosshair";
     }
   });
 
