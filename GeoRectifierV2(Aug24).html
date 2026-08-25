@@ -1139,7 +1139,7 @@ const state = {
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
   
   // Measurement polygons (multi-polygon support)
-  measurePolygons: [{ id: 1, name: "Polygon 1", color: "#00e5ff", fillOpacity: 0.15, lineWidth: 2.5, points: [] }],
+  measurePolygons: [{ id: 1, name: "Polygon 1", color: "#00e5ff", points: [] }],
   activeMeasureIdx: 0,
   measureArea: false,
   measureLabels: true,
@@ -1837,62 +1837,6 @@ function updateMeasurementUI() {
       card.appendChild(areaRow);
     }
 
-    // Styling controls (Fill Opacity & Line Width) for active polygon
-    if (isActive) {
-      const styleControls = document.createElement("div");
-      styleControls.style.cssText = "margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:4px;";
-
-      // Transparency / Fill Opacity
-      const curOpacity = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
-      const opacityRow = document.createElement("div");
-      opacityRow.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.71rem;color:var(--text-muted);";
-      opacityRow.innerHTML = `
-        <span title="Control transparency of the filled area">Fill Opacity:</span>
-        <div style="display:flex;align-items:center;gap:4px;flex:1;max-width:140px;">
-          <input type="range" min="0" max="100" value="${Math.round(curOpacity * 100)}" style="flex:1;height:4px;cursor:pointer;accent-color:${poly.color};">
-          <span style="font-family:monospace;min-width:32px;text-align:right;color:#f0f4f8;font-size:0.7rem;">${Math.round(curOpacity * 100)}%</span>
-        </div>
-      `;
-      const opSlider = opacityRow.querySelector("input");
-      const opVal = opacityRow.querySelector("span:last-child");
-      opSlider.addEventListener("click", (e) => e.stopPropagation());
-      opSlider.addEventListener("input", (e) => {
-        const val = parseInt(e.target.value, 10) / 100;
-        state.measurePolygons[idx].fillOpacity = val;
-        opVal.textContent = `${e.target.value}%`;
-        drawViewport296();
-        drawViewport1073();
-        drawViewportTrue();
-      });
-      styleControls.appendChild(opacityRow);
-
-      // Line Thickness
-      const curWidth = poly.lineWidth !== undefined ? poly.lineWidth : 2.5;
-      const widthRow = document.createElement("div");
-      widthRow.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.71rem;color:var(--text-muted);";
-      widthRow.innerHTML = `
-        <span title="Control boundary line thickness">Line Width:</span>
-        <div style="display:flex;align-items:center;gap:4px;flex:1;max-width:140px;">
-          <input type="range" min="1" max="8" step="0.5" value="${curWidth}" style="flex:1;height:4px;cursor:pointer;accent-color:${poly.color};">
-          <span style="font-family:monospace;min-width:32px;text-align:right;color:#f0f4f8;font-size:0.7rem;">${curWidth.toFixed(1)}px</span>
-        </div>
-      `;
-      const widthSlider = widthRow.querySelector("input");
-      const widthVal = widthRow.querySelector("span:last-child");
-      widthSlider.addEventListener("click", (e) => e.stopPropagation());
-      widthSlider.addEventListener("input", (e) => {
-        const val = parseFloat(e.target.value);
-        state.measurePolygons[idx].lineWidth = val;
-        widthVal.textContent = `${val.toFixed(1)}px`;
-        drawViewport296();
-        drawViewport1073();
-        drawViewportTrue();
-      });
-      styleControls.appendChild(widthRow);
-
-      card.appendChild(styleControls);
-    }
-
     // Segments list (only for active polygon)
     if (isActive && pts.length > 1) {
       const segList = buildSegmentsList(poly);
@@ -1959,8 +1903,6 @@ function drawMeasurements(ctx, vp, h) {
     if (pts.length === 0) return;
     const isActive = polyIdx === state.activeMeasureIdx;
     const color = poly.color;
-    const fillOp = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
-    const lineW = poly.lineWidth !== undefined ? poly.lineWidth : (isActive ? 2.5 : 1.8);
 
     ctx.beginPath();
     const start = worldToScreen(pts[0], vp, h);
@@ -1972,19 +1914,19 @@ function drawMeasurements(ctx, vp, h) {
 
     if (state.measureArea && pts.length >= 3) {
       ctx.closePath();
-      // Fill with polygon color at selected opacity
+      // Fill with polygon color at low opacity
       const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
-      ctx.fillStyle = `rgba(${isNaN(r)?0:r},${isNaN(g)?229:g},${isNaN(b)?255:b},${fillOp})`;
+      ctx.fillStyle = `rgba(${r},${g},${b},0.10)`;
       ctx.fill();
     }
 
     ctx.strokeStyle = color;
-    ctx.lineWidth = lineW;
+    ctx.lineWidth = isActive ? 2.5 : 1.8;
     ctx.setLineDash([6, 4]);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    const dotR = isActive ? Math.max(4, lineW + 2) : Math.max(3, lineW + 1);
+    const dotR = isActive ? 5 : 4;
     for (let i = 0; i < pts.length; i++) {
       const sp = worldToScreen(pts[i], vp, h);
       ctx.beginPath(); ctx.arc(sp.x, sp.y, dotR, 0, Math.PI * 2);
@@ -2066,8 +2008,6 @@ function drawMeasurementsGIS(ctx, vp, h) {
     if (pts.length === 0) return;
     const isActive = polyIdx === state.activeMeasureIdx;
     const color = poly.color;
-    const fillOp = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
-    const lineW = poly.lineWidth !== undefined ? poly.lineWidth : (isActive ? 2.5 : 1.8);
 
     ctx.beginPath();
     const start = worldToScreenGIS(pts[0], vp, h);
@@ -2080,17 +2020,17 @@ function drawMeasurementsGIS(ctx, vp, h) {
     if (state.measureArea && pts.length >= 3) {
       ctx.closePath();
       const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
-      ctx.fillStyle = `rgba(${isNaN(r)?0:r},${isNaN(g)?229:g},${isNaN(b)?255:b},${fillOp})`;
+      ctx.fillStyle = `rgba(${r},${g},${b},0.10)`;
       ctx.fill();
     }
 
     ctx.strokeStyle = color;
-    ctx.lineWidth = lineW;
+    ctx.lineWidth = isActive ? 2.5 : 1.8;
     ctx.setLineDash([6, 4]);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    const dotR = isActive ? Math.max(4, lineW + 2) : Math.max(3, lineW + 1);
+    const dotR = isActive ? 5 : 4;
     for (let i = 0; i < pts.length; i++) {
       const sp = worldToScreenGIS(pts[i], vp, h);
       ctx.beginPath(); ctx.arc(sp.x, sp.y, dotR, 0, Math.PI * 2);
@@ -2240,7 +2180,7 @@ function setupEventListeners() {
   document.getElementById("btn-new-measure-polygon").addEventListener("click", () => {
     const nextColor = measureColors[state.measurePolygons.length % measureColors.length];
     const newId = state.measurePolygons.length + 1;
-    state.measurePolygons.push({ id: newId, name: `Polygon ${newId}`, color: nextColor, fillOpacity: 0.15, lineWidth: 2.5, points: [] });
+    state.measurePolygons.push({ id: newId, name: `Polygon ${newId}`, color: nextColor, points: [] });
     state.activeMeasureIdx = state.measurePolygons.length - 1;
     redrawAll();
   });
