@@ -862,6 +862,64 @@
     </footer>
   </div>
 
+  <!-- Polygon Styling Pop-up Window -->
+  <div class="modal-overlay" id="poly-style-modal" style="z-index: 1100;">
+    <div style="width: 320px; background: var(--bg-panel); border: 1px solid var(--accent-cyan); border-radius: var(--radius-md); box-shadow: 0 10px 40px rgba(0,0,0,0.9); display: flex; flex-direction: column; overflow: hidden;">
+      <div class="modal-header" style="padding: 10px 14px;">
+        <span class="modal-title" id="poly-style-title" style="font-size: 0.95rem; font-weight: 700; color: var(--accent-cyan);">🎨 Polygon Style</span>
+        <button class="btn-sm btn-secondary" id="btn-poly-style-close" style="padding: 2px 8px; font-size: 0.8rem;">✕</button>
+      </div>
+      <div style="padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+        <!-- Color Selection -->
+        <div>
+          <label style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 5px;">Polygon Color</label>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="color" id="modal-poly-color" style="width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 0; background: transparent; cursor: pointer; flex-shrink: 0;">
+            <input type="text" id="modal-poly-color-hex" style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); border-radius: 4px; color: #f0f4f8; font-family: monospace; font-size: 0.8rem; padding: 5px 8px; outline: none;" readonly>
+          </div>
+          <!-- Quick Palette -->
+          <div id="modal-poly-palette" style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;"></div>
+        </div>
+
+        <!-- Transparency / Fill Opacity -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">Fill Transparency (Opacity)</label>
+            <span id="modal-poly-opacity-val" style="font-size: 0.78rem; font-family: monospace; font-weight: 700; color: var(--accent-cyan);">15%</span>
+          </div>
+          <input type="range" id="modal-poly-opacity" min="0" max="100" value="15" style="width: 100%; height: 6px; cursor: pointer; accent-color: var(--accent-cyan);">
+          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">
+            <span>0% (Transparent)</span>
+            <span>50%</span>
+            <span>100% (Solid)</span>
+          </div>
+        </div>
+
+        <!-- Boundary Line Thickness -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">Boundary Line Thickness</label>
+            <span id="modal-poly-width-val" style="font-size: 0.78rem; font-family: monospace; font-weight: 700; color: var(--accent-cyan);">2.5 px</span>
+          </div>
+          <input type="range" id="modal-poly-width" min="1.0" max="8.0" step="0.5" value="2.5" style="width: 100%; height: 6px; cursor: pointer; accent-color: var(--accent-cyan);">
+          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">
+            <span>1.0 px (Thin)</span>
+            <span>4.0 px</span>
+            <span>8.0 px (Thick)</span>
+          </div>
+        </div>
+
+        <!-- Live Style Preview Card -->
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 0.74rem; color: var(--text-muted);">Preview:</span>
+          <div id="modal-poly-preview" style="width: 130px; height: 26px; border-radius: 4px; border: 2.5px dashed #00e5ff; background: rgba(0,229,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; color: #fff; font-family: sans-serif;">Sample Area</div>
+        </div>
+
+        <button class="btn btn-primary btn-sm" id="btn-poly-style-done" style="width: 100%; margin-top: 4px;">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Integrated PolygonCreator Vectorizer Modal -->
   <div class="modal-overlay" id="vectorizer-modal">
     <div class="vectorizer-modal">
@@ -1781,19 +1839,21 @@ function updateMeasurementUI() {
     card.style.cssText = `border:1.5px solid ${isActive ? poly.color : "rgba(255,255,255,0.12)"};border-radius:6px;padding:5px 7px;background:${isActive ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.18)"};cursor:pointer;transition:border 0.15s;`;
     card.title = isActive ? "Active polygon" : "Click to activate this polygon";
 
-    // Header row: colored dot + editable name + Clear btn
+    // Header row: clickable color box button + editable name + Clear btn
     const headerRow = document.createElement("div");
-    headerRow.style.cssText = "display:flex;align-items:center;gap:5px;";
+    headerRow.style.cssText = "display:flex;align-items:center;gap:6px;";
 
-    const colorInput = document.createElement("input");
-    colorInput.type = "color";
-    colorInput.value = poly.color;
-    colorInput.title = "Change polygon color";
-    colorInput.style.cssText = `width:16px;height:16px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:0;background:transparent;cursor:pointer;flex-shrink:0;outline:none;`;
-    colorInput.addEventListener("click", (e) => e.stopPropagation());
-    colorInput.addEventListener("input", (e) => {
-      state.measurePolygons[idx].color = e.target.value;
-      redrawAll();
+    const colorBtn = document.createElement("button");
+    colorBtn.type = "button";
+    colorBtn.className = "poly-color-box";
+    colorBtn.title = "Click to adjust Color, Transparency & Line Thickness";
+    colorBtn.style.cssText = `width:18px;height:18px;border:1.5px solid rgba(255,255,255,0.4);border-radius:4px;background:${poly.color};cursor:pointer;flex-shrink:0;padding:0;outline:none;box-shadow:0 0 5px ${poly.color};transition:transform 0.1s;`;
+    colorBtn.addEventListener("mouseenter", () => colorBtn.style.transform = "scale(1.15)");
+    colorBtn.addEventListener("mouseleave", () => colorBtn.style.transform = "scale(1.0)");
+    colorBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.activeMeasureIdx = idx;
+      openPolyStyleModal(idx);
     });
 
     const nameInput = document.createElement("input");
@@ -1817,7 +1877,7 @@ function updateMeasurementUI() {
       redrawAll();
     });
 
-    headerRow.appendChild(colorInput);
+    headerRow.appendChild(colorBtn);
     headerRow.appendChild(nameInput);
     headerRow.appendChild(clearBtn);
 
@@ -1835,62 +1895,6 @@ function updateMeasurementUI() {
       areaRow.style.cssText = "display:flex;justify-content:space-between;margin-top:2px;font-size:0.72rem;";
       areaRow.innerHTML = `<span style="color:var(--text-muted);">Area</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${areaM2.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} m² (${plazas.toFixed(2)} plazas)</span>`;
       card.appendChild(areaRow);
-    }
-
-    // Styling controls (Fill Opacity & Line Width) for active polygon
-    if (isActive) {
-      const styleControls = document.createElement("div");
-      styleControls.style.cssText = "margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:4px;";
-
-      // Transparency / Fill Opacity
-      const curOpacity = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
-      const opacityRow = document.createElement("div");
-      opacityRow.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.71rem;color:var(--text-muted);";
-      opacityRow.innerHTML = `
-        <span title="Control transparency of the filled area">Fill Opacity:</span>
-        <div style="display:flex;align-items:center;gap:4px;flex:1;max-width:140px;">
-          <input type="range" min="0" max="100" value="${Math.round(curOpacity * 100)}" style="flex:1;height:4px;cursor:pointer;accent-color:${poly.color};">
-          <span style="font-family:monospace;min-width:32px;text-align:right;color:#f0f4f8;font-size:0.7rem;">${Math.round(curOpacity * 100)}%</span>
-        </div>
-      `;
-      const opSlider = opacityRow.querySelector("input");
-      const opVal = opacityRow.querySelector("span:last-child");
-      opSlider.addEventListener("click", (e) => e.stopPropagation());
-      opSlider.addEventListener("input", (e) => {
-        const val = parseInt(e.target.value, 10) / 100;
-        state.measurePolygons[idx].fillOpacity = val;
-        opVal.textContent = `${e.target.value}%`;
-        drawViewport296();
-        drawViewport1073();
-        drawViewportTrue();
-      });
-      styleControls.appendChild(opacityRow);
-
-      // Line Thickness
-      const curWidth = poly.lineWidth !== undefined ? poly.lineWidth : 2.5;
-      const widthRow = document.createElement("div");
-      widthRow.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.71rem;color:var(--text-muted);";
-      widthRow.innerHTML = `
-        <span title="Control boundary line thickness">Line Width:</span>
-        <div style="display:flex;align-items:center;gap:4px;flex:1;max-width:140px;">
-          <input type="range" min="1" max="8" step="0.5" value="${curWidth}" style="flex:1;height:4px;cursor:pointer;accent-color:${poly.color};">
-          <span style="font-family:monospace;min-width:32px;text-align:right;color:#f0f4f8;font-size:0.7rem;">${curWidth.toFixed(1)}px</span>
-        </div>
-      `;
-      const widthSlider = widthRow.querySelector("input");
-      const widthVal = widthRow.querySelector("span:last-child");
-      widthSlider.addEventListener("click", (e) => e.stopPropagation());
-      widthSlider.addEventListener("input", (e) => {
-        const val = parseFloat(e.target.value);
-        state.measurePolygons[idx].lineWidth = val;
-        widthVal.textContent = `${val.toFixed(1)}px`;
-        drawViewport296();
-        drawViewport1073();
-        drawViewportTrue();
-      });
-      styleControls.appendChild(widthRow);
-
-      card.appendChild(styleControls);
     }
 
     // Segments list (only for active polygon)
@@ -1929,6 +1933,73 @@ function buildSegmentsList(poly) {
     container.appendChild(row);
   }
   return container;
+}
+
+let currentEditingPolyIdx = 0;
+
+function openPolyStyleModal(polyIdx) {
+  currentEditingPolyIdx = polyIdx;
+  const poly = state.measurePolygons[polyIdx];
+  if (!poly) return;
+
+  const modal = document.getElementById("poly-style-modal");
+  const title = document.getElementById("poly-style-title");
+  const colorInput = document.getElementById("modal-poly-color");
+  const colorHex = document.getElementById("modal-poly-color-hex");
+  const opacityInput = document.getElementById("modal-poly-opacity");
+  const opacityVal = document.getElementById("modal-poly-opacity-val");
+  const widthInput = document.getElementById("modal-poly-width");
+  const widthVal = document.getElementById("modal-poly-width-val");
+  const paletteContainer = document.getElementById("modal-poly-palette");
+
+  if (title) title.textContent = `🎨 Style: ${poly.name}`;
+  if (colorInput) colorInput.value = poly.color;
+  if (colorHex) colorHex.value = poly.color.toUpperCase();
+
+  const curOp = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
+  if (opacityInput) opacityInput.value = Math.round(curOp * 100);
+  if (opacityVal) opacityVal.textContent = `${Math.round(curOp * 100)}%`;
+
+  const curWidth = poly.lineWidth !== undefined ? poly.lineWidth : 2.5;
+  if (widthInput) widthInput.value = curWidth;
+  if (widthVal) widthVal.textContent = `${curWidth.toFixed(1)} px`;
+
+  if (paletteContainer) {
+    const paletteColors = ["#00e5ff", "#00e676", "#ff9100", "#ffd600", "#d500f9", "#ff1744", "#ffffff", "#40c4ff"];
+    paletteContainer.innerHTML = "";
+    paletteColors.forEach(c => {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.style.cssText = `width:22px;height:22px;border-radius:50%;background:${c};border:${c.toLowerCase() === poly.color.toLowerCase() ? "2.5px solid #fff" : "1px solid rgba(255,255,255,0.3)"};cursor:pointer;outline:none;padding:0;box-shadow:0 0 4px rgba(0,0,0,0.5);transition:transform 0.1s;`;
+      dot.addEventListener("mouseenter", () => dot.style.transform = "scale(1.2)");
+      dot.addEventListener("mouseleave", () => dot.style.transform = "scale(1.0)");
+      dot.addEventListener("click", () => {
+        poly.color = c;
+        if (colorInput) colorInput.value = c;
+        if (colorHex) colorHex.value = c.toUpperCase();
+        updatePolyStylePreview(poly);
+        Array.from(paletteContainer.children).forEach(btn => btn.style.border = "1px solid rgba(255,255,255,0.3)");
+        dot.style.border = "2.5px solid #fff";
+        redrawAll();
+      });
+      paletteContainer.appendChild(dot);
+    });
+  }
+
+  updatePolyStylePreview(poly);
+  if (modal) modal.classList.add("visible");
+}
+
+function updatePolyStylePreview(poly) {
+  const preview = document.getElementById("modal-poly-preview");
+  if (!preview) return;
+  const op = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
+  const lw = poly.lineWidth !== undefined ? poly.lineWidth : 2.5;
+  const color = poly.color || "#00e5ff";
+  const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
+  preview.style.borderColor = color;
+  preview.style.borderWidth = `${Math.min(Math.max(lw, 1), 6)}px`;
+  preview.style.background = `rgba(${isNaN(r)?0:r},${isNaN(g)?229:g},${isNaN(b)?255:b},${op})`;
 }
 
 function findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName) {
@@ -2257,6 +2328,70 @@ function setupEventListeners() {
     chkMeasureLabels.addEventListener("change", (e) => {
       state.measureLabels = e.target.checked;
       redrawAll();
+    });
+  }
+
+  // Poly Style Modal Event Listeners
+  const polyStyleModal = document.getElementById("poly-style-modal");
+  const modalColorInput = document.getElementById("modal-poly-color");
+  const modalColorHex = document.getElementById("modal-poly-color-hex");
+  const modalOpacityInput = document.getElementById("modal-poly-opacity");
+  const modalOpacityVal = document.getElementById("modal-poly-opacity-val");
+  const modalWidthInput = document.getElementById("modal-poly-width");
+  const modalWidthVal = document.getElementById("modal-poly-width-val");
+  const btnPolyStyleClose = document.getElementById("btn-poly-style-close");
+  const btnPolyStyleDone = document.getElementById("btn-poly-style-done");
+
+  const closePolyStyleModal = () => {
+    if (polyStyleModal) polyStyleModal.classList.remove("visible");
+    redrawAll();
+  };
+
+  if (btnPolyStyleClose) btnPolyStyleClose.addEventListener("click", closePolyStyleModal);
+  if (btnPolyStyleDone) btnPolyStyleDone.addEventListener("click", closePolyStyleModal);
+  if (polyStyleModal) {
+    polyStyleModal.addEventListener("click", (e) => {
+      if (e.target === polyStyleModal) closePolyStyleModal();
+    });
+  }
+
+  if (modalColorInput) {
+    modalColorInput.addEventListener("input", (e) => {
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (poly) {
+        poly.color = e.target.value;
+        if (modalColorHex) modalColorHex.value = poly.color.toUpperCase();
+        updatePolyStylePreview(poly);
+        redrawAll();
+      }
+    });
+  }
+
+  if (modalOpacityInput) {
+    modalOpacityInput.addEventListener("input", (e) => {
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (poly) {
+        poly.fillOpacity = parseInt(e.target.value, 10) / 100;
+        if (modalOpacityVal) modalOpacityVal.textContent = `${e.target.value}%`;
+        updatePolyStylePreview(poly);
+        drawViewport296();
+        drawViewport1073();
+        drawViewportTrue();
+      }
+    });
+  }
+
+  if (modalWidthInput) {
+    modalWidthInput.addEventListener("input", (e) => {
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (poly) {
+        poly.lineWidth = parseFloat(e.target.value);
+        if (modalWidthVal) modalWidthVal.textContent = `${poly.lineWidth.toFixed(1)} px`;
+        updatePolyStylePreview(poly);
+        drawViewport296();
+        drawViewport1073();
+        drawViewportTrue();
+      }
     });
   }
 
