@@ -1223,7 +1223,101 @@ const state = {
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
   
   // Measurement polygons (multi-polygon support)
-  measurePolygons: [{ id: 1, name: "Polygon 1", color: "#00e5ff", fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, showNodes: true, points: [] }],
+  measurePolygons: [
+    {
+      id: 1,
+      name: "LoteA",
+      color: "#ffd600",
+      fillOpacity: 0.15,
+      lineWidth: 2.5,
+      lineType: "dashed",
+      showArea: true,
+      showNodes: false,
+      points: [
+        { x: 1097785.43651132, y: 876696.1113967785 },
+        { x: 1097823.8191611664, y: 876781.3303437461 },
+        { x: 1097878.631376278, y: 876848.719365391 },
+        { x: 1097918.5980349875, y: 876844.4358094252 },
+        { x: 1097928.4214568404, y: 876837.8868615233 },
+        { x: 1097955.9566834802, y: 876802.7641475294 },
+        { x: 1097948.5247002116, y: 876801.807841427 },
+        { x: 1097931.2329754755, y: 876793.4195153848 },
+        { x: 1097920.7843588262, y: 876793.7138426143 },
+        { x: 1097901.8062756923, y: 876798.6499856187 },
+        { x: 1097795.0551304324, y: 876702.5903294812 },
+        { x: 1097785.946013041, y: 876697.8525079334 },
+        { x: 1097787.1475748438, y: 876697.3375528749 }
+      ]
+    },
+    {
+      id: 2,
+      name: "LoteB",
+      color: "#00e676",
+      fillOpacity: 0.15,
+      lineWidth: 2.5,
+      lineType: "dashed",
+      showArea: true,
+      showNodes: true,
+      points: [
+        { x: 1097956.0103915657, y: 876802.6582369041 },
+        { x: 1097969.3336927968, y: 876804.4409321392 },
+        { x: 1097998.868623584, y: 876854.216083207 },
+        { x: 1098062.9177366327, y: 876869.5747990912 },
+        { x: 1098021.2577585708, y: 876890.2304828872 },
+        { x: 1097928.937449133, y: 876837.5502425669 }
+      ]
+    },
+    {
+      id: 3,
+      name: "Lote#5",
+      color: "#ff1744",
+      fillOpacity: 0.15,
+      lineWidth: 2.5,
+      lineType: "dashed",
+      showArea: true,
+      showNodes: false,
+      points: [
+        { x: 1097848.3797813845, y: 876751.2247087051 },
+        { x: 1097901.7831182764, y: 876798.6299879709 },
+        { x: 1097920.7129069383, y: 876793.7375063603 },
+        { x: 1097931.2294561947, y: 876793.4174374699 },
+        { x: 1097948.5591539687, y: 876801.6450999061 },
+        { x: 1097955.7433886006, y: 876802.934577917 },
+        { x: 1097969.3750132872, y: 876804.4082670723 },
+        { x: 1097999.913356622, y: 876854.6557323892 },
+        { x: 1098034.1873239675, y: 876862.5494395788 },
+        { x: 1097938.4653270827, y: 876697.0680870228 },
+        { x: 1097841.7685741389, y: 876611.7061981661 },
+        { x: 1097830.670549122, y: 876584.1264783968 }
+      ]
+    },
+    {
+      id: 4,
+      name: "LinderoHistorico_1073_296",
+      color: "#2979ff",
+      fillOpacity: 0.15,
+      lineWidth: 6,
+      lineType: "solid",
+      showArea: false,
+      showNodes: false,
+      points: [
+        { x: 1097696.1649300952, y: 876669.9609843089 },
+        { x: 1097785.2594062965, y: 876695.964339386 },
+        { x: 1097901.748319228, y: 876798.5926886214 },
+        { x: 1097920.750949332, y: 876793.7233803978 },
+        { x: 1097931.267868064, y: 876793.3818386745 },
+        { x: 1097948.20969025, y: 876801.6395302461 },
+        { x: 1097969.3559734013, y: 876804.3986313301 },
+        { x: 1098000.076384142, y: 876854.6065172164 },
+        { x: 1098063.2040457926, y: 876869.2744769992 },
+        { x: 1098039.0803800286, y: 876985.7960447797 },
+        { x: 1098025.5811378644, y: 876992.7784114163 },
+        { x: 1098031.6325222827, y: 877008.1396180169 },
+        { x: 1098086.5604731573, y: 877065.8605155462 },
+        { x: 1098134.9715485044, y: 877064.4640422188 }
+      ]
+    }
+  ],
   activeMeasureIdx: 0,
   measureArea: false,
   measureLabels: false,
@@ -1421,7 +1515,7 @@ function drawGeoTiff(ctx, tiff, vp, canvasH) {
 
 async function autoLoadAnchors() {
   try {
-    const response = await fetch("anchors.json");
+    const response = await fetch("anchors.json?_t=" + Date.now(), { cache: "no-store" });
     if (response.ok) {
       const data = await response.json();
       if (data.anchors296 && Array.isArray(data.anchors296)) state.anchors296 = data.anchors296;
@@ -1436,7 +1530,7 @@ async function autoLoadAnchors() {
 
 async function autoLoadPolygons() {
   try {
-    const response = await fetch("polygons.json");
+    const response = await fetch("polygons.json?_t=" + Date.now(), { cache: "no-store" });
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
