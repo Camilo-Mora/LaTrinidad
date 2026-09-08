@@ -764,7 +764,7 @@
             <h3>📏 Distance & Area</h3>
             <div style="display:flex; align-items:center; gap:6px;">
               <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-cyan); margin:0; cursor:pointer;" title="Display distance numbers and area badges on the map canvas">
-                <input type="checkbox" id="chk-measure-labels" checked>
+                <input type="checkbox" id="chk-measure-labels">
                 <span>Labels</span>
               </label>
             </div>
@@ -1226,7 +1226,7 @@ const state = {
   measurePolygons: [{ id: 1, name: "Polygon 1", color: "#00e5ff", fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, showNodes: true, points: [] }],
   activeMeasureIdx: 0,
   measureArea: false,
-  measureLabels: true,
+  measureLabels: false,
   draggingMeasurePt: null, // { polyIdx, ptIdx } for the point being dragged
 
   
