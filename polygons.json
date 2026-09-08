@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "name": "Polygon 1",
+    "color": "#00e5ff",
+    "fillOpacity": 0.15,
+    "lineWidth": 2.5,
+    "lineType": "solid",
+    "showArea": false,
+    "points": []
+  }
+]

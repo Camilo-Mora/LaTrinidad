@@ -763,10 +763,6 @@
           <div class="panel-header">
             <h3>📏 Distance & Area</h3>
             <div style="display:flex; align-items:center; gap:6px;">
-              <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-yellow); margin:0; cursor:pointer;" title="Close polygon vertices and compute total area">
-                <input type="checkbox" id="chk-measure-area">
-                <span>Area</span>
-              </label>
               <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-cyan); margin:0; cursor:pointer;" title="Display distance numbers and area badges on the map canvas">
                 <input type="checkbox" id="chk-measure-labels" checked>
                 <span>Labels</span>
@@ -777,6 +773,11 @@
           <div id="measure-polygon-list" style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;margin-top:4px;"></div>
           <!-- New Polygon button -->
           <button id="btn-new-measure-polygon" class="btn btn-primary btn-sm" style="width:100%;margin-top:6px;" title="Seal the current polygon and start a new one with a different color">＋ New Polygon</button>
+          <div style="margin-top:6px; display:flex; gap:6px;">
+            <button id="btn-save-polygons-json" class="btn btn-primary btn-sm" style="flex:1;" title="Export all current polygons to polygons.json file">💾 Save Polygons (.json)</button>
+            <label for="load-polygons-input" class="btn btn-secondary btn-sm" style="cursor:pointer;" title="Load polygons from a .json file">📂 Load</label>
+            <input type="file" id="load-polygons-input" accept=".json" style="display:none;">
+          </div>
           <p style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;margin-bottom:0;">Click points on any map to measure. Drag markers to adjust. Right-click a marker to delete it; right-click empty space to clear active polygon.</p>
         </section>
 
@@ -1222,7 +1223,7 @@ const state = {
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
   
   // Measurement polygons (multi-polygon support)
-  measurePolygons: [{ id: 1, name: "Polygon 1", color: "#00e5ff", fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", points: [] }],
+  measurePolygons: [{ id: 1, name: "Polygon 1", color: "#00e5ff", fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, points: [] }],
   activeMeasureIdx: 0,
   measureArea: false,
   measureLabels: true,
@@ -1278,7 +1279,6 @@ const chkGeoTiffFullRes = document.getElementById("chk-geotiff-fullres");
 const statusBar = document.getElementById("status-bar");
 const coordsBar = document.getElementById("coords-bar");
 
-const chkMeasureArea = document.getElementById("chk-measure-area");
 const chkMeasureLabels = document.getElementById("chk-measure-labels");
 const measurePolygonList = document.getElementById("measure-polygon-list");
 
@@ -1299,6 +1299,7 @@ window.addEventListener("DOMContentLoaded", () => {
   autoLoadGeoTiff();
   autoLoadTrueDXF();
   autoLoadAnchors();
+  autoLoadPolygons();
 
   setupEventListeners();
   resizeCanvases();
@@ -1430,6 +1431,24 @@ async function autoLoadAnchors() {
     }
   } catch (err) {
     console.log("anchors.json auto-load skipped (CORS or missing file).");
+  }
+}
+
+async function autoLoadPolygons() {
+  try {
+    const response = await fetch("polygons.json");
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        state.measurePolygons = data;
+        state.activeMeasureIdx = 0;
+        updateMeasurementUI();
+        redrawAll();
+        statusBar.textContent = "✅ Polygons loaded from polygons.json";
+      }
+    }
+  } catch (err) {
+    console.log("polygons.json auto-load skipped (CORS or missing file).");
   }
 }
 
@@ -1880,10 +1899,11 @@ function updateMeasurementUI() {
     for (let i = 1; i < pts.length; i++) {
       totalDist += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
     }
-    if (state.measureArea && pts.length >= 3) {
+    const isArea = !!poly.showArea && pts.length >= 3;
+    if (isArea) {
       totalDist += Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
     }
-    const areaM2 = state.measureArea && pts.length >= 3 ? calculatePolygonArea(pts) : 0;
+    const areaM2 = isArea ? calculatePolygonArea(pts) : 0;
     const plazas = areaM2 / 6400;
 
     // Card container
@@ -1891,7 +1911,7 @@ function updateMeasurementUI() {
     card.style.cssText = `border:1.5px solid ${isActive ? poly.color : "rgba(255,255,255,0.12)"};border-radius:6px;padding:5px 7px;background:${isActive ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.18)"};cursor:pointer;transition:border 0.15s;`;
     card.title = isActive ? "Active polygon" : "Click to activate this polygon";
 
-    // Header row: clickable color box button + editable name + Clear btn
+    // Header row: clickable color box button + editable name + Area checkbox + Clear btn
     const headerRow = document.createElement("div");
     headerRow.style.cssText = "display:flex;align-items:center;gap:6px;";
 
@@ -1917,6 +1937,27 @@ function updateMeasurementUI() {
       state.measurePolygons[idx].name = e.target.value.trim() || `Polygon ${idx + 1}`;
     });
 
+    const areaLabel = document.createElement("label");
+    areaLabel.className = "window-checkbox";
+    areaLabel.style.cssText = "font-size:0.72rem;color:var(--accent-yellow);margin:0;cursor:pointer;flex-shrink:0;padding:1px 3px;";
+    areaLabel.title = "Close outline and compute area for this polygon";
+
+    const areaChk = document.createElement("input");
+    areaChk.type = "checkbox";
+    areaChk.checked = !!poly.showArea;
+    areaChk.style.cssText = "cursor:pointer;accent-color:var(--accent-yellow);";
+    areaChk.addEventListener("click", (e) => e.stopPropagation());
+    areaChk.addEventListener("change", (e) => {
+      poly.showArea = e.target.checked;
+      redrawAll();
+      updateMeasurementUI();
+    });
+
+    const areaText = document.createElement("span");
+    areaText.textContent = "Area";
+    areaLabel.appendChild(areaChk);
+    areaLabel.appendChild(areaText);
+
     const clearBtn = document.createElement("button");
     clearBtn.textContent = "Clear";
     clearBtn.className = "btn-sm btn-secondary";
@@ -1931,6 +1972,7 @@ function updateMeasurementUI() {
 
     headerRow.appendChild(colorBtn);
     headerRow.appendChild(nameInput);
+    headerRow.appendChild(areaLabel);
     headerRow.appendChild(clearBtn);
 
     // Stats row: distance
@@ -1941,8 +1983,8 @@ function updateMeasurementUI() {
     card.appendChild(headerRow);
     card.appendChild(statsRow);
 
-    // Area row (only if Area checkbox checked and enough points)
-    if (state.measureArea && pts.length >= 3) {
+    // Area row (only if Area checkbox checked for this polygon and enough points)
+    if (isArea) {
       const areaRow = document.createElement("div");
       areaRow.style.cssText = "display:flex;justify-content:space-between;margin-top:2px;font-size:0.72rem;";
       areaRow.innerHTML = `<span style="color:var(--text-muted);">Area</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${areaM2.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} m² (${plazas.toFixed(2)} plazas)</span>`;
@@ -2049,7 +2091,7 @@ function buildSegmentsList(poly) {
     row.innerHTML = `<span style="color:var(--text-muted);">Seg ${i}</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${dist.toFixed(2)} m</span>`;
     container.appendChild(row);
   }
-  if (state.measureArea && pts.length >= 3) {
+  if (poly.showArea && pts.length >= 3) {
     const closeDist = Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
     const row = document.createElement("div");
     row.style.cssText = `display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:2px 7px;font-size:0.72rem;`;
@@ -2180,7 +2222,7 @@ function drawMeasurements(ctx, vp, h) {
       ctx.lineTo(p.x, p.y);
     }
 
-    if (state.measureArea && pts.length >= 3) {
+    if (poly.showArea && pts.length >= 3) {
       ctx.closePath();
       // Fill with polygon color at selected opacity
       const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
@@ -2221,7 +2263,7 @@ function drawMeasurements(ctx, vp, h) {
       }
     }
 
-    if (state.measureArea && pts.length >= 3 && state.measureLabels !== false) {
+    if (poly.showArea && pts.length >= 3 && state.measureLabels !== false) {
       const pLast = pts[pts.length - 1];
       const pFirst = pts[0];
       const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
@@ -2287,7 +2329,7 @@ function drawMeasurementsGIS(ctx, vp, h) {
       ctx.lineTo(p.x, p.y);
     }
 
-    if (state.measureArea && pts.length >= 3) {
+    if (poly.showArea && pts.length >= 3) {
       ctx.closePath();
       const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
       ctx.fillStyle = `rgba(${isNaN(r)?0:r},${isNaN(g)?229:g},${isNaN(b)?255:b},${fillOp})`;
@@ -2327,7 +2369,7 @@ function drawMeasurementsGIS(ctx, vp, h) {
       }
     }
 
-    if (state.measureArea && pts.length >= 3 && state.measureLabels !== false) {
+    if (poly.showArea && pts.length >= 3 && state.measureLabels !== false) {
       const pLast = pts[pts.length - 1];
       const pFirst = pts[0];
       const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
@@ -2444,24 +2486,16 @@ function setupEventListeners() {
   });
 
 
-  // Palette of colors for new measurement polygons (cycles through accent colors)
-  const measureColors = ["#00e5ff", "#00e676", "#ff9100", "#ffd600", "#d500f9", "#ff1744", "#40c4ff", "#69f0ae"];
+  // Palette of colors for new measurement polygons (cycles through MEASURE_PALETTE)
+  const measureColors = MEASURE_PALETTE;
 
   document.getElementById("btn-new-measure-polygon").addEventListener("click", () => {
     const nextColor = measureColors[state.measurePolygons.length % measureColors.length];
     const newId = state.measurePolygons.length + 1;
-    state.measurePolygons.push({ id: newId, name: `Polygon ${newId}`, color: nextColor, fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", points: [] });
+    state.measurePolygons.push({ id: newId, name: `Polygon ${newId}`, color: nextColor, fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, points: [] });
     state.activeMeasureIdx = state.measurePolygons.length - 1;
     redrawAll();
   });
-
-
-  if (chkMeasureArea) {
-    chkMeasureArea.addEventListener("change", (e) => {
-      state.measureArea = e.target.checked;
-      redrawAll();
-    });
-  }
 
   if (chkMeasureLabels) {
     chkMeasureLabels.addEventListener("change", (e) => {
@@ -2610,6 +2644,44 @@ function setupEventListeners() {
       a.download = "anchors.json";
       a.click();
       statusBar.textContent = "💾 Saved anchors to anchors.json file!";
+    });
+  }
+
+  // Save & Load Polygons JSON
+  const btnSavePolygons = document.getElementById("btn-save-polygons-json");
+  if (btnSavePolygons) {
+    btnSavePolygons.addEventListener("click", () => {
+      const jsonStr = JSON.stringify(state.measurePolygons, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "polygons.json";
+      a.click();
+      statusBar.textContent = "💾 Saved polygons to polygons.json file!";
+    });
+  }
+
+  const loadPolygonsInput = document.getElementById("load-polygons-input");
+  if (loadPolygonsInput) {
+    loadPolygonsInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (Array.isArray(data) && data.length > 0) {
+            state.measurePolygons = data;
+            state.activeMeasureIdx = 0;
+            updateMeasurementUI();
+            redrawAll();
+            statusBar.textContent = `✅ Loaded ${data.length} polygons from ${file.name}`;
+          }
+        } catch (err) {
+          statusBar.textContent = "⚠️ Error parsing polygons JSON file.";
+        }
+      };
+      reader.readAsText(file);
     });
   }
 
