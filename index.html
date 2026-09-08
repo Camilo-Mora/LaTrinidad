@@ -816,7 +816,13 @@
           <div style="display:flex; flex-direction:column; gap:8px; flex:1;">
             <div>
               <div class="panel-header">
-                <h4 style="font-size:0.78rem;color:var(--accent-purple)">Escritura 296 Anchors</h4>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-purple); margin:0; cursor:pointer;" title="Display or hide anchor points for Escritura 296">
+                    <input type="checkbox" id="chk-show-anchors-296" checked>
+                    <span>Show</span>
+                  </label>
+                  <h4 style="font-size:0.78rem;color:var(--accent-purple);margin:0;">Escritura 296 Anchors</h4>
+                </div>
                 <button id="btn-clear-anchors-296" class="btn-sm btn-secondary">Clear 296</button>
               </div>
               <div class="table-wrapper" style="margin-top:4px;">
@@ -829,7 +835,13 @@
 
             <div>
               <div class="panel-header">
-                <h4 style="font-size:0.78rem;color:var(--accent-red)">Escritura 1073 Anchors</h4>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-red); margin:0; cursor:pointer;" title="Display or hide anchor points for Escritura 1073">
+                    <input type="checkbox" id="chk-show-anchors-1073" checked>
+                    <span>Show</span>
+                  </label>
+                  <h4 style="font-size:0.78rem;color:var(--accent-red);margin:0;">Escritura 1073 Anchors</h4>
+                </div>
                 <button id="btn-clear-anchors-1073" class="btn-sm btn-secondary">Clear 1073</button>
               </div>
               <div class="table-wrapper" style="margin-top:4px;">
@@ -1192,6 +1204,8 @@ const state = {
   entitiesTrue: [],
   anchors296: [],
   anchors1073: [],
+  showAnchors296: true,
+  showAnchors1073: true,
   pendingSource: null, // { x, y, origin: '296' | '1073' }
   algorithm: "TPS",
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
@@ -1244,6 +1258,8 @@ const cardTrue = document.getElementById("card-true");
 const chkShow296 = document.getElementById("chk-show-296");
 const chkShow1073 = document.getElementById("chk-show-1073");
 const chkShowTrue = document.getElementById("chk-show-true");
+const chkShowAnchors296 = document.getElementById("chk-show-anchors-296");
+const chkShowAnchors1073 = document.getElementById("chk-show-anchors-1073");
 const chkGeoTiffFullRes = document.getElementById("chk-geotiff-fullres");
 
 // vp-tool-btn buttons are queried dynamically in setToolMode
@@ -1686,8 +1702,10 @@ function drawViewport296() {
   drawBackgroundPdf(ctx296, state.pdf296Canvas, vp, h, "296");
 
   drawEntities(ctx296, state.entities296, vp, h, "#d500f9");
-  drawAnchors(ctx296, state.anchors296, vp, h);
-  if (state.pendingSource && state.pendingSource.origin === "296") drawPendingAnchor(ctx296, state.pendingSource, vp, h);
+  if (state.showAnchors296) {
+    drawAnchors(ctx296, state.anchors296, vp, h);
+    if (state.pendingSource && state.pendingSource.origin === "296") drawPendingAnchor(ctx296, state.pendingSource, vp, h);
+  }
   drawMeasurements(ctx296, vp, h);
 }
 
@@ -1699,8 +1717,10 @@ function drawViewport1073() {
   drawBackgroundPdf(ctx1073, state.pdf1073Canvas, vp, h, "1073");
 
   drawEntities(ctx1073, state.entities1073, vp, h, "#ff1744");
-  drawAnchors(ctx1073, state.anchors1073, vp, h);
-  if (state.pendingSource && state.pendingSource.origin === "1073") drawPendingAnchor(ctx1073, state.pendingSource, vp, h);
+  if (state.showAnchors1073) {
+    drawAnchors(ctx1073, state.anchors1073, vp, h);
+    if (state.pendingSource && state.pendingSource.origin === "1073") drawPendingAnchor(ctx1073, state.pendingSource, vp, h);
+  }
   drawMeasurements(ctx1073, vp, h);
 }
 
@@ -1729,7 +1749,10 @@ function drawViewportTrue() {
     } catch (_) {}
   }
 
-  drawDestinationAnchorsGIS(ctxTrue, [...state.anchors296, ...state.anchors1073], vp, h);
+  const visibleDestAnchors = [];
+  if (state.showAnchors296) visibleDestAnchors.push(...state.anchors296);
+  if (state.showAnchors1073) visibleDestAnchors.push(...state.anchors1073);
+  drawDestinationAnchorsGIS(ctxTrue, visibleDestAnchors, vp, h);
   drawMeasurementsGIS(ctxTrue, vp, h);
 }
 
@@ -2423,6 +2446,20 @@ function setupEventListeners() {
     });
   }
 
+  // Toggle Anchor Visibility
+  if (chkShowAnchors296) {
+    chkShowAnchors296.addEventListener("change", (e) => {
+      state.showAnchors296 = e.target.checked;
+      redrawAll();
+    });
+  }
+  if (chkShowAnchors1073) {
+    chkShowAnchors1073.addEventListener("change", (e) => {
+      state.showAnchors1073 = e.target.checked;
+      redrawAll();
+    });
+  }
+
   // Clear Anchors
   document.getElementById("btn-clear-anchors-296").addEventListener("click", () => { state.anchors296 = []; state.pendingSource = null; redrawAll(); });
   document.getElementById("btn-clear-anchors-1073").addEventListener("click", () => { state.anchors1073 = []; state.pendingSource = null; redrawAll(); });
@@ -2574,12 +2611,20 @@ function hitTestAnchor(mouseX, mouseY, vp, canvas, mapName) {
   // Escritura panels: drag the src (image-space) side.
   // Field Data panel: drag the dst (GIS Y-up space) side.
   if (mapName === "296") {
-    state.anchors296.forEach(a => candidates.push({ list: state.anchors296, anc: a, field: "src", isGIS: false }));
+    if (state.showAnchors296) {
+      state.anchors296.forEach(a => candidates.push({ list: state.anchors296, anc: a, field: "src", isGIS: false }));
+    }
   } else if (mapName === "1073") {
-    state.anchors1073.forEach(a => candidates.push({ list: state.anchors1073, anc: a, field: "src", isGIS: false }));
+    if (state.showAnchors1073) {
+      state.anchors1073.forEach(a => candidates.push({ list: state.anchors1073, anc: a, field: "src", isGIS: false }));
+    }
   } else if (mapName === "true") {
-    state.anchors296.forEach(a => candidates.push({ list: state.anchors296, anc: a, field: "dst", isGIS: true }));
-    state.anchors1073.forEach(a => candidates.push({ list: state.anchors1073, anc: a, field: "dst", isGIS: true }));
+    if (state.showAnchors296) {
+      state.anchors296.forEach(a => candidates.push({ list: state.anchors296, anc: a, field: "dst", isGIS: true }));
+    }
+    if (state.showAnchors1073) {
+      state.anchors1073.forEach(a => candidates.push({ list: state.anchors1073, anc: a, field: "dst", isGIS: true }));
+    }
   }
   for (const c of candidates) {
     const sp = c.isGIS ? worldToScreenGIS(c.anc[c.field], vp, h) : worldToScreen(c.anc[c.field], vp, h);
