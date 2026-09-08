@@ -1223,7 +1223,7 @@ const state = {
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
   
   // Measurement polygons (multi-polygon support)
-  measurePolygons: [{ id: 1, name: "Polygon 1", color: "#00e5ff", fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, points: [] }],
+  measurePolygons: [{ id: 1, name: "Polygon 1", color: "#00e5ff", fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, showNodes: true, points: [] }],
   activeMeasureIdx: 0,
   measureArea: false,
   measureLabels: true,
@@ -1958,6 +1958,27 @@ function updateMeasurementUI() {
     areaLabel.appendChild(areaChk);
     areaLabel.appendChild(areaText);
 
+    const nodesLabel = document.createElement("label");
+    nodesLabel.className = "window-checkbox";
+    nodesLabel.style.cssText = "font-size:0.72rem;color:var(--accent-cyan);margin:0;cursor:pointer;flex-shrink:0;padding:1px 3px;";
+    nodesLabel.title = "Display or hide vertex node dots for this polygon";
+
+    const nodesChk = document.createElement("input");
+    nodesChk.type = "checkbox";
+    nodesChk.checked = poly.showNodes !== false;
+    nodesChk.style.cssText = "cursor:pointer;accent-color:var(--accent-cyan);";
+    nodesChk.addEventListener("click", (e) => e.stopPropagation());
+    nodesChk.addEventListener("change", (e) => {
+      poly.showNodes = e.target.checked;
+      redrawAll();
+      updateMeasurementUI();
+    });
+
+    const nodesText = document.createElement("span");
+    nodesText.textContent = "Nodes";
+    nodesLabel.appendChild(nodesChk);
+    nodesLabel.appendChild(nodesText);
+
     const clearBtn = document.createElement("button");
     clearBtn.textContent = "Clear";
     clearBtn.className = "btn-sm btn-secondary";
@@ -1973,6 +1994,7 @@ function updateMeasurementUI() {
     headerRow.appendChild(colorBtn);
     headerRow.appendChild(nameInput);
     headerRow.appendChild(areaLabel);
+    headerRow.appendChild(nodesLabel);
     headerRow.appendChild(clearBtn);
 
     // Stats row: distance
@@ -2188,7 +2210,9 @@ function findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName) {
   const h = canvas.height;
   const HIT = 10;
   const polyIdx = state.activeMeasureIdx;
-  const pts = state.measurePolygons[polyIdx] ? state.measurePolygons[polyIdx].points : [];
+  const poly = state.measurePolygons[polyIdx];
+  if (!poly || poly.showNodes === false) return null;
+  const pts = poly.points || [];
   for (let i = 0; i < pts.length; i++) {
     const sp = toScreen(pts[i], vp, h);
     if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT) return { polyIdx, ptIdx: i };
@@ -2236,12 +2260,15 @@ function drawMeasurements(ctx, vp, h) {
     ctx.stroke();
     ctx.setLineDash([]);
 
+    const showNodes = poly.showNodes !== false;
     const dotR = isActive ? Math.max(4, lineW + 2) : Math.max(3, lineW + 1);
     for (let i = 0; i < pts.length; i++) {
       const sp = worldToScreen(pts[i], vp, h);
-      ctx.beginPath(); ctx.arc(sp.x, sp.y, dotR, 0, Math.PI * 2);
-      ctx.fillStyle = color; ctx.fill();
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+      if (showNodes) {
+        ctx.beginPath(); ctx.arc(sp.x, sp.y, dotR, 0, Math.PI * 2);
+        ctx.fillStyle = color; ctx.fill();
+        ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+      }
 
       if (i > 0 && state.measureLabels !== false) {
         const pPrev = pts[i - 1];
@@ -2342,12 +2369,15 @@ function drawMeasurementsGIS(ctx, vp, h) {
     ctx.stroke();
     ctx.setLineDash([]);
 
+    const showNodes = poly.showNodes !== false;
     const dotR = isActive ? Math.max(4, lineW + 2) : Math.max(3, lineW + 1);
     for (let i = 0; i < pts.length; i++) {
       const sp = worldToScreenGIS(pts[i], vp, h);
-      ctx.beginPath(); ctx.arc(sp.x, sp.y, dotR, 0, Math.PI * 2);
-      ctx.fillStyle = color; ctx.fill();
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+      if (showNodes) {
+        ctx.beginPath(); ctx.arc(sp.x, sp.y, dotR, 0, Math.PI * 2);
+        ctx.fillStyle = color; ctx.fill();
+        ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+      }
 
       if (i > 0 && state.measureLabels !== false) {
         const pPrev = pts[i - 1];
@@ -2492,7 +2522,7 @@ function setupEventListeners() {
   document.getElementById("btn-new-measure-polygon").addEventListener("click", () => {
     const nextColor = measureColors[state.measurePolygons.length % measureColors.length];
     const newId = state.measurePolygons.length + 1;
-    state.measurePolygons.push({ id: newId, name: `Polygon ${newId}`, color: nextColor, fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, points: [] });
+    state.measurePolygons.push({ id: newId, name: `Polygon ${newId}`, color: nextColor, fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, showNodes: true, points: [] });
     state.activeMeasureIdx = state.measurePolygons.length - 1;
     redrawAll();
   });
