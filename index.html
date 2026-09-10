@@ -3319,10 +3319,11 @@ function updateAreaStats() {
   };
 
   const formatArea = (areaM2) => {
-    if (areaM2 === 0) return "0.00 ha (0.00 plazas)";
+    if (areaM2 === 0) return "0.00 ha (0.00 plazas; 0.00 m²)";
     const ha = areaM2 / 10000;
     const plazas = areaM2 / 6400;
-    return `${ha.toFixed(2)} ha (${plazas.toFixed(2)} plazas)`;
+    const m2Str = areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `${ha.toFixed(2)} ha (${plazas.toFixed(2)} plazas; ${m2Str} m²)`;
   };
 
   const el296 = document.getElementById("area-stats-296");
