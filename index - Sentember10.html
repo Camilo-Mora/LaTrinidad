@@ -314,7 +314,6 @@
     .view-title { font-size: 0.84rem; font-weight: 700; white-space: nowrap; }
     .title-296 { color: var(--accent-purple); }
     .title-1073 { color: var(--accent-red); }
-    .title-196 { color: var(--accent-orange); }
     .title-true { color: var(--accent-green); }
 
     .view-controls {
@@ -646,10 +645,6 @@
           <input type="checkbox" id="chk-show-1073" checked>
           <span style="color:var(--accent-red);font-weight:600;">Escritura 1073</span>
         </label>
-        <label class="window-checkbox" title="Toggle Escritura 196 Window">
-          <input type="checkbox" id="chk-show-196" checked>
-          <span style="color:var(--accent-orange);font-weight:600;">Escritura 196</span>
-        </label>
         <label class="window-checkbox" title="Toggle Field Window">
           <input type="checkbox" id="chk-show-true" checked>
           <span style="color:var(--accent-green);font-weight:600;">Field</span>
@@ -720,29 +715,6 @@
             <button class="vp-tool-btn" data-map="1073" data-mode="fit" title="Center Map View">⛶</button>
             <div class="vp-tool-sep"></div>
             <button class="vp-tool-btn" data-map="1073" data-mode="measure" title="Measure Distances [M]">📏</button>
-          </div>
-        </div>
-
-        <!-- Escritura 196 Viewport -->
-        <div class="viewport-card" id="card-196">
-          <div class="viewport-header">
-            <span class="view-title title-196">📜 Escritura 196</span>
-            <div class="view-controls">
-              <button class="btn btn-accent btn-sm" id="btn-edit-196" title="Edit or Vectorize PDF for Escritura 196">✏️</button>
-              <span id="status-196" class="view-badge" style="background:rgba(255,145,0,0.15);color:var(--accent-orange);border-color:rgba(255,145,0,0.3);">Preloaded DXF</span>
-            </div>
-          </div>
-          <div class="canvas-container" id="container-196">
-            <canvas id="canvas-196"></canvas>
-          </div>
-          <div class="viewport-hint" id="hint-196">
-            <button class="vp-tool-btn active" data-map="196" data-mode="pan" title="Pan Mode [P]">🖐️</button>
-            <div class="vp-tool-sep"></div>
-            <button class="vp-tool-btn" data-map="196" data-mode="anchor" title="Anchor Mode [A]">🎯</button>
-            <div class="vp-tool-sep"></div>
-            <button class="vp-tool-btn" data-map="196" data-mode="fit" title="Center Map View">⛶</button>
-            <div class="vp-tool-sep"></div>
-            <button class="vp-tool-btn" data-map="196" data-mode="measure" title="Measure Distances [M]">📏</button>
           </div>
         </div>
 
@@ -818,7 +790,6 @@
           <div style="display:flex; gap:8px; justify-content:space-between;">
             <span id="rmse-296-display" class="badge-rmse" style="color:var(--accent-purple); border-color:var(--accent-purple);">296 RMSE: 0.00 m</span>
             <span id="rmse-1073-display" class="badge-rmse" style="color:var(--accent-red); border-color:var(--accent-red);">1073 RMSE: 0.00 m</span>
-            <span id="rmse-196-display" class="badge-rmse" style="color:var(--accent-orange); border-color:var(--accent-orange);">196 RMSE: 0.00 m</span>
           </div>
         </section>
 
@@ -831,7 +802,6 @@
           <div style="display:flex; flex-direction:column; gap:8px; margin-top:2px;">
             <div class="layer-area-stats" id="area-stats-296" style="color:var(--accent-purple);">Area 296: --</div>
             <div class="layer-area-stats" id="area-stats-1073" style="color:var(--accent-red);">Area 1073: --</div>
-            <div class="layer-area-stats" id="area-stats-196" style="color:var(--accent-orange);">Area 196: --</div>
             <div class="layer-area-stats" id="area-stats-true" style="color:var(--accent-green);">Area Field: --</div>
           </div>
         </section>
@@ -881,25 +851,6 @@
                   <tbody id="table-anchors-1073"></tbody>
                 </table>
               </div>
-            </div>
-
-            <div>
-              <div class="panel-header">
-                <div style="display:flex; align-items:center; gap:6px;">
-                  <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-orange); margin:0; cursor:pointer;" title="Display or hide anchor points for Escritura 196">
-                    <input type="checkbox" id="chk-show-anchors-196" checked>
-                    <span>Show</span>
-                  </label>
-                  <h4 style="font-size:0.78rem;color:var(--accent-orange);margin:0;">Escritura 196 Anchors</h4>
-                </div>
-                <button id="btn-clear-anchors-196" class="btn-sm btn-secondary">Clear 196</button>
-              </div>
-              <div class="table-wrapper" style="margin-top:4px;">
-                <table class="anchor-table">
-                  <thead><tr><th>#</th><th>196 (X, Y)</th><th>True (X, Y)</th><th>Err (m)</th><th>X</th></tr></thead>
-                  <tbody id="table-anchors-196"></tbody>
-                </table>
-              </div>
               <div style="margin-top:10px; display:flex; gap:8px;">
                 <button id="btn-save-anchors-json" class="btn btn-primary btn-sm" style="width:100%;" title="Export all current anchor points to anchors.json file">💾 Save Anchors (.json)</button>
               </div>
@@ -912,7 +863,7 @@
     <!-- Footer Status Bar -->
     <footer class="app-footer">
       <div style="display:flex; align-items:center; gap:10px; min-width:0; overflow:hidden;">
-        <div id="status-bar" class="status-bar" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Ready • Preloaded Escritura 296, 1073, and 196 DXFs and PDFs.</div>
+        <div id="status-bar" class="status-bar" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Ready • Preloaded Escritura 296 and Escritura 1073 DXFs and PDFs.</div>
         <div id="geotiff-progress-container" style="display:none; align-items:center; gap:6px; flex-shrink:0;">
           <div style="width:110px; height:6px; background:rgba(255,255,255,0.15); border-radius:3px; overflow:hidden;">
             <div id="geotiff-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, var(--accent-cyan), var(--accent-green)); transition:width 0.1s ease;"></div>
@@ -1262,15 +1213,12 @@ class TransformMath {
 const state = {
   entities296: [],
   entities1073: [],
-  entities196: [],
   entitiesTrue: [],
   anchors296: [],
   anchors1073: [],
-  anchors196: [],
   showAnchors296: true,
   showAnchors1073: true,
-  showAnchors196: true,
-  pendingSource: null, // { x, y, origin: '296' | '1073' | '196' }
+  pendingSource: null, // { x, y, origin: '296' | '1073' }
   algorithm: "TPS",
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
   
@@ -1379,25 +1327,19 @@ const state = {
   // Viewports
   vp296: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
   vp1073: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
-  vp196: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
   vpTrue: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
   
   // Background PDFs
   pdf296Doc: null,
   pdf1073Doc: null,
-  pdf196Doc: null,
   pdf296Canvas: null,
   pdf1073Canvas: null,
-  pdf196Canvas: null,
   pdf296Width: 0,
   pdf296Height: 0,
   pdf1073Width: 0,
   pdf1073Height: 0,
-  pdf196Width: 0,
-  pdf196Height: 0,
   showPdf296: true,
   showPdf1073: true,
-  showPdf196: true,
 
   // GeoTIFF
   geoTiff: null,
@@ -1412,23 +1354,18 @@ const canvas296 = document.getElementById("canvas-296");
 const ctx296    = canvas296.getContext("2d");
 const canvas1073 = document.getElementById("canvas-1073");
 const ctx1073    = canvas1073.getContext("2d");
-const canvas196  = document.getElementById("canvas-196");
-const ctx196     = canvas196.getContext("2d");
 const canvasTrue = document.getElementById("canvas-true");
 const ctxTrue    = canvasTrue.getContext("2d");
 
 const card296  = document.getElementById("card-296");
 const card1073 = document.getElementById("card-1073");
-const card196  = document.getElementById("card-196");
 const cardTrue = document.getElementById("card-true");
 
 const chkShow296 = document.getElementById("chk-show-296");
 const chkShow1073 = document.getElementById("chk-show-1073");
-const chkShow196  = document.getElementById("chk-show-196");
 const chkShowTrue = document.getElementById("chk-show-true");
-const chkShowAnchors296  = document.getElementById("chk-show-anchors-296");
+const chkShowAnchors296 = document.getElementById("chk-show-anchors-296");
 const chkShowAnchors1073 = document.getElementById("chk-show-anchors-1073");
-const chkShowAnchors196  = document.getElementById("chk-show-anchors-196");
 const chkGeoTiffFullRes = document.getElementById("chk-geotiff-fullres");
 
 // vp-tool-btn buttons are queried dynamically in setToolMode
@@ -1443,20 +1380,16 @@ const measurePolygonList = document.getElementById("measure-polygon-list");
 window.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("dxf_296");
   localStorage.removeItem("dxf_1073");
-  localStorage.removeItem("dxf_196");
 
   // DXFs auto-loaded from files; entitiesTrue from field survey
   state.entities296 = [];
   state.entities1073 = [];
-  state.entities196 = [];
   state.entitiesTrue = [];
 
   loadDefaultPdf("Mapa2096_LaTrinidad.pdf", "296");
   loadDefaultPdf("Mapa1073_FerminSuarez.pdf", "1073");
-  loadDefaultPdf("Mapa196_ErrorCasaDelSol.pdf", "196");
   autoLoadDXF296();
   autoLoadDXF1073();
-  autoLoadDXF196();
   autoLoadGeoTiff();
   autoLoadTrueDXF();
   autoLoadAnchors();
@@ -1470,7 +1403,6 @@ function loadDefaultPdf(url, target) {
   pdfjsLib.getDocument(url).promise.then((pdf) => {
     if (target === "296") state.pdf296Doc = pdf;
     if (target === "1073") state.pdf1073Doc = pdf;
-    if (target === "196") state.pdf196Doc = pdf;
     renderPdfPage(pdf, 1, target);
   }).catch((_) => {
     // Graceful fallback if HTTP fetch unavailable
@@ -1495,11 +1427,6 @@ function renderPdfPage(pdfDoc, pageNum, target) {
         state.pdf1073Canvas = offCanvas;
         state.pdf1073Width = origViewport.width;
         state.pdf1073Height = origViewport.height;
-      }
-      if (target === "196") {
-        state.pdf196Canvas = offCanvas;
-        state.pdf196Width = origViewport.width;
-        state.pdf196Height = origViewport.height;
       }
       redrawAll();
     });
@@ -1546,21 +1473,17 @@ function screenToWorldGIS(sx, sy, viewport, canvasH) {
 function resizeCanvases() {
   const c1 = document.getElementById("container-296");
   const c2 = document.getElementById("container-1073");
-  const c3 = document.getElementById("container-196");
-  const c4 = document.getElementById("container-true");
+  const c3 = document.getElementById("container-true");
 
   canvas296.width  = c1.clientWidth  || 300;
   canvas296.height = c1.clientHeight || 500;
   canvas1073.width  = c2.clientWidth  || 300;
   canvas1073.height = c2.clientHeight || 500;
-  canvas196.width  = c3.clientWidth  || 300;
-  canvas196.height = c3.clientHeight || 500;
-  canvasTrue.width  = c4.clientWidth  || 300;
-  canvasTrue.height = c4.clientHeight || 500;
+  canvasTrue.width  = c3.clientWidth  || 300;
+  canvasTrue.height = c3.clientHeight || 500;
 
   if (!state.vp296.bbox  && state.entities296.length  > 0) state.vp296  = fitViewport(canvas296,  computeBoundingBox(state.entities296));
   if (!state.vp1073.bbox && state.entities1073.length > 0) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
-  if (!state.vp196.bbox  && state.entities196.length  > 0) state.vp196  = fitViewport(canvas196,  computeBoundingBox(state.entities196));
   if (!state.vpTrue.bbox && state.entitiesTrue.length > 0) state.vpTrue  = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue));
 
   redrawAll();
@@ -1595,9 +1518,8 @@ async function autoLoadAnchors() {
     const response = await fetch("anchors.json?_t=" + Date.now(), { cache: "no-store" });
     if (response.ok) {
       const data = await response.json();
-      if (data.anchors296  && Array.isArray(data.anchors296))  state.anchors296  = data.anchors296;
+      if (data.anchors296 && Array.isArray(data.anchors296)) state.anchors296 = data.anchors296;
       if (data.anchors1073 && Array.isArray(data.anchors1073)) state.anchors1073 = data.anchors1073;
-      if (data.anchors196  && Array.isArray(data.anchors196))  state.anchors196  = data.anchors196;
       redrawAll();
       statusBar.textContent = "✅ Anchors loaded from anchors.json";
     }
@@ -1686,26 +1608,6 @@ async function autoLoadDXF1073() {
     }
   } catch (err) {
     console.log("autoLoadDXF1073 skipped (CORS or missing file):", err);
-  }
-}
-
-async function autoLoadDXF196() {
-  try {
-    const response = await fetch("Polygon_Escritura196.dxf");
-    if (response.ok) {
-      const text = await response.text();
-      state.entities196 = DXFParser.parse(text);
-      if (state.entities196.length > 0) {
-        state.vp196 = fitViewport(canvas196, computeBoundingBox(state.entities196));
-      }
-      const el = document.getElementById("status-196");
-      if (el) el.textContent = `DXF Loaded (${state.entities196.length} entities)`;
-      redrawAll();
-    } else {
-      console.warn("Polygon_Escritura196.dxf not found — panel will be empty.");
-    }
-  } catch (err) {
-    console.log("autoLoadDXF196 skipped (CORS or missing file):", err);
   }
 }
 
@@ -1902,8 +1804,8 @@ async function parseGeoTiff(fileOrBlob) {
 
 function drawBackgroundPdf(ctx, offCanvas, vp, canvasH, target) {
   if (!offCanvas) return;
-  const pdfW = (target === "296") ? state.pdf296Width : (target === "196") ? state.pdf196Width : state.pdf1073Width;
-  const pdfH = (target === "296") ? state.pdf296Height : (target === "196") ? state.pdf196Height : state.pdf1073Height;
+  const pdfW = (target === "296") ? state.pdf296Width : state.pdf1073Width;
+  const pdfH = (target === "296") ? state.pdf296Height : state.pdf1073Height;
   if (!pdfW || !pdfH) return;
 
   const tl = worldToScreen({ x: 0,    y: 0 }, vp, canvasH);
@@ -1914,15 +1816,6 @@ function drawBackgroundPdf(ctx, offCanvas, vp, canvasH, target) {
   ctx.globalAlpha = 0.45;
   ctx.drawImage(offCanvas, tl.x, tl.y, br.x - tl.x, br.y - tl.y);
   ctx.restore();
-}
-
-function redrawAll() {
-  drawViewport296();
-  drawViewport1073();
-  drawViewport196();
-  drawViewportTrue();
-  updateAnalyticsUI();
-  updateMeasurementUI();
 }
 
 function drawViewport296() {
@@ -1955,21 +1848,6 @@ function drawViewport1073() {
   drawMeasurements(ctx1073, vp, h);
 }
 
-function drawViewport196() {
-  const w = canvas196.width, h = canvas196.height, vp = state.vp196;
-  ctx196.clearRect(0, 0, w, h);
-  drawGrid(ctx196, w, h);
-  drawGeoTiff(ctx196, state.geoTiff, vp, h);
-  drawBackgroundPdf(ctx196, state.pdf196Canvas, vp, h, "196");
-
-  drawEntities(ctx196, state.entities196, vp, h, "#ff9100");
-  if (state.showAnchors196) {
-    drawAnchors(ctx196, state.anchors196, vp, h);
-    if (state.pendingSource && state.pendingSource.origin === "196") drawPendingAnchor(ctx196, state.pendingSource, vp, h);
-  }
-  drawMeasurements(ctx196, vp, h);
-}
-
 function drawViewportTrue() {
   const w = canvasTrue.width, h = canvasTrue.height, vp = state.vpTrue;
   ctxTrue.clearRect(0, 0, w, h);
@@ -1995,18 +1873,9 @@ function drawViewportTrue() {
     } catch (_) {}
   }
 
-  // Warped 196 overlay (orange)
-  if (state.anchors196.length >= 2) {
-    try {
-      const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-      drawWarpedEntitiesGIS(ctxTrue, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)");
-    } catch (_) {}
-  }
-
   const visibleDestAnchors = [];
-  if (state.showAnchors296)  visibleDestAnchors.push(...state.anchors296);
+  if (state.showAnchors296) visibleDestAnchors.push(...state.anchors296);
   if (state.showAnchors1073) visibleDestAnchors.push(...state.anchors1073);
-  if (state.showAnchors196)  visibleDestAnchors.push(...state.anchors196);
   drawDestinationAnchorsGIS(ctxTrue, visibleDestAnchors, vp, h);
   drawMeasurementsGIS(ctxTrue, vp, h);
 }
@@ -2707,7 +2576,6 @@ function setupEventListeners() {
   // Subwindow Toggle Selector
   chkShow296.addEventListener("change", updateWindowLayout);
   chkShow1073.addEventListener("change", updateWindowLayout);
-  chkShow196.addEventListener("change", updateWindowLayout);
   chkShowTrue.addEventListener("change", updateWindowLayout);
 
   const bAll = document.getElementById("btn-view-all");
@@ -2730,7 +2598,6 @@ function setupEventListeners() {
         // Center the specific map
         if (map === "296"  && state.entities296.length)  state.vp296  = fitViewport(canvas296,  computeBoundingBox(state.entities296));
         if (map === "1073" && state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
-        if (map === "196"  && state.entities196.length)  state.vp196  = fitViewport(canvas196,  computeBoundingBox(state.entities196));
         if (map === "true") {
           if (state.entitiesTrue.length) state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue));
           else if (state.geoTiff) state.vpTrue = fitViewport(canvasTrue, state.geoTiff.bbox);
@@ -2806,7 +2673,6 @@ function setupEventListeners() {
         updatePolyStylePreview(poly);
         drawViewport296();
         drawViewport1073();
-        drawViewport196();
         drawViewportTrue();
       }
     });
@@ -2821,7 +2687,6 @@ function setupEventListeners() {
         updatePolyStylePreview(poly);
         drawViewport296();
         drawViewport1073();
-        drawViewport196();
         drawViewportTrue();
       }
     });
@@ -2836,7 +2701,6 @@ function setupEventListeners() {
         updatePolyStylePreview(poly);
         drawViewport296();
         drawViewport1073();
-        drawViewport196();
         drawViewportTrue();
         updateMeasurementUI();
       }
@@ -2846,7 +2710,6 @@ function setupEventListeners() {
   // Canvas Mouse Actions (Pan, Anchor, Measure)
   attachCanvasInteractions(canvas296,  "296");
   attachCanvasInteractions(canvas1073, "1073");
-  attachCanvasInteractions(canvas196,  "196");
   attachCanvasInteractions(canvasTrue, "true");
 
   // (Center buttons are now in the per-panel toolbars above)
@@ -2885,17 +2748,10 @@ function setupEventListeners() {
       redrawAll();
     });
   }
-  if (chkShowAnchors196) {
-    chkShowAnchors196.addEventListener("change", (e) => {
-      state.showAnchors196 = e.target.checked;
-      redrawAll();
-    });
-  }
 
   // Clear Anchors
   document.getElementById("btn-clear-anchors-296").addEventListener("click", () => { state.anchors296 = []; state.pendingSource = null; redrawAll(); });
   document.getElementById("btn-clear-anchors-1073").addEventListener("click", () => { state.anchors1073 = []; state.pendingSource = null; redrawAll(); });
-  document.getElementById("btn-clear-anchors-196").addEventListener("click", () => { state.anchors196 = []; state.pendingSource = null; redrawAll(); });
 
   // Save Anchors JSON
   const btnSaveAnchors = document.getElementById("btn-save-anchors-json");
@@ -2903,8 +2759,7 @@ function setupEventListeners() {
     btnSaveAnchors.addEventListener("click", () => {
       const exportData = {
         anchors296: state.anchors296,
-        anchors1073: state.anchors1073,
-        anchors196: state.anchors196
+        anchors1073: state.anchors1073
       };
       const jsonStr = JSON.stringify(exportData, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
@@ -2964,7 +2819,6 @@ function setupEventListeners() {
   // Integrated Vectorizer Modal Triggers
   document.getElementById("btn-edit-296").addEventListener("click", () => openVectorizerModal("296"));
   document.getElementById("btn-edit-1073").addEventListener("click", () => openVectorizerModal("1073"));
-  document.getElementById("btn-edit-196").addEventListener("click", () => openVectorizerModal("196"));
 
   document.getElementById("vec-pdf-file-input").addEventListener("change", (e) => handlePdfFileSelect(e.target.files[0], vecState.activeMapKey));
   
@@ -3038,10 +2892,6 @@ function handlePdfFileSelect(file, targetKey) {
         state.pdf296Doc = pdfDoc;
         renderPdfPage(pdfDoc, 1, "296");
         document.getElementById("status-296").textContent = "PDF & DXF Loaded";
-      } else if (targetKey === "196") {
-        state.pdf196Doc = pdfDoc;
-        renderPdfPage(pdfDoc, 1, "196");
-        document.getElementById("status-196").textContent = "PDF & DXF Loaded";
       } else {
         state.pdf1073Doc = pdfDoc;
         renderPdfPage(pdfDoc, 1, "1073");
@@ -3060,7 +2910,6 @@ function handlePdfFileSelect(file, targetKey) {
 function updateWindowLayout() {
   card296.classList.toggle("hidden", !chkShow296.checked);
   card1073.classList.toggle("hidden", !chkShow1073.checked);
-  card196.classList.toggle("hidden", !chkShow196.checked);
   cardTrue.classList.toggle("hidden", !chkShowTrue.checked);
   setTimeout(resizeCanvases, 50);
 }
@@ -3074,7 +2923,6 @@ function setToolMode(mode) {
   const cur = mode === "pan" ? "grab" : "crosshair";
   canvas296.style.cursor = cur;
   canvas1073.style.cursor = cur;
-  canvas196.style.cursor = cur;
   canvasTrue.style.cursor = cur;
   statusBar.textContent = mode === "measure"
     ? "📏 Measure Mode: Click points on any map to calculate distances in meters."
@@ -3097,19 +2945,12 @@ function hitTestAnchor(mouseX, mouseY, vp, canvas, mapName) {
     if (state.showAnchors1073) {
       state.anchors1073.forEach(a => candidates.push({ list: state.anchors1073, anc: a, field: "src", isGIS: false }));
     }
-  } else if (mapName === "196") {
-    if (state.showAnchors196) {
-      state.anchors196.forEach(a => candidates.push({ list: state.anchors196, anc: a, field: "src", isGIS: false }));
-    }
   } else if (mapName === "true") {
     if (state.showAnchors296) {
       state.anchors296.forEach(a => candidates.push({ list: state.anchors296, anc: a, field: "dst", isGIS: true }));
     }
     if (state.showAnchors1073) {
       state.anchors1073.forEach(a => candidates.push({ list: state.anchors1073, anc: a, field: "dst", isGIS: true }));
-    }
-    if (state.showAnchors196) {
-      state.anchors196.forEach(a => candidates.push({ list: state.anchors196, anc: a, field: "dst", isGIS: true }));
     }
   }
   for (const c of candidates) {
@@ -3129,7 +2970,6 @@ function attachCanvasInteractions(canvas, mapName) {
   function getVP() {
     if (mapName === "296")   return state.vp296;
     if (mapName === "1073")  return state.vp1073;
-    if (mapName === "196")   return state.vp196;
     return state.vpTrue;
   }
 
@@ -3177,17 +3017,16 @@ function attachCanvasInteractions(canvas, mapName) {
       }
 
       const pt = toWorld(mouseX, mouseY, vp, canvas.height);
-      if (mapName === "296" || mapName === "1073" || mapName === "196") {
+      if (mapName === "296" || mapName === "1073") {
         state.pendingSource = { x: pt.x, y: pt.y, origin: mapName };
-        const label = mapName === "296" ? "Escritura 296" : mapName === "1073" ? "Escritura 1073" : "Escritura 196";
-        statusBar.textContent = `🎯 Source set on ${label}. Click matching point on True Field map!`;
+        statusBar.textContent = `🎯 Source set on ${mapName === "296" ? "Escritura 296" : "Escritura 1073"}. Click matching point on True Field map!`;
       } else if (mapName === "true") {
         if (!state.pendingSource) {
-          statusBar.textContent = "⚠️ Click a landmark on Escritura 296, 1073, or 196 first.";
+          statusBar.textContent = "⚠️ Click a landmark on Escritura 296 or 1073 first.";
           return;
         }
         const origin = state.pendingSource.origin;
-        const anchorsArr = origin === "296" ? state.anchors296 : origin === "1073" ? state.anchors1073 : state.anchors196;
+        const anchorsArr = origin === "296" ? state.anchors296 : state.anchors1073;
         anchorsArr.push({
           id: anchorsArr.length + 1,
           src: { x: state.pendingSource.x, y: state.pendingSource.y },
@@ -3327,7 +3166,6 @@ function updateAreaStats() {
 
   const el296 = document.getElementById("area-stats-296");
   const el1073 = document.getElementById("area-stats-1073");
-  const el196  = document.getElementById("area-stats-196");
   const elTrue  = document.getElementById("area-stats-true");
 
   if (elTrue) elTrue.textContent = "Area Field: " + formatArea(calcLayerArea(state.entitiesTrue, null));
@@ -3343,27 +3181,18 @@ function updateAreaStats() {
     try { warper1073 = TransformMath.createWarper(state.algorithm, state.anchors1073); } catch(_) {}
   }
   if (el1073) el1073.textContent = "Area 1073: " + formatArea(calcLayerArea(state.entities1073, warper1073));
-
-  let warper196 = null;
-  if (state.anchors196.length >= 2) {
-    try { warper196 = TransformMath.createWarper(state.algorithm, state.anchors196); } catch(_) {}
-  }
-  if (el196) el196.textContent = "Area 196: " + formatArea(calcLayerArea(state.entities196, warper196));
 }
 
 function updateAnalyticsUI() {
   updateAreaStats();
-  const rmse296  = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors296),  state.anchors296);
+  const rmse296 = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors296), state.anchors296);
   const rmse1073 = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors1073), state.anchors1073);
-  const rmse196  = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors196),  state.anchors196);
 
-  document.getElementById("rmse-296-display").textContent  = `296 RMSE: ${rmse296.toFixed(2)} m`;
+  document.getElementById("rmse-296-display").textContent = `296 RMSE: ${rmse296.toFixed(2)} m`;
   document.getElementById("rmse-1073-display").textContent = `1073 RMSE: ${rmse1073.toFixed(2)} m`;
-  document.getElementById("rmse-196-display").textContent  = `196 RMSE: ${rmse196.toFixed(2)} m`;
 
-  renderAnchorTable("table-anchors-296",  state.anchors296,  "296");
+  renderAnchorTable("table-anchors-296", state.anchors296, "296");
   renderAnchorTable("table-anchors-1073", state.anchors1073, "1073");
-  renderAnchorTable("table-anchors-196",  state.anchors196,  "196");
 }
 
 function renderAnchorTable(tableId, anchors, targetKey) {
@@ -3383,9 +3212,8 @@ function renderAnchorTable(tableId, anchors, targetKey) {
 }
 
 function deleteAnchor(targetKey, index) {
-  if (targetKey === "296")  state.anchors296.splice(index, 1);
+  if (targetKey === "296") state.anchors296.splice(index, 1);
   if (targetKey === "1073") state.anchors1073.splice(index, 1);
-  if (targetKey === "196")  state.anchors196.splice(index, 1);
   redrawAll();
 }
 
@@ -3401,12 +3229,6 @@ function exportRectifiedDXF() {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
     state.entities1073.forEach((ent) => {
       combinedEntities.push({ ...ent, layer: "RECTIFIED_1073", points: ent.points.map(p => warper(p)) });
-    });
-  }
-  if (state.anchors196.length >= 2) {
-    const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-    state.entities196.forEach((ent) => {
-      combinedEntities.push({ ...ent, layer: "RECTIFIED_196", points: ent.points.map(p => warper(p)) });
     });
   }
 
@@ -3593,23 +3415,6 @@ async function exportMultiPagePDF() {
       } catch (_) {}
     }
 
-    let warper196 = null;
-    if (state.anchors196.length >= 2) {
-      try {
-        warper196 = TransformMath.createWarper(state.algorithm, state.anchors196);
-        const pts196 = [];
-        state.entities196.forEach(e => e.points.forEach(p => pts196.push(warper196(p))));
-        if (pts196.length > 0) {
-          let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-          pts196.forEach(pt => {
-            if (pt.x < minX) minX = pt.x; if (pt.y < minY) minY = pt.y;
-            if (pt.x > maxX) maxX = pt.x; if (pt.y > maxY) maxY = pt.y;
-          });
-          bboxes.push({ minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
-        }
-      } catch (_) {}
-    }
-
     let combMinX = Infinity, combMinY = Infinity, combMaxX = -Infinity, combMaxY = -Infinity;
     if (bboxes.length === 0) {
       combMinX = 0; combMinY = 0; combMaxX = 1000; combMaxY = 1000;
@@ -3682,13 +3487,8 @@ async function exportMultiPagePDF() {
       drawWarpedEntitiesGISExport(compCtx, state.entities1073, warper1073, vpExp, finalMapH, "#d50000", 14.0);
     }
 
-    // Draw Warped 196 DXF (Orange - Bold)
-    if (warper196 && state.entities196.length > 0) {
-      drawWarpedEntitiesGISExport(compCtx, state.entities196, warper196, vpExp, finalMapH, "#e65100", 14.0);
-    }
-
     // Draw Destination Anchors with high-contrast text badges
-    const allAnchors = [...state.anchors296, ...state.anchors1073, ...state.anchors196];
+    const allAnchors = [...state.anchors296, ...state.anchors1073];
     allAnchors.forEach(anc => {
       const sp = worldToScreenGISExport(anc.dst, vpExp, finalMapH);
       compCtx.beginPath(); compCtx.arc(sp.x, sp.y, 14, 0, Math.PI * 2);
@@ -3710,7 +3510,7 @@ async function exportMultiPagePDF() {
     const mapAreaHeight = pageHeight - margin * 2;
     const insetsLeft = margin + mapAreaWidth + margin;
     const insetsWidth = pageWidth - insetsLeft - margin; // ~10-12% width
-    const insetSlotHeight = (mapAreaHeight - margin * 2) / 3;
+    const insetSlotHeight = (mapAreaHeight - margin) / 2;
 
     // Draw main composite map into PDF
     const img1Data = compCanvas.toDataURL("image/jpeg", 0.94);
@@ -3737,7 +3537,7 @@ async function exportMultiPagePDF() {
       const imgY = blockTopY + titleHeight;
 
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(13);
+      pdf.setFontSize(14);
       pdf.setTextColor(170, 0, 255);
       pdf.text("Escritura 296", posX, titleY);
 
@@ -3750,7 +3550,7 @@ async function exportMultiPagePDF() {
     await new Promise(r => requestAnimationFrame(r));
     const c1073 = await getHighResPdfCanvas(state.pdf1073Doc, 1, "Mapa1073_FerminSuarez.pdf", state.entities1073, "#ff1744", state.anchors1073);
 
-    const midInsetY = margin + insetSlotHeight + margin;
+    const botInsetY = margin + insetSlotHeight + margin;
     if (c1073) {
       const titleHeight = 7; // mm
       const slotAvailW = insetsWidth;
@@ -3760,13 +3560,13 @@ async function exportMultiPagePDF() {
       const drawH = c1073.height * scaleImg;
 
       const totalBlockH = titleHeight + drawH;
-      const blockTopY = midInsetY + (insetSlotHeight - totalBlockH) / 2;
+      const blockTopY = botInsetY + (insetSlotHeight - totalBlockH) / 2;
       const posX = insetsLeft + (slotAvailW - drawW) / 2;
       const titleY = blockTopY + 4.5;
       const imgY = blockTopY + titleHeight;
 
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(13);
+      pdf.setFontSize(14);
       pdf.setTextColor(213, 0, 0);
       pdf.text("Escritura 1073", posX, titleY);
 
@@ -3774,38 +3574,9 @@ async function exportMultiPagePDF() {
       pdf.addImage(img3Data, "JPEG", posX, imgY, drawW, drawH);
     }
 
-    // --- 6. Render Inset 3: Escritura 196 ---
-    statusBar.textContent = "⏳ Rendering high-res inset for Escritura 196 (with anchor points)...";
-    await new Promise(r => requestAnimationFrame(r));
-    const c196 = await getHighResPdfCanvas(state.pdf196Doc, 1, "Mapa196_ErrorCasaDelSol.pdf", state.entities196, "#ff9100", state.anchors196);
-
-    const botInsetY = margin + (insetSlotHeight + margin) * 2;
-    if (c196) {
-      const titleHeight = 7; // mm
-      const slotAvailW = insetsWidth;
-      const slotAvailH = insetSlotHeight - titleHeight;
-      const scaleImg = Math.min(slotAvailW / c196.width, slotAvailH / c196.height);
-      const drawW = c196.width * scaleImg;
-      const drawH = c196.height * scaleImg;
-
-      const totalBlockH = titleHeight + drawH;
-      const blockTopY = botInsetY + (insetSlotHeight - totalBlockH) / 2;
-      const posX = insetsLeft + (slotAvailW - drawW) / 2;
-      const titleY = blockTopY + 4.5;
-      const imgY = blockTopY + titleHeight;
-
-      pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(13);
-      pdf.setTextColor(230, 81, 0);
-      pdf.text("Escritura 196", posX, titleY);
-
-      const img4Data = c196.toDataURL("image/jpeg", 0.94);
-      pdf.addImage(img4Data, "JPEG", posX, imgY, drawW, drawH);
-    }
-
     // Save and download poster PDF
     pdf.save("LaTrinidad_Plano_Poster.pdf");
-    statusBar.textContent = "✅ Poster PDF downloaded (Single page: 90% GeoTIFF + 4 DXFs, with Escrituras 296, 1073 & 196 insets)!";
+    statusBar.textContent = "✅ Poster PDF downloaded (Single page: 90% GeoTIFF + 3 DXFs, with Escrituras 296 & 1073 insets)!";
   } catch (err) {
     console.error("PDF poster generation failed:", err);
     statusBar.textContent = "❌ Error generating poster PDF: " + err.message;
@@ -3834,13 +3605,11 @@ const vecDrawCtx = vecDrawCanvas.getContext("2d");
 
 function openVectorizerModal(mapKey) {
   vecState.activeMapKey = mapKey;
-  const mapTitle = mapKey === "296" ? "Escritura 296 (Mapa2096_LaTrinidad.pdf)"
-    : mapKey === "1073" ? "Escritura 1073 (Mapa1073_FerminSuarez.pdf)"
-    : "Escritura 196 (Mapa196_ErrorCasaDelSol.pdf)";
+  const mapTitle = mapKey === "296" ? "Escritura 296 (Mapa2096_LaTrinidad.pdf)" : "Escritura 1073 (Mapa1073_FerminSuarez.pdf)";
   document.getElementById("vec-modal-title").textContent = `✏️ Vectorize & Edit Polygon — ${mapTitle}`;
 
   // Initialize polygon state from current active entities
-  const sourceEntities = mapKey === "296" ? state.entities296 : mapKey === "1073" ? state.entities1073 : state.entities196;
+  const sourceEntities = mapKey === "296" ? state.entities296 : state.entities1073;
   vecState.polygons = sourceEntities.map((ent, idx) => ({
     id: idx + 1,
     name: ent.layer || `Polygon_${idx + 1}`,
@@ -3855,7 +3624,7 @@ function openVectorizerModal(mapKey) {
   vecModal.classList.add("visible");
   renderVecPolygonList();
 
-  const activePdfDoc = mapKey === "296" ? state.pdf296Doc : mapKey === "1073" ? state.pdf1073Doc : state.pdf196Doc;
+  const activePdfDoc = mapKey === "296" ? state.pdf296Doc : state.pdf1073Doc;
   if (activePdfDoc) {
     vecState.pdfDoc = activePdfDoc;
     renderVecPdfPage(1);
@@ -4068,9 +3837,7 @@ document.getElementById("btn-vec-export-dxf").addEventListener("click", () => {
   const blob = new Blob([dxfContent], { type: "application/dxf" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = vecState.activeMapKey === "296" ? "Escritura296_Edited.dxf"
-    : vecState.activeMapKey === "1073" ? "Escritura1073_Edited.dxf"
-    : "Escritura196_Edited.dxf";
+  a.download = `${vecState.activeMapKey === "296" ? "Escritura296_Edited" : "Escritura1073_Edited"}.dxf`;
   a.click();
 });
 
@@ -4085,12 +3852,9 @@ document.getElementById("btn-vec-apply").addEventListener("click", () => {
   if (vecState.activeMapKey === "296") {
     state.entities296 = newEntities;
     localStorage.setItem("dxf_296", DXFParser.serialize(newEntities));
-  } else if (vecState.activeMapKey === "1073") {
+  } else {
     state.entities1073 = newEntities;
     localStorage.setItem("dxf_1073", DXFParser.serialize(newEntities));
-  } else {
-    state.entities196 = newEntities;
-    localStorage.setItem("dxf_196", DXFParser.serialize(newEntities));
   }
 
   vecModal.classList.remove("visible");
@@ -4101,12 +3865,9 @@ document.getElementById("btn-vec-reset").addEventListener("click", () => {
   if (vecState.activeMapKey === "296") {
     localStorage.removeItem("dxf_296");
     autoLoadDXF296();
-  } else if (vecState.activeMapKey === "1073") {
+  } else {
     localStorage.removeItem("dxf_1073");
     autoLoadDXF1073();
-  } else {
-    localStorage.removeItem("dxf_196");
-    autoLoadDXF196();
   }
   vecModal.classList.remove("visible");
   redrawAll();
