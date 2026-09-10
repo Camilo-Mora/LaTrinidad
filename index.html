@@ -828,10 +828,23 @@
             <h3>🗂️ DXF Layers Area</h3>
             <button class="btn-panel-toggle">▼</button>
           </div>
-          <div style="display:flex; flex-direction:column; gap:8px; margin-top:2px;">
-            <div class="layer-area-stats" id="area-stats-296" style="color:var(--accent-purple);">Area 296: --</div>
-            <div class="layer-area-stats" id="area-stats-1073" style="color:var(--accent-red);">Area 1073: --</div>
-            <div class="layer-area-stats" id="area-stats-196" style="color:var(--accent-orange);">Area 196: --</div>
+          <div style="display:flex; flex-direction:column; gap:6px; margin-top:2px;">
+            <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-purple); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Display or hide Escritura 296 on Field map">
+              <input type="checkbox" id="chk-show-field-296" checked style="cursor:pointer; accent-color:var(--accent-purple);">
+              <span class="layer-area-stats" id="area-stats-296">Area 296: --</span>
+            </label>
+            <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-red); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Display or hide Escritura 1073 on Field map">
+              <input type="checkbox" id="chk-show-field-1073" checked style="cursor:pointer; accent-color:var(--accent-red);">
+              <span class="layer-area-stats" id="area-stats-1073">Area 1073: --</span>
+            </label>
+            <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-orange); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Display or hide Escritura 196 on Field map">
+              <input type="checkbox" id="chk-show-field-196" checked style="cursor:pointer; accent-color:var(--accent-orange);">
+              <span class="layer-area-stats" id="area-stats-196">Area 196: --</span>
+            </label>
+            <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-green); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Display or hide Alambrado historico (Field DXF) on Field map">
+              <input type="checkbox" id="chk-show-field-true" checked style="cursor:pointer; accent-color:var(--accent-green);">
+              <span class="layer-area-stats" id="area-stats-true" style="color:var(--accent-green);">Alambrado historico</span>
+            </label>
           </div>
         </section>
 
@@ -1269,6 +1282,10 @@ const state = {
   showAnchors296: true,
   showAnchors1073: true,
   showAnchors196: true,
+  showWarped296OnField: true,
+  showWarped1073OnField: true,
+  showWarped196OnField: true,
+  showFieldDXFOnField: true,
   pendingSource: null, // { x, y, origin: '296' | '1073' | '196' }
   algorithm: "TPS",
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
@@ -1975,11 +1992,13 @@ function drawViewportTrue() {
   drawGrid(ctxTrue, w, h);
   drawGeoTiff(ctxTrue, state.geoTiff, vp, h);
 
-  // Target DXF (Green)
-  drawEntitiesGIS(ctxTrue, state.entitiesTrue, vp, h, "#00e676");
+  // Target DXF (Green - Alambrado historico)
+  if (state.showFieldDXFOnField !== false) {
+    drawEntitiesGIS(ctxTrue, state.entitiesTrue, vp, h, "#00e676");
+  }
 
   // Warped 296 overlay
-  if (state.anchors296.length >= 2) {
+  if (state.showWarped296OnField !== false && state.anchors296.length >= 2) {
     try {
       const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
       drawWarpedEntitiesGIS(ctxTrue, state.entities296, warper, vp, h, "rgba(213, 0, 249, 0.85)");
@@ -1987,7 +2006,7 @@ function drawViewportTrue() {
   }
 
   // Warped 1073 overlay
-  if (state.anchors1073.length >= 2) {
+  if (state.showWarped1073OnField !== false && state.anchors1073.length >= 2) {
     try {
       const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
       drawWarpedEntitiesGIS(ctxTrue, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)");
@@ -1995,7 +2014,7 @@ function drawViewportTrue() {
   }
 
   // Warped 196 overlay (orange)
-  if (state.anchors196.length >= 2) {
+  if (state.showWarped196OnField !== false && state.anchors196.length >= 2) {
     try {
       const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
       drawWarpedEntitiesGIS(ctxTrue, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)");
@@ -2161,6 +2180,27 @@ function updateMeasurementUI() {
       state.measurePolygons[idx].name = e.target.value.trim() || `Polygon ${idx + 1}`;
     });
 
+    const showLabel = document.createElement("label");
+    showLabel.className = "window-checkbox";
+    showLabel.style.cssText = "font-size:0.72rem;color:var(--text-main);margin:0;cursor:pointer;flex-shrink:0;padding:1px 3px;";
+    showLabel.title = "Display or hide this polygon on the map";
+
+    const showChk = document.createElement("input");
+    showChk.type = "checkbox";
+    showChk.checked = poly.visible !== false;
+    showChk.style.cssText = "cursor:pointer;accent-color:var(--accent-cyan);";
+    showChk.addEventListener("click", (e) => e.stopPropagation());
+    showChk.addEventListener("change", (e) => {
+      poly.visible = e.target.checked;
+      redrawAll();
+      updateMeasurementUI();
+    });
+
+    const showText = document.createElement("span");
+    showText.textContent = "Show";
+    showLabel.appendChild(showChk);
+    showLabel.appendChild(showText);
+
     const areaLabel = document.createElement("label");
     areaLabel.className = "window-checkbox";
     areaLabel.style.cssText = "font-size:0.72rem;color:var(--accent-yellow);margin:0;cursor:pointer;flex-shrink:0;padding:1px 3px;";
@@ -2203,23 +2243,27 @@ function updateMeasurementUI() {
     nodesLabel.appendChild(nodesChk);
     nodesLabel.appendChild(nodesText);
 
-    const clearBtn = document.createElement("button");
-    clearBtn.textContent = "Clear";
-    clearBtn.className = "btn-sm btn-secondary";
-    clearBtn.style.cssText = "font-size:0.68rem;padding:1px 6px;flex-shrink:0;";
-    clearBtn.title = "Clear this polygon's points";
-    clearBtn.addEventListener("click", (e) => {
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.className = "btn-sm btn-secondary";
+    deleteBtn.style.cssText = "font-size:0.68rem;padding:1px 6px;flex-shrink:0;color:var(--accent-red);border-color:rgba(255,23,68,0.35);";
+    deleteBtn.title = "Delete this polygon completely";
+    deleteBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      state.measurePolygons[idx].points = [];
-      state.activeMeasureIdx = idx;
+      state.measurePolygons.splice(idx, 1);
+      if (state.activeMeasureIdx >= state.measurePolygons.length) {
+        state.activeMeasureIdx = Math.max(0, state.measurePolygons.length - 1);
+      }
       redrawAll();
+      updateMeasurementUI();
     });
 
     headerRow.appendChild(colorBtn);
     headerRow.appendChild(nameInput);
+    headerRow.appendChild(showLabel);
     headerRow.appendChild(areaLabel);
     headerRow.appendChild(nodesLabel);
-    headerRow.appendChild(clearBtn);
+    headerRow.appendChild(deleteBtn);
 
     // Stats row: distance
     const statsRow = document.createElement("div");
@@ -2435,7 +2479,7 @@ function findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName) {
   const HIT = 10;
   const polyIdx = state.activeMeasureIdx;
   const poly = state.measurePolygons[polyIdx];
-  if (!poly || poly.showNodes === false) return null;
+  if (!poly || poly.showNodes === false || poly.visible === false) return null;
   const pts = poly.points || [];
   for (let i = 0; i < pts.length; i++) {
     const sp = toScreen(pts[i], vp, h);
@@ -2455,6 +2499,7 @@ function drawPendingAnchor(ctx, pt, vp, h) {
 /* MEASUREMENT RENDERING ENGINE (METERS & AREA) */
 function drawMeasurements(ctx, vp, h) {
   state.measurePolygons.forEach((poly, polyIdx) => {
+    if (poly.visible === false) return;
     const pts = poly.points;
     if (pts.length === 0) return;
     const isActive = polyIdx === state.activeMeasureIdx;
@@ -2565,6 +2610,7 @@ function drawMeasurements(ctx, vp, h) {
 
 function drawMeasurementsGIS(ctx, vp, h) {
   state.measurePolygons.forEach((poly, polyIdx) => {
+    if (poly.visible === false) return;
     const pts = poly.points;
     if (pts.length === 0) return;
     const isActive = polyIdx === state.activeMeasureIdx;
@@ -2716,6 +2762,37 @@ function setupEventListeners() {
   const b1073T = document.getElementById("btn-view-1073-true");
   if (b1073T) b1073T.addEventListener("click", () => { chkShow296.checked = false; chkShow1073.checked = true; chkShowTrue.checked = true; updateWindowLayout(); });
 
+  // DXF Layers Area - Field Map Overlay Toggles
+  const chkField296 = document.getElementById("chk-show-field-296");
+  const chkField1073 = document.getElementById("chk-show-field-1073");
+  const chkField196 = document.getElementById("chk-show-field-196");
+
+  if (chkField296) {
+    chkField296.addEventListener("change", (e) => {
+      state.showWarped296OnField = e.target.checked;
+      drawViewportTrue();
+    });
+  }
+  if (chkField1073) {
+    chkField1073.addEventListener("change", (e) => {
+      state.showWarped1073OnField = e.target.checked;
+      drawViewportTrue();
+    });
+  }
+  if (chkField196) {
+    chkField196.addEventListener("change", (e) => {
+      state.showWarped196OnField = e.target.checked;
+      drawViewportTrue();
+    });
+  }
+  const chkFieldTrue = document.getElementById("chk-show-field-true");
+  if (chkFieldTrue) {
+    chkFieldTrue.addEventListener("change", (e) => {
+      state.showFieldDXFOnField = e.target.checked;
+      drawViewportTrue();
+    });
+  }
+
   // Background PDF Toggles
 
 
@@ -2748,7 +2825,7 @@ function setupEventListeners() {
   document.getElementById("btn-new-measure-polygon").addEventListener("click", () => {
     const nextColor = measureColors[state.measurePolygons.length % measureColors.length];
     const newId = state.measurePolygons.length + 1;
-    state.measurePolygons.push({ id: newId, name: `Polygon ${newId}`, color: nextColor, fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, showNodes: true, points: [] });
+    state.measurePolygons.push({ id: newId, name: `Polygon ${newId}`, color: nextColor, fillOpacity: 0.15, lineWidth: 2.5, lineType: "solid", showArea: false, showNodes: true, visible: true, points: [] });
     state.activeMeasureIdx = state.measurePolygons.length - 1;
     redrawAll();
   });
