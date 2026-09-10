@@ -832,7 +832,6 @@
             <div class="layer-area-stats" id="area-stats-296" style="color:var(--accent-purple);">Area 296: --</div>
             <div class="layer-area-stats" id="area-stats-1073" style="color:var(--accent-red);">Area 1073: --</div>
             <div class="layer-area-stats" id="area-stats-196" style="color:var(--accent-orange);">Area 196: --</div>
-            <div class="layer-area-stats" id="area-stats-true" style="color:var(--accent-green);">Area Field: --</div>
           </div>
         </section>
 
@@ -3329,9 +3328,6 @@ function updateAreaStats() {
   const el296 = document.getElementById("area-stats-296");
   const el1073 = document.getElementById("area-stats-1073");
   const el196  = document.getElementById("area-stats-196");
-  const elTrue  = document.getElementById("area-stats-true");
-
-  if (elTrue) elTrue.textContent = "Area Field: " + formatArea(calcLayerArea(state.entitiesTrue, null));
 
   let warper296 = null;
   if (state.anchors296.length >= 2) {
