@@ -1011,7 +1011,8 @@
       <div class="modal-header">
         <span class="modal-title" id="vec-modal-title">✏️ Vectorize & Edit Polygon</span>
         <div style="display:flex; gap:8px; align-items:center;">
-          <button class="btn btn-primary btn-sm" id="btn-vec-export-dxf" title="Save created polygon to DXF file on your computer">💾 Save DXF File</button>
+          <button class="btn btn-primary btn-sm" id="btn-vec-export-dxf" title="Save georeferenced DXF file with field coordinates (matching the main page)">💾 Save Rectified DXF</button>
+          <button class="btn btn-secondary btn-sm" id="btn-vec-export-raw-dxf" title="Save local unrectified DXF file (PDF page coordinates)">📄 Save Raw DXF</button>
           <button class="btn btn-success btn-sm" id="btn-vec-apply">✅ Apply Edits to GeoRectifier</button>
           <button class="btn btn-warning btn-sm" id="btn-vec-reset">🔄 Reset Defaults</button>
           <button class="btn btn-secondary btn-sm" id="btn-vec-close">✕ Close</button>
@@ -4129,24 +4130,71 @@ document.getElementById("btn-vec-new-poly").addEventListener("click", () => {
   redrawVecDrawCanvas();
 });
 
-// Save Created Polygon to Local File (.dxf)
+// Save Created Polygon to DXF - Georeferenced (Field Coordinates)
 document.getElementById("btn-vec-export-dxf").addEventListener("click", () => {
-  const entitiesToExport = vecState.polygons.map((p) => ({
-    type: "POLYLINE",
-    layer: p.name,
-    closed: true,
-    points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
-  }));
+  const mapKey = vecState.activeMapKey;
+  const anchors = mapKey === "296" ? state.anchors296 : mapKey === "1073" ? state.anchors1073 : state.anchors196;
+
+  let entitiesToExport;
+  if (anchors && anchors.length >= 2) {
+    try {
+      const warper = TransformMath.createWarper(state.algorithm, anchors);
+      entitiesToExport = vecState.polygons.map((p) => ({
+        type: "POLYLINE",
+        layer: p.name,
+        closed: true,
+        points: p.points.map(pt => warper(pt))
+      }));
+    } catch (err) {
+      console.warn("Warping error, falling back to raw coordinates:", err);
+      entitiesToExport = vecState.polygons.map((p) => ({
+        type: "POLYLINE",
+        layer: p.name,
+        closed: true,
+        points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
+      }));
+    }
+  } else {
+    alert("⚠️ At least 2 anchor points are required to georeference this polygon into Field coordinates. Exporting raw PDF coordinates instead.");
+    entitiesToExport = vecState.polygons.map((p) => ({
+      type: "POLYLINE",
+      layer: p.name,
+      closed: true,
+      points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
+    }));
+  }
 
   const dxfContent = DXFParser.serialize(entitiesToExport);
   const blob = new Blob([dxfContent], { type: "application/dxf" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = vecState.activeMapKey === "296" ? "Escritura296_Edited.dxf"
-    : vecState.activeMapKey === "1073" ? "Escritura1073_Edited.dxf"
-    : "Escritura196_Edited.dxf";
+  a.download = mapKey === "296" ? "Escritura296_Rectified.dxf"
+    : mapKey === "1073" ? "Escritura1073_Rectified.dxf"
+    : "Escritura196_Rectified.dxf";
   a.click();
 });
+
+// Save Raw Unrectified Polygon (PDF Space)
+const btnVecExportRaw = document.getElementById("btn-vec-export-raw-dxf");
+if (btnVecExportRaw) {
+  btnVecExportRaw.addEventListener("click", () => {
+    const entitiesToExport = vecState.polygons.map((p) => ({
+      type: "POLYLINE",
+      layer: p.name,
+      closed: true,
+      points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
+    }));
+
+    const dxfContent = DXFParser.serialize(entitiesToExport);
+    const blob = new Blob([dxfContent], { type: "application/dxf" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = vecState.activeMapKey === "296" ? "Escritura296_Raw.dxf"
+      : vecState.activeMapKey === "1073" ? "Escritura1073_Raw.dxf"
+      : "Escritura196_Raw.dxf";
+    a.click();
+  });
+}
 
 document.getElementById("btn-vec-apply").addEventListener("click", () => {
   const newEntities = vecState.polygons.map((p) => ({
