@@ -848,6 +848,51 @@
           </div>
         </section>
 
+        <!-- Overlay DXF/DWG Layer -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-orange); margin:0; cursor:pointer;" title="Display or hide Overlay layer">
+                <input type="checkbox" id="chk-show-overlay" checked>
+                <span>Visible</span>
+              </label>
+              <input type="text" id="overlay-label-input" value="Overlay Layer" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:#fff;font-size:0.78rem;font-weight:600;width:100px;">
+            </div>
+            <button class="btn-panel-toggle">▼</button>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <label style="cursor:pointer;" title="Load a second polygon DXF/DWG overlay">
+              <input type="file" id="overlay-file-input" accept=".dxf,.dwg" style="display:none;">
+              <span class="btn btn-warning btn-sm">🔶 Load DXF / DWG</span>
+            </label>
+            <span id="status-overlay" class="view-badge" style="background:rgba(255,145,0,0.15);color:var(--accent-orange);border-color:rgba(255,145,0,0.3);">No file</span>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+            <span id="area-stats-overlay">Area: --</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.72rem;">
+              <span style="width:45px;">Color</span>
+              <input type="color" id="overlay-color-input" value="#ff9100" style="padding:0;width:24px;height:24px;background:none;border:none;cursor:pointer;">
+              <select id="overlay-linetype-select" style="flex:1; background:rgba(255,255,255,0.06); border:1px solid var(--border-color); color:#fff; border-radius:4px; padding:2px;">
+                <option value="solid" selected>▬ Solid</option>
+                <option value="dashed">- - - Dashed</option>
+                <option value="dotted">· · · Dotted</option>
+                <option value="dashdot">- · - Dash-Dot</option>
+              </select>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.72rem;">
+              <span style="width:45px;" title="Thickness">Width</span>
+              <input type="range" id="overlay-width-input" min="0.5" max="12" step="0.5" value="2.5" style="flex:1; accent-color:var(--accent-orange);">
+              <span id="overlay-width-val" style="width:35px; text-align:right;">2.5 px</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.72rem;">
+              <span style="width:45px;">Opacity</span>
+              <input type="range" id="overlay-opacity-input" min="0" max="100" value="0" style="flex:1; accent-color:var(--accent-orange);">
+              <span id="overlay-opacity-val" style="width:35px; text-align:right;">0%</span>
+            </div>
+          </div>
+        </section>
 
         <!-- Anchor Pair Managers -->
         <section class="panel-card flex-grow">
@@ -1287,6 +1332,16 @@ const state = {
   showWarped1073OnField: true,
   showWarped196OnField: true,
   showFieldDXFOnField: true,
+  overlayLayer: {
+    entities: [],
+    visible: true,
+    color: "#ff9100",
+    fillOpacity: 0.0,
+    lineWidth: 2.5,
+    lineType: "solid",
+    label: "Overlay",
+    fileName: null
+  },
   pendingSource: null, // { x, y, origin: '296' | '1073' | '196' }
   algorithm: "TPS",
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
@@ -1998,6 +2053,11 @@ function drawViewportTrue() {
     drawEntitiesGIS(ctxTrue, state.entitiesTrue, vp, h, "#00e676");
   }
 
+  // Overlay Layer (DWG/DXF)
+  if (state.overlayLayer.visible && state.overlayLayer.entities.length > 0) {
+    drawEntitiesGISStyled(ctxTrue, state.overlayLayer.entities, vp, h, state.overlayLayer);
+  }
+
   // Warped 296 overlay
   if (state.showWarped296OnField !== false && state.anchors296.length >= 2) {
     try {
@@ -2057,6 +2117,58 @@ function drawEntitiesGIS(ctx, entities, vp, h, color) {
     }
     if (ent.closed) ctx.closePath();
     ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.stroke();
+  });
+}
+
+function drawEntitiesGISStyled(ctx, entities, vp, h, styleObj) {
+  entities.forEach((ent) => {
+    if (ent.points.length < 2) return;
+    ctx.beginPath();
+    const start = worldToScreenGIS(ent.points[0], vp, h);
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i < ent.points.length; i++) {
+      const p = worldToScreenGIS(ent.points[i], vp, h);
+      ctx.lineTo(p.x, p.y);
+    }
+    if (ent.closed) ctx.closePath();
+    
+    if (styleObj.fillOpacity > 0 && ent.closed) {
+      ctx.fillStyle = styleObj.color;
+      ctx.globalAlpha = styleObj.fillOpacity;
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+    }
+    ctx.strokeStyle = styleObj.color;
+    ctx.lineWidth = styleObj.lineWidth;
+    ctx.setLineDash(getPolyLineDash(styleObj.lineType));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+}
+
+function drawEntitiesGISStyledExport(ctx, entities, vp, canvasH, styleObj) {
+  entities.forEach((ent) => {
+    if (ent.points.length < 2) return;
+    ctx.beginPath();
+    const start = worldToScreenGISExport(ent.points[0], vp, canvasH);
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i < ent.points.length; i++) {
+      const p = worldToScreenGISExport(ent.points[i], vp, canvasH);
+      ctx.lineTo(p.x, p.y);
+    }
+    if (ent.closed) ctx.closePath();
+    
+    if (styleObj.fillOpacity > 0 && ent.closed) {
+      ctx.fillStyle = styleObj.color;
+      ctx.globalAlpha = styleObj.fillOpacity;
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+    }
+    ctx.strokeStyle = styleObj.color;
+    ctx.lineWidth = styleObj.lineWidth * 4;
+    ctx.setLineDash(getPolyLineDash(styleObj.lineType).map(v => v * 4));
+    ctx.stroke();
+    ctx.setLineDash([]);
   });
 }
 
@@ -2956,6 +3068,132 @@ function setupEventListeners() {
       redrawAll();
     });
   }
+
+  // Overlay DXF/DWG file picker and panel controls
+  const overlayFileInput = document.getElementById("overlay-file-input");
+  const overlayStatus = document.getElementById("status-overlay");
+  const chkShowOverlay = document.getElementById("chk-show-overlay");
+  const overlayLabelInput = document.getElementById("overlay-label-input");
+  const overlayColorInput = document.getElementById("overlay-color-input");
+  const overlayLinetypeSelect = document.getElementById("overlay-linetype-select");
+  const overlayWidthInput = document.getElementById("overlay-width-input");
+  const overlayWidthVal = document.getElementById("overlay-width-val");
+  const overlayOpacityInput = document.getElementById("overlay-opacity-input");
+  const overlayOpacityVal = document.getElementById("overlay-opacity-val");
+
+  if (overlayFileInput) {
+    overlayFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      state.overlayLayer.fileName = file.name;
+      overlayStatus.textContent = "Loading...";
+      
+      if (file.name.toLowerCase().endsWith(".dwg")) {
+        overlayStatus.textContent = "⏳ Converting DWG...";
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const blob = new Blob([`
+              importScripts('https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web@0.12.5/dist/libredwg.js');
+              self.onmessage = async (e) => {
+                const { fileData, fileName } = e.data;
+                try {
+                  const mod = typeof libredwg !== 'undefined' ? await libredwg() : (typeof Module !== 'undefined' ? await Module() : null);
+                  if (!mod) throw new Error("LibreDWG module not found");
+                  mod.FS.writeFile(fileName, new Uint8Array(fileData));
+                  let result = -1;
+                  if (mod.callMain) {
+                    result = mod.callMain(['-y', '-o', 'out.dxf', fileName]);
+                  } else if (mod.ccall) {
+                    result = mod.ccall('main', 'number', ['number', 'array'], [4, ['dwg2dxf', '-y', '-o', 'out.dxf', fileName]]);
+                  }
+                  const dxfBytes = mod.FS.readFile('out.dxf');
+                  const dxfText = new TextDecoder().decode(dxfBytes);
+                  self.postMessage({ success: true, dxfText });
+                } catch (err) {
+                  self.postMessage({ success: false, error: err.message });
+                }
+              };
+            `], { type: 'application/javascript' });
+            const worker = new Worker(URL.createObjectURL(blob));
+            worker.onmessage = (msg) => {
+              if (msg.data.success) {
+                const entities = DXFParser.parse(msg.data.dxfText);
+                state.overlayLayer.entities = entities;
+                overlayStatus.textContent = \`DWG Loaded (\${entities.length})\`;
+                updateAnalyticsUI();
+                redrawAll();
+              } else {
+                overlayStatus.textContent = "❌ Conversion Failed";
+                alert("DWG conversion failed: " + msg.data.error + "\\n\\nPlease open the file in AutoCAD, QGIS, or LibreCAD and export as DXF (ASCII).");
+              }
+              worker.terminate();
+            };
+            worker.onerror = (err) => {
+              overlayStatus.textContent = "❌ Worker Error";
+              alert("DWG conversion worker failed. Please convert to DXF in CAD software.\\n" + err.message);
+              worker.terminate();
+            };
+            worker.postMessage({ fileData: ev.target.result, fileName: file.name }, [ev.target.result]);
+          } catch (err) {
+            overlayStatus.textContent = "❌ Error";
+            alert("DWG conversion setup failed. Please convert to DXF in CAD software.\\n" + err.message);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        // Standard DXF
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const entities = DXFParser.parse(ev.target.result);
+          state.overlayLayer.entities = entities;
+          overlayStatus.textContent = \`DXF Loaded (\${entities.length})\`;
+          updateAnalyticsUI();
+          redrawAll();
+        };
+        reader.readAsText(file);
+      }
+    });
+  }
+
+  if (chkShowOverlay) {
+    chkShowOverlay.addEventListener("change", (e) => {
+      state.overlayLayer.visible = e.target.checked;
+      redrawAll();
+    });
+  }
+  if (overlayLabelInput) {
+    overlayLabelInput.addEventListener("input", (e) => {
+      state.overlayLayer.label = e.target.value;
+    });
+  }
+  if (overlayColorInput) {
+    overlayColorInput.addEventListener("input", (e) => {
+      state.overlayLayer.color = e.target.value;
+      redrawAll();
+    });
+  }
+  if (overlayLinetypeSelect) {
+    overlayLinetypeSelect.addEventListener("change", (e) => {
+      state.overlayLayer.lineType = e.target.value;
+      redrawAll();
+    });
+  }
+  if (overlayWidthInput) {
+    overlayWidthInput.addEventListener("input", (e) => {
+      state.overlayLayer.lineWidth = parseFloat(e.target.value);
+      if (overlayWidthVal) overlayWidthVal.textContent = state.overlayLayer.lineWidth.toFixed(1) + " px";
+      redrawAll();
+    });
+  }
+  if (overlayOpacityInput) {
+    overlayOpacityInput.addEventListener("input", (e) => {
+      state.overlayLayer.fillOpacity = parseInt(e.target.value, 10) / 100;
+      if (overlayOpacityVal) overlayOpacityVal.textContent = e.target.value + "%";
+      redrawAll();
+    });
+  }
   if (chkShowAnchors1073) {
     chkShowAnchors1073.addEventListener("change", (e) => {
       state.showAnchors1073 = e.target.checked;
@@ -3424,6 +3662,15 @@ function updateAreaStats() {
     try { warper196 = TransformMath.createWarper(state.algorithm, state.anchors196); } catch(_) {}
   }
   if (el196) el196.textContent = "Area 196: " + formatArea(calcLayerArea(state.entities196, warper196));
+
+  const elOverlay = document.getElementById("area-stats-overlay");
+  if (elOverlay) {
+    if (state.overlayLayer.entities.length > 0) {
+      elOverlay.textContent = "Area: " + formatArea(calcLayerArea(state.overlayLayer.entities, null));
+    } else {
+      elOverlay.textContent = "Area: --";
+    }
+  }
 }
 
 function updateAnalyticsUI() {
@@ -3745,6 +3992,11 @@ async function exportMultiPagePDF() {
     // Draw True Field Survey DXF (Green - Bold)
     if (state.entitiesTrue && state.entitiesTrue.length > 0) {
       drawEntitiesGISExport(compCtx, state.entitiesTrue, vpExp, finalMapH, "#00a843", 16.0);
+    }
+
+    // Draw Overlay Layer (DWG/DXF)
+    if (state.overlayLayer.visible && state.overlayLayer.entities.length > 0) {
+      drawEntitiesGISStyledExport(compCtx, state.overlayLayer.entities, vpExp, finalMapH, state.overlayLayer);
     }
 
     // Draw Warped 296 DXF (Purple - Bold)
