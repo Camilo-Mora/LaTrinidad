@@ -761,6 +761,7 @@
                 <input type="file" id="true-dxf-input" accept=".dxf">
                 <span class="btn btn-secondary btn-sm">Load DXF</span>
               </label>
+              <label for="overlay-file-input" class="btn btn-warning btn-sm" style="cursor:pointer;" title="Load Overlay Polygon DXF or DWG">🔶 Overlay</label>
               <button id="btn-export-pdf" class="btn btn-primary btn-sm" title="Export composite map and historical escrituras as high-resolution PDF">📄 Export PDF</button>
               <span id="status-true" class="view-badge green">Target DXF</span>
             </div>
@@ -3121,24 +3122,24 @@ function setupEventListeners() {
               if (msg.data.success) {
                 const entities = DXFParser.parse(msg.data.dxfText);
                 state.overlayLayer.entities = entities;
-                overlayStatus.textContent = \`DWG Loaded (\${entities.length})\`;
+                overlayStatus.textContent = `DWG Loaded (${entities.length})`;
                 updateAnalyticsUI();
                 redrawAll();
               } else {
                 overlayStatus.textContent = "❌ Conversion Failed";
-                alert("DWG conversion failed: " + msg.data.error + "\\n\\nPlease open the file in AutoCAD, QGIS, or LibreCAD and export as DXF (ASCII).");
+                alert("DWG conversion failed: " + msg.data.error + "\n\nPlease open the file in AutoCAD, QGIS, or LibreCAD and export as DXF (ASCII).");
               }
               worker.terminate();
             };
             worker.onerror = (err) => {
               overlayStatus.textContent = "❌ Worker Error";
-              alert("DWG conversion worker failed. Please convert to DXF in CAD software.\\n" + err.message);
+              alert("DWG conversion worker failed. Please convert to DXF in CAD software.\n" + err.message);
               worker.terminate();
             };
             worker.postMessage({ fileData: ev.target.result, fileName: file.name }, [ev.target.result]);
           } catch (err) {
             overlayStatus.textContent = "❌ Error";
-            alert("DWG conversion setup failed. Please convert to DXF in CAD software.\\n" + err.message);
+            alert("DWG conversion setup failed. Please convert to DXF in CAD software.\n" + err.message);
           }
         };
         reader.readAsArrayBuffer(file);
@@ -3148,7 +3149,7 @@ function setupEventListeners() {
         reader.onload = (ev) => {
           const entities = DXFParser.parse(ev.target.result);
           state.overlayLayer.entities = entities;
-          overlayStatus.textContent = \`DXF Loaded (\${entities.length})\`;
+          overlayStatus.textContent = `DXF Loaded (${entities.length})`;
           updateAnalyticsUI();
           redrawAll();
         };
