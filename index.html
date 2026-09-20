@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -503,6 +503,79 @@
       font-weight: 600;
     }
 
+    /* Polygon Summary Panel */
+    .poly-summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.72rem;
+      margin-top: 4px;
+    }
+    .poly-summary-table th {
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: center;
+      padding: 3px 4px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .poly-summary-table th.col-name { text-align: left; padding-left: 6px; }
+    .poly-summary-table td {
+      padding: 3px 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      text-align: center;
+      vertical-align: middle;
+    }
+    .poly-summary-table td.col-name {
+      text-align: left;
+      padding-left: 2px;
+      font-weight: 600;
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .poly-summary-table tr:hover td { background: rgba(255,255,255,0.04); }
+    .poly-summary-table tr.master-row td {
+      background: rgba(0,229,255,0.06);
+      font-weight: 700;
+      border-bottom: 1px solid rgba(0,229,255,0.2);
+    }
+    .poly-summary-table tr.section-divider td {
+      padding: 2px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.2);
+    }
+    .poly-color-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      flex-shrink: 0;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+    .poly-summary-table .na-cell {
+      color: rgba(255,255,255,0.18);
+      font-size: 0.65rem;
+      text-align: center;
+    }
+    .poly-summary-table input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: var(--accent-cyan);
+      width: 13px;
+      height: 13px;
+    }
+    /* Panel body collapse: .panel-body-collapsed hides the body of a panel-card */
+    .panel-body-collapsed { display: none !important; }
+
     /* Modal Dialog for Integrated PolygonCreator Vectorizer */
     .modal-overlay {
       display: none;
@@ -787,6 +860,69 @@
           <span style="font-size:0.8rem; font-weight:700; color:var(--accent-cyan);">Control Panel</span>
         </div>
 
+        <!-- ===== POLYGON SUMMARY PANEL ===== -->
+        <section class="panel-card" id="panel-poly-summary">
+          <div class="panel-header">
+            <h3>🗺️ Polygon Overview</h3>
+            <button class="btn-panel-toggle" data-target="body-poly-summary" title="Collapse/expand">▼</button>
+          </div>
+          <div id="body-poly-summary">
+            <table class="poly-summary-table">
+              <thead>
+                <tr>
+                  <th class="col-name" colspan="2">Polygon</th>
+                  <th title="Visible on map">Show</th>
+                  <th title="Display area measurement">Area</th>
+                  <th title="Display vertex nodes">Nodes</th>
+                </tr>
+                <tr class="master-row">
+                  <td colspan="2" class="col-name" style="color:var(--accent-cyan);font-size:0.7rem;">All</td>
+                  <td><input type="checkbox" id="sum-master-show" checked title="Toggle all polygons visible"></td>
+                  <td><input type="checkbox" id="sum-master-area" title="Toggle all area displays"></td>
+                  <td><input type="checkbox" id="sum-master-nodes" title="Toggle all node displays"></td>
+                </tr>
+              </thead>
+              <tbody id="poly-summary-tbody">
+                <tr class="section-divider">
+                  <td colspan="5" style="padding-left:6px;">📐 DXF Layers</td>
+                </tr>
+                <tr>
+                  <td><span class="poly-color-dot" style="background:var(--accent-purple);box-shadow:0 0 4px var(--accent-purple);"></span></td>
+                  <td class="col-name" style="color:var(--accent-purple);">Escritura 296</td>
+                  <td><input type="checkbox" id="sum-show-dxf-296" checked title="Show/hide Escritura 296 on field map" style="accent-color:var(--accent-purple);"></td>
+                  <td class="na-cell">—</td>
+                  <td class="na-cell">—</td>
+                </tr>
+                <tr>
+                  <td><span class="poly-color-dot" style="background:var(--accent-red);box-shadow:0 0 4px var(--accent-red);"></span></td>
+                  <td class="col-name" style="color:var(--accent-red);">Escritura 1073</td>
+                  <td><input type="checkbox" id="sum-show-dxf-1073" checked title="Show/hide Escritura 1073 on field map" style="accent-color:var(--accent-red);"></td>
+                  <td class="na-cell">—</td>
+                  <td class="na-cell">—</td>
+                </tr>
+                <tr>
+                  <td><span class="poly-color-dot" style="background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange);"></span></td>
+                  <td class="col-name" style="color:var(--accent-orange);">Escritura 196</td>
+                  <td><input type="checkbox" id="sum-show-dxf-196" checked title="Show/hide Escritura 196 on field map" style="accent-color:var(--accent-orange);"></td>
+                  <td class="na-cell">—</td>
+                  <td class="na-cell">—</td>
+                </tr>
+                <tr>
+                  <td><span class="poly-color-dot" style="background:var(--accent-green);box-shadow:0 0 4px var(--accent-green);"></span></td>
+                  <td class="col-name" style="color:var(--accent-green);">Alambrado Hist.</td>
+                  <td><input type="checkbox" id="sum-show-dxf-true" checked title="Show/hide Alambrado Historico on field map" style="accent-color:var(--accent-green);"></td>
+                  <td class="na-cell">—</td>
+                  <td class="na-cell">—</td>
+                </tr>
+                <tr class="section-divider">
+                  <td colspan="5" style="padding-left:6px;">📏 Measurement Polygons</td>
+                </tr>
+                <!-- JS renders dynamic measurement polygon rows here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <!-- ===== END POLYGON SUMMARY PANEL ===== -->
         <!-- Distance Measuring Active Info -->
         <section class="panel-card" id="panel-measure">
           <div class="panel-header">
@@ -797,7 +933,9 @@
                 <span>Labels</span>
               </label>
             </div>
+            <button class="btn-panel-toggle" data-target="body-panel-measure">▶</button>
           </div>
+          <div id="body-panel-measure" class="panel-body-collapsed">
           <!-- Per-polygon cards rendered by JS -->
           <div id="measure-polygon-list" style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;margin-top:4px;"></div>
           <!-- New Polygon button -->
@@ -808,18 +946,21 @@
             <input type="file" id="load-polygons-input" accept=".json" style="display:none;">
           </div>
           <p style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;margin-bottom:0;">Click points on any map to measure. Drag markers to adjust. Right-click a marker to delete it; right-click empty space to clear active polygon.</p>
+          </div>
         </section>
 
         <!-- Accuracy Analytics -->
         <section class="panel-card">
           <div class="panel-header">
             <h3>Accuracy Metrics (RMSE)</h3>
-            <button class="btn-panel-toggle">▼</button>
+            <button class="btn-panel-toggle" data-target="body-panel-rmse">▶</button>
           </div>
+          <div id="body-panel-rmse" class="panel-body-collapsed">
           <div style="display:flex; gap:8px; justify-content:space-between;">
             <span id="rmse-296-display" class="badge-rmse" style="color:var(--accent-purple); border-color:var(--accent-purple);">296 RMSE: 0.00 m</span>
             <span id="rmse-1073-display" class="badge-rmse" style="color:var(--accent-red); border-color:var(--accent-red);">1073 RMSE: 0.00 m</span>
             <span id="rmse-196-display" class="badge-rmse" style="color:var(--accent-orange); border-color:var(--accent-orange);">196 RMSE: 0.00 m</span>
+          </div>
           </div>
         </section>
 
@@ -827,8 +968,9 @@
         <section class="panel-card">
           <div class="panel-header">
             <h3>🗂️ DXF Layers Area</h3>
-            <button class="btn-panel-toggle">▼</button>
+            <button class="btn-panel-toggle" data-target="body-panel-dxf-layers">▶</button>
           </div>
+          <div id="body-panel-dxf-layers" class="panel-body-collapsed">
           <div style="display:flex; flex-direction:column; gap:6px; margin-top:2px;">
             <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-purple); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Display or hide Escritura 296 on Field map">
               <input type="checkbox" id="chk-show-field-296" checked style="cursor:pointer; accent-color:var(--accent-purple);">
@@ -847,6 +989,7 @@
               <span class="layer-area-stats" id="area-stats-true" style="color:var(--accent-green);">Alambrado historico</span>
             </label>
           </div>
+          </div>
         </section>
 
         <!-- Overlay DXF/DWG Layer -->
@@ -859,8 +1002,9 @@
               </label>
               <input type="text" id="overlay-label-input" value="Overlay Layer" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:#fff;font-size:0.78rem;font-weight:600;width:100px;">
             </div>
-            <button class="btn-panel-toggle">▼</button>
+            <button class="btn-panel-toggle" data-target="body-panel-overlay">▶</button>
           </div>
+          <div id="body-panel-overlay" class="panel-body-collapsed">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
             <label style="cursor:pointer;" title="Load a second polygon DXF/DWG overlay">
               <input type="file" id="overlay-file-input" accept=".dxf,.dwg" style="display:none;">
@@ -893,15 +1037,16 @@
               <span id="overlay-opacity-val" style="width:35px; text-align:right;">0%</span>
             </div>
           </div>
+          </div>
         </section>
 
         <!-- Anchor Pair Managers -->
         <section class="panel-card flex-grow">
           <div class="panel-header">
             <h3>🎯 Anchor Control Points</h3>
-            <button class="btn-panel-toggle">▼</button>
+            <button class="btn-panel-toggle" data-target="body-panel-anchors">▶</button>
           </div>
-
+          <div id="body-panel-anchors" class="panel-body-collapsed">
           <div style="display:flex; flex-direction:column; gap:8px; flex:1;">
             <div>
               <div class="panel-header">
@@ -962,6 +1107,7 @@
                 <button id="btn-save-anchors-json" class="btn btn-primary btn-sm" style="width:100%;" title="Export all current anchor points to anchors.json file">💾 Save Anchors (.json)</button>
               </div>
             </div>
+          </div>
           </div>
         </section>
       </aside>
@@ -2481,6 +2627,8 @@ function updateMeasurementUI() {
 
     measurePolygonList.appendChild(card);
   });
+  // Keep summary panel in sync whenever measurement polygons change
+  updatePolygonSummaryUI();
 }
 
 function buildSegmentsList(poly) {
@@ -2833,6 +2981,214 @@ function drawMeasurementsGIS(ctx, vp, h) {
 }
 
 /* EVENT LISTENERS & INTERACTION */
+/* =========================================================
+   POLYGON SUMMARY PANEL
+   ========================================================= */
+
+function updatePolygonSummaryUI() {
+  const tbody = document.getElementById("poly-summary-tbody");
+  if (!tbody) return;
+
+  // Remove old dynamic rows (measurement polygon rows only — keep static DXF rows)
+  const existingDynRows = tbody.querySelectorAll("tr.sum-meas-row");
+  existingDynRows.forEach(r => r.remove());
+
+  // Re-insert the measurement-polygons section header and dynamic rows
+  // (they go after the last DXF row, which has id pattern sum-row-dxf-*)
+  // We always rebuild from scratch for the dynamic section
+
+  // Find or re-create the measurement section divider
+  let measDivider = tbody.querySelector("tr.sum-meas-divider");
+  if (!measDivider) {
+    measDivider = document.createElement("tr");
+    measDivider.className = "section-divider sum-meas-divider";
+    measDivider.innerHTML = '<td colspan="5" style="padding-left:6px;">\uD83D\uDCCF Measurement Polygons</td>';
+    tbody.appendChild(measDivider);
+  }
+
+  // Insert a row for every measurement polygon after the divider
+  state.measurePolygons.forEach((poly, idx) => {
+    const tr = document.createElement("tr");
+    tr.className = "sum-meas-row";
+    tr.dataset.polyIdx = idx;
+
+    const dot = `<span class="poly-color-dot" style="background:${poly.color};box-shadow:0 0 4px ${poly.color};"></span>`;
+    const name = poly.name || `Polygon ${idx+1}`;
+
+    tr.innerHTML = `
+      <td>${dot}</td>
+      <td class="col-name" style="color:${poly.color};" title="${name}">${name}</td>
+      <td><input type="checkbox" class="sum-poly-show" data-idx="${idx}" ${poly.visible !== false ? "checked" : ""} style="accent-color:${poly.color};" title="Show/hide this polygon"></td>
+      <td><input type="checkbox" class="sum-poly-area" data-idx="${idx}" ${poly.showArea ? "checked" : ""} style="accent-color:var(--accent-yellow);" title="Toggle area display"></td>
+      <td><input type="checkbox" class="sum-poly-nodes" data-idx="${idx}" ${poly.showNodes !== false ? "checked" : ""} style="accent-color:var(--accent-cyan);" title="Toggle vertex nodes"></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Wire row checkboxes
+  tbody.querySelectorAll(".sum-poly-show").forEach(chk => {
+    chk.addEventListener("change", function() {
+      const i = parseInt(this.dataset.idx, 10);
+      state.measurePolygons[i].visible = this.checked;
+      // Sync the per-card Show checkbox
+      syncMeasCardCheckbox(i, "show", this.checked);
+      updateMasterCheckboxes();
+      redrawAll();
+    });
+  });
+  tbody.querySelectorAll(".sum-poly-area").forEach(chk => {
+    chk.addEventListener("change", function() {
+      const i = parseInt(this.dataset.idx, 10);
+      state.measurePolygons[i].showArea = this.checked;
+      syncMeasCardCheckbox(i, "area", this.checked);
+      updateMasterCheckboxes();
+      redrawAll();
+    });
+  });
+  tbody.querySelectorAll(".sum-poly-nodes").forEach(chk => {
+    chk.addEventListener("change", function() {
+      const i = parseInt(this.dataset.idx, 10);
+      state.measurePolygons[i].showNodes = this.checked;
+      syncMeasCardCheckbox(i, "nodes", this.checked);
+      updateMasterCheckboxes();
+      redrawAll();
+    });
+  });
+
+  updateMasterCheckboxes();
+}
+
+// Sync a per-card checkbox from summary (find in the rendered card list)
+function syncMeasCardCheckbox(polyIdx, type, value) {
+  const list = document.getElementById("measure-polygon-list");
+  if (!list) return;
+  const cards = list.children;
+  if (!cards[polyIdx]) return;
+  const card = cards[polyIdx];
+  let inputs;
+  if (type === "show")  inputs = card.querySelectorAll("input[type=checkbox]");
+  if (type === "area")  inputs = card.querySelectorAll("input[type=checkbox]");
+  if (type === "nodes") inputs = card.querySelectorAll("input[type=checkbox]");
+  // More reliable: re-run updateMeasurementUI will refresh everything.
+  // The state is already set so just let the next updateMeasurementUI call sync it.
+}
+
+// Update the master All-row checkboxes based on current state
+function updateMasterCheckboxes() {
+  const masterShow  = document.getElementById("sum-master-show");
+  const masterArea  = document.getElementById("sum-master-area");
+  const masterNodes = document.getElementById("sum-master-nodes");
+  if (!masterShow) return;
+
+  // For Show: consider all DXF layers AND all measurement polygons
+  const dxfShowIds = ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true"];
+  const allShowChks = dxfShowIds.map(id => document.getElementById(id)).filter(Boolean);
+  const measShowChks = Array.from(document.querySelectorAll(".sum-poly-show"));
+  const allShow = [...allShowChks, ...measShowChks];
+  masterShow.checked = allShow.length > 0 && allShow.every(c => c.checked);
+  masterShow.indeterminate = !masterShow.checked && allShow.some(c => c.checked);
+
+  // For Area: only measurement polygons (DXF layers have no area)
+  const allArea = Array.from(document.querySelectorAll(".sum-poly-area"));
+  masterArea.checked = allArea.length > 0 && allArea.every(c => c.checked);
+  masterArea.indeterminate = !masterArea.checked && allArea.some(c => c.checked);
+
+  // For Nodes: only measurement polygons
+  const allNodes = Array.from(document.querySelectorAll(".sum-poly-nodes"));
+  masterNodes.checked = allNodes.length > 0 && allNodes.every(c => c.checked);
+  masterNodes.indeterminate = !masterNodes.checked && allNodes.some(c => c.checked);
+}
+
+// Wire master checkboxes (called once during setupEventListeners)
+function setupPolygonSummaryListeners() {
+  // ---- Panel toggle buttons (all .btn-panel-toggle with data-target) ----
+  document.querySelectorAll(".btn-panel-toggle[data-target]").forEach(btn => {
+    const targetId = btn.dataset.target;
+    const body = document.getElementById(targetId);
+    if (!body) return;
+    btn.addEventListener("click", () => {
+      const collapsed = body.classList.toggle("panel-body-collapsed");
+      btn.textContent = collapsed ? "\u25B6" : "\u25BC";
+    });
+  });
+
+  // ---- DXF Layer summary checkboxes (sync to existing chk-show-field-* inputs) ----
+  function wireDXFSummaryRow(sumId, fieldId, stateKey) {
+    const sumChk   = document.getElementById(sumId);
+    const fieldChk = document.getElementById(fieldId);
+    if (!sumChk || !fieldChk) return;
+
+    // Summary -> field subpanel
+    sumChk.addEventListener("change", function() {
+      fieldChk.checked = this.checked;
+      fieldChk.dispatchEvent(new Event("change"));  // fires existing listener
+      updateMasterCheckboxes();
+    });
+    // Field subpanel -> summary
+    fieldChk.addEventListener("change", function() {
+      sumChk.checked = this.checked;
+      updateMasterCheckboxes();
+    }, true); // capture so it runs before or alongside existing handler
+  }
+
+  wireDXFSummaryRow("sum-show-dxf-296",  "chk-show-field-296",  "showWarped296OnField");
+  wireDXFSummaryRow("sum-show-dxf-1073", "chk-show-field-1073", "showWarped1073OnField");
+  wireDXFSummaryRow("sum-show-dxf-196",  "chk-show-field-196",  "showWarped196OnField");
+  wireDXFSummaryRow("sum-show-dxf-true", "chk-show-field-true", "showFieldDXFOnField");
+
+  // ---- Master Show checkbox ----
+  const masterShow = document.getElementById("sum-master-show");
+  if (masterShow) {
+    masterShow.addEventListener("change", function() {
+      const v = this.checked;
+      // DXF layers
+      ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.checked = v; el.dispatchEvent(new Event("change")); }
+      });
+      // Measurement polygons
+      document.querySelectorAll(".sum-poly-show").forEach(chk => {
+        const i = parseInt(chk.dataset.idx, 10);
+        chk.checked = v;
+        state.measurePolygons[i].visible = v;
+      });
+      redrawAll();
+    });
+  }
+
+  // ---- Master Area checkbox ----
+  const masterArea = document.getElementById("sum-master-area");
+  if (masterArea) {
+    masterArea.addEventListener("change", function() {
+      const v = this.checked;
+      document.querySelectorAll(".sum-poly-area").forEach(chk => {
+        const i = parseInt(chk.dataset.idx, 10);
+        chk.checked = v;
+        state.measurePolygons[i].showArea = v;
+      });
+      redrawAll();
+      // re-render measurement cards so area rows appear/disappear
+      updateMeasurementUI();
+    });
+  }
+
+  // ---- Master Nodes checkbox ----
+  const masterNodes = document.getElementById("sum-master-nodes");
+  if (masterNodes) {
+    masterNodes.addEventListener("change", function() {
+      const v = this.checked;
+      document.querySelectorAll(".sum-poly-nodes").forEach(chk => {
+        const i = parseInt(chk.dataset.idx, 10);
+        chk.checked = v;
+        state.measurePolygons[i].showNodes = v;
+      });
+      redrawAll();
+    });
+  }
+
+  // Initial render of summary
+  updatePolygonSummaryUI();
+}
 function setupEventListeners() {
   // Minimize Header & Sidebar Toggles
   const appHeader = document.querySelector(".app-header");
@@ -3343,6 +3699,9 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Polygon Summary Panel: toggle buttons, two-way sync, master checkboxes
+  setupPolygonSummaryListeners();
 }
 
 function handlePdfFileSelect(file, targetKey) {
