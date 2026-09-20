@@ -914,10 +914,31 @@
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
                 </tr>
+                <!-- JS renders dynamic measurement polygon rows AND the section divider here -->
                 <tr class="section-divider">
-                  <td colspan="5" style="padding-left:6px;">📏 Measurement Polygons</td>
+                  <td colspan="5" style="padding-left:6px;">🎯 Anchor Points</td>
                 </tr>
-                <!-- JS renders dynamic measurement polygon rows here -->
+                <tr>
+                  <td><span class="poly-color-dot" style="background:var(--accent-purple);box-shadow:0 0 4px var(--accent-purple);"></span></td>
+                  <td class="col-name" style="color:var(--accent-purple);">Anchors 296</td>
+                  <td><input type="checkbox" id="sum-show-anchors-296" checked title="Show/hide anchor points for Escritura 296" style="accent-color:var(--accent-purple);"></td>
+                  <td class="na-cell">—</td>
+                  <td class="na-cell">—</td>
+                </tr>
+                <tr>
+                  <td><span class="poly-color-dot" style="background:var(--accent-red);box-shadow:0 0 4px var(--accent-red);"></span></td>
+                  <td class="col-name" style="color:var(--accent-red);">Anchors 1073</td>
+                  <td><input type="checkbox" id="sum-show-anchors-1073" checked title="Show/hide anchor points for Escritura 1073" style="accent-color:var(--accent-red);"></td>
+                  <td class="na-cell">—</td>
+                  <td class="na-cell">—</td>
+                </tr>
+                <tr>
+                  <td><span class="poly-color-dot" style="background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange);"></span></td>
+                  <td class="col-name" style="color:var(--accent-orange);">Anchors 196</td>
+                  <td><input type="checkbox" id="sum-show-anchors-196" checked title="Show/hide anchor points for Escritura 196" style="accent-color:var(--accent-orange);"></td>
+                  <td class="na-cell">—</td>
+                  <td class="na-cell">—</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -3080,9 +3101,10 @@ function updateMasterCheckboxes() {
   const masterNodes = document.getElementById("sum-master-nodes");
   if (!masterShow) return;
 
-  // For Show: consider all DXF layers AND all measurement polygons
+  // For Show: consider DXF layers, anchor rows, AND measurement polygons
   const dxfShowIds = ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true"];
-  const allShowChks = dxfShowIds.map(id => document.getElementById(id)).filter(Boolean);
+  const anchorShowIds = ["sum-show-anchors-296","sum-show-anchors-1073","sum-show-anchors-196"];
+  const allShowChks = [...dxfShowIds, ...anchorShowIds].map(id => document.getElementById(id)).filter(Boolean);
   const measShowChks = Array.from(document.querySelectorAll(".sum-poly-show"));
   const allShow = [...allShowChks, ...measShowChks];
   masterShow.checked = allShow.length > 0 && allShow.every(c => c.checked);
@@ -3136,6 +3158,28 @@ function setupPolygonSummaryListeners() {
   wireDXFSummaryRow("sum-show-dxf-196",  "chk-show-field-196",  "showWarped196OnField");
   wireDXFSummaryRow("sum-show-dxf-true", "chk-show-field-true", "showFieldDXFOnField");
 
+  // ---- Anchor summary checkboxes (sync to existing chk-show-anchors-* inputs) ----
+  function wireAnchorSummaryRow(sumId, anchorId) {
+    const sumChk    = document.getElementById(sumId);
+    const anchorChk = document.getElementById(anchorId);
+    if (!sumChk || !anchorChk) return;
+    // Summary -> anchor subpanel
+    sumChk.addEventListener("change", function() {
+      anchorChk.checked = this.checked;
+      anchorChk.dispatchEvent(new Event("change"));
+      updateMasterCheckboxes();
+    });
+    // Anchor subpanel -> summary
+    anchorChk.addEventListener("change", function() {
+      sumChk.checked = this.checked;
+      updateMasterCheckboxes();
+    }, true);
+  }
+
+  wireAnchorSummaryRow("sum-show-anchors-296",  "chk-show-anchors-296");
+  wireAnchorSummaryRow("sum-show-anchors-1073", "chk-show-anchors-1073");
+  wireAnchorSummaryRow("sum-show-anchors-196",  "chk-show-anchors-196");
+
   // ---- Master Show checkbox ----
   const masterShow = document.getElementById("sum-master-show");
   if (masterShow) {
@@ -3143,6 +3187,11 @@ function setupPolygonSummaryListeners() {
       const v = this.checked;
       // DXF layers
       ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.checked = v; el.dispatchEvent(new Event("change")); }
+      });
+      // Anchor layers
+      ["sum-show-anchors-296","sum-show-anchors-1073","sum-show-anchors-196"].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.checked = v; el.dispatchEvent(new Event("change")); }
       });
