@@ -1082,7 +1082,7 @@
               </div>
               <div class="table-wrapper" style="margin-top:4px;">
                 <table class="anchor-table">
-                  <thead><tr><th>#</th><th>296 (X, Y)</th><th>True (X, Y)</th><th>Err (m)</th><th>X</th></tr></thead>
+                  <thead><tr><th>#</th><th title="Use point in TPS calculation">Use</th><th>296 (X, Y)</th><th>True (X, Y)</th><th>Err</th><th>✕</th></tr></thead>
                   <tbody id="table-anchors-296"></tbody>
                 </table>
               </div>
@@ -1101,7 +1101,7 @@
               </div>
               <div class="table-wrapper" style="margin-top:4px;">
                 <table class="anchor-table">
-                  <thead><tr><th>#</th><th>1073 (X, Y)</th><th>True (X, Y)</th><th>Err (m)</th><th>X</th></tr></thead>
+                  <thead><tr><th>#</th><th title="Use point in TPS calculation">Use</th><th>1073 (X, Y)</th><th>True (X, Y)</th><th>Err</th><th>✕</th></tr></thead>
                   <tbody id="table-anchors-1073"></tbody>
                 </table>
               </div>
@@ -1120,7 +1120,7 @@
               </div>
               <div class="table-wrapper" style="margin-top:4px;">
                 <table class="anchor-table">
-                  <thead><tr><th>#</th><th>196 (X, Y)</th><th>True (X, Y)</th><th>Err (m)</th><th>X</th></tr></thead>
+                  <thead><tr><th>#</th><th title="Use point in TPS calculation">Use</th><th>196 (X, Y)</th><th>True (X, Y)</th><th>Err</th><th>✕</th></tr></thead>
                   <tbody id="table-anchors-196"></tbody>
                 </table>
               </div>
@@ -1397,6 +1397,11 @@ class DXFParser {
   }
 }
 
+function getActiveAnchors(anchors) {
+  if (!anchors) return [];
+  return anchors.filter(a => a.active !== false);
+}
+
 /* 2. TRANSFORMATION MATH ENGINE */
 class TransformMath {
   static tpsKernel(r) { return (r <= 1e-9) ? 0 : r * r * Math.log(r); }
@@ -1468,19 +1473,21 @@ class TransformMath {
   }
 
   static createWarper(algorithm, anchors) {
-    if (!anchors || anchors.length === 0) return (pt) => ({ ...pt });
-    return anchors.length >= 3 ? TransformMath.buildTPSWarper(anchors) : TransformMath.buildSimilarityWarper(anchors);
+    const active = getActiveAnchors(anchors);
+    if (!active || active.length === 0) return (pt) => ({ ...pt });
+    return active.length >= 3 ? TransformMath.buildTPSWarper(active) : TransformMath.buildSimilarityWarper(active);
   }
 
   static computeRMSE(warper, anchors) {
-    if (!anchors || anchors.length === 0) return 0;
+    const active = getActiveAnchors(anchors);
+    if (!active || active.length === 0) return 0;
     let sumSqErr = 0;
-    anchors.forEach((anc) => {
+    active.forEach((anc) => {
       const warped = warper(anc.src);
       const err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y);
       sumSqErr += err * err;
     });
-    return Math.sqrt(sumSqErr / anchors.length);
+    return Math.sqrt(sumSqErr / active.length);
   }
 }
 
@@ -2227,7 +2234,7 @@ function drawViewportTrue() {
   }
 
   // Warped 296 overlay
-  if (state.showWarped296OnField !== false && state.anchors296.length >= 2) {
+  if (state.showWarped296OnField !== false && getActiveAnchors(state.anchors296).length >= 2) {
     try {
       const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
       drawWarpedEntitiesGIS(ctxTrue, state.entities296, warper, vp, h, "rgba(213, 0, 249, 0.85)");
@@ -2235,7 +2242,7 @@ function drawViewportTrue() {
   }
 
   // Warped 1073 overlay
-  if (state.showWarped1073OnField !== false && state.anchors1073.length >= 2) {
+  if (state.showWarped1073OnField !== false && getActiveAnchors(state.anchors1073).length >= 2) {
     try {
       const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
       drawWarpedEntitiesGIS(ctxTrue, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)");
@@ -2243,7 +2250,7 @@ function drawViewportTrue() {
   }
 
   // Warped 196 overlay (orange)
-  if (state.showWarped196OnField !== false && state.anchors196.length >= 2) {
+  if (state.showWarped196OnField !== false && getActiveAnchors(state.anchors196).length >= 2) {
     try {
       const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
       drawWarpedEntitiesGIS(ctxTrue, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)");
@@ -2372,23 +2379,31 @@ function drawWarpedEntitiesGIS(ctx, entities, warper, vp, h, color) {
 
 function drawAnchors(ctx, anchors, vp, h) {
   anchors.forEach((anc) => {
+    const isActive = anc.active !== false;
     const sp = worldToScreen(anc.src, vp, h);
+    ctx.save();
+    if (!isActive) ctx.globalAlpha = 0.35;
     ctx.beginPath(); ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
-    ctx.fillStyle = anc.color; ctx.fill();
-    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = "#ffffff"; ctx.font = "bold 11px sans-serif";
-    ctx.fillText(`#${anc.id}`, sp.x + 9, sp.y - 5);
+    ctx.fillStyle = isActive ? anc.color : "#444444"; ctx.fill();
+    ctx.strokeStyle = isActive ? "#ffffff" : anc.color; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = isActive ? "#ffffff" : "#aaaaaa"; ctx.font = "bold 11px sans-serif";
+    ctx.fillText(`#${anc.id}${isActive ? "" : " (off)"}`, sp.x + 9, sp.y - 5);
+    ctx.restore();
   });
 }
 
 function drawDestinationAnchorsGIS(ctx, anchors, vp, h) {
   anchors.forEach((anc) => {
+    const isActive = anc.active !== false;
     const sp = worldToScreenGIS(anc.dst, vp, h);
+    ctx.save();
+    if (!isActive) ctx.globalAlpha = 0.35;
     ctx.beginPath(); ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
-    ctx.fillStyle = anc.color; ctx.fill();
-    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = "#ffffff"; ctx.font = "bold 11px sans-serif";
-    ctx.fillText(`#${anc.id}`, sp.x + 9, sp.y - 5);
+    ctx.fillStyle = isActive ? anc.color : "#444444"; ctx.fill();
+    ctx.strokeStyle = isActive ? "#ffffff" : anc.color; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = isActive ? "#ffffff" : "#aaaaaa"; ctx.font = "bold 11px sans-serif";
+    ctx.fillText(`#${anc.id}${isActive ? "" : " (off)"}`, sp.x + 9, sp.y - 5);
+    ctx.restore();
   });
 }
 
@@ -3917,7 +3932,8 @@ function attachCanvasInteractions(canvas, mapName) {
           id: anchorsArr.length + 1,
           src: { x: state.pendingSource.x, y: state.pendingSource.y },
           dst: { x: pt.x, y: pt.y },
-          color: anchorColors[anchorsArr.length % anchorColors.length]
+          color: anchorColors[anchorsArr.length % anchorColors.length],
+          active: true
         });
         state.pendingSource = null;
         statusBar.textContent = "✅ Anchor pair recorded!";
@@ -4056,19 +4072,19 @@ function updateAreaStats() {
   const el196  = document.getElementById("area-stats-196");
 
   let warper296 = null;
-  if (state.anchors296.length >= 2) {
+  if (getActiveAnchors(state.anchors296).length >= 2) {
     try { warper296 = TransformMath.createWarper(state.algorithm, state.anchors296); } catch(_) {}
   }
   if (el296) el296.textContent = "Area 296: " + formatArea(calcLayerArea(state.entities296, warper296));
 
   let warper1073 = null;
-  if (state.anchors1073.length >= 2) {
+  if (getActiveAnchors(state.anchors1073).length >= 2) {
     try { warper1073 = TransformMath.createWarper(state.algorithm, state.anchors1073); } catch(_) {}
   }
   if (el1073) el1073.textContent = "Area 1073: " + formatArea(calcLayerArea(state.entities1073, warper1073));
 
   let warper196 = null;
-  if (state.anchors196.length >= 2) {
+  if (getActiveAnchors(state.anchors196).length >= 2) {
     try { warper196 = TransformMath.createWarper(state.algorithm, state.anchors196); } catch(_) {}
   }
   if (el196) el196.textContent = "Area 196: " + formatArea(calcLayerArea(state.entities196, warper196));
@@ -4100,18 +4116,48 @@ function updateAnalyticsUI() {
 
 function renderAnchorTable(tableId, anchors, targetKey) {
   const tbody = document.getElementById(tableId);
+  if (!tbody) return;
   tbody.innerHTML = "";
+
+  let warper = null;
+  const activeAnchors = getActiveAnchors(anchors);
+  if (activeAnchors.length >= 2) {
+    try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch(_) {}
+  }
+
   anchors.forEach((anc, idx) => {
+    const isActive = anc.active !== false;
+    let errText = "--";
+    if (warper && isActive) {
+      try {
+        const warped = warper(anc.src);
+        const err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y);
+        errText = err.toFixed(2) + "m";
+      } catch(_) {}
+    } else if (!isActive) {
+      errText = "(off)";
+    }
+
     const tr = document.createElement("tr");
+    if (!isActive) tr.style.opacity = "0.45";
     tr.innerHTML = `
       <td><span style="color:${anc.color}">#${anc.id}</span></td>
+      <td><input type="checkbox" ${isActive ? "checked" : ""} style="cursor:pointer;accent-color:var(--accent-cyan);width:13px;height:13px;" onchange="toggleAnchorActive('${targetKey}', ${idx}, this.checked)" title="Use or ignore this anchor point in TPS warping calculation"></td>
       <td>(${anc.src.x.toFixed(1)}, ${anc.src.y.toFixed(1)})</td>
       <td>(${anc.dst.x.toFixed(1)}, ${anc.dst.y.toFixed(1)})</td>
-      <td>0.0m</td>
-      <td><button class="btn-del-anchor" onclick="deleteAnchor('${targetKey}', ${idx})">✕</button></td>
+      <td style="font-family:monospace;font-weight:600;">${errText}</td>
+      <td><button class="btn-del-anchor" onclick="deleteAnchor('${targetKey}', ${idx})" title="Delete anchor point">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+function toggleAnchorActive(targetKey, index, active) {
+  const list = targetKey === "296" ? state.anchors296 : targetKey === "1073" ? state.anchors1073 : state.anchors196;
+  if (list && list[index]) {
+    list[index].active = active;
+    redrawAll();
+  }
 }
 
 function deleteAnchor(targetKey, index) {
@@ -4123,19 +4169,19 @@ function deleteAnchor(targetKey, index) {
 
 function exportRectifiedDXF() {
   let combinedEntities = [];
-  if (state.anchors296.length >= 2) {
+  if (getActiveAnchors(state.anchors296).length >= 2) {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
     state.entities296.forEach((ent) => {
       combinedEntities.push({ ...ent, layer: "RECTIFIED_296", points: ent.points.map(p => warper(p)) });
     });
   }
-  if (state.anchors1073.length >= 2) {
+  if (getActiveAnchors(state.anchors1073).length >= 2) {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
     state.entities1073.forEach((ent) => {
       combinedEntities.push({ ...ent, layer: "RECTIFIED_1073", points: ent.points.map(p => warper(p)) });
     });
   }
-  if (state.anchors196.length >= 2) {
+  if (getActiveAnchors(state.anchors196).length >= 2) {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
     state.entities196.forEach((ent) => {
       combinedEntities.push({ ...ent, layer: "RECTIFIED_196", points: ent.points.map(p => warper(p)) });
