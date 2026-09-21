@@ -2193,54 +2193,95 @@ function getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, isShiftPressed 
   let minDistance = state.snapRadius || 15;
   let closestTarget = null;
 
-  // 1. Field Measurement Polygons
-  state.measurePolygons.forEach((poly, polyIdx) => {
-    if (poly.visible === false) return;
-    (poly.points || []).forEach((pt, ptIdx) => {
-      if (ignoreMarker && ignoreMarker.polyIdx === polyIdx && ignoreMarker.ptIdx === ptIdx) return;
-      const sp = toScreen(pt, vp, h);
-      const dist = Math.hypot(sp.x - mouseX, sp.y - mouseY);
-      if (dist <= minDistance) {
-        minDistance = dist;
-        closestTarget = { worldPt: { x: pt.x, y: pt.y }, screenPt: { x: sp.x, y: sp.y }, dist, mapName };
-      }
-    });
-  });
-
-  // 2. Control Anchors
-  const anchors = [];
-  if (mapName === "296") anchors.push(...state.anchors296);
-  else if (mapName === "1073") anchors.push(...state.anchors1073);
-  else if (mapName === "196") anchors.push(...state.anchors196);
-  else if (mapName === "true") {
-    if (state.showAnchors296) anchors.push(...state.anchors296);
-    if (state.showAnchors1073) anchors.push(...state.anchors1073);
-    if (state.showAnchors196) anchors.push(...state.anchors196);
-  }
-  anchors.forEach((anc) => {
-    if (anc.active === false) return;
-    const pt = mapName === "true" ? anc.dst : anc.src;
-    if (!pt) return;
+  const checkPoint = (pt) => {
+    if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number" || isNaN(pt.x) || isNaN(pt.y)) return;
     const sp = toScreen(pt, vp, h);
     const dist = Math.hypot(sp.x - mouseX, sp.y - mouseY);
     if (dist <= minDistance) {
       minDistance = dist;
       closestTarget = { worldPt: { x: pt.x, y: pt.y }, screenPt: { x: sp.x, y: sp.y }, dist, mapName };
     }
-  });
+  };
 
-  // 3. Field & DXF entities
-  const dxfList = mapName === "true" ? (state.entitiesTrue || []) : (mapName === "296" ? state.entities296 : mapName === "1073" ? state.entities1073 : state.entities196);
-  (dxfList || []).forEach((ent) => {
-    (ent.points || []).forEach((pt) => {
-      const sp = toScreen(pt, vp, h);
-      const dist = Math.hypot(sp.x - mouseX, sp.y - mouseY);
-      if (dist <= minDistance) {
-        minDistance = dist;
-        closestTarget = { worldPt: { x: pt.x, y: pt.y }, screenPt: { x: sp.x, y: sp.y }, dist, mapName };
-      }
+  // 1. Field Measurement Polygons (snaps to other measurement vertices)
+  state.measurePolygons.forEach((poly, polyIdx) => {
+    if (poly.visible === false) return;
+    (poly.points || []).forEach((pt, ptIdx) => {
+      if (ignoreMarker && ignoreMarker.polyIdx === polyIdx && ignoreMarker.ptIdx === ptIdx) return;
+      checkPoint(pt);
     });
   });
+
+  // 2. Control Anchors (Excluded when in measure mode so Distance & Area polygons snap to vertices, not anchor pins)
+  if (state.toolMode !== "measure") {
+    const anchors = [];
+    if (mapName === "296") anchors.push(...state.anchors296);
+    else if (mapName === "1073") anchors.push(...state.anchors1073);
+    else if (mapName === "196") anchors.push(...state.anchors196);
+    else if (mapName === "true") {
+      if (state.showAnchors296) anchors.push(...state.anchors296);
+      if (state.showAnchors1073) anchors.push(...state.anchors1073);
+      if (state.showAnchors196) anchors.push(...state.anchors196);
+    }
+    anchors.forEach((anc) => {
+      if (anc.active === false) return;
+      const pt = mapName === "true" ? anc.dst : anc.src;
+      if (pt) checkPoint(pt);
+    });
+  }
+
+  // 3. DXF Layers Area Vertices
+  if (mapName === "true") {
+    // 3a. Target DXF (Green - Alambrado historico)
+    if (state.showFieldDXFOnField !== false) {
+      (state.entitiesTrue || []).forEach((ent) => {
+        (ent.points || []).forEach((pt) => checkPoint(pt));
+      });
+    }
+
+    // 3b. Warped 296 overlay
+    if (state.showWarped296OnField !== false && getActiveAnchors(state.anchors296).length >= 2) {
+      try {
+        const warper296 = TransformMath.createWarper(state.algorithm, state.anchors296);
+        (state.entities296 || []).forEach((ent) => {
+          (ent.points || []).forEach((pt) => checkPoint(warper296(pt)));
+        });
+      } catch (_) {}
+    }
+
+    // 3c. Warped 1073 overlay
+    if (state.showWarped1073OnField !== false && getActiveAnchors(state.anchors1073).length >= 2) {
+      try {
+        const warper1073 = TransformMath.createWarper(state.algorithm, state.anchors1073);
+        (state.entities1073 || []).forEach((ent) => {
+          (ent.points || []).forEach((pt) => checkPoint(warper1073(pt)));
+        });
+      } catch (_) {}
+    }
+
+    // 3d. Warped 196 overlay
+    if (state.showWarped196OnField !== false && getActiveAnchors(state.anchors196).length >= 2) {
+      try {
+        const warper196 = TransformMath.createWarper(state.algorithm, state.anchors196);
+        (state.entities196 || []).forEach((ent) => {
+          (ent.points || []).forEach((pt) => checkPoint(warper196(pt)));
+        });
+      } catch (_) {}
+    }
+
+    // 3e. Overlay Layer (DWG/DXF)
+    if (state.overlayLayer && state.overlayLayer.visible && (state.overlayLayer.entities || []).length > 0) {
+      state.overlayLayer.entities.forEach((ent) => {
+        (ent.points || []).forEach((pt) => checkPoint(pt));
+      });
+    }
+  } else {
+    // Source map viewports (296, 1073, 196)
+    const dxfList = mapName === "296" ? state.entities296 : mapName === "1073" ? state.entities1073 : state.entities196;
+    (dxfList || []).forEach((ent) => {
+      (ent.points || []).forEach((pt) => checkPoint(pt));
+    });
+  }
 
   return closestTarget;
 }
