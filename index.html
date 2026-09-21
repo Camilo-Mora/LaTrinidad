@@ -733,6 +733,7 @@
 
       <!-- File Actions & Collapse Controls -->
       <div class="header-section">
+        <button id="btn-toggle-snap" class="btn btn-secondary btn-sm" style="border-color:var(--accent-cyan); color:var(--accent-cyan);" title="Toggle Node Snapping across field map & vectorizer (Hold Shift to invert)">🧲 Snap: ON</button>
         <button id="btn-export-dxf" class="btn btn-success" title="Export Rectified DXF File">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           Export DXF
@@ -1224,6 +1225,7 @@
       <div class="modal-header">
         <span class="modal-title" id="vec-modal-title">✏️ Vectorize & Edit Polygon</span>
         <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn btn-secondary btn-sm" id="btn-vec-toggle-snap" style="border-color:var(--accent-cyan); color:var(--accent-cyan);" title="Toggle Node Snapping (Hold Shift to invert)">🧲 Snap: ON</button>
           <button class="btn btn-primary btn-sm" id="btn-vec-export-dxf" title="Save georeferenced DXF file with field coordinates (matching the main page)">💾 Save Rectified DXF</button>
           <button class="btn btn-secondary btn-sm" id="btn-vec-export-raw-dxf" title="Save local unrectified DXF file (PDF page coordinates)">📄 Save Raw DXF</button>
           <button class="btn btn-success btn-sm" id="btn-vec-apply">✅ Apply Edits to GeoRectifier</button>
@@ -1493,6 +1495,9 @@ class TransformMath {
 
 /* 3. APPLICATION STATE */
 const state = {
+  snapEnabled: true,
+  snapRadius: 15,
+  currentSnapTarget: null, // { worldPt: {x,y}, screenPt: {x,y} }
   entities296: [],
   entities1073: [],
   entities196: [],
@@ -2163,6 +2168,83 @@ function drawBackgroundPdf(ctx, offCanvas, vp, canvasH, target) {
   ctx.restore();
 }
 
+function drawSnapTargetOnCanvas(ctx, screenPt) {
+  if (!screenPt) return;
+  const { x: sx, y: sy } = screenPt;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2);
+  ctx.strokeStyle = "#ffd600"; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+  ctx.fillStyle = "#00e5ff"; ctx.fill();
+  ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(sx - 16, sy); ctx.lineTo(sx + 16, sy);
+  ctx.moveTo(sx, sy - 16); ctx.lineTo(sx, sy + 16);
+  ctx.strokeStyle = "rgba(255, 214, 0, 0.85)"; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.restore();
+}
+
+function getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, isShiftPressed = false, ignoreMarker = null) {
+  const isSnapActive = isShiftPressed ? !state.snapEnabled : state.snapEnabled;
+  if (!isSnapActive) return null;
+
+  const toScreen = mapName === "true" ? worldToScreenGIS : worldToScreen;
+  const h = canvas.height;
+  let minDistance = state.snapRadius || 15;
+  let closestTarget = null;
+
+  // 1. Field Measurement Polygons
+  state.measurePolygons.forEach((poly, polyIdx) => {
+    if (poly.visible === false) return;
+    (poly.points || []).forEach((pt, ptIdx) => {
+      if (ignoreMarker && ignoreMarker.polyIdx === polyIdx && ignoreMarker.ptIdx === ptIdx) return;
+      const sp = toScreen(pt, vp, h);
+      const dist = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+      if (dist <= minDistance) {
+        minDistance = dist;
+        closestTarget = { worldPt: { x: pt.x, y: pt.y }, screenPt: { x: sp.x, y: sp.y }, dist, mapName };
+      }
+    });
+  });
+
+  // 2. Control Anchors
+  const anchors = [];
+  if (mapName === "296") anchors.push(...state.anchors296);
+  else if (mapName === "1073") anchors.push(...state.anchors1073);
+  else if (mapName === "196") anchors.push(...state.anchors196);
+  else if (mapName === "true") {
+    if (state.showAnchors296) anchors.push(...state.anchors296);
+    if (state.showAnchors1073) anchors.push(...state.anchors1073);
+    if (state.showAnchors196) anchors.push(...state.anchors196);
+  }
+  anchors.forEach((anc) => {
+    if (anc.active === false) return;
+    const pt = mapName === "true" ? anc.dst : anc.src;
+    if (!pt) return;
+    const sp = toScreen(pt, vp, h);
+    const dist = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+    if (dist <= minDistance) {
+      minDistance = dist;
+      closestTarget = { worldPt: { x: pt.x, y: pt.y }, screenPt: { x: sp.x, y: sp.y }, dist, mapName };
+    }
+  });
+
+  // 3. Field & DXF entities
+  const dxfList = mapName === "true" ? (state.entitiesTrue || []) : (mapName === "296" ? state.entities296 : mapName === "1073" ? state.entities1073 : state.entities196);
+  (dxfList || []).forEach((ent) => {
+    (ent.points || []).forEach((pt) => {
+      const sp = toScreen(pt, vp, h);
+      const dist = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+      if (dist <= minDistance) {
+        minDistance = dist;
+        closestTarget = { worldPt: { x: pt.x, y: pt.y }, screenPt: { x: sp.x, y: sp.y }, dist, mapName };
+      }
+    });
+  });
+
+  return closestTarget;
+}
+
 function redrawAll() {
   drawViewport296();
   drawViewport1073();
@@ -2185,6 +2267,9 @@ function drawViewport296() {
     if (state.pendingSource && state.pendingSource.origin === "296") drawPendingAnchor(ctx296, state.pendingSource, vp, h);
   }
   drawMeasurements(ctx296, vp, h);
+  if (state.currentSnapTarget && state.currentSnapTarget.mapName === "296") {
+    drawSnapTargetOnCanvas(ctx296, state.currentSnapTarget.screenPt);
+  }
 }
 
 function drawViewport1073() {
@@ -2200,6 +2285,9 @@ function drawViewport1073() {
     if (state.pendingSource && state.pendingSource.origin === "1073") drawPendingAnchor(ctx1073, state.pendingSource, vp, h);
   }
   drawMeasurements(ctx1073, vp, h);
+  if (state.currentSnapTarget && state.currentSnapTarget.mapName === "1073") {
+    drawSnapTargetOnCanvas(ctx1073, state.currentSnapTarget.screenPt);
+  }
 }
 
 function drawViewport196() {
@@ -2215,6 +2303,9 @@ function drawViewport196() {
     if (state.pendingSource && state.pendingSource.origin === "196") drawPendingAnchor(ctx196, state.pendingSource, vp, h);
   }
   drawMeasurements(ctx196, vp, h);
+  if (state.currentSnapTarget && state.currentSnapTarget.mapName === "196") {
+    drawSnapTargetOnCanvas(ctx196, state.currentSnapTarget.screenPt);
+  }
 }
 
 function drawViewportTrue() {
@@ -2263,6 +2354,9 @@ function drawViewportTrue() {
   if (state.showAnchors196)  visibleDestAnchors.push(...state.anchors196);
   drawDestinationAnchorsGIS(ctxTrue, visibleDestAnchors, vp, h);
   drawMeasurementsGIS(ctxTrue, vp, h);
+  if (state.currentSnapTarget && state.currentSnapTarget.mapName === "true") {
+    drawSnapTargetOnCanvas(ctxTrue, state.currentSnapTarget.screenPt);
+  }
 }
 
 function drawEntities(ctx, entities, vp, h, color) {
@@ -3254,6 +3348,36 @@ function setupPolygonSummaryListeners() {
   updatePolygonSummaryUI();
 }
 function setupEventListeners() {
+  function updateSnapButtonUI() {
+    const text = state.snapEnabled ? "🧲 Snap: ON" : "🧲 Snap: OFF";
+    const borderColor = state.snapEnabled ? "var(--accent-cyan)" : "var(--border-color)";
+    const textColor = state.snapEnabled ? "var(--accent-cyan)" : "var(--text-muted)";
+
+    ["btn-toggle-snap", "btn-vec-toggle-snap"].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.textContent = text;
+        btn.style.borderColor = borderColor;
+        btn.style.color = textColor;
+      }
+    });
+  }
+
+  const btnToggleSnap = document.getElementById("btn-toggle-snap");
+  if (btnToggleSnap) {
+    btnToggleSnap.addEventListener("click", () => {
+      state.snapEnabled = !state.snapEnabled;
+      updateSnapButtonUI();
+    });
+  }
+  const btnVecToggleSnap = document.getElementById("btn-vec-toggle-snap");
+  if (btnVecToggleSnap) {
+    btnVecToggleSnap.addEventListener("click", () => {
+      state.snapEnabled = !state.snapEnabled;
+      updateSnapButtonUI();
+    });
+  }
+
   // Minimize Header & Sidebar Toggles
   const appHeader = document.querySelector(".app-header");
   const sidebar = document.querySelector(".sidebar");
@@ -3916,7 +4040,8 @@ function attachCanvasInteractions(canvas, mapName) {
         return;
       }
 
-      const pt = toWorld(mouseX, mouseY, vp, canvas.height);
+      const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey);
+      const pt = snap ? { ...snap.worldPt } : toWorld(mouseX, mouseY, vp, canvas.height);
       if (mapName === "296" || mapName === "1073" || mapName === "196") {
         state.pendingSource = { x: pt.x, y: pt.y, origin: mapName };
         const label = mapName === "296" ? "Escritura 296" : mapName === "1073" ? "Escritura 1073" : "Escritura 196";
@@ -3944,7 +4069,8 @@ function attachCanvasInteractions(canvas, mapName) {
       if (hit) {
         state.draggingMeasurePt = hit;
       } else {
-        const pt = toWorld(mouseX, mouseY, vp, canvas.height);
+        const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey);
+        const pt = snap ? { ...snap.worldPt } : toWorld(mouseX, mouseY, vp, canvas.height);
         const activePoly = state.measurePolygons[state.activeMeasureIdx];
         if (activePoly) activePoly.points.push(pt);
         redrawAll();
@@ -3975,25 +4101,39 @@ function attachCanvasInteractions(canvas, mapName) {
     }
 
     if (draggingAnchor) {
-      draggingAnchor.anc[draggingAnchor.field] = { x: worldPt.x, y: worldPt.y };
+      const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey);
+      state.currentSnapTarget = snap;
+      draggingAnchor.anc[draggingAnchor.field] = snap ? { ...snap.worldPt } : { x: worldPt.x, y: worldPt.y };
       redrawAll();
       return;
     }
 
     if (state.toolMode === "measure" && state.draggingMeasurePt !== null) {
+      const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey, state.draggingMeasurePt);
+      state.currentSnapTarget = snap;
       const { polyIdx, ptIdx } = state.draggingMeasurePt;
       const poly = state.measurePolygons[polyIdx];
-      if (poly) poly.points[ptIdx] = { x: worldPt.x, y: worldPt.y };
+      if (poly) poly.points[ptIdx] = snap ? { ...snap.worldPt } : { x: worldPt.x, y: worldPt.y };
       redrawAll();
       return;
     }
 
     if (state.toolMode === "anchor") {
+      const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey);
+      if (state.currentSnapTarget !== snap) {
+        state.currentSnapTarget = snap;
+        redrawAll();
+      }
       const hit = hitTestAnchor(mouseX, mouseY, vp, canvas, mapName);
       canvas.style.cursor = hit ? "move" : "crosshair";
     } else if (state.toolMode === "pan") {
       canvas.style.cursor = isPanning ? "grabbing" : "grab";
     } else if (state.toolMode === "measure") {
+      const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey);
+      if (state.currentSnapTarget !== snap) {
+        state.currentSnapTarget = snap;
+        redrawAll();
+      }
       const hit = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
       canvas.style.cursor = hit ? "move" : "crosshair";
     }
@@ -4004,14 +4144,17 @@ function attachCanvasInteractions(canvas, mapName) {
     const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
     if (draggingAnchor) {
       const { x: mouseX, y: mouseY } = getCanvasXY(e);
-      const worldPt = toWorld(mouseX, mouseY, vp, canvas.height);
+      const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey);
+      const worldPt = snap ? { ...snap.worldPt } : toWorld(mouseX, mouseY, vp, canvas.height);
       draggingAnchor.anc[draggingAnchor.field] = { x: worldPt.x, y: worldPt.y };
       statusBar.textContent = `Moved Anchor #${draggingAnchor.anc.id} to (${worldPt.x.toFixed(2)}, ${worldPt.y.toFixed(2)}) m.`;
       draggingAnchor = null;
+      state.currentSnapTarget = null;
       redrawAll();
     }
     if (state.draggingMeasurePt !== null) {
       state.draggingMeasurePt = null;
+      state.currentSnapTarget = null;
       redrawAll();
     }
     isPanning = false;
@@ -4020,8 +4163,12 @@ function attachCanvasInteractions(canvas, mapName) {
 
   canvas.addEventListener("mouseleave", () => {
     isPanning = false;
-    if (draggingAnchor) { draggingAnchor = null; redrawAll(); }
+    if (draggingAnchor) { draggingAnchor = null; }
     if (state.draggingMeasurePt !== null) { state.draggingMeasurePt = null; }
+    if (state.currentSnapTarget) {
+      state.currentSnapTarget = null;
+      redrawAll();
+    }
   });
 
   canvas.addEventListener("wheel", (e) => {
@@ -4606,7 +4753,8 @@ const vecState = {
   polygons: [],
   activePolyIndex: 0,
   isDraggingVertex: false,
-  draggedVertexIndex: null
+  draggedVertexIndex: null,
+  currentSnapTarget: null
 };
 
 const vecModal = document.getElementById("vectorizer-modal");
@@ -4662,6 +4810,32 @@ function renderVecPdfPage(pageNum) {
   });
 }
 
+function getVecSnapTarget(canvasX, canvasY, ignorePIdx = -1, ignoreVIdx = -1, isShiftPressed = false) {
+  const isSnapActive = isShiftPressed ? !state.snapEnabled : state.snapEnabled;
+  if (!isSnapActive) return null;
+
+  let closestTarget = null;
+  let minDistance = state.snapRadius || 15;
+
+  vecState.polygons.forEach((poly, pIdx) => {
+    poly.points.forEach((pt, vIdx) => {
+      if (pIdx === ignorePIdx && vIdx === ignoreVIdx) return;
+      const sx = pt.x * vecState.scale;
+      const sy = pt.y * vecState.scale;
+      const dist = Math.hypot(sx - canvasX, sy - canvasY);
+      if (dist <= minDistance) {
+        minDistance = dist;
+        closestTarget = {
+          worldPt: { x: pt.x, y: pt.y },
+          screenPt: { x: sx, y: sy },
+          dist
+        };
+      }
+    });
+  });
+  return closestTarget;
+}
+
 function redrawVecDrawCanvas() {
   vecDrawCtx.clearRect(0, 0, vecDrawCanvas.width, vecDrawCanvas.height);
   vecState.polygons.forEach((poly, pIdx) => {
@@ -4694,6 +4868,22 @@ function redrawVecDrawCanvas() {
       }
     });
   });
+
+  // Render magnetic snap ring visual indicator
+  if (vecState.currentSnapTarget) {
+    const { x: sx, y: sy } = vecState.currentSnapTarget.screenPt;
+    vecDrawCtx.save();
+    vecDrawCtx.beginPath(); vecDrawCtx.arc(sx, sy, 12, 0, Math.PI * 2);
+    vecDrawCtx.strokeStyle = "#ffd600"; vecDrawCtx.lineWidth = 2.5; vecDrawCtx.stroke();
+    vecDrawCtx.beginPath(); vecDrawCtx.arc(sx, sy, 6, 0, Math.PI * 2);
+    vecDrawCtx.fillStyle = "#00e5ff"; vecDrawCtx.fill();
+    vecDrawCtx.strokeStyle = "#ffffff"; vecDrawCtx.lineWidth = 1.5; vecDrawCtx.stroke();
+    vecDrawCtx.beginPath();
+    vecDrawCtx.moveTo(sx - 16, sy); vecDrawCtx.lineTo(sx + 16, sy);
+    vecDrawCtx.moveTo(sx, sy - 16); vecDrawCtx.lineTo(sx, sy + 16);
+    vecDrawCtx.strokeStyle = "rgba(255, 214, 0, 0.85)"; vecDrawCtx.lineWidth = 1.2; vecDrawCtx.stroke();
+    vecDrawCtx.restore();
+  }
 }
 
 window.updatePolyName = function(idx, val) {
@@ -4770,7 +4960,7 @@ function findVecPolygonAndVertexAt(canvasX, canvasY, radius = 10) {
   return null;
 }
 
-// Vectorizer Canvas Interaction (Add, Move/Drag, Delete Vertex)
+// Vectorizer Canvas Interaction (Add, Move/Drag, Delete Vertex with Snapping)
 vecDrawCanvas.addEventListener("mousedown", (e) => {
   const rect = vecDrawCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left, y = e.clientY - rect.top;
@@ -4789,7 +4979,8 @@ vecDrawCanvas.addEventListener("mousedown", (e) => {
     } else {
       const activePoly = vecState.polygons[vecState.activePolyIndex];
       if (activePoly) {
-        const worldPt = { x: Math.round((x / vecState.scale) * 100) / 100, y: Math.round((y / vecState.scale) * 100) / 100 };
+        const snapTarget = getVecSnapTarget(x, y, -1, -1, e.shiftKey);
+        const worldPt = snapTarget ? { ...snapTarget.worldPt } : { x: Math.round((x / vecState.scale) * 100) / 100, y: Math.round((y / vecState.scale) * 100) / 100 };
         activePoly.points.push(worldPt);
         renderVecPolygonList();
         redrawVecDrawCanvas();
@@ -4809,15 +5000,25 @@ vecDrawCanvas.addEventListener("mousedown", (e) => {
 });
 
 vecDrawCanvas.addEventListener("mousemove", (e) => {
+  const rect = vecDrawCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+
   if (vecState.isDraggingVertex && vecState.draggedVertexIndex !== null) {
-    const rect = vecDrawCanvas.getBoundingClientRect();
-    const x = e.clientX - rect.left, y = e.clientY - rect.top;
     const activePoly = vecState.polygons[vecState.activePolyIndex];
     if (activePoly && activePoly.points[vecState.draggedVertexIndex]) {
-      activePoly.points[vecState.draggedVertexIndex] = {
+      const snapTarget = getVecSnapTarget(x, y, vecState.activePolyIndex, vecState.draggedVertexIndex, e.shiftKey);
+      vecState.currentSnapTarget = snapTarget;
+      activePoly.points[vecState.draggedVertexIndex] = snapTarget ? { ...snapTarget.worldPt } : {
         x: Math.round((x / vecState.scale) * 100) / 100,
         y: Math.round((y / vecState.scale) * 100) / 100
       };
+      redrawVecDrawCanvas();
+    }
+  } else {
+    // Hover snap highlight feedback
+    const snapTarget = getVecSnapTarget(x, y, -1, -1, e.shiftKey);
+    if (vecState.currentSnapTarget !== snapTarget) {
+      vecState.currentSnapTarget = snapTarget;
       redrawVecDrawCanvas();
     }
   }
@@ -4826,6 +5027,11 @@ vecDrawCanvas.addEventListener("mousemove", (e) => {
 vecDrawCanvas.addEventListener("mouseup", () => {
   vecState.isDraggingVertex = false;
   vecState.draggedVertexIndex = null;
+});
+
+vecDrawCanvas.addEventListener("mouseleave", () => {
+  vecState.currentSnapTarget = null;
+  redrawVecDrawCanvas();
 });
 
 vecDrawCanvas.addEventListener("contextmenu", (e) => e.preventDefault());
