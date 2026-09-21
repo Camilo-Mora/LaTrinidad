@@ -922,21 +922,21 @@
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-purple);box-shadow:0 0 4px var(--accent-purple);"></span></td>
                   <td class="col-name" style="color:var(--accent-purple);">Anchors 296</td>
-                  <td><input type="checkbox" id="sum-show-anchors-296" checked title="Show/hide anchor points for Escritura 296" style="accent-color:var(--accent-purple);"></td>
+                  <td><input type="checkbox" id="sum-show-anchors-296" title="Show/hide anchor points for Escritura 296" style="accent-color:var(--accent-purple);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
                 </tr>
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-red);box-shadow:0 0 4px var(--accent-red);"></span></td>
                   <td class="col-name" style="color:var(--accent-red);">Anchors 1073</td>
-                  <td><input type="checkbox" id="sum-show-anchors-1073" checked title="Show/hide anchor points for Escritura 1073" style="accent-color:var(--accent-red);"></td>
+                  <td><input type="checkbox" id="sum-show-anchors-1073" title="Show/hide anchor points for Escritura 1073" style="accent-color:var(--accent-red);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
                 </tr>
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange);"></span></td>
                   <td class="col-name" style="color:var(--accent-orange);">Anchors 196</td>
-                  <td><input type="checkbox" id="sum-show-anchors-196" checked title="Show/hide anchor points for Escritura 196" style="accent-color:var(--accent-orange);"></td>
+                  <td><input type="checkbox" id="sum-show-anchors-196" title="Show/hide anchor points for Escritura 196" style="accent-color:var(--accent-orange);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
                 </tr>
@@ -1074,7 +1074,7 @@
               <div class="panel-header">
                 <div style="display:flex; align-items:center; gap:6px;">
                   <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-purple); margin:0; cursor:pointer;" title="Display or hide anchor points for Escritura 296">
-                    <input type="checkbox" id="chk-show-anchors-296" checked>
+                    <input type="checkbox" id="chk-show-anchors-296">
                     <span>Show</span>
                   </label>
                   <h4 style="font-size:0.78rem;color:var(--accent-purple);margin:0;">Escritura 296 Anchors</h4>
@@ -1093,7 +1093,7 @@
               <div class="panel-header">
                 <div style="display:flex; align-items:center; gap:6px;">
                   <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-red); margin:0; cursor:pointer;" title="Display or hide anchor points for Escritura 1073">
-                    <input type="checkbox" id="chk-show-anchors-1073" checked>
+                    <input type="checkbox" id="chk-show-anchors-1073">
                     <span>Show</span>
                   </label>
                   <h4 style="font-size:0.78rem;color:var(--accent-red);margin:0;">Escritura 1073 Anchors</h4>
@@ -1112,7 +1112,7 @@
               <div class="panel-header">
                 <div style="display:flex; align-items:center; gap:6px;">
                   <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-orange); margin:0; cursor:pointer;" title="Display or hide anchor points for Escritura 196">
-                    <input type="checkbox" id="chk-show-anchors-196" checked>
+                    <input type="checkbox" id="chk-show-anchors-196">
                     <span>Show</span>
                   </label>
                   <h4 style="font-size:0.78rem;color:var(--accent-orange);margin:0;">Escritura 196 Anchors</h4>
@@ -1505,9 +1505,9 @@ const state = {
   anchors296: [],
   anchors1073: [],
   anchors196: [],
-  showAnchors296: true,
-  showAnchors1073: true,
-  showAnchors196: true,
+  showAnchors296: false,
+  showAnchors1073: false,
+  showAnchors196: false,
   showWarped296OnField: true,
   showWarped1073OnField: true,
   showWarped196OnField: true,
@@ -3290,6 +3290,15 @@ function setupPolygonSummaryListeners() {
     const fieldChk = document.getElementById(fieldId);
     if (!sumChk || !fieldChk) return;
 
+    // Initial sync from state
+    if (stateKey && state[stateKey] !== undefined) {
+      fieldChk.checked = state[stateKey];
+      sumChk.checked = state[stateKey];
+    } else {
+      sumChk.checked = fieldChk.checked;
+      if (stateKey) state[stateKey] = fieldChk.checked;
+    }
+
     // Summary -> field subpanel
     sumChk.addEventListener("change", function() {
       fieldChk.checked = this.checked;
@@ -3299,6 +3308,7 @@ function setupPolygonSummaryListeners() {
     // Field subpanel -> summary
     fieldChk.addEventListener("change", function() {
       sumChk.checked = this.checked;
+      if (stateKey) state[stateKey] = this.checked;
       updateMasterCheckboxes();
     }, true); // capture so it runs before or alongside existing handler
   }
@@ -3309,10 +3319,20 @@ function setupPolygonSummaryListeners() {
   wireDXFSummaryRow("sum-show-dxf-true", "chk-show-field-true", "showFieldDXFOnField");
 
   // ---- Anchor summary checkboxes (sync to existing chk-show-anchors-* inputs) ----
-  function wireAnchorSummaryRow(sumId, anchorId) {
+  function wireAnchorSummaryRow(sumId, anchorId, stateKey) {
     const sumChk    = document.getElementById(sumId);
     const anchorChk = document.getElementById(anchorId);
     if (!sumChk || !anchorChk) return;
+
+    // Initial sync from state
+    if (stateKey && state[stateKey] !== undefined) {
+      anchorChk.checked = state[stateKey];
+      sumChk.checked = state[stateKey];
+    } else {
+      sumChk.checked = anchorChk.checked;
+      if (stateKey) state[stateKey] = anchorChk.checked;
+    }
+
     // Summary -> anchor subpanel
     sumChk.addEventListener("change", function() {
       anchorChk.checked = this.checked;
@@ -3322,13 +3342,14 @@ function setupPolygonSummaryListeners() {
     // Anchor subpanel -> summary
     anchorChk.addEventListener("change", function() {
       sumChk.checked = this.checked;
+      if (stateKey) state[stateKey] = this.checked;
       updateMasterCheckboxes();
     }, true);
   }
 
-  wireAnchorSummaryRow("sum-show-anchors-296",  "chk-show-anchors-296");
-  wireAnchorSummaryRow("sum-show-anchors-1073", "chk-show-anchors-1073");
-  wireAnchorSummaryRow("sum-show-anchors-196",  "chk-show-anchors-196");
+  wireAnchorSummaryRow("sum-show-anchors-296",  "chk-show-anchors-296",  "showAnchors296");
+  wireAnchorSummaryRow("sum-show-anchors-1073", "chk-show-anchors-1073", "showAnchors1073");
+  wireAnchorSummaryRow("sum-show-anchors-196",  "chk-show-anchors-196",  "showAnchors196");
 
   // ---- Master Show checkbox ----
   const masterShow = document.getElementById("sum-master-show");
