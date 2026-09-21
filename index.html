@@ -689,6 +689,45 @@
       z-index: 100;
     }
     .status-bar { color: var(--accent-cyan); }
+
+    /* Cases Panel */
+    .cases-poly-checklist {
+      max-height: 120px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 4px;
+      background: rgba(0,0,0,0.2);
+      margin-bottom: 4px;
+    }
+    .case-label-item {
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.03);
+      font-size: 0.72rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-main);
+      transition: var(--transition-fast);
+    }
+    .case-label-item:hover { background: rgba(255,255,255,0.08); }
+    .case-label-item.selected {
+      border-color: var(--accent-cyan);
+      background: rgba(0,229,255,0.1);
+      color: var(--accent-cyan);
+    }
+    .btn-danger-sm {
+      background: rgba(255,23,68,0.15);
+      border: 1px solid rgba(255,23,68,0.35);
+      color: #ff1744;
+    }
+    .btn-danger-sm:hover { background: rgba(255,23,68,0.3); }
   </style>
 </head>
 <body>
@@ -971,7 +1010,86 @@
           </div>
         </section>
 
+        <!-- ===== CASES PANEL ===== -->
+        <section class="panel-card" id="panel-cases">
+          <div class="panel-header">
+            <h3>🗂️ Cases</h3>
+            <button class="btn-panel-toggle" data-target="body-panel-cases">▶</button>
+          </div>
+          <div id="body-panel-cases" class="panel-body-collapsed">
+            <!-- Case selector -->
+            <select id="case-selector" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:4px 6px;font-size:0.78rem;margin-bottom:6px;">
+              <option value="">— No case selected —</option>
+            </select>
+            <!-- Action buttons row 1 -->
+            <div style="display:flex;gap:4px;margin-bottom:4px;">
+              <button id="btn-case-new" class="btn btn-success btn-sm" style="flex:1;" title="Create a new case from current view">➕ New</button>
+              <button id="btn-case-update" class="btn btn-primary btn-sm" style="flex:1;" title="Update active case with current settings">💾 Update</button>
+              <button id="btn-case-delete" class="btn btn-sm btn-danger-sm" style="flex:1;" title="Delete this case">🗑️ Del</button>
+            </div>
+            <!-- Action buttons row 2 -->
+            <div style="display:flex;gap:4px;margin-bottom:8px;">
+              <button id="btn-case-save-json" class="btn btn-primary btn-sm" style="flex:1;" title="Save all cases to cases.json">💾 Save (.json)</button>
+              <label for="case-load-input" class="btn btn-secondary btn-sm" style="cursor:pointer;flex:1;justify-content:center;" title="Load cases from file">📂 Load</label>
+              <input type="file" id="case-load-input" accept=".json" style="display:none;">
+            </div>
+            <!-- Polygon checklist -->
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:4px;">📌 Color inside selected polygons (rest → B&W)</div>
+            <div id="case-poly-checklist" class="cases-poly-checklist">
+              <div style="font-size:0.68rem;color:var(--text-muted);padding:2px;">Select or create a case first.</div>
+            </div>
+            <!-- Label management -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:4px;">
+              <span style="font-size:0.7rem;color:var(--text-muted);">🏷️ Labels</span>
+              <button id="btn-case-add-label" class="btn btn-secondary btn-sm" title="Drop a new label at center of current view">➕ Add</button>
+            </div>
+            <div id="case-labels-list" style="display:flex;flex-direction:column;gap:3px;max-height:110px;overflow-y:auto;margin-bottom:6px;">
+              <div style="font-size:0.68rem;color:var(--text-muted);padding:2px;">No labels yet.</div>
+            </div>
+            <!-- Label style inspector -->
+            <div id="case-label-inspector" style="display:none;background:rgba(0,0,0,0.35);border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:6px;">
+              <div style="font-size:0.7rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;">✏️ Label Style</div>
+              <textarea id="lbl-text" rows="3" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:4px;font-size:0.78rem;resize:vertical;margin-bottom:5px;"></textarea>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:0.72rem;color:var(--text-muted);">
+                <label style="display:flex;flex-direction:column;gap:2px;">Size (px)
+                  <input type="number" id="lbl-fontsize" min="8" max="72" value="14" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">Style
+                  <div style="display:flex;gap:4px;margin-top:2px;">
+                    <button id="lbl-bold" class="btn btn-secondary btn-sm" style="font-weight:700;padding:2px 8px;" title="Toggle bold">B</button>
+                    <button id="lbl-italic" class="btn btn-secondary btn-sm" style="font-style:italic;padding:2px 8px;" title="Toggle italic">I</button>
+                  </div>
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">Text Color
+                  <input type="color" id="lbl-textcolor" value="#000000" style="width:100%;height:24px;border:none;background:none;cursor:pointer;border-radius:3px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">BG Color
+                  <input type="color" id="lbl-bgcolor" value="#ffffff" style="width:100%;height:24px;border:none;background:none;cursor:pointer;border-radius:3px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">BG Opacity
+                  <input type="range" id="lbl-bgopacity" min="0" max="1" step="0.05" value="0.85" style="width:100%;margin-top:4px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">Border Color
+                  <input type="color" id="lbl-bordercolor" value="#000000" style="width:100%;height:24px;border:none;background:none;cursor:pointer;border-radius:3px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">Border Width
+                  <input type="number" id="lbl-borderwidth" min="0" max="10" step="0.5" value="1.5" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">Padding
+                  <input type="number" id="lbl-padding" min="0" max="30" value="7" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
+                </label>
+              </div>
+              <button id="btn-lbl-delete" class="btn btn-sm btn-danger-sm" style="width:100%;margin-top:6px;">🗑️ Delete Label</button>
+            </div>
+            <!-- HD Export -->
+            <button id="btn-case-export-hd" class="btn btn-success" style="width:100%;" title="Export this case as a 4K HD PNG image">📸 Download HD Image</button>
+            <p style="font-size:0.68rem;color:var(--text-muted);margin-top:4px;margin-bottom:0;">In Case mode: selected polygons shown in full color; rest of map is black &amp; white. Drag labels on the Field map.</p>
+          </div>
+        </section>
+        <!-- ===== END CASES PANEL ===== -->
+
         <!-- Accuracy Analytics -->
+
         <section class="panel-card">
           <div class="panel-header">
             <h3>Accuracy Metrics (RMSE)</h3>
@@ -1654,7 +1772,14 @@ const state = {
   // GeoTIFF
   geoTiff: null,
   geotiffFullRes: false,
-  lastGeoTiffBlob: null
+  lastGeoTiffBlob: null,
+
+  // Cases system
+  cases: [],
+  activeCaseId: null,
+  caseMode: false,
+  caseDraggingLabelId: null,
+  caseSelectedLabelId: null
 };
 
 const anchorColors = ["#ff1744", "#00e676", "#00e5ff", "#ff9100", "#d500f9", "#ffff00", "#76ff03"];
@@ -1713,6 +1838,7 @@ window.addEventListener("DOMContentLoaded", () => {
   autoLoadTrueDXF();
   autoLoadAnchors();
   autoLoadPolygons();
+  autoLoadCases();
 
   setupEventListeners();
   resizeCanvases();
@@ -2353,7 +2479,12 @@ function drawViewportTrue() {
   const w = canvasTrue.width, h = canvasTrue.height, vp = state.vpTrue;
   ctxTrue.clearRect(0, 0, w, h);
   drawGrid(ctxTrue, w, h);
-  drawGeoTiff(ctxTrue, state.geoTiff, vp, h);
+  if (state.caseMode) {
+    const ac = getActiveCase();
+    drawGeoTiffWithCaseSpotlight(ctxTrue, state.geoTiff, vp, h, ac ? ac.selectedPolyIds : []);
+  } else {
+    drawGeoTiff(ctxTrue, state.geoTiff, vp, h);
+  }
 
   // Target DXF (Green - Alambrado historico)
   if (state.showFieldDXFOnField !== false) {
@@ -2395,6 +2526,9 @@ function drawViewportTrue() {
   if (state.showAnchors196)  visibleDestAnchors.push(...state.anchors196);
   drawDestinationAnchorsGIS(ctxTrue, visibleDestAnchors, vp, h);
   drawMeasurementsGIS(ctxTrue, vp, h);
+  if (state.caseMode) {
+    drawCaseLabels(ctxTrue, vp, h);
+  }
   if (state.currentSnapTarget && state.currentSnapTarget.mapName === "true") {
     drawSnapTargetOnCanvas(ctxTrue, state.currentSnapTarget.screenPt);
   }
@@ -3410,6 +3544,8 @@ function setupPolygonSummaryListeners() {
   updatePolygonSummaryUI();
 }
 function setupEventListeners() {
+  setupCasesPanel();
+
   function updateSnapButtonUI() {
     const text = state.snapEnabled ? "🧲 Snap: ON" : "🧲 Snap: OFF";
     const borderColor = state.snapEnabled ? "var(--accent-cyan)" : "var(--border-color)";
@@ -5211,6 +5347,691 @@ document.getElementById("btn-vec-reset").addEventListener("click", () => {
 });
 
 document.getElementById("btn-vec-close").addEventListener("click", () => vecModal.classList.remove("visible"));
+
+/* ==========================================================================
+   CASES SYSTEM
+   ========================================================================== */
+
+async function autoLoadCases() {
+  try {
+    const response = await fetch("cases.json?_t=" + Date.now(), { cache: "no-store" });
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        state.cases = data;
+        rebuildCaseSelector();
+        if (data.length > 0) statusBar.textContent = `✅ Loaded ${data.length} case(s) from cases.json`;
+      }
+    }
+  } catch (err) {
+    console.log("cases.json auto-load skipped.");
+  }
+}
+
+function rebuildCaseSelector() {
+  const sel = document.getElementById("case-selector");
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— No case selected —</option>';
+  state.cases.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+  sel.value = state.activeCaseId !== null ? state.activeCaseId : "";
+}
+
+function getCaseById(id) {
+  return state.cases.find(c => String(c.id) === String(id)) || null;
+}
+
+function getActiveCase() {
+  return state.activeCaseId !== null ? getCaseById(state.activeCaseId) : null;
+}
+
+function buildCasePolyChecklist() {
+  const container = document.getElementById("case-poly-checklist");
+  if (!container) return;
+  container.innerHTML = "";
+  const activeCase = getActiveCase();
+  if (!activeCase) {
+    container.innerHTML = '<div style="font-size:0.68rem;color:var(--text-muted);padding:2px;">Select or create a case first.</div>';
+    return;
+  }
+  const selectedIds = activeCase.selectedPolyIds || [];
+  state.measurePolygons.forEach(poly => {
+    const label = document.createElement("label");
+    label.className = "window-checkbox";
+    label.style.cssText = "font-size:0.72rem;margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.dataset.polyId = poly.id;
+    cb.checked = selectedIds.includes(poly.id);
+    cb.addEventListener("change", () => {
+      const ac = getActiveCase();
+      if (!ac) return;
+      if (!ac.selectedPolyIds) ac.selectedPolyIds = [];
+      if (cb.checked) {
+        if (!ac.selectedPolyIds.includes(poly.id)) ac.selectedPolyIds.push(poly.id);
+      } else {
+        ac.selectedPolyIds = ac.selectedPolyIds.filter(id => id !== poly.id);
+      }
+      drawViewportTrue();
+    });
+    const dot = document.createElement("span");
+    dot.style.cssText = `display:inline-block;width:9px;height:9px;border-radius:50%;background:${poly.color};border:1px solid rgba(255,255,255,0.3);flex-shrink:0;`;
+    const txt = document.createTextNode(poly.name || `Poly ${poly.id}`);
+    label.appendChild(cb);
+    label.appendChild(dot);
+    label.appendChild(txt);
+    container.appendChild(label);
+  });
+}
+
+function buildCaseLabelsList() {
+  const listEl = document.getElementById("case-labels-list");
+  if (!listEl) return;
+  listEl.innerHTML = "";
+  const ac = getActiveCase();
+  const labels = ac ? (ac.labels || []) : [];
+  if (labels.length === 0) {
+    listEl.innerHTML = '<div style="font-size:0.68rem;color:var(--text-muted);padding:2px;">No labels yet. Click ➕ Add.</div>';
+    return;
+  }
+  labels.forEach(lbl => {
+    const row = document.createElement("div");
+    row.className = "case-label-item" + (lbl.id === state.caseSelectedLabelId ? " selected" : "");
+    row.textContent = (lbl.text || "(empty)").replace(/\n/g, " ");
+    row.title = lbl.text;
+    row.addEventListener("click", () => selectCaseLabel(lbl.id));
+    listEl.appendChild(row);
+  });
+}
+
+function selectCaseLabel(id) {
+  state.caseSelectedLabelId = id;
+  buildCaseLabelsList();
+  const ac = getActiveCase();
+  const lbl = ac ? (ac.labels || []).find(l => l.id === id) : null;
+  const inspector = document.getElementById("case-label-inspector");
+  if (!inspector) return;
+  if (!lbl) { inspector.style.display = "none"; return; }
+  inspector.style.display = "block";
+  document.getElementById("lbl-text").value = lbl.text || "";
+  document.getElementById("lbl-fontsize").value = lbl.fontSize || 14;
+  document.getElementById("lbl-textcolor").value = lbl.textColor || "#000000";
+  document.getElementById("lbl-bgcolor").value = lbl.bgColor || "#ffffff";
+  document.getElementById("lbl-bgopacity").value = lbl.bgOpacity !== undefined ? lbl.bgOpacity : 0.85;
+  document.getElementById("lbl-bordercolor").value = lbl.borderColor || "#000000";
+  document.getElementById("lbl-borderwidth").value = lbl.borderWidth !== undefined ? lbl.borderWidth : 1.5;
+  document.getElementById("lbl-padding").value = lbl.padding !== undefined ? lbl.padding : 7;
+  const boldBtn = document.getElementById("lbl-bold");
+  const italicBtn = document.getElementById("lbl-italic");
+  boldBtn.style.background = lbl.bold ? "rgba(0,229,255,0.25)" : "";
+  boldBtn.style.borderColor = lbl.bold ? "var(--accent-cyan)" : "";
+  italicBtn.style.background = lbl.italic ? "rgba(0,229,255,0.25)" : "";
+  italicBtn.style.borderColor = lbl.italic ? "var(--accent-cyan)" : "";
+}
+
+function updateSelectedLabelProp(key, value) {
+  const ac = getActiveCase();
+  if (!ac || !state.caseSelectedLabelId) return;
+  const lbl = (ac.labels || []).find(l => l.id === state.caseSelectedLabelId);
+  if (!lbl) return;
+  lbl[key] = value;
+  drawViewportTrue();
+}
+
+function applyActiveCase(caseObj) {
+  if (!caseObj) {
+    state.caseMode = false;
+    state.activeCaseId = null;
+    state.caseSelectedLabelId = null;
+    const inspector = document.getElementById("case-label-inspector");
+    if (inspector) inspector.style.display = "none";
+    buildCasePolyChecklist();
+    buildCaseLabelsList();
+    drawViewportTrue();
+    return;
+  }
+  state.caseMode = true;
+  state.activeCaseId = caseObj.id;
+  if (caseObj.camera) {
+    state.vpTrue.scale = caseObj.camera.scale;
+    state.vpTrue.offsetX = caseObj.camera.offsetX;
+    state.vpTrue.offsetY = caseObj.camera.offsetY;
+  }
+  buildCasePolyChecklist();
+  buildCaseLabelsList();
+  state.caseSelectedLabelId = null;
+  const inspector = document.getElementById("case-label-inspector");
+  if (inspector) inspector.style.display = "none";
+  drawViewportTrue();
+  statusBar.textContent = `📂 Case loaded: ${caseObj.name}`;
+}
+
+function createNewCase() {
+  const name = prompt("Enter case name:", "New Case");
+  if (!name || !name.trim()) return;
+  const id = Date.now();
+  const newCase = {
+    id,
+    name: name.trim(),
+    selectedPolyIds: [],
+    camera: {
+      scale: state.vpTrue.scale,
+      offsetX: state.vpTrue.offsetX,
+      offsetY: state.vpTrue.offsetY
+    },
+    layers: { geotiff: true, dxf296: true, dxf1073: true, dxf196: true, dxfTrue: true },
+    labels: []
+  };
+  state.cases.push(newCase);
+  rebuildCaseSelector();
+  document.getElementById("case-selector").value = id;
+  applyActiveCase(newCase);
+}
+
+function updateActiveCase() {
+  const ac = getActiveCase();
+  if (!ac) { statusBar.textContent = "⚠️ No active case to update."; return; }
+  ac.camera = {
+    scale: state.vpTrue.scale,
+    offsetX: state.vpTrue.offsetX,
+    offsetY: state.vpTrue.offsetY
+  };
+  statusBar.textContent = `✅ Case '${ac.name}' updated with current view.`;
+}
+
+function deleteActiveCase() {
+  const ac = getActiveCase();
+  if (!ac) return;
+  if (!confirm(`Delete case '${ac.name}'?`)) return;
+  state.cases = state.cases.filter(c => c.id !== ac.id);
+  state.activeCaseId = null;
+  state.caseMode = false;
+  state.caseSelectedLabelId = null;
+  const inspector = document.getElementById("case-label-inspector");
+  if (inspector) inspector.style.display = "none";
+  rebuildCaseSelector();
+  buildCasePolyChecklist();
+  buildCaseLabelsList();
+  drawViewportTrue();
+  statusBar.textContent = "🗑️ Case deleted.";
+}
+
+function saveCasesJson() {
+  const blob = new Blob([JSON.stringify(state.cases, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cases.json";
+  a.click();
+  statusBar.textContent = `💾 Saved ${state.cases.length} case(s) to cases.json!`;
+}
+
+function addLabelToActiveCase() {
+  const ac = getActiveCase();
+  if (!ac) { statusBar.textContent = "⚠️ Select or create a case first."; return; }
+  if (!ac.labels) ac.labels = [];
+  const w = canvasTrue.width, h = canvasTrue.height;
+  const centerWorld = screenToWorldGIS(w / 2, h / 2, state.vpTrue, h);
+  const lbl = {
+    id: "lbl_" + Date.now(),
+    text: "New Label",
+    worldX: centerWorld.x,
+    worldY: centerWorld.y,
+    fontSize: 14,
+    bold: true,
+    italic: false,
+    textColor: "#000000",
+    bgColor: "#ffffff",
+    bgOpacity: 0.85,
+    borderColor: "#000000",
+    borderWidth: 1.5,
+    padding: 7
+  };
+  ac.labels.push(lbl);
+  state.caseSelectedLabelId = lbl.id;
+  buildCaseLabelsList();
+  selectCaseLabel(lbl.id);
+  drawViewportTrue();
+  statusBar.textContent = "🏷️ Label added. Drag it on the map.";
+}
+
+function deleteSelectedLabel() {
+  const ac = getActiveCase();
+  if (!ac || !state.caseSelectedLabelId) return;
+  ac.labels = (ac.labels || []).filter(l => l.id !== state.caseSelectedLabelId);
+  state.caseSelectedLabelId = null;
+  const inspector = document.getElementById("case-label-inspector");
+  if (inspector) inspector.style.display = "none";
+  buildCaseLabelsList();
+  drawViewportTrue();
+}
+
+function getLabelAtScreen(screenX, screenY) {
+  const ac = getActiveCase();
+  if (!ac || !ac.labels) return null;
+  const h = canvasTrue.height;
+  for (let i = ac.labels.length - 1; i >= 0; i--) {
+    const lbl = ac.labels[i];
+    const sp = worldToScreenGIS({ x: lbl.worldX, y: lbl.worldY }, state.vpTrue, h);
+    const lines = (lbl.text || "").split("\n");
+    const fs = lbl.fontSize || 14;
+    const pad = lbl.padding || 7;
+    const lineH = fs + 4;
+    const maxW = Math.max(...lines.map(l => l.length)) * fs * 0.65 + pad * 2;
+    const boxH = lines.length * lineH + pad * 2;
+    if (screenX >= sp.x - pad && screenX <= sp.x - pad + maxW &&
+        screenY >= sp.y - pad && screenY <= sp.y - pad + boxH) {
+      return lbl;
+    }
+  }
+  return null;
+}
+
+function drawCaseLabels(ctx, vp, h) {
+  const ac = getActiveCase();
+  if (!ac || !ac.labels) return;
+  ac.labels.forEach(lbl => {
+    const sp = worldToScreenGIS({ x: lbl.worldX, y: lbl.worldY }, vp, h);
+    const lines = (lbl.text || "").split("\n");
+    const fs = lbl.fontSize || 14;
+    const pad = lbl.padding || 7;
+    const bold = lbl.bold ? "bold " : "";
+    const italic = lbl.italic ? "italic " : "";
+    ctx.font = `${bold}${italic}${fs}px sans-serif`;
+    const lineH = fs + 4;
+    const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
+    const boxW = maxW + pad * 2;
+    const boxH = lines.length * lineH + pad * 2;
+    const x = sp.x - pad;
+    const y = sp.y - pad;
+    const bgOp = lbl.bgOpacity !== undefined ? lbl.bgOpacity : 0.85;
+    const bgHex = lbl.bgColor || "#ffffff";
+    const br = parseInt(bgHex.slice(1,3),16) || 255;
+    const bg = parseInt(bgHex.slice(3,5),16) || 255;
+    const bb = parseInt(bgHex.slice(5,7),16) || 255;
+    ctx.fillStyle = `rgba(${br},${bg},${bb},${bgOp})`;
+    const bw = lbl.borderWidth !== undefined ? lbl.borderWidth : 1.5;
+    ctx.strokeStyle = lbl.borderColor || "#000000";
+    ctx.lineWidth = bw;
+    const radius = 4;
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + boxW - radius, y);
+    ctx.quadraticCurveTo(x + boxW, y, x + boxW, y + radius);
+    ctx.lineTo(x + boxW, y + boxH - radius);
+    ctx.quadraticCurveTo(x + boxW, y + boxH, x + boxW - radius, y + boxH);
+    ctx.lineTo(x + radius, y + boxH);
+    ctx.quadraticCurveTo(x, y + boxH, x, y + boxH - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+    if (bw > 0) ctx.stroke();
+    if (lbl.id === state.caseSelectedLabelId) {
+      ctx.save();
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 3]);
+      ctx.strokeRect(x - 2, y - 2, boxW + 4, boxH + 4);
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+    ctx.fillStyle = lbl.textColor || "#000000";
+    ctx.font = `${bold}${italic}${fs}px sans-serif`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    lines.forEach((line, i) => {
+      ctx.fillText(line, x + pad, y + pad + i * lineH);
+    });
+    ctx.textBaseline = "alphabetic";
+  });
+}
+
+function drawGeoTiffWithCaseSpotlight(ctx, tiff, vp, canvasH, selectedPolyIds) {
+  if (!tiff || !tiff.offscreen || !vp || !vp.bbox) return;
+  const tl = worldToScreenGIS({ x: tiff.bbox.minX, y: tiff.bbox.maxY }, vp, canvasH);
+  const br = worldToScreenGIS({ x: tiff.bbox.maxX, y: tiff.bbox.minY }, vp, canvasH);
+  const sw = br.x - tl.x, sh = br.y - tl.y;
+  if (sw <= 0 || sh <= 0) return;
+
+  // Draw full greyscale first
+  ctx.save();
+  ctx.filter = "grayscale(100%) brightness(0.88) contrast(1.05)";
+  ctx.globalAlpha = 0.7;
+  ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh);
+  ctx.restore();
+
+  if (!selectedPolyIds || selectedPolyIds.length === 0) return;
+
+  const polys = state.measurePolygons.filter(p => selectedPolyIds.includes(p.id));
+  if (polys.length === 0) return;
+
+  ctx.save();
+  ctx.beginPath();
+  polys.forEach(poly => {
+    if (!poly.points || poly.points.length < 2) return;
+    const first = worldToScreenGIS(poly.points[0], vp, canvasH);
+    ctx.moveTo(first.x, first.y);
+    for (let i = 1; i < poly.points.length; i++) {
+      const p = worldToScreenGIS(poly.points[i], vp, canvasH);
+      ctx.lineTo(p.x, p.y);
+    }
+    ctx.closePath();
+  });
+  ctx.clip();
+  ctx.filter = "none";
+  ctx.globalAlpha = 0.85;
+  ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh);
+  ctx.restore();
+}
+
+async function exportCaseImageHD() {
+  const ac = getActiveCase();
+  if (!ac) { statusBar.textContent = "⚠️ No active case selected."; return; }
+  statusBar.textContent = "⏳ Rendering HD case image...";
+  await new Promise(r => requestAnimationFrame(r));
+
+  const EXP_W = 3840;
+  const aspect = canvasTrue.height / Math.max(1, canvasTrue.width);
+  const EXP_H = Math.round(EXP_W * aspect);
+
+  const offCanvas = document.createElement("canvas");
+  offCanvas.width = EXP_W;
+  offCanvas.height = EXP_H;
+  const ctx = offCanvas.getContext("2d");
+
+  ctx.fillStyle = "#06080e";
+  ctx.fillRect(0, 0, EXP_W, EXP_H);
+
+  const scaleRatio = EXP_W / canvasTrue.width;
+  const vpExp = {
+    scale: state.vpTrue.scale * scaleRatio,
+    offsetX: state.vpTrue.offsetX * scaleRatio,
+    offsetY: state.vpTrue.offsetY * scaleRatio,
+    bbox: state.vpTrue.bbox
+  };
+
+  drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds);
+
+  if (state.entitiesTrue && state.entitiesTrue.length > 0) {
+    drawEntitiesGISExport(ctx, state.entitiesTrue, vpExp, EXP_H, "#00a843", 6);
+  }
+
+  if (state.anchors296.length >= 2 && state.entities296.length > 0) {
+    try {
+      const w = TransformMath.createWarper(state.algorithm, state.anchors296);
+      drawWarpedEntitiesGISExport(ctx, state.entities296, w, vpExp, EXP_H, "#aa00ff", 6);
+    } catch (_) {}
+  }
+  if (state.anchors1073.length >= 2 && state.entities1073.length > 0) {
+    try {
+      const w = TransformMath.createWarper(state.algorithm, state.anchors1073);
+      drawWarpedEntitiesGISExport(ctx, state.entities1073, w, vpExp, EXP_H, "#d50000", 6);
+    } catch (_) {}
+  }
+  if (state.anchors196.length >= 2 && state.entities196.length > 0) {
+    try {
+      const w = TransformMath.createWarper(state.algorithm, state.anchors196);
+      drawWarpedEntitiesGISExport(ctx, state.entities196, w, vpExp, EXP_H, "#e65100", 6);
+    } catch (_) {}
+  }
+
+  state.measurePolygons.forEach(poly => {
+    if (poly.visible === false || !poly.points || poly.points.length < 2) return;
+    const isSelected = ac.selectedPolyIds && ac.selectedPolyIds.includes(poly.id);
+    ctx.beginPath();
+    const first = worldToScreenGISExport(poly.points[0], vpExp, EXP_H);
+    ctx.moveTo(first.x, first.y);
+    for (let i = 1; i < poly.points.length; i++) {
+      const p = worldToScreenGISExport(poly.points[i], vpExp, EXP_H);
+      ctx.lineTo(p.x, p.y);
+    }
+    ctx.closePath();
+    const hex = poly.color;
+    const r = parseInt(hex.slice(1,3),16) || 0, g = parseInt(hex.slice(3,5),16) || 229, b = parseInt(hex.slice(5,7),16) || 255;
+    const fillOp = isSelected ? (poly.fillOpacity || 0.18) * 1.5 : (poly.fillOpacity || 0.12);
+    ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(1, fillOp)})`;
+    ctx.fill();
+    ctx.strokeStyle = poly.color;
+    ctx.lineWidth = isSelected ? (poly.lineWidth || 2.5) * 2.5 : (poly.lineWidth || 2.5) * 1.5;
+    ctx.setLineDash(getPolyLineDash(poly.lineType));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  if (ac.labels && ac.labels.length > 0) {
+    drawCaseLabelsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.labels);
+  }
+
+  offCanvas.toBlob(blob => {
+    if (!blob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    const safeName = (ac.name || "Caso").replace(/[^a-z0-9_\-]/gi, "_");
+    a.download = `Caso_${safeName}.png`;
+    a.click();
+    statusBar.textContent = `✅ HD image exported: Caso_${safeName}.png`;
+  }, "image/png");
+}
+
+function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
+  labels.forEach(lbl => {
+    const sp = worldToScreenGISExport({ x: lbl.worldX, y: lbl.worldY }, vp, h);
+    const lines = (lbl.text || "").split("\n");
+    const fs = (lbl.fontSize || 14) * scaleRatio;
+    const pad = (lbl.padding || 7) * scaleRatio;
+    const bold = lbl.bold ? "bold " : "";
+    const italic = lbl.italic ? "italic " : "";
+    ctx.font = `${bold}${italic}${fs}px sans-serif`;
+    const lineH = fs + 4 * scaleRatio;
+    const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
+    const boxW = maxW + pad * 2;
+    const boxH = lines.length * lineH + pad * 2;
+    const x = sp.x - pad;
+    const y = sp.y - pad;
+    const bgOp = lbl.bgOpacity !== undefined ? lbl.bgOpacity : 0.85;
+    const bgHex = lbl.bgColor || "#ffffff";
+    const br = parseInt(bgHex.slice(1,3),16) || 255;
+    const bg = parseInt(bgHex.slice(3,5),16) || 255;
+    const bb = parseInt(bgHex.slice(5,7),16) || 255;
+    ctx.fillStyle = `rgba(${br},${bg},${bb},${bgOp})`;
+    const bw = (lbl.borderWidth !== undefined ? lbl.borderWidth : 1.5) * scaleRatio;
+    ctx.strokeStyle = lbl.borderColor || "#000000";
+    ctx.lineWidth = bw;
+    const radius = 4 * scaleRatio;
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + boxW - radius, y);
+    ctx.quadraticCurveTo(x + boxW, y, x + boxW, y + radius);
+    ctx.lineTo(x + boxW, y + boxH - radius);
+    ctx.quadraticCurveTo(x + boxW, y + boxH, x + boxW - radius, y + boxH);
+    ctx.lineTo(x + radius, y + boxH);
+    ctx.quadraticCurveTo(x, y + boxH, x, y + boxH - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+    if (bw > 0) ctx.stroke();
+    ctx.fillStyle = lbl.textColor || "#000000";
+    ctx.font = `${bold}${italic}${fs}px sans-serif`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    lines.forEach((line, i) => {
+      ctx.fillText(line, x + pad, y + pad + i * lineH);
+    });
+    ctx.textBaseline = "alphabetic";
+  });
+}
+
+function drawWarpedEntitiesGISExport(ctx, entities, warper, vp, canvasH, color, lineWidth = 4) {
+  entities.forEach(ent => {
+    if (!ent.points || ent.points.length < 2) return;
+    try {
+      const warped = ent.points.map(p => warper(p));
+      ctx.beginPath();
+      const start = worldToScreenGISExport(warped[0], vp, canvasH);
+      ctx.moveTo(start.x, start.y);
+      for (let i = 1; i < warped.length; i++) {
+        const p = worldToScreenGISExport(warped[i], vp, canvasH);
+        ctx.lineTo(p.x, p.y);
+      }
+      if (ent.closed) ctx.closePath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    } catch (_) {}
+  });
+}
+
+function setupCasesPanel() {
+  const sel = document.getElementById("case-selector");
+  if (!sel) return;
+
+  sel.addEventListener("change", () => {
+    const val = sel.value;
+    if (!val) {
+      state.activeCaseId = null;
+      state.caseMode = false;
+      state.caseSelectedLabelId = null;
+      const inspector = document.getElementById("case-label-inspector");
+      if (inspector) inspector.style.display = "none";
+      buildCasePolyChecklist();
+      buildCaseLabelsList();
+      drawViewportTrue();
+      return;
+    }
+    const c = getCaseById(val);
+    applyActiveCase(c);
+  });
+
+  const btnNew = document.getElementById("btn-case-new");
+  if (btnNew) btnNew.addEventListener("click", createNewCase);
+  const btnUpd = document.getElementById("btn-case-update");
+  if (btnUpd) btnUpd.addEventListener("click", updateActiveCase);
+  const btnDel = document.getElementById("btn-case-delete");
+  if (btnDel) btnDel.addEventListener("click", deleteActiveCase);
+  const btnSave = document.getElementById("btn-case-save-json");
+  if (btnSave) btnSave.addEventListener("click", saveCasesJson);
+  const btnAddLbl = document.getElementById("btn-case-add-label");
+  if (btnAddLbl) btnAddLbl.addEventListener("click", addLabelToActiveCase);
+  const btnExpHd = document.getElementById("btn-case-export-hd");
+  if (btnExpHd) btnExpHd.addEventListener("click", exportCaseImageHD);
+  const btnDelLbl = document.getElementById("btn-lbl-delete");
+  if (btnDelLbl) btnDelLbl.addEventListener("click", deleteSelectedLabel);
+
+  const loadInput = document.getElementById("case-load-input");
+  if (loadInput) {
+    loadInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (Array.isArray(data)) {
+          state.cases = data;
+          state.activeCaseId = null;
+          state.caseMode = false;
+          rebuildCaseSelector();
+          buildCasePolyChecklist();
+          buildCaseLabelsList();
+          drawViewportTrue();
+          statusBar.textContent = `✅ Loaded ${data.length} case(s) from ${file.name}`;
+        }
+      } catch (_) {
+        statusBar.textContent = "⚠️ Failed to parse cases file.";
+      }
+    });
+  }
+
+  // Label style inspector event bindings
+  const lblText = document.getElementById("lbl-text");
+  if (lblText) lblText.addEventListener("input", e => { updateSelectedLabelProp("text", e.target.value); buildCaseLabelsList(); });
+  const lblFs = document.getElementById("lbl-fontsize");
+  if (lblFs) lblFs.addEventListener("input", e => updateSelectedLabelProp("fontSize", parseInt(e.target.value)));
+  const lblTc = document.getElementById("lbl-textcolor");
+  if (lblTc) lblTc.addEventListener("input", e => updateSelectedLabelProp("textColor", e.target.value));
+  const lblBg = document.getElementById("lbl-bgcolor");
+  if (lblBg) lblBg.addEventListener("input", e => updateSelectedLabelProp("bgColor", e.target.value));
+  const lblBgOp = document.getElementById("lbl-bgopacity");
+  if (lblBgOp) lblBgOp.addEventListener("input", e => updateSelectedLabelProp("bgOpacity", parseFloat(e.target.value)));
+  const lblBc = document.getElementById("lbl-bordercolor");
+  if (lblBc) lblBc.addEventListener("input", e => updateSelectedLabelProp("borderColor", e.target.value));
+  const lblBw = document.getElementById("lbl-borderwidth");
+  if (lblBw) lblBw.addEventListener("input", e => updateSelectedLabelProp("borderWidth", parseFloat(e.target.value)));
+  const lblPad = document.getElementById("lbl-padding");
+  if (lblPad) lblPad.addEventListener("input", e => updateSelectedLabelProp("padding", parseInt(e.target.value)));
+
+  const boldBtn = document.getElementById("lbl-bold");
+  if (boldBtn) {
+    boldBtn.addEventListener("click", () => {
+      const ac = getActiveCase();
+      const lbl = ac ? (ac.labels || []).find(l => l.id === state.caseSelectedLabelId) : null;
+      if (!lbl) return;
+      lbl.bold = !lbl.bold;
+      boldBtn.style.background = lbl.bold ? "rgba(0,229,255,0.25)" : "";
+      boldBtn.style.borderColor = lbl.bold ? "var(--accent-cyan)" : "";
+      drawViewportTrue();
+    });
+  }
+
+  const italicBtn = document.getElementById("lbl-italic");
+  if (italicBtn) {
+    italicBtn.addEventListener("click", () => {
+      const ac = getActiveCase();
+      const lbl = ac ? (ac.labels || []).find(l => l.id === state.caseSelectedLabelId) : null;
+      if (!lbl) return;
+      lbl.italic = !lbl.italic;
+      italicBtn.style.background = lbl.italic ? "rgba(0,229,255,0.25)" : "";
+      italicBtn.style.borderColor = lbl.italic ? "var(--accent-cyan)" : "";
+      drawViewportTrue();
+    });
+  }
+
+  setupCaseLabelDragOnCanvas();
+}
+
+function setupCaseLabelDragOnCanvas() {
+  let dragging = false;
+  let dragLblId = null;
+  let dragOffX = 0, dragOffY = 0;
+
+  canvasTrue.addEventListener("mousedown", (e) => {
+    if (!state.caseMode || state.toolMode !== "pan") return;
+    const { x: mx, y: my } = getCanvasXY(e);
+    const lbl = getLabelAtScreen(mx, my);
+    if (!lbl) return;
+    e.stopImmediatePropagation();
+    dragging = true;
+    dragLblId = lbl.id;
+    const sp = worldToScreenGIS({ x: lbl.worldX, y: lbl.worldY }, state.vpTrue, canvasTrue.height);
+    dragOffX = mx - sp.x;
+    dragOffY = my - sp.y;
+    canvasTrue.style.cursor = "grabbing";
+    selectCaseLabel(lbl.id);
+  }, true);
+
+  canvasTrue.addEventListener("mousemove", (e) => {
+    if (!state.caseMode) return;
+    if (dragging && dragLblId) {
+      const { x: mx, y: my } = getCanvasXY(e);
+      const worldPt = screenToWorldGIS(mx - dragOffX, my - dragOffY, state.vpTrue, canvasTrue.height);
+      const ac = getActiveCase();
+      const lbl = ac ? (ac.labels || []).find(l => l.id === dragLblId) : null;
+      if (lbl) { lbl.worldX = worldPt.x; lbl.worldY = worldPt.y; drawViewportTrue(); }
+      return;
+    }
+    const { x: mx, y: my } = getCanvasXY(e);
+    const lbl = getLabelAtScreen(mx, my);
+    if (lbl && state.toolMode === "pan") canvasTrue.style.cursor = "grab";
+  }, true);
+
+  window.addEventListener("mouseup", () => {
+    if (dragging) { dragging = false; dragLblId = null; canvasTrue.style.cursor = "grab"; }
+  });
+}
   </script>
 </body>
 </html>
