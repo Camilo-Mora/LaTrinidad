@@ -317,7 +317,7 @@
         "worldY": 876663.4899764616,
         "fontSize": 20,
         "bold": true,
-        "italic": false,
+        "italic": true,
         "textColor": "#ffffff",
         "bgColor": "#ff0000",
         "bgOpacity": 0.4,
