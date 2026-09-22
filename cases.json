@@ -292,11 +292,11 @@
       {
         "id": "lbl_1790055358584",
         "text": "Plano Lote #5\npasado a la Curaduria 2013",
-        "worldX": 1097699.7219425726,
-        "worldY": 876883.8945374865,
-        "fontSize": 14,
+        "worldX": 1097650.1505854814,
+        "worldY": 876895.860037474,
+        "fontSize": 20,
         "bold": true,
-        "italic": false,
+        "italic": true,
         "textColor": "#ffffff",
         "bgColor": "#ff8000",
         "bgOpacity": 0.3,
@@ -304,32 +304,32 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 160.13901382917538,
-          "y": 34.11419290385675,
-          "w": 190.72000122070312,
-          "h": 46
+          "x": 102.13901382894255,
+          "y": 20.114192903856747,
+          "w": 270.67999267578125,
+          "h": 58
         },
         "showBorder": false
       },
       {
         "id": "lbl_1790055426610",
         "text": "Plano original Lote #5\nescritura 1073 de 1973",
-        "worldX": 1097938.9234523894,
-        "worldY": 876706.2239049885,
-        "fontSize": 14,
+        "worldX": 1097955.1623452294,
+        "worldY": 876663.4899764616,
+        "fontSize": 20,
         "bold": true,
         "italic": false,
         "textColor": "#ffffff",
         "bgColor": "#ff0000",
-        "bgOpacity": 0.3,
+        "bgOpacity": 0.4,
         "borderColor": "#ff0000",
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 441.0120772975497,
-          "y": 242.99425287358463,
-          "w": 156.9600067138672,
-          "h": 44
+          "x": 460.01207729731686,
+          "y": 292.9942528735846,
+          "w": 222.9600067138672,
+          "h": 56
         },
         "showBorder": false
       },
@@ -390,19 +390,19 @@
         "endY": 876813.9049301677,
         "color": "#ff8000",
         "opacity": 0.85,
-        "lineWidth": 6,
+        "lineWidth": 10,
         "headSize": 18
       },
       {
         "id": "arr_1790055494953",
         "name": "Arrow 2",
-        "startX": 1097957.6213373782,
-        "startY": 876709.5789097315,
-        "endX": 1097937.3199930626,
-        "endY": 876731.0523639123,
+        "startX": 1097951.6385873845,
+        "startY": 876666.8449812047,
+        "endX": 1097914.2436716582,
+        "endY": 876701.1386139436,
         "color": "#ff0000",
         "opacity": 0.85,
-        "lineWidth": 6,
+        "lineWidth": 10,
         "headSize": 18
       },
       {
