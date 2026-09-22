@@ -3,8 +3,9 @@
     "id": 1790035200054,
     "name": "Lotes A y B",
     "selectedPolyIds": [
-      2,
-      1
+      4,
+      1,
+      2
     ],
     "camera": {
       "scale": 1.170030505587996,
@@ -22,20 +23,20 @@
       {
         "id": "lbl_1790035279947",
         "text": "Lote A \n8,105 m² \n(1.27 pl)",
-        "worldX": 1097785.9256660559,
-        "worldY": 876872.0266357268,
+        "worldX": 1097781.6522732032,
+        "worldY": 876868.6079214446,
         "fontSize": 14,
         "bold": true,
         "italic": false,
         "textColor": "#ffffff",
-        "bgColor": "#ffa448",
-        "bgOpacity": 0.65,
-        "borderColor": "#000000",
+        "bgColor": "#ff8e1e",
+        "bgOpacity": 0.6,
+        "borderColor": "#ff8000",
         "borderWidth": 1,
         "padding": 3,
         "_box": {
-          "x": 268.99999999976717,
-          "y": 73,
+          "x": 263.99999999976717,
+          "y": 77,
           "w": 65.83333206176758,
           "h": 60
         }
@@ -43,20 +44,20 @@
       {
         "id": "lbl_1790036085914",
         "text": "Lote B\n4,042 m²\n0.63 pl",
-        "worldX": 1097901.3072730782,
-        "worldY": 876922.4526713884,
+        "worldX": 1097866.2654516865,
+        "worldY": 876917.324599965,
         "fontSize": 14,
         "bold": true,
         "italic": false,
         "textColor": "#ffffff",
         "bgColor": "#09ff09",
         "bgOpacity": 0.25,
-        "borderColor": "#000000",
+        "borderColor": "#008000",
         "borderWidth": 1,
         "padding": 2,
         "_box": {
-          "x": 404.99999999976717,
-          "y": 15,
+          "x": 364,
+          "y": 21.00000000023283,
           "w": 59.94444274902344,
           "h": 58
         }
@@ -64,8 +65,8 @@
       {
         "id": "lbl_1790036233309",
         "text": "La Trinidad",
-        "worldX": 1097717.551380413,
-        "worldY": 876719.0391716008,
+        "worldX": 1097722.6794518363,
+        "worldY": 876721.6032073124,
         "fontSize": 14,
         "bold": true,
         "italic": false,
@@ -76,8 +77,8 @@
         "borderWidth": 0.5,
         "padding": 2,
         "_box": {
-          "x": 189.99999999976717,
-          "y": 252.99999999988358,
+          "x": 196,
+          "y": 249.99999999988358,
           "w": 78.38888549804688,
           "h": 22
         },
@@ -86,8 +87,8 @@
       {
         "id": "lbl_1790036295497",
         "text": "Casa del Sol",
-        "worldX": 1097728.66220183,
-        "worldY": 876665.1944216568,
+        "worldX": 1097721.8247732657,
+        "worldY": 876657.502314522,
         "fontSize": 14,
         "bold": true,
         "italic": false,
@@ -98,8 +99,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 197.99999999976717,
-          "y": 311.00000000023283,
+          "x": 190,
+          "y": 320.0000000001164,
           "w": 97,
           "h": 32
         },
@@ -110,8 +111,8 @@
       {
         "id": "arr_1790046529690",
         "name": "Arrow 1",
-        "startX": 1097839.6841659686,
-        "startY": 876846.334528592,
+        "startX": 1097837.9748088273,
+        "startY": 876839.4971000277,
         "endX": 1097868.9157374292,
         "endY": 876839.6006000651,
         "color": "#000000",
@@ -120,225 +121,76 @@
         "headSize": 18
       },
       {
-        "id": "arr_1790048672327",
+        "id": "arr_1790049257225",
         "name": "Arrow 2",
-        "startX": 1097954.2110944206,
-        "startY": 876894.1965285419,
-        "endX": 1098000.5362372918,
-        "endY": 876881.4798500214,
+        "startX": 1097918.3145944579,
+        "startY": 876882.2310285545,
+        "endX": 1098003.100273003,
+        "endY": 876884.0438857329,
         "color": "#000000",
         "opacity": 1,
         "lineWidth": 3.5,
         "headSize": 18
       },
       {
-        "id": "arr_1790048849619",
+        "id": "arr_1790049325527",
         "name": "Arrow 3",
-        "startX": 1097731.1399875104,
-        "startY": 876680.5268859077,
-        "endX": 1097731.312487573,
+        "startX": 1097735.4133803633,
+        "startY": 876679.6722073372,
+        "endX": 1097736.440558996,
         "endY": 876707.1254216318,
-        "color": "#00e5ff",
-        "opacity": 0.85,
-        "lineWidth": 3.5,
+        "color": "#0000ff",
+        "opacity": 1,
+        "lineWidth": 8,
         "headSize": 18
       },
       {
-        "id": "arr_1790048859786",
+        "id": "arr_1790049350821",
         "name": "Arrow 4",
-        "startX": 1097745.6695232096,
-        "startY": 876685.654957331,
-        "endX": 1097745.8420232718,
-        "endY": 876663.5368145346,
-        "color": "#00e5ff",
+        "startX": 1097758.4897017677,
+        "startY": 876687.3643144721,
+        "endX": 1097757.8075232594,
+        "endY": 876660.1181002524,
+        "color": "#0000ff",
         "opacity": 0.85,
-        "lineWidth": 3.5,
+        "lineWidth": 8,
         "headSize": 18
       }
     ],
     "polyStyles": {
       "1": {
         "color": "#ffd600",
-        "fillOpacity": 0.1
+        "fillOpacity": 0.17
       },
       "2": {
         "color": "#00e676",
-        "fillOpacity": 0.1
+        "fillOpacity": 0.29
       },
       "3": {
         "color": "#ff1744",
-        "fillOpacity": 0.14
+        "fillOpacity": 0.14,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
       },
       "4": {
         "color": "#2979ff",
-        "fillOpacity": 0.15
+        "fillOpacity": 1
+      },
+      "9": {
+        "color": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
       }
     },
     "dxfOpacity": {
-      "dxf_296": 0.89,
-      "dxf_1073": 0.63,
+      "dxf_296": 0.5,
+      "dxf_1073": 0.62,
       "dxf_196": 1,
       "dxf_true": 1
     },
     "geotiffBW": false
-  },
-  {
-    "id": 1790042870800,
-    "name": "Escritura 196",
-    "selectedPolyIds": [
-      3,
-      9
-    ],
-    "camera": {
-      "scale": 0.5058364756240412,
-      "offsetX": -554825.0575589915,
-      "offsetY": -443417.2958627847
-    },
-    "layers": {
-      "geotiff": true,
-      "dxf296": true,
-      "dxf1073": true,
-      "dxf196": true,
-      "dxfTrue": true
-    },
-    "labels": [
-      {
-        "id": "lbl_1790042957374",
-        "text": "Plano\nLote #5\npasado a la\nCuraduria en 2013",
-        "worldX": 1097680.7676600472,
-        "worldY": 876922.2153236509,
-        "fontSize": 14,
-        "bold": true,
-        "italic": false,
-        "textColor": "#ffffff",
-        "bgColor": "#ff9326",
-        "bgOpacity": 0.35,
-        "borderColor": "#ff8000",
-        "borderWidth": 1,
-        "padding": 4,
-        "_box": {
-          "x": 231.58049375005066,
-          "y": 54.114224999793805,
-          "w": 129.05555725097656,
-          "h": 80
-        }
-      },
-      {
-        "id": "lbl_1790043015356",
-        "text": "Plano original \nLote #5 \nescritura 1073 \nde 1973",
-        "worldX": 1097958.8293590073,
-        "worldY": 876688.540081699,
-        "fontSize": 14,
-        "bold": true,
-        "italic": false,
-        "textColor": "#ffffff",
-        "bgColor": "#ff0909",
-        "bgOpacity": 0.35,
-        "borderColor": "#ff0000",
-        "borderWidth": 1,
-        "padding": 2,
-        "_box": {
-          "x": 479.58478125021793,
-          "y": 262.849318749737,
-          "w": 101.94444274902344,
-          "h": 76
-        },
-        "showBg": true
-      },
-      {
-        "id": "lbl_1790043089637",
-        "text": "La Trinidad",
-        "worldX": 1097715.5296128546,
-        "worldY": 876738.2738277185,
-        "fontSize": 14,
-        "bold": true,
-        "italic": false,
-        "textColor": "#ffffff",
-        "bgColor": "#ffffff",
-        "bgOpacity": 0.85,
-        "borderColor": "#000000",
-        "borderWidth": 1.5,
-        "padding": 7,
-        "_box": {
-          "x": 259.3347812498687,
-          "y": 213.8493187498534,
-          "w": 88.38888549804688,
-          "h": 32
-        },
-        "showBg": false
-      },
-      {
-        "id": "lbl_1790043120296",
-        "text": "Casa del Sol",
-        "worldX": 1097717.9597845355,
-        "worldY": 876653.6134282444,
-        "fontSize": 14,
-        "bold": true,
-        "italic": false,
-        "textColor": "#ffffff",
-        "bgColor": "#ffffff",
-        "bgOpacity": 0.85,
-        "borderColor": "#000000",
-        "borderWidth": 1.5,
-        "padding": 7,
-        "_box": {
-          "x": 261.4847812502412,
-          "y": 288.7493187497603,
-          "w": 97,
-          "h": 32
-        },
-        "showBg": false
-      }
-    ],
-    "arrows": [
-      {
-        "id": "arr_1790047160192",
-        "name": "Arrow 1",
-        "startX": 1097751.8396376157,
-        "startY": 876685.0638261359,
-        "endX": 1097753.0633923197,
-        "endY": 876719.9335137266,
-        "color": "#00e5ff",
-        "opacity": 0.85,
-        "lineWidth": 9.5,
-        "headSize": 18
-      },
-      {
-        "id": "arr_1790047189124",
-        "name": "Arrow 2",
-        "startX": 1097766.5336989397,
-        "startY": 876690.7153881836,
-        "endX": 1097765.4968288247,
-        "endY": 876656.6360187924,
-        "color": "#00e5ff",
-        "opacity": 0.85,
-        "lineWidth": 10,
-        "headSize": 31
-      },
-      {
-        "id": "arr_1790047240295",
-        "name": "Arrow 3",
-        "startX": 1097802.7036960449,
-        "startY": 876834.2650641944,
-        "endX": 1097851.4005719495,
-        "endY": 876804.7069444415,
-        "color": "#ff8000",
-        "opacity": 1,
-        "lineWidth": 6,
-        "headSize": 15
-      },
-      {
-        "id": "arr_1790047274524",
-        "name": "Arrow 4",
-        "startX": 1097953.0352465129,
-        "startY": 876661.3272655357,
-        "endX": 1097905.6555676071,
-        "endY": 876693.9363283071,
-        "color": "#ff0000",
-        "opacity": 1,
-        "lineWidth": 6,
-        "headSize": 15
-      }
-    ]
   }
 ]
