@@ -1013,6 +1013,17 @@
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
                 </tr>
+                <tr>
+                  <td><span class="poly-color-dot" style="background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange);"></span></td>
+                  <td class="col-name" id="sum-name-dxf-overlay" style="color:var(--accent-orange);">Alambrado in 2026</td>
+                  <td style="white-space:nowrap;padding:1px 2px;">
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_overlay" data-dir="-1" title="Send Backward (draw behind)">▼</button>
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_overlay" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                  </td>
+                  <td><input type="checkbox" id="sum-show-dxf-overlay" checked title="Show/hide Alambrado in 2026 on field map" style="accent-color:var(--accent-orange);"></td>
+                  <td class="na-cell">—</td>
+                  <td class="na-cell">—</td>
+                </tr>
                 <!-- JS renders dynamic measurement polygon rows AND the section divider here -->
                 <tr class="section-divider">
                   <td colspan="6" style="padding-left:6px;">🎯 Anchor Points</td>
@@ -1288,7 +1299,7 @@
                 <input type="checkbox" id="chk-show-overlay" checked>
                 <span>Visible</span>
               </label>
-              <input type="text" id="overlay-label-input" value="Overlay Layer" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:#fff;font-size:0.78rem;font-weight:600;width:100px;">
+              <input type="text" id="overlay-label-input" value="Alambrado in 2026" style="background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.2);color:#fff;font-size:0.78rem;font-weight:600;width:130px;" title="Layer name in legend and reports">
             </div>
             <button class="btn-panel-toggle" data-target="body-panel-overlay">▶</button>
           </div>
@@ -1785,8 +1796,8 @@ const state = {
     fillOpacity: 0.0,
     lineWidth: 2.5,
     lineType: "solid",
-    label: "Overlay",
-    fileName: null
+    label: "Alambrado in 2026",
+    fileName: "CercoCampoSept_2026.dxf"
   },
   dxfOpacity: { dxf_296: 1, dxf_1073: 1, dxf_196: 1, dxf_true: 1 },
   pendingSource: null, // { x, y, origin: '296' | '1073' | '196' }
@@ -1991,6 +2002,7 @@ window.addEventListener("DOMContentLoaded", () => {
   autoLoadDXF196();
   autoLoadGeoTiff();
   autoLoadTrueDXF();
+  autoLoadOverlayDXF();
   autoLoadAnchors();
   autoLoadPolygons();
   autoLoadCases();
@@ -2240,6 +2252,32 @@ async function autoLoadDXF196() {
     }
   } catch (err) {
     console.log("autoLoadDXF196 skipped (CORS or missing file):", err);
+  }
+}
+
+async function autoLoadOverlayDXF() {
+  try {
+    const filename = "CercoCampoSept_2026.dxf";
+    const response = await fetch(encodeURIComponent(filename));
+    if (response.ok) {
+      const text = await response.text();
+      const entities = DXFParser.parse(text);
+      state.overlayLayer.entities = entities;
+      state.overlayLayer.fileName = filename;
+      state.overlayLayer.label = "Alambrado in 2026";
+      const el = document.getElementById("status-overlay");
+      if (el) el.textContent = `DXF Loaded (${entities.length})`;
+      const overlayLabelInput = document.getElementById("overlay-label-input");
+      if (overlayLabelInput) overlayLabelInput.value = "Alambrado in 2026";
+      const sumNameEl = document.getElementById("sum-name-dxf-overlay");
+      if (sumNameEl) sumNameEl.textContent = "Alambrado in 2026";
+      updateAnalyticsUI();
+      redrawAll();
+    } else {
+      console.warn("CercoCampoSept_2026.dxf not found — overlay panel will be empty.");
+    }
+  } catch (err) {
+    console.log("autoLoadOverlayDXF skipped (CORS or missing file):", err);
   }
 }
 
@@ -3693,7 +3731,7 @@ function updateMasterCheckboxes() {
   if (!masterShow) return;
 
   // For Show: consider DXF layers, anchor rows, AND measurement polygons
-  const dxfShowIds = ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true"];
+  const dxfShowIds = ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"];
   const anchorShowIds = ["sum-show-anchors-296","sum-show-anchors-1073","sum-show-anchors-196"];
   const allShowChks = [...dxfShowIds, ...anchorShowIds].map(id => document.getElementById(id)).filter(Boolean);
   const measShowChks = Array.from(document.querySelectorAll(".sum-poly-show"));
@@ -3759,6 +3797,23 @@ function setupPolygonSummaryListeners() {
   wireDXFSummaryRow("sum-show-dxf-196",  "chk-show-field-196",  "showWarped196OnField");
   wireDXFSummaryRow("sum-show-dxf-true", "chk-show-field-true", "showFieldDXFOnField");
 
+  // Wire dxf_overlay summary row with chk-show-overlay
+  const sumOverlayChk = document.getElementById("sum-show-dxf-overlay");
+  const fieldOverlayChk = document.getElementById("chk-show-overlay");
+  if (sumOverlayChk && fieldOverlayChk) {
+    sumOverlayChk.checked = state.overlayLayer.visible !== false;
+    fieldOverlayChk.checked = state.overlayLayer.visible !== false;
+    sumOverlayChk.addEventListener("change", function() {
+      fieldOverlayChk.checked = this.checked;
+      fieldOverlayChk.dispatchEvent(new Event("change"));
+      updateMasterCheckboxes();
+    });
+    fieldOverlayChk.addEventListener("change", function() {
+      sumOverlayChk.checked = this.checked;
+      updateMasterCheckboxes();
+    }, true);
+  }
+
   // ---- Anchor summary checkboxes (sync to existing chk-show-anchors-* inputs) ----
   function wireAnchorSummaryRow(sumId, anchorId, stateKey) {
     const sumChk    = document.getElementById(sumId);
@@ -3798,7 +3853,7 @@ function setupPolygonSummaryListeners() {
     masterShow.addEventListener("change", function() {
       const v = this.checked;
       // DXF layers
-      ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true"].forEach(id => {
+      ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.checked = v; el.dispatchEvent(new Event("change")); }
       });
@@ -4226,6 +4281,8 @@ function setupEventListeners() {
   if (overlayLabelInput) {
     overlayLabelInput.addEventListener("input", (e) => {
       state.overlayLayer.label = e.target.value;
+      const sumEl = document.getElementById("sum-name-dxf-overlay");
+      if (sumEl) sumEl.textContent = e.target.value;
     });
   }
   if (overlayColorInput) {
@@ -6652,7 +6709,8 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
       break;
     }
     case "dxf_overlay": {
-      if (ac.layers?.dxfOverlay && state.overlayLayer.visible && state.overlayLayer.entities.length > 0) {
+      const isVisible = ac.layers ? (ac.layers.dxfOverlay !== false) : true;
+      if (isVisible && state.overlayLayer.visible && state.overlayLayer.entities.length > 0) {
         drawEntitiesGISExport(ctx, state.overlayLayer.entities, vpExp, EXP_H, state.overlayLayer.color || "#ff9100", (state.overlayLayer.lineWidth || 2.5) * scaleRatio);
       }
       break;
