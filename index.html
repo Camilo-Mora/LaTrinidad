@@ -1055,9 +1055,12 @@
                   <input type="number" id="lbl-fontsize" min="8" max="72" value="14" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
                 </label>
                 <label style="display:flex;flex-direction:column;gap:2px;">Style
-                  <div style="display:flex;gap:4px;margin-top:2px;">
-                    <button id="lbl-bold" class="btn btn-secondary btn-sm" style="font-weight:700;padding:2px 8px;" title="Toggle bold">B</button>
-                    <button id="lbl-italic" class="btn btn-secondary btn-sm" style="font-style:italic;padding:2px 8px;" title="Toggle italic">I</button>
+                  <div style="display:flex;gap:3px;margin-top:2px;flex-wrap:wrap;">
+                    <button id="lbl-bold" class="btn btn-secondary btn-sm" style="font-weight:700;padding:2px 7px;" title="Toggle bold">B</button>
+                    <button id="lbl-italic" class="btn btn-secondary btn-sm" style="font-style:italic;padding:2px 7px;" title="Toggle italic">I</button>
+                    <button id="lbl-btn-sup" class="btn btn-secondary btn-sm" style="padding:2px 6px;font-size:0.75rem;" title="Convert selected characters to Superscript (e.g. 2 → ²)">x²</button>
+                    <button id="lbl-btn-sub" class="btn btn-secondary btn-sm" style="padding:2px 6px;font-size:0.75rem;" title="Convert selected characters to Subscript (e.g. 2 → ₂)">x₂</button>
+                    <button id="lbl-btn-m2" class="btn btn-secondary btn-sm" style="padding:2px 6px;font-size:0.7rem;font-weight:600;" title="Insert m² at cursor">m²</button>
                   </div>
                 </label>
                 <label style="display:flex;flex-direction:column;gap:2px;">Text Color
@@ -4185,6 +4188,7 @@ function attachCanvasInteractions(canvas, mapName) {
   let isPanning = false;
   let lastX = 0, lastY = 0;
   let draggingAnchor = null; // { list, anc, field }
+  let draggingCaseLabel = null; // { lbl, startMouseX, startMouseY, origWorldX, origWorldY }
 
   // Always read the CURRENT viewport from state — fitViewport() creates new objects,
   // so a captured reference from call time would go stale immediately.
@@ -4221,6 +4225,23 @@ function attachCanvasInteractions(canvas, mapName) {
         redrawAll();
       }
       return;
+    }
+
+    // If on Field map and in case mode, check if clicking a label first!
+    if (mapName === "true" && state.caseMode && e.button === 0) {
+      const hitLbl = getLabelAtScreen(mouseX, mouseY);
+      if (hitLbl) {
+        draggingCaseLabel = {
+          lbl: hitLbl,
+          startMouseX: mouseX,
+          startMouseY: mouseY,
+          origWorldX: hitLbl.worldX,
+          origWorldY: hitLbl.worldY
+        };
+        selectCaseLabel(hitLbl.id);
+        canvas.style.cursor = "grabbing";
+        return; // Prevent map pan!
+      }
     }
 
     if (state.toolMode === "pan" || e.button === 1) {
@@ -4284,6 +4305,15 @@ function attachCanvasInteractions(canvas, mapName) {
 
     coordsBar.textContent = `${mapName.toUpperCase()} Coords: (${worldPt.x.toFixed(2)}, ${worldPt.y.toFixed(2)}) m`;
 
+    if (draggingCaseLabel) {
+      const curWorld = toWorld(mouseX, mouseY, vp, canvas.height);
+      const startWorld = toWorld(draggingCaseLabel.startMouseX, draggingCaseLabel.startMouseY, vp, canvas.height);
+      draggingCaseLabel.lbl.worldX = draggingCaseLabel.origWorldX + (curWorld.x - startWorld.x);
+      draggingCaseLabel.lbl.worldY = draggingCaseLabel.origWorldY + (curWorld.y - startWorld.y);
+      redrawAll();
+      return;
+    }
+
     if (isPanning && (e.buttons & 1)) {
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
@@ -4316,6 +4346,14 @@ function attachCanvasInteractions(canvas, mapName) {
       return;
     }
 
+    if (mapName === "true" && state.caseMode && !isPanning && !draggingCaseLabel) {
+      const hitLbl = getLabelAtScreen(mouseX, mouseY);
+      if (hitLbl) {
+        canvas.style.cursor = "grab";
+        return;
+      }
+    }
+
     if (state.toolMode === "anchor") {
       const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey);
       if (state.currentSnapTarget !== snap) {
@@ -4340,6 +4378,10 @@ function attachCanvasInteractions(canvas, mapName) {
   canvas.addEventListener("mouseup", (e) => {
     const vp = getVP();
     const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
+    if (draggingCaseLabel) {
+      draggingCaseLabel = null;
+      canvas.style.cursor = "grab";
+    }
     if (draggingAnchor) {
       const { x: mouseX, y: mouseY } = getCanvasXY(e);
       const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey);
@@ -4361,6 +4403,7 @@ function attachCanvasInteractions(canvas, mapName) {
 
   canvas.addEventListener("mouseleave", () => {
     isPanning = false;
+    if (draggingCaseLabel) { draggingCaseLabel = null; }
     if (draggingAnchor) { draggingAnchor = null; }
     if (state.draggingMeasurePt !== null) { state.draggingMeasurePt = null; }
     if (state.currentSnapTarget) {
@@ -5612,19 +5655,14 @@ function deleteSelectedLabel() {
 function getLabelAtScreen(screenX, screenY) {
   const ac = getActiveCase();
   if (!ac || !ac.labels) return null;
-  const h = canvasTrue.height;
   for (let i = ac.labels.length - 1; i >= 0; i--) {
     const lbl = ac.labels[i];
-    const sp = worldToScreenGIS({ x: lbl.worldX, y: lbl.worldY }, state.vpTrue, h);
-    const lines = (lbl.text || "").split("\n");
-    const fs = lbl.fontSize || 14;
-    const pad = lbl.padding || 7;
-    const lineH = fs + 4;
-    const maxW = Math.max(...lines.map(l => l.length)) * fs * 0.65 + pad * 2;
-    const boxH = lines.length * lineH + pad * 2;
-    if (screenX >= sp.x - pad && screenX <= sp.x - pad + maxW &&
-        screenY >= sp.y - pad && screenY <= sp.y - pad + boxH) {
-      return lbl;
+    if (lbl._box) {
+      const b = lbl._box;
+      if (screenX >= b.x && screenX <= b.x + b.w &&
+          screenY >= b.y && screenY <= b.y + b.h) {
+        return lbl;
+      }
     }
   }
   return null;
@@ -5647,6 +5685,7 @@ function drawCaseLabels(ctx, vp, h) {
     const boxH = lines.length * lineH + pad * 2;
     const x = sp.x - pad;
     const y = sp.y - pad;
+    lbl._box = { x, y, w: boxW, h: boxH };
     const bgOp = lbl.bgOpacity !== undefined ? lbl.bgOpacity : 0.85;
     const bgHex = lbl.bgColor || "#ffffff";
     const br = parseInt(bgHex.slice(1,3),16) || 255;
@@ -5990,47 +6029,62 @@ function setupCasesPanel() {
     });
   }
 
-  setupCaseLabelDragOnCanvas();
-}
+  const SUP_MAP = {
+    '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹',
+    '+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾','n':'ⁿ','i':'ⁱ','a':'ᵃ','b':'ᵇ','c':'ᶜ',
+    'd':'ᵈ','e':'ᵉ','f':'ᶠ','g':'ᵍ','h':'ʰ','j':'ʲ','k':'ᵏ','l':'ˡ','m':'ᵐ','o':'ᵒ',
+    'p':'ᵖ','r':'ʳ','s':'ˢ','t':'ᵗ','u':'ᵘ','v':'ᵛ','w':'ʷ','x':'ˣ','y':'ʸ','z':'ᶻ'
+  };
+  const SUB_MAP = {
+    '0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉',
+    '+':'₊','-':'₋','=':'₌','(':'₍',')':'₎','a':'ₐ','e':'ₑ','h':'ₕ','i':'ᵢ','j':'ⱼ',
+    'k':'ₖ','l':'ₗ','m':'ₘ','n':'ₙ','o':'ₒ','p':'ₚ','r':'ᵣ','s':'ₛ','t':'ₜ','u':'ᵤ',
+    'v':'ᵥ','x':'ₓ'
+  };
 
-function setupCaseLabelDragOnCanvas() {
-  let dragging = false;
-  let dragLblId = null;
-  let dragOffX = 0, dragOffY = 0;
-
-  canvasTrue.addEventListener("mousedown", (e) => {
-    if (!state.caseMode || state.toolMode !== "pan") return;
-    const { x: mx, y: my } = getCanvasXY(e);
-    const lbl = getLabelAtScreen(mx, my);
-    if (!lbl) return;
-    e.stopImmediatePropagation();
-    dragging = true;
-    dragLblId = lbl.id;
-    const sp = worldToScreenGIS({ x: lbl.worldX, y: lbl.worldY }, state.vpTrue, canvasTrue.height);
-    dragOffX = mx - sp.x;
-    dragOffY = my - sp.y;
-    canvasTrue.style.cursor = "grabbing";
-    selectCaseLabel(lbl.id);
-  }, true);
-
-  canvasTrue.addEventListener("mousemove", (e) => {
-    if (!state.caseMode) return;
-    if (dragging && dragLblId) {
-      const { x: mx, y: my } = getCanvasXY(e);
-      const worldPt = screenToWorldGIS(mx - dragOffX, my - dragOffY, state.vpTrue, canvasTrue.height);
-      const ac = getActiveCase();
-      const lbl = ac ? (ac.labels || []).find(l => l.id === dragLblId) : null;
-      if (lbl) { lbl.worldX = worldPt.x; lbl.worldY = worldPt.y; drawViewportTrue(); }
-      return;
+  function applySuperOrSub(isSuper) {
+    const textarea = document.getElementById("lbl-text");
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const map = isSuper ? SUP_MAP : SUB_MAP;
+    const fallback = isSuper ? "²" : "₂";
+    let replacement = "";
+    if (start === end) {
+      replacement = fallback;
+    } else {
+      const selected = textarea.value.substring(start, end);
+      replacement = selected.split("").map(ch => map[ch] || map[ch.toLowerCase()] || ch).join("");
     }
-    const { x: mx, y: my } = getCanvasXY(e);
-    const lbl = getLabelAtScreen(mx, my);
-    if (lbl && state.toolMode === "pan") canvasTrue.style.cursor = "grab";
-  }, true);
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    textarea.value = before + replacement + after;
+    textarea.selectionStart = textarea.selectionEnd = start + replacement.length;
+    textarea.focus();
+    updateSelectedLabelProp("text", textarea.value);
+    buildCaseLabelsList();
+  }
 
-  window.addEventListener("mouseup", () => {
-    if (dragging) { dragging = false; dragLblId = null; canvasTrue.style.cursor = "grab"; }
-  });
+  function insertTextAtCursor(txt) {
+    const textarea = document.getElementById("lbl-text");
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    textarea.value = before + txt + after;
+    textarea.selectionStart = textarea.selectionEnd = start + txt.length;
+    textarea.focus();
+    updateSelectedLabelProp("text", textarea.value);
+    buildCaseLabelsList();
+  }
+
+  const btnSup = document.getElementById("lbl-btn-sup");
+  if (btnSup) btnSup.addEventListener("click", () => applySuperOrSub(true));
+  const btnSub = document.getElementById("lbl-btn-sub");
+  if (btnSub) btnSub.addEventListener("click", () => applySuperOrSub(false));
+  const btnM2 = document.getElementById("lbl-btn-m2");
+  if (btnM2) btnM2.addEventListener("click", () => insertTextAtCursor("m²"));
 }
   </script>
 </body>

@@ -1,1 +1,54 @@
-[]
+[
+  {
+    "id": 1790035200054,
+    "name": "Lotes A y B",
+    "selectedPolyIds": [
+      1,
+      2
+    ],
+    "camera": {
+      "scale": 1.170030505587996,
+      "offsetX": -1284171.0216344418,
+      "offsetY": -1025665.0206605701
+    },
+    "layers": {
+      "geotiff": true,
+      "dxf296": true,
+      "dxf1073": true,
+      "dxf196": true,
+      "dxfTrue": true
+    },
+    "labels": [
+      {
+        "id": "lbl_1790035279947",
+        "text": "Lote A \n8,105m2 \n(1.27pl)",
+        "worldX": 1097869.6841659686,
+        "worldY": 876775.4479572561,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffff80",
+        "bgOpacity": 0.6,
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "padding": 3
+      },
+      {
+        "id": "lbl_1790035425404",
+        "text": "New Label",
+        "worldX": 1097743.1917375291,
+        "worldY": 876769.4652072624,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7
+      }
+    ]
+  }
+]
