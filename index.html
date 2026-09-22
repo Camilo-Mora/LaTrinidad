@@ -1127,6 +1127,40 @@
               </label>
               <button id="btn-lbl-delete" class="btn btn-sm btn-danger-sm" style="width:100%;margin-top:6px;">🗑️ Delete Label</button>
             </div>
+            <!-- DXF Layer Opacity -->
+            <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:6px;">
+              <div style="font-size:0.7rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;">🗺️ DXF Layer Opacity</div>
+              <div style="display:flex;flex-direction:column;gap:5px;">
+                <!-- Escritura 296 -->
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#d500f9;flex-shrink:0;box-shadow:0 0 4px #d500f9;display:inline-block;"></span>
+                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Escritura 296</span>
+                  <input type="range" id="dxf-opacity-296" min="0" max="100" value="100" style="flex:2;accent-color:#d500f9;">
+                  <span id="dxf-opacity-296-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
+                </div>
+                <!-- Escritura 1073 -->
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#ff1744;flex-shrink:0;box-shadow:0 0 4px #ff1744;display:inline-block;"></span>
+                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Escritura 1073</span>
+                  <input type="range" id="dxf-opacity-1073" min="0" max="100" value="100" style="flex:2;accent-color:#ff1744;">
+                  <span id="dxf-opacity-1073-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
+                </div>
+                <!-- Escritura 196 -->
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#ff9100;flex-shrink:0;box-shadow:0 0 4px #ff9100;display:inline-block;"></span>
+                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Escritura 196</span>
+                  <input type="range" id="dxf-opacity-196" min="0" max="100" value="100" style="flex:2;accent-color:#ff9100;">
+                  <span id="dxf-opacity-196-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
+                </div>
+                <!-- Alambrado (True DXF) -->
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#00e676;flex-shrink:0;box-shadow:0 0 4px #00e676;display:inline-block;"></span>
+                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Alambrado</span>
+                  <input type="range" id="dxf-opacity-true" min="0" max="100" value="100" style="flex:2;accent-color:#00e676;">
+                  <span id="dxf-opacity-true-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
+                </div>
+              </div>
+            </div>
             <!-- HD Export -->
             <button id="btn-case-export-hd" class="btn btn-success" style="width:100%;" title="Export this case as a 4K HD PNG image">📸 Download HD Image</button>
             <p style="font-size:0.68rem;color:var(--text-muted);margin-top:4px;margin-bottom:0;">In Case mode: selected polygons shown in full color; rest of map is black &amp; white. Drag labels on the Field map.</p>
@@ -1686,6 +1720,7 @@ const state = {
     label: "Overlay",
     fileName: null
   },
+  dxfOpacity: { dxf_296: 1, dxf_1073: 1, dxf_196: 1, dxf_true: 1 },
   pendingSource: null, // { x, y, origin: '296' | '1073' | '196' }
   algorithm: "TPS",
   toolMode: "pan", // 'pan' | 'anchor' | 'measure'
@@ -2531,7 +2566,9 @@ function drawLayerByKey(key, ctx, vp, h) {
   switch (key) {
     case "dxf_true":
       if (state.showFieldDXFOnField !== false) {
+        ctx.save(); ctx.globalAlpha = state.dxfOpacity.dxf_true ?? 1;
         drawEntitiesGIS(ctx, state.entitiesTrue, vp, h, "#00e676");
+        ctx.restore();
       }
       break;
     case "dxf_overlay":
@@ -2543,7 +2580,9 @@ function drawLayerByKey(key, ctx, vp, h) {
       if (state.showWarped296OnField !== false && getActiveAnchors(state.anchors296).length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
+          ctx.save(); ctx.globalAlpha = state.dxfOpacity.dxf_296 ?? 1;
           drawWarpedEntitiesGIS(ctx, state.entities296, warper, vp, h, "rgba(213, 0, 249, 0.85)");
+          ctx.restore();
         } catch (_) {}
       }
       break;
@@ -2551,7 +2590,9 @@ function drawLayerByKey(key, ctx, vp, h) {
       if (state.showWarped1073OnField !== false && getActiveAnchors(state.anchors1073).length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
+          ctx.save(); ctx.globalAlpha = state.dxfOpacity.dxf_1073 ?? 1;
           drawWarpedEntitiesGIS(ctx, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)");
+          ctx.restore();
         } catch (_) {}
       }
       break;
@@ -2559,7 +2600,9 @@ function drawLayerByKey(key, ctx, vp, h) {
       if (state.showWarped196OnField !== false && getActiveAnchors(state.anchors196).length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
+          ctx.save(); ctx.globalAlpha = state.dxfOpacity.dxf_196 ?? 1;
           drawWarpedEntitiesGIS(ctx, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)");
+          ctx.restore();
         } catch (_) {}
       }
       break;
@@ -2889,37 +2932,8 @@ function updateMeasurementUI() {
       updateMeasurementUI();
     });
 
-    const orderSpan = document.createElement("span");
-    orderSpan.style.cssText = "display:inline-flex;gap:2px;flex-shrink:0;";
-    const btnDown = document.createElement("button");
-    btnDown.type = "button";
-    btnDown.className = "btn-order-btn";
-    btnDown.style.cssText = "padding:0 3px;font-size:0.6rem;line-height:1.2;";
-    btnDown.title = "Send Backward (draw behind)";
-    btnDown.textContent = "▼";
-    btnDown.disabled = idx === 0;
-    btnDown.addEventListener("click", (e) => {
-      e.stopPropagation();
-      movePolygonOrder(idx, idx - 1);
-    });
-
-    const btnUp = document.createElement("button");
-    btnUp.type = "button";
-    btnUp.className = "btn-order-btn";
-    btnUp.style.cssText = "padding:0 3px;font-size:0.6rem;line-height:1.2;";
-    btnUp.title = "Bring Forward (draw on top)";
-    btnUp.textContent = "▲";
-    btnUp.disabled = idx === state.measurePolygons.length - 1;
-    btnUp.addEventListener("click", (e) => {
-      e.stopPropagation();
-      movePolygonOrder(idx, idx + 1);
-    });
-    orderSpan.appendChild(btnDown);
-    orderSpan.appendChild(btnUp);
-
     headerRow.appendChild(colorBtn);
     headerRow.appendChild(nameInput);
-    headerRow.appendChild(orderSpan);
     headerRow.appendChild(showLabel);
     headerRow.appendChild(areaLabel);
     headerRow.appendChild(nodesLabel);
@@ -4109,6 +4123,23 @@ function setupEventListeners() {
       redrawAll();
     });
   }
+  // DXF Layer Opacity sliders (Cases panel)
+  [
+    { id: "dxf-opacity-296",  key: "dxf_296"  },
+    { id: "dxf-opacity-1073", key: "dxf_1073" },
+    { id: "dxf-opacity-196",  key: "dxf_196"  },
+    { id: "dxf-opacity-true", key: "dxf_true" },
+  ].forEach(({ id, key }) => {
+    const slider = document.getElementById(id);
+    const valEl  = document.getElementById(id + "-val");
+    if (slider) {
+      slider.addEventListener("input", (e) => {
+        state.dxfOpacity[key] = parseInt(e.target.value, 10) / 100;
+        if (valEl) valEl.textContent = e.target.value + "%";
+        redrawAll();
+      });
+    }
+  });
   if (chkShowAnchors1073) {
     chkShowAnchors1073.addEventListener("change", (e) => {
       state.showAnchors1073 = e.target.checked;
