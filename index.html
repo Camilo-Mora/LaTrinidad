@@ -1218,11 +1218,16 @@
                   <span style="width:8px;height:8px;border-radius:50%;background:#00e5ff;flex-shrink:0;box-shadow:0 0 4px #00e5ff;display:inline-block;"></span>
                   <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">GeoTIFF (Dron/Foto)</span>
                 </div>
+                <!-- B&W toggle -->
+                <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                  <input type="checkbox" id="case-geotiff-bw" checked title="Show drone image in black &amp; white (spotlight effect) or full color" style="cursor:pointer;accent-color:var(--accent-cyan);">
+                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;">🎨 B&amp;W background (spotlight)</span>
+                </div>
               </div>
             </div>
             <!-- HD Export -->
             <button id="btn-case-export-hd" class="btn btn-success" style="width:100%;" title="Export this case as a 4K HD PNG image">📸 Download HD Image</button>
-            <p style="font-size:0.68rem;color:var(--text-muted);margin-top:4px;margin-bottom:0;">In Case mode: selected polygons shown in full color; rest of map is black &amp; white. Drag labels on the Field map.</p>
+            <p style="font-size:0.68rem;color:var(--text-muted);margin-top:4px;margin-bottom:0;">In Case mode: selected polygons shown in full color. Toggle B&amp;W above to switch the background between greyscale-spotlight and full color. Drag labels on the Field map.</p>
           </div>
         </section>
         <!-- ===== END CASES PANEL ===== -->
@@ -2704,7 +2709,7 @@ function drawViewportTrue() {
     const ac = getActiveCase();
     const showGeo = ac ? (ac.layers?.geotiff !== false) : true;
     if (showGeo) {
-      drawGeoTiffWithCaseSpotlight(ctxTrue, state.geoTiff, vp, h, ac ? ac.selectedPolyIds : []);
+      drawGeoTiffWithCaseSpotlight(ctxTrue, state.geoTiff, vp, h, ac ? ac.selectedPolyIds : [], ac ? (ac.geotiffBW !== false) : true);
     }
   } else {
     drawGeoTiff(ctxTrue, state.geoTiff, vp, h);
@@ -6048,6 +6053,8 @@ function applyActiveCase(caseObj) {
   if (chkTrue) chkTrue.checked = caseObj.layers.dxfTrue !== false;
   const chkGeo = document.getElementById("case-dxf-vis-geotiff");
   if (chkGeo) chkGeo.checked = caseObj.layers.geotiff !== false;
+  const chkBW = document.getElementById("case-geotiff-bw");
+  if (chkBW) chkBW.checked = caseObj.geotiffBW !== false;
 
   // Restore DXF opacities and sliders
   [
@@ -6125,6 +6132,7 @@ function createNewCase() {
     },
     layers,
     dxfOpacity,
+    geotiffBW: document.getElementById("case-geotiff-bw") ? document.getElementById("case-geotiff-bw").checked : true,
     labels: [],
     arrows: []
   };
@@ -6152,6 +6160,7 @@ function updateActiveCase() {
   ac.layers.dxf196 = document.getElementById("case-dxf-vis-196") ? document.getElementById("case-dxf-vis-196").checked : true;
   ac.layers.dxfTrue = document.getElementById("case-dxf-vis-true") ? document.getElementById("case-dxf-vis-true").checked : true;
   ac.layers.geotiff = document.getElementById("case-dxf-vis-geotiff") ? document.getElementById("case-dxf-vis-geotiff").checked : true;
+  ac.geotiffBW = document.getElementById("case-geotiff-bw") ? document.getElementById("case-geotiff-bw").checked : true;
 
   // 3. DXF Opacities
   ac.dxfOpacity = {
@@ -6550,12 +6559,21 @@ function drawCaseLabels(ctx, vp, h) {
   });
 }
 
-function drawGeoTiffWithCaseSpotlight(ctx, tiff, vp, canvasH, selectedPolyIds) {
+function drawGeoTiffWithCaseSpotlight(ctx, tiff, vp, canvasH, selectedPolyIds, bw) {
   if (!tiff || !tiff.offscreen || !vp || !vp.bbox) return;
   const tl = worldToScreenGIS({ x: tiff.bbox.minX, y: tiff.bbox.maxY }, vp, canvasH);
   const br = worldToScreenGIS({ x: tiff.bbox.maxX, y: tiff.bbox.minY }, vp, canvasH);
   const sw = br.x - tl.x, sh = br.y - tl.y;
   if (sw <= 0 || sh <= 0) return;
+
+  if (bw === false) {
+    // Full-color mode — draw image normally, no spotlight needed
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh);
+    ctx.restore();
+    return;
+  }
 
   // Draw full greyscale first
   ctx.save();
@@ -6727,7 +6745,7 @@ async function exportCaseImageHD() {
 
   const showGeo = ac.layers ? (ac.layers.geotiff !== false) : true;
   if (showGeo) {
-    drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds);
+    drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds, ac.geotiffBW !== false);
   }
 
   const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
@@ -6890,6 +6908,16 @@ function setupCasesPanel() {
   wireCaseVis("case-dxf-vis-196", "dxf196");
   wireCaseVis("case-dxf-vis-true", "dxfTrue");
   wireCaseVis("case-dxf-vis-geotiff", "geotiff");
+
+  // B&W toggle — live sync to active case
+  const chkBWEl = document.getElementById("case-geotiff-bw");
+  if (chkBWEl) {
+    chkBWEl.addEventListener("change", () => {
+      const ac = getActiveCase();
+      if (ac) ac.geotiffBW = chkBWEl.checked;
+      drawViewportTrue();
+    });
+  }
 
   const btnAddArrow = document.getElementById("btn-case-add-arrow");
   if (btnAddArrow) btnAddArrow.addEventListener("click", addArrowToActiveCase);
