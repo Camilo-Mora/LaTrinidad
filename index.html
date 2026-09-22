@@ -1134,9 +1134,13 @@
                 <label style="display:flex;flex-direction:column;gap:2px;">BG Opacity
                   <input type="range" id="lbl-bgopacity" min="0" max="1" step="0.05" value="0.85" style="width:100%;margin-top:4px;">
                 </label>
-                <label style="display:flex;flex-direction:column;gap:2px;">Border Color
-                  <input type="color" id="lbl-bordercolor" value="#000000" style="width:100%;height:24px;border:none;background:none;cursor:pointer;border-radius:3px;">
-                </label>
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                  <span>Border Color</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="checkbox" id="lbl-show-border" checked title="Include border" style="cursor:pointer;accent-color:var(--accent-cyan);width:15px;height:15px;margin:0;">
+                    <input type="color" id="lbl-bordercolor" value="#000000" style="flex:1;height:24px;border:none;background:none;cursor:pointer;border-radius:3px;">
+                  </div>
+                </div>
                 <label style="display:flex;flex-direction:column;gap:2px;">Border Width
                   <input type="number" id="lbl-borderwidth" min="0" max="10" step="0.5" value="1.5" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
                 </label>
@@ -5992,6 +5996,8 @@ function selectCaseLabel(id) {
   italicBtn.style.borderColor = lbl.italic ? "var(--accent-cyan)" : "";
   const showBgEl = document.getElementById("lbl-show-bg");
   if (showBgEl) showBgEl.checked = lbl.showBg !== false;
+  const showBorderEl = document.getElementById("lbl-show-border");
+  if (showBorderEl) showBorderEl.checked = lbl.showBorder !== false;
   drawViewportTrue();
 }
 
@@ -6263,6 +6269,7 @@ function addLabelToActiveCase() {
     textColor: "#000000",
     bgColor: "#ffffff",
     bgOpacity: 0.85,
+    showBorder: true,
     borderColor: "#000000",
     borderWidth: 1.5,
     padding: 7
@@ -6561,7 +6568,7 @@ function drawCaseLabels(ctx, vp, h) {
       ctx.quadraticCurveTo(x, y, x + radius, y);
       ctx.closePath();
       ctx.fill();
-      if (bw > 0) ctx.stroke();
+      if (lbl.showBorder !== false && bw > 0) ctx.stroke();
     }
     if (lbl.id === state.caseSelectedLabelId) {
       ctx.save();
@@ -6825,7 +6832,7 @@ function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
       ctx.quadraticCurveTo(x, y, x + radius, y);
       ctx.closePath();
       ctx.fill();
-      if (bw > 0) ctx.stroke();
+      if (lbl.showBorder !== false && bw > 0) ctx.stroke();
     }
     ctx.fillStyle = lbl.textColor || "#000000";
     ctx.font = `${bold}${italic}${fs}px sans-serif`;
@@ -6996,6 +7003,8 @@ function setupCasesPanel() {
   if (lblBgOp) lblBgOp.addEventListener("input", e => updateSelectedLabelProp("bgOpacity", parseFloat(e.target.value)));
   const lblBc = document.getElementById("lbl-bordercolor");
   if (lblBc) lblBc.addEventListener("input", e => updateSelectedLabelProp("borderColor", e.target.value));
+  const lblShowBorder = document.getElementById("lbl-show-border");
+  if (lblShowBorder) lblShowBorder.addEventListener("change", e => updateSelectedLabelProp("showBorder", e.target.checked));
   const lblBw = document.getElementById("lbl-borderwidth");
   if (lblBw) lblBw.addEventListener("input", e => updateSelectedLabelProp("borderWidth", parseFloat(e.target.value)));
   const lblPad = document.getElementById("lbl-padding");
