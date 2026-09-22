@@ -1124,8 +1124,16 @@
             <div id="case-label-inspector" style="display:none;background:rgba(0,0,0,0.35);border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:6px;">
               <div style="font-size:0.7rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;">✏️ Label Style</div>
               <textarea id="lbl-text" rows="3" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:4px;font-size:0.78rem;resize:vertical;margin-bottom:5px;"></textarea>
+              <!-- Per-line font size controls -->
+              <div id="lbl-linesizes-container" style="margin-bottom:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:5px 6px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.68rem;color:var(--text-muted);margin-bottom:4px;">
+                  <span>📏 Font Size per Line (px)</span>
+                  <button type="button" id="lbl-btn-reset-linesizes" class="btn btn-secondary btn-sm" style="font-size:0.62rem;padding:1px 5px;line-height:1.2;" title="Reset all lines to default size">Reset</button>
+                </div>
+                <div id="lbl-linesizes-list" style="display:flex;flex-direction:column;gap:3px;max-height:85px;overflow-y:auto;"></div>
+              </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:0.72rem;color:var(--text-muted);">
-                <label style="display:flex;flex-direction:column;gap:2px;">Size (px)
+                <label style="display:flex;flex-direction:column;gap:2px;">Default Size (px)
                   <input type="number" id="lbl-fontsize" min="8" max="72" value="14" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
                 </label>
                 <label style="display:flex;flex-direction:column;gap:2px;">Style
@@ -6025,6 +6033,58 @@ function buildCaseLabelsList() {
   });
 }
 
+function renderLabelLineSizesUI() {
+  const listEl = document.getElementById("lbl-linesizes-list");
+  if (!listEl) return;
+  listEl.innerHTML = "";
+  const ac = getActiveCase();
+  const lbl = ac ? (ac.labels || []).find(l => l.id === state.caseSelectedLabelId) : null;
+  if (!lbl) return;
+
+  const lines = (lbl.text || "").split("\n");
+  if (!Array.isArray(lbl.lineFontSizes)) {
+    lbl.lineFontSizes = [];
+  }
+
+  lines.forEach((line, idx) => {
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;gap:5px;padding:1px 0;";
+
+    const labelSpan = document.createElement("span");
+    labelSpan.style.cssText = "width:28px;font-weight:600;color:var(--accent-cyan);font-size:0.66rem;flex-shrink:0;";
+    labelSpan.textContent = `L${idx + 1}:`;
+
+    const textPreview = document.createElement("span");
+    textPreview.style.cssText = "flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ccc;font-size:0.67rem;";
+    textPreview.textContent = line.trim() ? line : "(blank)";
+    textPreview.title = line;
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = "6";
+    input.max = "120";
+    input.placeholder = lbl.fontSize || 14;
+    const currentVal = lbl.lineFontSizes[idx];
+    input.value = (currentVal != null && !isNaN(currentVal)) ? currentVal : "";
+    input.style.cssText = "width:48px;background:rgba(255,255,255,0.08);border:1px solid var(--border-color);color:#fff;border-radius:3px;padding:1px 4px;font-size:0.68rem;text-align:right;outline:none;";
+
+    input.addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      if (val === "" || isNaN(val)) {
+        lbl.lineFontSizes[idx] = null;
+      } else {
+        lbl.lineFontSizes[idx] = parseInt(val, 10);
+      }
+      drawViewportTrue();
+    });
+
+    row.appendChild(labelSpan);
+    row.appendChild(textPreview);
+    row.appendChild(input);
+    listEl.appendChild(row);
+  });
+}
+
 function selectCaseLabel(id) {
   state.caseSelectedLabelId = id;
   state.caseSelectedArrowId = null;
@@ -6056,6 +6116,7 @@ function selectCaseLabel(id) {
   if (showBgEl) showBgEl.checked = lbl.showBg !== false;
   const showBorderEl = document.getElementById("lbl-show-border");
   if (showBorderEl) showBorderEl.checked = lbl.showBorder !== false;
+  renderLabelLineSizesUI();
   drawViewportTrue();
 }
 
@@ -6623,15 +6684,29 @@ function drawCaseLabels(ctx, vp, h) {
   ac.labels.forEach(lbl => {
     const sp = worldToScreenGIS({ x: lbl.worldX, y: lbl.worldY }, vp, h);
     const lines = (lbl.text || "").split("\n");
-    const fs = lbl.fontSize || 14;
+    const defaultFs = lbl.fontSize || 14;
     const pad = lbl.padding || 7;
     const bold = lbl.bold ? "bold " : "";
     const italic = lbl.italic ? "italic " : "";
-    ctx.font = `${bold}${italic}${fs}px sans-serif`;
-    const lineH = fs + 4;
-    const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
-    const boxW = maxW + pad * 2;
-    const boxH = lines.length * lineH + pad * 2;
+
+    const lineFontSizes = lines.map((_, i) => {
+      const customFs = (lbl.lineFontSizes && lbl.lineFontSizes[i] != null && !isNaN(lbl.lineFontSizes[i]))
+        ? Number(lbl.lineFontSizes[i])
+        : defaultFs;
+      return customFs > 0 ? customFs : defaultFs;
+    });
+    const lineHeights = lineFontSizes.map(fs => fs + 4);
+
+    let maxW = 0;
+    lines.forEach((line, i) => {
+      ctx.font = `${bold}${italic}${lineFontSizes[i]}px sans-serif`;
+      const w = ctx.measureText(line).width;
+      if (w > maxW) maxW = w;
+    });
+
+    const boxW = Math.max(maxW + pad * 2, 20);
+    const totalLinesH = lineHeights.reduce((sum, h) => sum + h, 0);
+    const boxH = Math.max(totalLinesH + pad * 2, 10);
     const x = sp.x - pad;
     const y = sp.y - pad;
     lbl._box = { x, y, w: boxW, h: boxH };
@@ -6669,11 +6744,13 @@ function drawCaseLabels(ctx, vp, h) {
       ctx.restore();
     }
     ctx.fillStyle = lbl.textColor || "#000000";
-    ctx.font = `${bold}${italic}${fs}px sans-serif`;
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
+    let curY = y + pad;
     lines.forEach((line, i) => {
-      ctx.fillText(line, x + pad, y + pad + i * lineH);
+      ctx.font = `${bold}${italic}${lineFontSizes[i]}px sans-serif`;
+      ctx.fillText(line, x + pad, curY);
+      curY += lineHeights[i];
     });
     ctx.textBaseline = "alphabetic";
   });
@@ -6889,15 +6966,29 @@ function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
   labels.forEach(lbl => {
     const sp = worldToScreenGISExport({ x: lbl.worldX, y: lbl.worldY }, vp, h);
     const lines = (lbl.text || "").split("\n");
-    const fs = (lbl.fontSize || 14) * scaleRatio;
+    const defaultFs = (lbl.fontSize || 14) * scaleRatio;
     const pad = (lbl.padding || 7) * scaleRatio;
     const bold = lbl.bold ? "bold " : "";
     const italic = lbl.italic ? "italic " : "";
-    ctx.font = `${bold}${italic}${fs}px sans-serif`;
-    const lineH = fs + 4 * scaleRatio;
-    const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
-    const boxW = maxW + pad * 2;
-    const boxH = lines.length * lineH + pad * 2;
+
+    const lineFontSizes = lines.map((_, i) => {
+      const customFs = (lbl.lineFontSizes && lbl.lineFontSizes[i] != null && !isNaN(lbl.lineFontSizes[i]))
+        ? Number(lbl.lineFontSizes[i]) * scaleRatio
+        : defaultFs;
+      return customFs > 0 ? customFs : defaultFs;
+    });
+    const lineHeights = lineFontSizes.map(fs => fs + 4 * scaleRatio);
+
+    let maxW = 0;
+    lines.forEach((line, i) => {
+      ctx.font = `${bold}${italic}${lineFontSizes[i]}px sans-serif`;
+      const w = ctx.measureText(line).width;
+      if (w > maxW) maxW = w;
+    });
+
+    const boxW = Math.max(maxW + pad * 2, 20 * scaleRatio);
+    const totalLinesH = lineHeights.reduce((sum, h) => sum + h, 0);
+    const boxH = Math.max(totalLinesH + pad * 2, 10 * scaleRatio);
     const x = sp.x - pad;
     const y = sp.y - pad;
     if (lbl.showBg !== false) {
@@ -6925,11 +7016,13 @@ function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
       if (lbl.showBorder !== false && bw > 0) ctx.stroke();
     }
     ctx.fillStyle = lbl.textColor || "#000000";
-    ctx.font = `${bold}${italic}${fs}px sans-serif`;
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
+    let curY = y + pad;
     lines.forEach((line, i) => {
-      ctx.fillText(line, x + pad, y + pad + i * lineH);
+      ctx.font = `${bold}${italic}${lineFontSizes[i]}px sans-serif`;
+      ctx.fillText(line, x + pad, curY);
+      curY += lineHeights[i];
     });
     ctx.textBaseline = "alphabetic";
   });
@@ -7084,9 +7177,27 @@ function setupCasesPanel() {
 
   // Label style inspector event bindings
   const lblText = document.getElementById("lbl-text");
-  if (lblText) lblText.addEventListener("input", e => { updateSelectedLabelProp("text", e.target.value); buildCaseLabelsList(); });
+  if (lblText) lblText.addEventListener("input", e => {
+    updateSelectedLabelProp("text", e.target.value);
+    buildCaseLabelsList();
+    renderLabelLineSizesUI();
+  });
   const lblFs = document.getElementById("lbl-fontsize");
-  if (lblFs) lblFs.addEventListener("input", e => updateSelectedLabelProp("fontSize", parseInt(e.target.value)));
+  if (lblFs) lblFs.addEventListener("input", e => {
+    updateSelectedLabelProp("fontSize", parseInt(e.target.value));
+    renderLabelLineSizesUI();
+  });
+  const btnResetLineSizes = document.getElementById("lbl-btn-reset-linesizes");
+  if (btnResetLineSizes) {
+    btnResetLineSizes.addEventListener("click", () => {
+      const ac = getActiveCase();
+      const lbl = ac ? (ac.labels || []).find(l => l.id === state.caseSelectedLabelId) : null;
+      if (!lbl) return;
+      lbl.lineFontSizes = [];
+      renderLabelLineSizesUI();
+      drawViewportTrue();
+    });
+  }
   const lblTc = document.getElementById("lbl-textcolor");
   if (lblTc) lblTc.addEventListener("input", e => updateSelectedLabelProp("textColor", e.target.value));
   const lblBg = document.getElementById("lbl-bgcolor");
@@ -7164,6 +7275,7 @@ function setupCasesPanel() {
     textarea.focus();
     updateSelectedLabelProp("text", textarea.value);
     buildCaseLabelsList();
+    renderLabelLineSizesUI();
   }
 
   function insertTextAtCursor(txt) {
@@ -7178,6 +7290,7 @@ function setupCasesPanel() {
     textarea.focus();
     updateSelectedLabelProp("text", textarea.value);
     buildCaseLabelsList();
+    renderLabelLineSizesUI();
   }
 
   const btnSup = document.getElementById("lbl-btn-sup");
