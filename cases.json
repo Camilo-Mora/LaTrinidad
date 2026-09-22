@@ -35,9 +35,9 @@
         "borderWidth": 1,
         "padding": 3,
         "_box": {
-          "x": 246.8849990842864,
-          "y": 53.64500045776367,
-          "w": 65.83333206176758,
+          "x": 263.99999999976717,
+          "y": 85,
+          "w": 65.72000122070312,
           "h": 60
         }
       },
@@ -56,9 +56,9 @@
         "borderWidth": 1,
         "padding": 2,
         "_box": {
-          "x": 374.7349990843795,
-          "y": 9.095000457949936,
-          "w": 59.94444274902344,
+          "x": 375.30434782616794,
+          "y": 46.39130434812978,
+          "w": 59.84000015258789,
           "h": 58
         }
       },
@@ -77,9 +77,9 @@
         "borderWidth": 0.5,
         "padding": 2,
         "_box": {
-          "x": 145.53499908419326,
-          "y": 229.44500045734458,
-          "w": 105.05555725097656,
+          "x": 176,
+          "y": 237.99999999976717,
+          "w": 105.55999755859375,
           "h": 27
         },
         "showBg": false
@@ -99,9 +99,9 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 162.3849990842864,
-          "y": 342.8950004577637,
-          "w": 126.72222137451172,
+          "x": 190,
+          "y": 336.0000000001164,
+          "w": 127.23999786376953,
           "h": 37
         },
         "showBg": false
@@ -192,5 +192,239 @@
       "dxf_true": 1
     },
     "geotiffBW": false
+  },
+  {
+    "id": 1790055203423,
+    "name": "196",
+    "selectedPolyIds": [
+      4,
+      3,
+      9,
+      8,
+      7,
+      6
+    ],
+    "polyStyles": {
+      "1": {
+        "color": "#ffd600",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "2": {
+        "color": "#00e676",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "3": {
+        "color": "#ff1744",
+        "fillOpacity": 0.27,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "4": {
+        "color": "#2979ff",
+        "fillOpacity": 0.15,
+        "lineWidth": 6,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "5": {
+        "color": "#00e5ff",
+        "fillOpacity": 0.25,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "6": {
+        "color": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "7": {
+        "color": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "8": {
+        "color": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "9": {
+        "color": "#ff6d00",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      }
+    },
+    "camera": {
+      "scale": 1.170030505587996,
+      "offsetX": -1284171.0216344418,
+      "offsetY": -1025665.0206605701
+    },
+    "layers": {
+      "dxf296": true,
+      "dxf1073": true,
+      "dxf196": true,
+      "dxfTrue": false,
+      "geotiff": true
+    },
+    "dxfOpacity": {
+      "dxf_296": 0.3,
+      "dxf_1073": 0.3,
+      "dxf_196": 1,
+      "dxf_true": 1
+    },
+    "geotiffBW": false,
+    "labels": [
+      {
+        "id": "lbl_1790055358584",
+        "text": "Plano Lote #5\npasado a la Curaduria 2013",
+        "worldX": 1097708.268728278,
+        "worldY": 876873.6383946402,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "borderColor": "#ff8000",
+        "borderWidth": 1.5,
+        "padding": 5,
+        "_box": {
+          "x": 193.00000000023283,
+          "y": 49,
+          "w": 190.72000122070312,
+          "h": 46
+        }
+      },
+      {
+        "id": "lbl_1790055426610",
+        "text": "Plano original Lote #5\nescritura 1073 de 1973",
+        "worldX": 1097925.2485952605,
+        "worldY": 876668.6180478849,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "borderColor": "#ff0000",
+        "borderWidth": 1.5,
+        "padding": 4,
+        "_box": {
+          "x": 447.99999999976717,
+          "y": 289.9999999998836,
+          "w": 156.9600067138672,
+          "h": 44
+        }
+      },
+      {
+        "id": "lbl_1790055589249",
+        "text": "La Trinidad",
+        "worldX": 1097709.122979723,
+        "worldY": 876734.3954091354,
+        "fontSize": 20,
+        "bold": true,
+        "italic": true,
+        "textColor": "#0080ff",
+        "bgColor": "#000000",
+        "bgOpacity": 0.4,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 3,
+        "_box": {
+          "x": 196.00000000023283,
+          "y": 214.00000000011642,
+          "w": 114.08000183105469,
+          "h": 30
+        },
+        "showBg": true
+      },
+      {
+        "id": "lbl_1790055631386",
+        "text": "Casa del Sol",
+        "worldX": 1097715.1027398363,
+        "worldY": 876662.638287771,
+        "fontSize": 20,
+        "bold": true,
+        "italic": false,
+        "textColor": "#0080ff",
+        "bgColor": "#000000",
+        "bgOpacity": 0.4,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 3,
+        "_box": {
+          "x": 202.99999999976717,
+          "y": 298,
+          "w": 125.68000030517578,
+          "h": 30
+        },
+        "showBg": true
+      }
+    ],
+    "arrows": [
+      {
+        "id": "arr_1790055482625",
+        "name": "Arrow 1",
+        "startX": 1097814.9489594481,
+        "startY": 876837.6991142989,
+        "endX": 1097856.1554276622,
+        "endY": 876807.0675016035,
+        "color": "#ff8000",
+        "opacity": 0.85,
+        "lineWidth": 6,
+        "headSize": 18
+      },
+      {
+        "id": "arr_1790055494953",
+        "name": "Arrow 2",
+        "startX": 1097932.8356588327,
+        "startY": 876674.5370883394,
+        "endX": 1097915.9530287993,
+        "endY": 876704.5573282258,
+        "color": "#ff0000",
+        "opacity": 0.85,
+        "lineWidth": 6,
+        "headSize": 18
+      },
+      {
+        "id": "arr_1790055662888",
+        "name": "Arrow 3",
+        "startX": 1097729.523814967,
+        "startY": 876681.3710998979,
+        "endX": 1097729.7262138298,
+        "endY": 876715.6625970084,
+        "color": "#0080ff",
+        "opacity": 0.85,
+        "lineWidth": 8,
+        "headSize": 18
+      },
+      {
+        "id": "arr_1790055689888",
+        "name": "Arrow 4",
+        "startX": 1097757.7141126457,
+        "startY": 876686.4966085668,
+        "endX": 1097757.0622600638,
+        "endY": 876660.1362530955,
+        "color": "#0080ff",
+        "opacity": 0.85,
+        "lineWidth": 8,
+        "headSize": 18
+      }
+    ]
   }
 ]
