@@ -62,7 +62,7 @@
         "y": 877064.4231281002
       }
     ],
-    "visible": false
+    "visible": true
   },
   {
     "id": 1,
@@ -71,7 +71,7 @@
     "fillOpacity": 0.1,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
     "points": [
       {
@@ -135,7 +135,7 @@
         "y": 876829.9040325534
       }
     ],
-    "visible": false
+    "visible": true
   },
   {
     "id": 2,
@@ -144,7 +144,7 @@
     "fillOpacity": 0.1,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
     "points": [
       {
@@ -180,7 +180,7 @@
         "y": 876806.2794074808
       }
     ],
-    "visible": false
+    "visible": true
   },
   {
     "id": 3,
@@ -189,8 +189,8 @@
     "fillOpacity": 0.14,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": true,
-    "showNodes": true,
+    "showArea": false,
+    "showNodes": false,
     "points": [
       {
         "x": 1097843.1178870015,
@@ -250,9 +250,9 @@
     "fillOpacity": 0.25,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 1098134.6523936854,
@@ -291,9 +291,9 @@
     "fillOpacity": 0.15,
     "lineWidth": 2.5,
     "lineType": "solid",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 1097928.552247735,
@@ -344,9 +344,9 @@
     "fillOpacity": 0.15,
     "lineWidth": 2.5,
     "lineType": "solid",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 1097849.5335971923,
@@ -405,9 +405,9 @@
     "fillOpacity": 0.15,
     "lineWidth": 2.5,
     "lineType": "solid",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 1097928.552247735,
@@ -474,8 +474,8 @@
     "fillOpacity": 0.15,
     "lineWidth": 2.5,
     "lineType": "solid",
-    "showArea": true,
-    "showNodes": true,
+    "showArea": false,
+    "showNodes": false,
     "visible": true,
     "points": [
       {
