@@ -1180,7 +1180,8 @@
     "id": 1790109814597,
     "name": "Carretera",
     "selectedPolyIds": [
-      4
+      4,
+      10
     ],
     "polyStyles": {
       "1": {
@@ -1245,6 +1246,10 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "showArea": false
+      },
+      "10": {
+        "color": "#b0bec5",
+        "fillOpacity": 0.08
       }
     },
     "camera": {
@@ -1269,22 +1274,22 @@
     "labels": [
       {
         "id": "lbl_-891276541",
-        "text": "Carretera\n[size=10]Area reportada en documento: [/size]5,572 m²",
-        "worldX": 1097673.4451715094,
+        "text": "Carretera\n[size=10]Area invadida: [/size]1,056m²",
+        "worldX": 1097702.2476114207,
         "worldY": 876777.1784401969,
         "fontSize": 20,
         "bold": true,
         "italic": true,
         "textColor": "#ffffff",
-        "bgColor": "#ff8000",
+        "bgColor": "#808080",
         "bgOpacity": 0.3,
         "borderColor": "#ff8000",
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 77.46339605888352,
+          "x": 136.46339605888352,
           "y": 33.93264243518934,
-          "w": 238.3333282470703,
+          "w": 156.1111068725586,
           "h": 60
         },
         "showBorder": false
@@ -1363,6 +1368,207 @@
       },
       {
         "id": "arr_-890676517",
+        "name": "Arrow 4",
+        "startX": 1097757.7141126457,
+        "startY": 876686.4966085668,
+        "endX": 1097757.0622600638,
+        "endY": 876657.5722173839,
+        "color": "#0080ff",
+        "opacity": 0.85,
+        "lineWidth": 8,
+        "headSize": 18
+      }
+    ]
+  },
+  {
+    "id": 1790119624390,
+    "name": "Lote B OrlandoOlaya",
+    "selectedPolyIds": [
+      4,
+      2,
+      3
+    ],
+    "polyStyles": {
+      "1": {
+        "color": "#ffd600",
+        "fillOpacity": 0.36,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "2": {
+        "color": "#00e676",
+        "fillOpacity": 0.35,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "3": {
+        "color": "#ff1744",
+        "fillOpacity": 0.3,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "4": {
+        "color": "#2979ff",
+        "fillOpacity": 0.15,
+        "lineWidth": 6,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "5": {
+        "color": "#00e5ff",
+        "fillOpacity": 0.25,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "6": {
+        "color": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "7": {
+        "color": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "8": {
+        "color": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "9": {
+        "color": "#ff6d00",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      }
+    },
+    "camera": {
+      "scale": 1.170030505587996,
+      "offsetX": -1284191.0216344418,
+      "offsetY": -1025671.0206605701
+    },
+    "layers": {
+      "dxf296": true,
+      "dxf1073": true,
+      "dxf196": false,
+      "dxfTrue": false,
+      "geotiff": true
+    },
+    "dxfOpacity": {
+      "dxf_296": 0.25,
+      "dxf_1073": 0.25,
+      "dxf_196": 1,
+      "dxf_true": 1
+    },
+    "geotiffBW": false,
+    "labels": [
+      {
+        "id": "lbl_-880922831",
+        "text": "Lote B\n[size=14]4,042 m²[/size]\n[size=10](0.63 plazas)[/size]",
+        "worldX": 1097859.4383453294,
+        "worldY": 876930.149690469,
+        "fontSize": 20,
+        "bold": true,
+        "italic": true,
+        "textColor": "#ffffff",
+        "bgColor": "#00ff40",
+        "bgOpacity": 0.4,
+        "borderColor": "#ff0000",
+        "borderWidth": 1.5,
+        "padding": 4,
+        "_box": {
+          "x": 334.01207729731686,
+          "y": 9.994252873584628,
+          "w": 70.22222137451172,
+          "h": 83
+        },
+        "showBorder": false
+      },
+      {
+        "id": "lbl_-880961856",
+        "text": "La Trinidad",
+        "worldX": 1097709.122979723,
+        "worldY": 876734.3954091354,
+        "fontSize": 20,
+        "bold": true,
+        "italic": true,
+        "textColor": "#0080ff",
+        "bgColor": "#000000",
+        "bgOpacity": 0.45,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 3,
+        "_box": {
+          "x": 159.13851407915354,
+          "y": 240.03273363341577,
+          "w": 113.38888549804688,
+          "h": 31
+        },
+        "showBg": true,
+        "showBorder": false
+      },
+      {
+        "id": "lbl_-881357902",
+        "text": "Casa del Sol",
+        "worldX": 1097717.666775548,
+        "worldY": 876658.3648949184,
+        "fontSize": 20,
+        "bold": true,
+        "italic": false,
+        "textColor": "#0080ff",
+        "bgColor": "#000000",
+        "bgOpacity": 0.45,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 3,
+        "_box": {
+          "x": 169.13501582783647,
+          "y": 328.99075462284964,
+          "w": 124.88888549804688,
+          "h": 31
+        },
+        "showBg": true,
+        "showBorder": false
+      }
+    ],
+    "arrows": [
+      {
+        "id": "arr_-881550824",
+        "name": "Arrow 2",
+        "startX": 1097917.451444563,
+        "startY": 876875.3865524157,
+        "endX": 1097956.1229216144,
+        "endY": 876852.4167209286,
+        "color": "#00f23d",
+        "opacity": 0.85,
+        "lineWidth": 10,
+        "headSize": 18
+      },
+      {
+        "id": "arr_-881417909",
+        "name": "Arrow 3",
+        "startX": 1097729.523814967,
+        "startY": 876681.3710998979,
+        "endX": 1097729.7262138298,
+        "endY": 876715.6625970084,
+        "color": "#0080ff",
+        "opacity": 0.85,
+        "lineWidth": 8,
+        "headSize": 18
+      },
+      {
+        "id": "arr_-881172360",
         "name": "Arrow 4",
         "startX": 1097757.7141126457,
         "startY": 876686.4966085668,
