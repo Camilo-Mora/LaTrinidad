@@ -496,7 +496,7 @@
       },
       "3": {
         "color": "#ff1744",
-        "fillOpacity": 0.3,
+        "fillOpacity": 0.14,
         "lineWidth": 1.5,
         "lineType": "dashed",
         "showArea": false
@@ -559,7 +559,7 @@
     "dxfOpacity": {
       "dxf_296": 0.25,
       "dxf_1073": 0.25,
-      "dxf_196": 0.4,
+      "dxf_196": 0.25,
       "dxf_true": 1
     },
     "geotiffBW": false,
@@ -731,7 +731,7 @@
       },
       "3": {
         "color": "#ff1744",
-        "fillOpacity": 0.3,
+        "fillOpacity": 0.13,
         "lineWidth": 1.5,
         "lineType": "dashed",
         "showArea": false
@@ -794,7 +794,7 @@
     "dxfOpacity": {
       "dxf_296": 0.25,
       "dxf_1073": 0.25,
-      "dxf_196": 0.4,
+      "dxf_196": 0.25,
       "dxf_true": 1
     },
     "geotiffBW": false,
@@ -966,7 +966,7 @@
       },
       "3": {
         "color": "#ff1744",
-        "fillOpacity": 0.3,
+        "fillOpacity": 0.13,
         "lineWidth": 1.5,
         "lineType": "dashed",
         "showArea": false
@@ -1029,7 +1029,7 @@
     "dxfOpacity": {
       "dxf_296": 0.25,
       "dxf_1073": 0.25,
-      "dxf_196": 0.4,
+      "dxf_196": 0.26,
       "dxf_true": 1
     },
     "geotiffBW": false,
