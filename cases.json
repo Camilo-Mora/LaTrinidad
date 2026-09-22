@@ -96,9 +96,9 @@
     "labels": [
       {
         "id": "lbl_1790055358584",
-        "text": "Plano Lote #5\npasado a la Curaduria 2013\n[size=10]Area reportada en documento: [/size]10,604m²",
-        "worldX": 1097650.1505854814,
-        "worldY": 876895.860037474,
+        "text": "Plano Lote #5\npasado a la Curaduria 2013\n[size=10]Area reportada en documento: [/size]10,604m²\n[size=9]Area invadida: 5,593m²[/size]",
+        "worldX": 1097636.475728353,
+        "worldY": 876897.569394615,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -109,10 +109,10 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 102.13901382894255,
-          "y": 12.114192903856747,
+          "x": 86.13901382917538,
+          "y": 10.114192903856747,
           "w": 268.8888854980469,
-          "h": 85
+          "h": 110
         },
         "showBorder": false
       },
@@ -189,10 +189,10 @@
       {
         "id": "arr_1790055482625",
         "name": "Arrow 1",
-        "startX": 1097813.2396023069,
-        "startY": 876829.1523285934,
-        "endX": 1097839.061856251,
-        "endY": 876792.5379659041,
+        "startX": 1097811.5302451658,
+        "startY": 876823.1695785996,
+        "endX": 1097837.35249911,
+        "endY": 876786.5552159103,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
