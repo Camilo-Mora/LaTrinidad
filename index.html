@@ -6700,7 +6700,7 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
         if (!poly.points || poly.points.length < 2) return;
         
         let color = poly.color;
-        let fillOp = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.25;
+        let fillOp = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
         let lineW = (poly.lineWidth || 2.5) * scaleRatio;
         let lineType = poly.lineType || "solid";
         
