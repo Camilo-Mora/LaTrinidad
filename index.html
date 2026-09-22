@@ -2627,6 +2627,31 @@ function drawViewport196() {
   }
 }
 
+// Render `drawFn` onto an offscreen canvas at full opacity, then stamp
+// the result onto `ctx` at the given opacity in one atomic drawImage call.
+// This prevents shared polygon edges from being painted multiple times and
+// accumulating opacity (the "double-edge" problem).
+function drawWithOffscreen(ctx, opacity, drawFn) {
+  if (opacity >= 1) {
+    // No transparency needed — draw directly, no overhead.
+    drawFn(ctx);
+    return;
+  }
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+  const offscreen = document.createElement("canvas");
+  offscreen.width  = w;
+  offscreen.height = h;
+  const offCtx = offscreen.getContext("2d");
+  // Draw all entities at full opacity onto the scratch canvas.
+  drawFn(offCtx);
+  // Stamp the fully-rendered scratch canvas onto the real canvas at once.
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.drawImage(offscreen, 0, 0);
+  ctx.restore();
+}
+
 function drawLayerByKey(key, ctx, vp, h) {
   const ac = state.caseMode ? getActiveCase() : null;
   switch (key) {
@@ -2634,9 +2659,9 @@ function drawLayerByKey(key, ctx, vp, h) {
       const isVisible = ac ? (ac.layers?.dxfTrue !== false) : (state.showFieldDXFOnField !== false);
       if (isVisible) {
         const op = ac ? (ac.dxfOpacity?.dxf_true ?? 1) : (state.dxfOpacity.dxf_true ?? 1);
-        ctx.save(); ctx.globalAlpha = op;
-        drawEntitiesGIS(ctx, state.entitiesTrue, vp, h, "#00e676");
-        ctx.restore();
+        drawWithOffscreen(ctx, op, offCtx =>
+          drawEntitiesGIS(offCtx, state.entitiesTrue, vp, h, "#00e676")
+        );
       }
       break;
     }
@@ -2653,9 +2678,9 @@ function drawLayerByKey(key, ctx, vp, h) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
           const op = ac ? (ac.dxfOpacity?.dxf_296 ?? 1) : (state.dxfOpacity.dxf_296 ?? 1);
-          ctx.save(); ctx.globalAlpha = op;
-          drawWarpedEntitiesGIS(ctx, state.entities296, warper, vp, h, "rgba(213, 0, 249, 0.85)");
-          ctx.restore();
+          drawWithOffscreen(ctx, op, offCtx =>
+            drawWarpedEntitiesGIS(offCtx, state.entities296, warper, vp, h, "rgba(213, 0, 249, 0.85)")
+          );
         } catch (_) {}
       }
       break;
@@ -2666,9 +2691,9 @@ function drawLayerByKey(key, ctx, vp, h) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
           const op = ac ? (ac.dxfOpacity?.dxf_1073 ?? 1) : (state.dxfOpacity.dxf_1073 ?? 1);
-          ctx.save(); ctx.globalAlpha = op;
-          drawWarpedEntitiesGIS(ctx, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)");
-          ctx.restore();
+          drawWithOffscreen(ctx, op, offCtx =>
+            drawWarpedEntitiesGIS(offCtx, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)")
+          );
         } catch (_) {}
       }
       break;
@@ -2679,9 +2704,9 @@ function drawLayerByKey(key, ctx, vp, h) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
           const op = ac ? (ac.dxfOpacity?.dxf_196 ?? 1) : (state.dxfOpacity.dxf_196 ?? 1);
-          ctx.save(); ctx.globalAlpha = op;
-          drawWarpedEntitiesGIS(ctx, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)");
-          ctx.restore();
+          drawWithOffscreen(ctx, op, offCtx =>
+            drawWarpedEntitiesGIS(offCtx, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)")
+          );
         } catch (_) {}
       }
       break;
