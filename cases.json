@@ -4,8 +4,8 @@
     "name": "Lotes A y B",
     "selectedPolyIds": [
       4,
-      1,
-      2
+      2,
+      1
     ],
     "camera": {
       "scale": 1.170030505587996,
@@ -29,9 +29,9 @@
         "bold": true,
         "italic": false,
         "textColor": "#ffffff",
-        "bgColor": "#ffff1e",
+        "bgColor": "#ff850b",
         "bgOpacity": 0.6,
-        "borderColor": "#ffff00",
+        "borderColor": "#ff8000",
         "borderWidth": 1,
         "padding": 3,
         "_box": {
@@ -159,8 +159,8 @@
     ],
     "polyStyles": {
       "1": {
-        "color": "#ffd600",
-        "fillOpacity": 0.17
+        "color": "#ea7500",
+        "fillOpacity": 0.35
       },
       "2": {
         "color": "#00e676",
@@ -186,8 +186,8 @@
       }
     },
     "dxfOpacity": {
-      "dxf_296": 0.5,
-      "dxf_1073": 0.62,
+      "dxf_296": 0.3,
+      "dxf_1073": 0.3,
       "dxf_196": 1,
       "dxf_true": 1
     },
