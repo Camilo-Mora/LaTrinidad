@@ -6639,18 +6639,15 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
       const isVisible = ac.layers ? (ac.layers.dxfTrue !== false) : true;
       if (isVisible && state.entitiesTrue && state.entitiesTrue.length > 0) {
         const op = ac.dxfOpacity?.dxf_true ?? 1.0;
-        ctx.save();
-        ctx.globalAlpha = op;
-        drawEntitiesGISExport(ctx, state.entitiesTrue, vpExp, EXP_H, "#00e676", 5 * scaleRatio);
-        ctx.restore();
+        drawWithOffscreen(ctx, op, offCtx =>
+          drawEntitiesGISExport(offCtx, state.entitiesTrue, vpExp, EXP_H, "#00e676", 5 * scaleRatio)
+        );
       }
       break;
     }
     case "dxf_overlay": {
       if (ac.layers?.dxfOverlay && state.overlayLayer.visible && state.overlayLayer.entities.length > 0) {
-        ctx.save();
         drawEntitiesGISExport(ctx, state.overlayLayer.entities, vpExp, EXP_H, state.overlayLayer.color || "#ff9100", (state.overlayLayer.lineWidth || 2.5) * scaleRatio);
-        ctx.restore();
       }
       break;
     }
@@ -6660,10 +6657,9 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
         try {
           const w = TransformMath.createWarper(state.algorithm, state.anchors296);
           const op = ac.dxfOpacity?.dxf_296 ?? 1.0;
-          ctx.save();
-          ctx.globalAlpha = op;
-          drawWarpedEntitiesGISExport(ctx, state.entities296, w, vpExp, EXP_H, "rgba(213, 0, 249, 0.95)", 5 * scaleRatio);
-          ctx.restore();
+          drawWithOffscreen(ctx, op, offCtx =>
+            drawWarpedEntitiesGISExport(offCtx, state.entities296, w, vpExp, EXP_H, "rgba(213, 0, 249, 0.95)", 5 * scaleRatio)
+          );
         } catch (_) {}
       }
       break;
@@ -6674,10 +6670,9 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
         try {
           const w = TransformMath.createWarper(state.algorithm, state.anchors1073);
           const op = ac.dxfOpacity?.dxf_1073 ?? 1.0;
-          ctx.save();
-          ctx.globalAlpha = op;
-          drawWarpedEntitiesGISExport(ctx, state.entities1073, w, vpExp, EXP_H, "rgba(255, 23, 68, 0.95)", 5 * scaleRatio);
-          ctx.restore();
+          drawWithOffscreen(ctx, op, offCtx =>
+            drawWarpedEntitiesGISExport(offCtx, state.entities1073, w, vpExp, EXP_H, "rgba(255, 23, 68, 0.95)", 5 * scaleRatio)
+          );
         } catch (_) {}
       }
       break;
@@ -6688,10 +6683,9 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
         try {
           const w = TransformMath.createWarper(state.algorithm, state.anchors196);
           const op = ac.dxfOpacity?.dxf_196 ?? 1.0;
-          ctx.save();
-          ctx.globalAlpha = op;
-          drawWarpedEntitiesGISExport(ctx, state.entities196, w, vpExp, EXP_H, "rgba(255, 145, 0, 0.95)", 5 * scaleRatio);
-          ctx.restore();
+          drawWithOffscreen(ctx, op, offCtx =>
+            drawWarpedEntitiesGISExport(offCtx, state.entities196, w, vpExp, EXP_H, "rgba(255, 145, 0, 0.95)", 5 * scaleRatio)
+          );
         } catch (_) {}
       }
       break;
