@@ -1098,6 +1098,7 @@
             <div style="display:flex;gap:4px;margin-bottom:4px;">
               <button id="btn-case-new" class="btn btn-success btn-sm" style="flex:1;" title="Create a new case from current view">➕ New</button>
               <button id="btn-case-update" class="btn btn-primary btn-sm" style="flex:1;" title="Update active case with current settings">💾 Update</button>
+              <button id="btn-case-duplicate" class="btn btn-secondary btn-sm" style="flex:1;" title="Duplicate active case (copies all labels, arrows, polygons and settings)">🔁 Dupe</button>
               <button id="btn-case-delete" class="btn btn-sm btn-danger-sm" style="flex:1;" title="Delete this case">🗑️ Del</button>
             </div>
             <!-- Action buttons row 2 -->
@@ -6230,6 +6231,37 @@ function createNewCase() {
   applyActiveCase(newCase);
 }
 
+function duplicateActiveCase() {
+  const ac = getActiveCase();
+  if (!ac) { statusBar.textContent = "⚠️ Select a case to duplicate first."; return; }
+
+  const defaultName = ac.name + " (copy)";
+  const name = prompt("Enter name for the duplicated case:", defaultName);
+  if (!name || !name.trim()) return;
+
+  // Deep-clone the entire case object so edits to the clone never affect the original
+  const clone = JSON.parse(JSON.stringify(ac));
+
+  // Assign a fresh id and name
+  clone.id   = Date.now();
+  clone.name = name.trim();
+
+  // Give every label and arrow a fresh id so they are independent from the source
+  if (Array.isArray(clone.labels)) {
+    clone.labels = clone.labels.map(lbl => ({ ...lbl, id: "lbl_" + (Date.now() + Math.random() * 1e6 | 0) }));
+  }
+  if (Array.isArray(clone.arrows)) {
+    clone.arrows = clone.arrows.map(arr => ({ ...arr, id: "arr_" + (Date.now() + Math.random() * 1e6 | 0) }));
+  }
+
+  state.cases.push(clone);
+  rebuildCaseSelector();
+  document.getElementById("case-selector").value = clone.id;
+  applyActiveCase(clone);
+  statusBar.textContent = `🔁 Duplicated case "${ac.name}" → "${clone.name}"`;
+}
+
+
 function updateActiveCase() {
   const ac = getActiveCase();
   if (!ac) { statusBar.textContent = "⚠️ No active case to update."; return; }
@@ -6964,6 +6996,8 @@ function setupCasesPanel() {
   if (btnUpd) btnUpd.addEventListener("click", updateActiveCase);
   const btnDel = document.getElementById("btn-case-delete");
   if (btnDel) btnDel.addEventListener("click", deleteActiveCase);
+  const btnDupe = document.getElementById("btn-case-duplicate");
+  if (btnDupe) btnDupe.addEventListener("click", duplicateActiveCase);
   const btnSave = document.getElementById("btn-case-save-json");
   if (btnSave) btnSave.addEventListener("click", saveCasesJson);
   const btnAddLbl = document.getElementById("btn-case-add-label");
