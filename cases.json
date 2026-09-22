@@ -104,5 +104,114 @@
         }
       }
     ]
+  },
+  {
+    "id": 1790042870800,
+    "name": "Escritura 196",
+    "selectedPolyIds": [
+      3,
+      1
+    ],
+    "camera": {
+      "scale": 0.5058364756240412,
+      "offsetX": -554825.0575589915,
+      "offsetY": -443417.2958627847
+    },
+    "layers": {
+      "geotiff": true,
+      "dxf296": true,
+      "dxf1073": true,
+      "dxf196": true,
+      "dxfTrue": true
+    },
+    "labels": [
+      {
+        "id": "lbl_1790042957374",
+        "text": "Plano Lote #5\npasado a la\nCuraduria en 2013",
+        "worldX": 1097727.5109243959,
+        "worldY": 876893.8613308909,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "padding": 4,
+        "_box": {
+          "x": 290.0000000001164,
+          "y": 80,
+          "w": 129.05555725097656,
+          "h": 62
+        }
+      },
+      {
+        "id": "lbl_1790043015356",
+        "text": "Plano original Lote #5 \nescritura 1073 de 1973",
+        "worldX": 1097919.6640340167,
+        "worldY": 876679.1019730794,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "padding": 2,
+        "_box": {
+          "x": 462,
+          "y": 272,
+          "w": 153.22222900390625,
+          "h": 40
+        },
+        "showBg": true
+      },
+      {
+        "id": "lbl_1790043089637",
+        "text": "La Trinidad",
+        "worldX": 1097722.9896747577,
+        "worldY": 876758.2238417467,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#ffffff",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 283.0000000001164,
+          "y": 197,
+          "w": 88.38888549804688,
+          "h": 32
+        },
+        "showBg": false
+      },
+      {
+        "id": "lbl_1790043120296",
+        "text": "Casa del Sol",
+        "worldX": 1097712.8168630719,
+        "worldY": 876656.4957248885,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#ffffff",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 274.0000000001164,
+          "y": 287.0000000001164,
+          "w": 97,
+          "h": 32
+        },
+        "showBg": false
+      }
+    ]
   }
 ]
