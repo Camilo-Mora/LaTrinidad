@@ -1386,7 +1386,8 @@
     "selectedPolyIds": [
       4,
       2,
-      3
+      3,
+      13
     ],
     "polyStyles": {
       "1": {
@@ -1451,11 +1452,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "showArea": false
+      },
+      "13": {
+        "color": "#ef28ff",
+        "fillOpacity": 0.28
       }
     },
     "camera": {
       "scale": 1.170030505587996,
-      "offsetX": -1284191.0216344418,
+      "offsetX": -1284201.0216344418,
       "offsetY": -1025671.0206605701
     },
     "layers": {
@@ -1488,7 +1493,7 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 334.01207729731686,
+          "x": 324.01207729731686,
           "y": 9.994252873584628,
           "w": 70.22222137451172,
           "h": 83
@@ -1510,7 +1515,7 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 159.13851407915354,
+          "x": 149.13851407915354,
           "y": 240.03273363341577,
           "w": 113.38888549804688,
           "h": 31
@@ -1533,13 +1538,57 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 169.13501582783647,
+          "x": 159.13501582783647,
           "y": 328.99075462284964,
           "w": 124.88888549804688,
           "h": 31
         },
         "showBg": true,
         "showBorder": false
+      },
+      {
+        "id": "lbl_1790120136197",
+        "text": "Lote#5",
+        "worldX": 1097896.179201655,
+        "worldY": 876692.5441359142,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "padding": 1,
+        "_box": {
+          "x": 369.99999999976717,
+          "y": 290.9999999998836,
+          "w": 47,
+          "h": 20
+        }
+      },
+      {
+        "id": "lbl_1790120163137",
+        "text": "Lote#6",
+        "worldX": 1097990.193844414,
+        "worldY": 876791.6868500963,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1,
+        "padding": 1,
+        "_box": {
+          "x": 479.99999999976717,
+          "y": 175,
+          "w": 47,
+          "h": 20
+        }
       }
     ],
     "arrows": [
