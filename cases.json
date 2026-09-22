@@ -566,7 +566,7 @@
     "labels": [
       {
         "id": "lbl_-891520115",
-        "text": "Lote Jimmy Ruiz\n[size=10]Area reportada en documento: [/size]2,413 m²",
+        "text": "Lote Jimmy Ruiz\n[size=10]Area reportada en documento: [/size]2,413 m²\n[size=9]Area invadida: 2,413m²[/size]",
         "worldX": 1097650.1505854814,
         "worldY": 876895.860037474,
         "fontSize": 20,
@@ -582,7 +582,7 @@
           "x": 102.13901382894255,
           "y": 12.114192903856747,
           "w": 238.3333282470703,
-          "h": 60
+          "h": 85
         },
         "showBorder": false
       },
@@ -801,7 +801,7 @@
     "labels": [
       {
         "id": "lbl_-891177485",
-        "text": "Lote Pedro Ruiz\n[size=10]Area reportada en documento: [/size]2,142 m²",
+        "text": "Lote Pedro Ruiz\n[size=10]Area reportada en documento: [/size]2,142 m²\n[size=9]Area invadida: 1,409m²[/size]",
         "worldX": 1097654.423978334,
         "worldY": 876877.0571089222,
         "fontSize": 20,
@@ -817,7 +817,7 @@
           "x": 107.13901382894255,
           "y": 34.11419290385675,
           "w": 238.3333282470703,
-          "h": 60
+          "h": 85
         },
         "showBorder": false
       },
@@ -1036,7 +1036,7 @@
     "labels": [
       {
         "id": "lbl_-890853196",
-        "text": "Lote Nacho Ruiz\n[size=10]Area reportada en documento: [/size]5,572 m²",
+        "text": "Lote Nacho Ruiz\n[size=10]Area reportada en documento: [/size]5,572 m²\n[size=9]Area invadida: 1,770m²[/size]",
         "worldX": 1097654.423978334,
         "worldY": 876877.0571089222,
         "fontSize": 20,
@@ -1052,7 +1052,7 @@
           "x": 107.13901382894255,
           "y": 34.11419290385675,
           "w": 238.3333282470703,
-          "h": 60
+          "h": 85
         },
         "showBorder": false
       },
