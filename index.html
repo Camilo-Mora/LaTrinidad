@@ -741,6 +741,28 @@
       background: rgba(0,229,255,0.1);
       color: var(--accent-cyan);
     }
+    .case-arrow-item {
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.03);
+      font-size: 0.72rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-main);
+      transition: var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .case-arrow-item:hover { background: rgba(255,255,255,0.08); }
+    .case-arrow-item.selected {
+      border-color: var(--accent-cyan);
+      background: rgba(0,229,255,0.1);
+      color: var(--accent-cyan);
+    }
     .btn-danger-sm {
       background: rgba(255,23,68,0.15);
       border: 1px solid rgba(255,23,68,0.35);
@@ -1126,6 +1148,33 @@
                 <input type="checkbox" id="lbl-show-bg" checked> Show background box
               </label>
               <button id="btn-lbl-delete" class="btn btn-sm btn-danger-sm" style="width:100%;margin-top:6px;">🗑️ Delete Label</button>
+            </div>
+            <!-- Arrow management -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:6px;">
+              <span style="font-size:0.7rem;color:var(--text-muted);">➡️ Arrows</span>
+              <button id="btn-case-add-arrow" class="btn btn-secondary btn-sm" title="Drop a new arrow at center of current view">➕ Add</button>
+            </div>
+            <div id="case-arrows-list" style="display:flex;flex-direction:column;gap:3px;max-height:110px;overflow-y:auto;margin-bottom:6px;">
+              <div style="font-size:0.68rem;color:var(--text-muted);padding:2px;">No arrows yet.</div>
+            </div>
+            <!-- Arrow style inspector -->
+            <div id="case-arrow-inspector" style="display:none;background:rgba(0,0,0,0.35);border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:6px;">
+              <div style="font-size:0.7rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;">✏️ Arrow Style</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:0.72rem;color:var(--text-muted);">
+                <label style="display:flex;flex-direction:column;gap:2px;">Color
+                  <input type="color" id="arrow-color" value="#00e5ff" style="width:100%;height:24px;border:none;background:none;cursor:pointer;border-radius:3px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">Opacity (<span id="arrow-opacity-val" style="color:var(--text-main);">85%</span>)
+                  <input type="range" id="arrow-opacity" min="0" max="1" step="0.05" value="0.85" style="width:100%;margin-top:4px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">Thickness (px)
+                  <input type="number" id="arrow-width" min="1" max="25" step="0.5" value="3" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:2px;">Head Size (px)
+                  <input type="number" id="arrow-headsize" min="6" max="60" step="1" value="16" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
+                </label>
+              </div>
+              <button id="btn-arrow-delete" class="btn btn-sm btn-danger-sm" style="width:100%;margin-top:6px;">🗑️ Delete Arrow</button>
             </div>
             <!-- DXF Layer Opacity -->
             <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:6px;">
@@ -1861,6 +1910,7 @@ const state = {
   caseMode: false,
   caseDraggingLabelId: null,
   caseSelectedLabelId: null,
+  caseSelectedArrowId: null,
 
   // Layer order manager
   layerOrder: ["dxf_true", "dxf_overlay", "dxf_296", "dxf_1073", "dxf_196", "dxf_anchors", "measure_polygons"]
@@ -2637,6 +2687,7 @@ function drawViewportTrue() {
 
   if (state.caseMode) {
     drawCaseLabels(ctxTrue, vp, h);
+    drawCaseArrows(ctxTrue, vp, h);
   }
   if (state.currentSnapTarget && state.currentSnapTarget.mapName === "true") {
     drawSnapTargetOnCanvas(ctxTrue, state.currentSnapTarget.screenPt);
@@ -4389,6 +4440,7 @@ function attachCanvasInteractions(canvas, mapName) {
   let lastX = 0, lastY = 0;
   let draggingAnchor = null; // { list, anc, field }
   let draggingCaseLabel = null; // { lbl, startMouseX, startMouseY, origWorldX, origWorldY }
+  let draggingCaseArrow = null; // { arrow, part, startMouseX, startMouseY, origStartX, origStartY, origEndX, origEndY }
 
   // Always read the CURRENT viewport from state — fitViewport() creates new objects,
   // so a captured reference from call time would go stale immediately.
@@ -4427,8 +4479,24 @@ function attachCanvasInteractions(canvas, mapName) {
       return;
     }
 
-    // If on Field map and in case mode, check if clicking a label first!
+    // If on Field map and in case mode, check if clicking an arrow or label first!
     if (mapName === "true" && state.caseMode && e.button === 0) {
+      const hitArrow = getArrowHitAtScreen(mouseX, mouseY);
+      if (hitArrow) {
+        draggingCaseArrow = {
+          arrow: hitArrow.arrow,
+          part: hitArrow.part,
+          startMouseX: mouseX,
+          startMouseY: mouseY,
+          origStartX: hitArrow.arrow.startX,
+          origStartY: hitArrow.arrow.startY,
+          origEndX: hitArrow.arrow.endX,
+          origEndY: hitArrow.arrow.endY
+        };
+        selectCaseArrow(hitArrow.arrow.id);
+        canvas.style.cursor = hitArrow.part === "body" ? "grabbing" : "crosshair";
+        return; // Prevent map pan!
+      }
       const hitLbl = getLabelAtScreen(mouseX, mouseY);
       if (hitLbl) {
         draggingCaseLabel = {
@@ -4505,6 +4573,27 @@ function attachCanvasInteractions(canvas, mapName) {
 
     coordsBar.textContent = `${mapName.toUpperCase()} Coords: (${worldPt.x.toFixed(2)}, ${worldPt.y.toFixed(2)}) m`;
 
+    if (draggingCaseArrow) {
+      const curWorld = toWorld(mouseX, mouseY, vp, canvas.height);
+      const startWorld = toWorld(draggingCaseArrow.startMouseX, draggingCaseArrow.startMouseY, vp, canvas.height);
+      const dx = curWorld.x - startWorld.x;
+      const dy = curWorld.y - startWorld.y;
+      if (draggingCaseArrow.part === "body") {
+        draggingCaseArrow.arrow.startX = draggingCaseArrow.origStartX + dx;
+        draggingCaseArrow.arrow.startY = draggingCaseArrow.origStartY + dy;
+        draggingCaseArrow.arrow.endX = draggingCaseArrow.origEndX + dx;
+        draggingCaseArrow.arrow.endY = draggingCaseArrow.origEndY + dy;
+      } else if (draggingCaseArrow.part === "tail") {
+        draggingCaseArrow.arrow.startX = draggingCaseArrow.origStartX + dx;
+        draggingCaseArrow.arrow.startY = draggingCaseArrow.origStartY + dy;
+      } else if (draggingCaseArrow.part === "head") {
+        draggingCaseArrow.arrow.endX = draggingCaseArrow.origEndX + dx;
+        draggingCaseArrow.arrow.endY = draggingCaseArrow.origEndY + dy;
+      }
+      redrawAll();
+      return;
+    }
+
     if (draggingCaseLabel) {
       const curWorld = toWorld(mouseX, mouseY, vp, canvas.height);
       const startWorld = toWorld(draggingCaseLabel.startMouseX, draggingCaseLabel.startMouseY, vp, canvas.height);
@@ -4546,7 +4635,12 @@ function attachCanvasInteractions(canvas, mapName) {
       return;
     }
 
-    if (mapName === "true" && state.caseMode && !isPanning && !draggingCaseLabel) {
+    if (mapName === "true" && state.caseMode && !isPanning && !draggingCaseLabel && !draggingCaseArrow) {
+      const hitArr = getArrowHitAtScreen(mouseX, mouseY);
+      if (hitArr) {
+        canvas.style.cursor = hitArr.part === "body" ? "grab" : "crosshair";
+        return;
+      }
       const hitLbl = getLabelAtScreen(mouseX, mouseY);
       if (hitLbl) {
         canvas.style.cursor = "grab";
@@ -4578,6 +4672,10 @@ function attachCanvasInteractions(canvas, mapName) {
   canvas.addEventListener("mouseup", (e) => {
     const vp = getVP();
     const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
+    if (draggingCaseArrow) {
+      draggingCaseArrow = null;
+      canvas.style.cursor = "grab";
+    }
     if (draggingCaseLabel) {
       draggingCaseLabel = null;
       canvas.style.cursor = "grab";
@@ -4603,6 +4701,7 @@ function attachCanvasInteractions(canvas, mapName) {
 
   canvas.addEventListener("mouseleave", () => {
     isPanning = false;
+    if (draggingCaseArrow) { draggingCaseArrow = null; }
     if (draggingCaseLabel) { draggingCaseLabel = null; }
     if (draggingAnchor) { draggingAnchor = null; }
     if (state.draggingMeasurePt !== null) { state.draggingMeasurePt = null; }
@@ -5693,6 +5792,10 @@ function buildCaseLabelsList() {
 
 function selectCaseLabel(id) {
   state.caseSelectedLabelId = id;
+  state.caseSelectedArrowId = null;
+  buildCaseArrowsList();
+  const arrInsp = document.getElementById("case-arrow-inspector");
+  if (arrInsp) arrInsp.style.display = "none";
   buildCaseLabelsList();
   const ac = getActiveCase();
   const lbl = ac ? (ac.labels || []).find(l => l.id === id) : null;
@@ -5716,6 +5819,7 @@ function selectCaseLabel(id) {
   italicBtn.style.borderColor = lbl.italic ? "var(--accent-cyan)" : "";
   const showBgEl = document.getElementById("lbl-show-bg");
   if (showBgEl) showBgEl.checked = lbl.showBg !== false;
+  drawViewportTrue();
 }
 
 function updateSelectedLabelProp(key, value) {
@@ -5732,15 +5836,20 @@ function applyActiveCase(caseObj) {
     state.caseMode = false;
     state.activeCaseId = null;
     state.caseSelectedLabelId = null;
+    state.caseSelectedArrowId = null;
     const inspector = document.getElementById("case-label-inspector");
     if (inspector) inspector.style.display = "none";
+    const arrInsp = document.getElementById("case-arrow-inspector");
+    if (arrInsp) arrInsp.style.display = "none";
     buildCasePolyChecklist();
     buildCaseLabelsList();
+    buildCaseArrowsList();
     drawViewportTrue();
     return;
   }
   state.caseMode = true;
   state.activeCaseId = caseObj.id;
+  if (!caseObj.arrows) caseObj.arrows = [];
   if (caseObj.camera) {
     state.vpTrue.scale = caseObj.camera.scale;
     state.vpTrue.offsetX = caseObj.camera.offsetX;
@@ -5748,9 +5857,13 @@ function applyActiveCase(caseObj) {
   }
   buildCasePolyChecklist();
   buildCaseLabelsList();
+  buildCaseArrowsList();
   state.caseSelectedLabelId = null;
+  state.caseSelectedArrowId = null;
   const inspector = document.getElementById("case-label-inspector");
   if (inspector) inspector.style.display = "none";
+  const arrInsp = document.getElementById("case-arrow-inspector");
+  if (arrInsp) arrInsp.style.display = "none";
   drawViewportTrue();
   statusBar.textContent = `📂 Case loaded: ${caseObj.name}`;
 }
@@ -5769,7 +5882,8 @@ function createNewCase() {
       offsetY: state.vpTrue.offsetY
     },
     layers: { geotiff: true, dxf296: true, dxf1073: true, dxf196: true, dxfTrue: true },
-    labels: []
+    labels: [],
+    arrows: []
   };
   state.cases.push(newCase);
   rebuildCaseSelector();
@@ -5796,11 +5910,15 @@ function deleteActiveCase() {
   state.activeCaseId = null;
   state.caseMode = false;
   state.caseSelectedLabelId = null;
+  state.caseSelectedArrowId = null;
   const inspector = document.getElementById("case-label-inspector");
   if (inspector) inspector.style.display = "none";
+  const arrInsp = document.getElementById("case-arrow-inspector");
+  if (arrInsp) arrInsp.style.display = "none";
   rebuildCaseSelector();
   buildCasePolyChecklist();
   buildCaseLabelsList();
+  buildCaseArrowsList();
   drawViewportTrue();
   statusBar.textContent = "🗑️ Case deleted.";
 }
@@ -5852,6 +5970,225 @@ function deleteSelectedLabel() {
   if (inspector) inspector.style.display = "none";
   buildCaseLabelsList();
   drawViewportTrue();
+}
+
+function buildCaseArrowsList() {
+  const listEl = document.getElementById("case-arrows-list");
+  if (!listEl) return;
+  listEl.innerHTML = "";
+  const ac = getActiveCase();
+  const arrows = ac ? (ac.arrows || []) : [];
+  if (arrows.length === 0) {
+    listEl.innerHTML = '<div style="font-size:0.68rem;color:var(--text-muted);padding:2px;">No arrows yet. Click ➕ Add.</div>';
+    return;
+  }
+  arrows.forEach((arr, idx) => {
+    const row = document.createElement("div");
+    row.className = "case-arrow-item" + (arr.id === state.caseSelectedArrowId ? " selected" : "");
+    const dot = document.createElement("span");
+    dot.style.cssText = `display:inline-block;width:9px;height:9px;border-radius:50%;background:${arr.color || "#00e5ff"};opacity:${arr.opacity !== undefined ? arr.opacity : 0.85};flex-shrink:0;border:1px solid rgba(255,255,255,0.4);`;
+    const labelSpan = document.createElement("span");
+    labelSpan.textContent = arr.name || `Arrow #${idx + 1}`;
+    row.appendChild(dot);
+    row.appendChild(labelSpan);
+    row.addEventListener("click", () => selectCaseArrow(arr.id));
+    listEl.appendChild(row);
+  });
+}
+
+function selectCaseArrow(id) {
+  state.caseSelectedArrowId = id;
+  state.caseSelectedLabelId = null;
+  buildCaseLabelsList();
+  const lblInsp = document.getElementById("case-label-inspector");
+  if (lblInsp) lblInsp.style.display = "none";
+
+  buildCaseArrowsList();
+  const ac = getActiveCase();
+  const arr = ac ? (ac.arrows || []).find(a => a.id === id) : null;
+  const inspector = document.getElementById("case-arrow-inspector");
+  if (!inspector) return;
+  if (!arr) { inspector.style.display = "none"; return; }
+  inspector.style.display = "block";
+  document.getElementById("arrow-color").value = arr.color || "#00e5ff";
+  const op = arr.opacity !== undefined ? arr.opacity : 0.85;
+  document.getElementById("arrow-opacity").value = op;
+  const opVal = document.getElementById("arrow-opacity-val");
+  if (opVal) opVal.textContent = Math.round(op * 100) + "%";
+  document.getElementById("arrow-width").value = arr.lineWidth !== undefined ? arr.lineWidth : 3;
+  document.getElementById("arrow-headsize").value = arr.headSize !== undefined ? arr.headSize : 16;
+  drawViewportTrue();
+}
+
+function updateSelectedArrowProp(key, value) {
+  const ac = getActiveCase();
+  if (!ac || !state.caseSelectedArrowId) return;
+  const arr = (ac.arrows || []).find(a => a.id === state.caseSelectedArrowId);
+  if (!arr) return;
+  arr[key] = value;
+  buildCaseArrowsList();
+  drawViewportTrue();
+}
+
+function addArrowToActiveCase() {
+  const ac = getActiveCase();
+  if (!ac) { statusBar.textContent = "⚠️ Select or create a case first."; return; }
+  if (!ac.arrows) ac.arrows = [];
+  const w = canvasTrue.width, h = canvasTrue.height;
+  const centerWorld = screenToWorldGIS(w / 2, h / 2, state.vpTrue, h);
+  const offsetMeters = 30;
+  const arr = {
+    id: "arr_" + Date.now(),
+    name: "Arrow " + (ac.arrows.length + 1),
+    startX: centerWorld.x - offsetMeters,
+    startY: centerWorld.y - offsetMeters * 0.6,
+    endX: centerWorld.x + offsetMeters,
+    endY: centerWorld.y + offsetMeters * 0.6,
+    color: "#00e5ff",
+    opacity: 0.85,
+    lineWidth: 3.5,
+    headSize: 18
+  };
+  ac.arrows.push(arr);
+  state.caseSelectedArrowId = arr.id;
+  buildCaseArrowsList();
+  selectCaseArrow(arr.id);
+  drawViewportTrue();
+  statusBar.textContent = "➡️ Arrow added. Drag handles or body to adjust.";
+}
+
+function deleteSelectedArrow() {
+  const ac = getActiveCase();
+  if (!ac || !state.caseSelectedArrowId) return;
+  ac.arrows = (ac.arrows || []).filter(a => a.id !== state.caseSelectedArrowId);
+  state.caseSelectedArrowId = null;
+  const inspector = document.getElementById("case-arrow-inspector");
+  if (inspector) inspector.style.display = "none";
+  buildCaseArrowsList();
+  drawViewportTrue();
+  statusBar.textContent = "🗑️ Arrow deleted.";
+}
+
+function getArrowHitAtScreen(screenX, screenY) {
+  const ac = getActiveCase();
+  if (!ac || !ac.arrows || ac.arrows.length === 0) return null;
+  const vp = state.vpTrue;
+  const h = canvasTrue.height;
+
+  // Check currently selected arrow's handles first
+  if (state.caseSelectedArrowId) {
+    const sel = ac.arrows.find(a => a.id === state.caseSelectedArrowId);
+    if (sel) {
+      const s = worldToScreenGIS({ x: sel.startX, y: sel.startY }, vp, h);
+      const e = worldToScreenGIS({ x: sel.endX, y: sel.endY }, vp, h);
+      if (Math.hypot(screenX - e.x, screenY - e.y) <= 10) return { arrow: sel, part: "head" };
+      if (Math.hypot(screenX - s.x, screenY - s.y) <= 10) return { arrow: sel, part: "tail" };
+    }
+  }
+
+  // Iterate backwards (topmost first)
+  for (let i = ac.arrows.length - 1; i >= 0; i--) {
+    const arr = ac.arrows[i];
+    const s = worldToScreenGIS({ x: arr.startX, y: arr.startY }, vp, h);
+    const e = worldToScreenGIS({ x: arr.endX, y: arr.endY }, vp, h);
+
+    if (Math.hypot(screenX - e.x, screenY - e.y) <= 10) {
+      return { arrow: arr, part: "head" };
+    }
+    if (Math.hypot(screenX - s.x, screenY - s.y) <= 10) {
+      return { arrow: arr, part: "tail" };
+    }
+    const l2 = (e.x - s.x) * (e.x - s.x) + (e.y - s.y) * (e.y - s.y);
+    let dist = 0;
+    if (l2 === 0) {
+      dist = Math.hypot(screenX - s.x, screenY - s.y);
+    } else {
+      let t = ((screenX - s.x) * (e.x - s.x) + (screenY - s.y) * (e.y - s.y)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      const projX = s.x + t * (e.x - s.x);
+      const projY = s.y + t * (e.y - s.y);
+      dist = Math.hypot(screenX - projX, screenY - projY);
+    }
+    const hitThreshold = Math.max(7, (arr.lineWidth || 3) + 4);
+    if (dist <= hitThreshold) {
+      return { arrow: arr, part: "body" };
+    }
+  }
+  return null;
+}
+
+function drawSingleArrow(ctx, sx, sy, ex, ey, headSize, lineWidth, color, opacity, isSelected) {
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, opacity !== undefined ? opacity : 0.85));
+  ctx.strokeStyle = color || "#00e5ff";
+  ctx.fillStyle = color || "#00e5ff";
+  ctx.lineWidth = lineWidth || 3;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  const dx = ex - sx;
+  const dy = ey - sy;
+  const angle = Math.atan2(dy, dx);
+  const length = Math.hypot(dx, dy);
+
+  const hs = Math.min(headSize || 16, Math.max(6, length * 0.6));
+  const headAngle = Math.PI / 6;
+
+  // Draw shaft ending at arrowhead indentation
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(ex - hs * 0.5 * Math.cos(angle), ey - hs * 0.5 * Math.sin(angle));
+  ctx.stroke();
+
+  // Draw arrowhead polygon
+  ctx.beginPath();
+  ctx.moveTo(ex, ey);
+  ctx.lineTo(ex - hs * Math.cos(angle - headAngle), ey - hs * Math.sin(angle - headAngle));
+  ctx.lineTo(ex - hs * 0.45 * Math.cos(angle), ey - hs * 0.45 * Math.sin(angle));
+  ctx.lineTo(ex - hs * Math.cos(angle + headAngle), ey - hs * Math.sin(angle + headAngle));
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+
+  if (isSelected) {
+    ctx.save();
+    // Selection halo
+    ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+    ctx.lineWidth = (lineWidth || 3) + 6;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+
+    // Tail handle (cyan circle)
+    ctx.fillStyle = "#00e5ff";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Head handle (bright coral circle)
+    ctx.fillStyle = "#ff1744";
+    ctx.beginPath();
+    ctx.arc(ex, ey, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawCaseArrows(ctx, vp, h) {
+  const ac = getActiveCase();
+  if (!ac || !ac.arrows) return;
+  ac.arrows.forEach(arr => {
+    const s = worldToScreenGIS({ x: arr.startX, y: arr.startY }, vp, h);
+    const e = worldToScreenGIS({ x: arr.endX, y: arr.endY }, vp, h);
+    const isSel = arr.id === state.caseSelectedArrowId;
+    drawSingleArrow(ctx, s.x, s.y, e.x, e.y, arr.headSize || 16, arr.lineWidth || 3, arr.color || "#00e5ff", arr.opacity !== undefined ? arr.opacity : 0.85, isSel);
+  });
 }
 
 function getLabelAtScreen(screenX, screenY) {
@@ -6069,6 +6406,9 @@ async function exportCaseImageHD() {
   if (ac.labels && ac.labels.length > 0) {
     drawCaseLabelsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.labels);
   }
+  if (ac.arrows && ac.arrows.length > 0) {
+    drawCaseArrowsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.arrows);
+  }
 
   offCanvas.toBlob(blob => {
     if (!blob) return;
@@ -6132,6 +6472,16 @@ function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
   });
 }
 
+function drawCaseArrowsForExport(ctx, vp, h, scaleRatio, arrows) {
+  arrows.forEach(arr => {
+    const s = worldToScreenGISExport({ x: arr.startX, y: arr.startY }, vp, h);
+    const e = worldToScreenGISExport({ x: arr.endX, y: arr.endY }, vp, h);
+    const hs = (arr.headSize || 16) * scaleRatio;
+    const lw = (arr.lineWidth || 3) * scaleRatio;
+    drawSingleArrow(ctx, s.x, s.y, e.x, e.y, hs, lw, arr.color || "#00e5ff", arr.opacity !== undefined ? arr.opacity : 0.85, false);
+  });
+}
+
 function drawWarpedEntitiesGISExport(ctx, entities, warper, vp, canvasH, color, lineWidth = 4) {
   entities.forEach(ent => {
     if (!ent.points || ent.points.length < 2) return;
@@ -6162,10 +6512,14 @@ function setupCasesPanel() {
       state.activeCaseId = null;
       state.caseMode = false;
       state.caseSelectedLabelId = null;
+      state.caseSelectedArrowId = null;
       const inspector = document.getElementById("case-label-inspector");
       if (inspector) inspector.style.display = "none";
+      const arrInsp = document.getElementById("case-arrow-inspector");
+      if (arrInsp) arrInsp.style.display = "none";
       buildCasePolyChecklist();
       buildCaseLabelsList();
+      buildCaseArrowsList();
       drawViewportTrue();
       return;
     }
@@ -6188,6 +6542,25 @@ function setupCasesPanel() {
   const btnDelLbl = document.getElementById("btn-lbl-delete");
   if (btnDelLbl) btnDelLbl.addEventListener("click", deleteSelectedLabel);
 
+  const btnAddArrow = document.getElementById("btn-case-add-arrow");
+  if (btnAddArrow) btnAddArrow.addEventListener("click", addArrowToActiveCase);
+  const btnDelArrow = document.getElementById("btn-arrow-delete");
+  if (btnDelArrow) btnDelArrow.addEventListener("click", deleteSelectedArrow);
+
+  const arrColor = document.getElementById("arrow-color");
+  if (arrColor) arrColor.addEventListener("input", e => updateSelectedArrowProp("color", e.target.value));
+  const arrOpacity = document.getElementById("arrow-opacity");
+  if (arrOpacity) arrOpacity.addEventListener("input", e => {
+    const val = parseFloat(e.target.value);
+    updateSelectedArrowProp("opacity", val);
+    const opVal = document.getElementById("arrow-opacity-val");
+    if (opVal) opVal.textContent = Math.round(val * 100) + "%";
+  });
+  const arrWidth = document.getElementById("arrow-width");
+  if (arrWidth) arrWidth.addEventListener("input", e => updateSelectedArrowProp("lineWidth", parseFloat(e.target.value) || 1));
+  const arrHead = document.getElementById("arrow-headsize");
+  if (arrHead) arrHead.addEventListener("input", e => updateSelectedArrowProp("headSize", parseFloat(e.target.value) || 6));
+
   const loadInput = document.getElementById("case-load-input");
   if (loadInput) {
     loadInput.addEventListener("change", async (e) => {
@@ -6200,9 +6573,12 @@ function setupCasesPanel() {
           state.cases = data;
           state.activeCaseId = null;
           state.caseMode = false;
+          state.caseSelectedLabelId = null;
+          state.caseSelectedArrowId = null;
           rebuildCaseSelector();
           buildCasePolyChecklist();
           buildCaseLabelsList();
+          buildCaseArrowsList();
           drawViewportTrue();
           statusBar.textContent = `✅ Loaded ${data.length} case(s) from ${file.name}`;
         }
