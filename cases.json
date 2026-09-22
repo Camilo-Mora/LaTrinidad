@@ -3,8 +3,8 @@
     "id": 1790035200054,
     "name": "Lotes A y B",
     "selectedPolyIds": [
-      3,
-      9
+      2,
+      1
     ],
     "camera": {
       "scale": 1.170030505587996,
@@ -15,8 +15,8 @@
       "geotiff": true,
       "dxf296": true,
       "dxf1073": true,
-      "dxf196": true,
-      "dxfTrue": true
+      "dxf196": false,
+      "dxfTrue": false
     },
     "labels": [
       {
@@ -28,8 +28,8 @@
         "bold": true,
         "italic": false,
         "textColor": "#ffffff",
-        "bgColor": "#ffff80",
-        "bgOpacity": 0.6,
+        "bgColor": "#ffa448",
+        "bgOpacity": 0.65,
         "borderColor": "#000000",
         "borderWidth": 1,
         "padding": 3,
@@ -43,20 +43,20 @@
       {
         "id": "lbl_1790036085914",
         "text": "Lote B\n4,042 m²\n0.63 pl",
-        "worldX": 1097931.221023047,
-        "worldY": 876924.1620285294,
+        "worldX": 1097901.3072730782,
+        "worldY": 876922.4526713884,
         "fontSize": 14,
         "bold": true,
         "italic": false,
         "textColor": "#ffffff",
         "bgColor": "#09ff09",
         "bgOpacity": 0.25,
-        "borderColor": "#008040",
+        "borderColor": "#000000",
         "borderWidth": 1,
         "padding": 2,
         "_box": {
-          "x": 439.99999999976717,
-          "y": 13,
+          "x": 404.99999999976717,
+          "y": 15,
           "w": 59.94444274902344,
           "h": 58
         }
@@ -64,8 +64,8 @@
       {
         "id": "lbl_1790036233309",
         "text": "La Trinidad",
-        "worldX": 1097722.6794518363,
-        "worldY": 876721.6032073124,
+        "worldX": 1097717.551380413,
+        "worldY": 876719.0391716008,
         "fontSize": 14,
         "bold": true,
         "italic": false,
@@ -76,8 +76,8 @@
         "borderWidth": 0.5,
         "padding": 2,
         "_box": {
-          "x": 196,
-          "y": 249.99999999988358,
+          "x": 189.99999999976717,
+          "y": 252.99999999988358,
           "w": 78.38888549804688,
           "h": 22
         },
@@ -86,8 +86,8 @@
       {
         "id": "lbl_1790036295497",
         "text": "Casa del Sol",
-        "worldX": 1097721.8247732657,
-        "worldY": 876657.502314522,
+        "worldX": 1097728.66220183,
+        "worldY": 876665.1944216568,
         "fontSize": 14,
         "bold": true,
         "italic": false,
@@ -98,8 +98,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 190,
-          "y": 320.0000000001164,
+          "x": 197.99999999976717,
+          "y": 311.00000000023283,
           "w": 97,
           "h": 32
         },
@@ -114,12 +114,73 @@
         "startY": 876846.334528592,
         "endX": 1097868.9157374292,
         "endY": 876839.6006000651,
+        "color": "#000000",
+        "opacity": 1,
+        "lineWidth": 3.5,
+        "headSize": 18
+      },
+      {
+        "id": "arr_1790048672327",
+        "name": "Arrow 2",
+        "startX": 1097954.2110944206,
+        "startY": 876894.1965285419,
+        "endX": 1098000.5362372918,
+        "endY": 876881.4798500214,
+        "color": "#000000",
+        "opacity": 1,
+        "lineWidth": 3.5,
+        "headSize": 18
+      },
+      {
+        "id": "arr_1790048849619",
+        "name": "Arrow 3",
+        "startX": 1097731.1399875104,
+        "startY": 876680.5268859077,
+        "endX": 1097731.312487573,
+        "endY": 876707.1254216318,
+        "color": "#00e5ff",
+        "opacity": 0.85,
+        "lineWidth": 3.5,
+        "headSize": 18
+      },
+      {
+        "id": "arr_1790048859786",
+        "name": "Arrow 4",
+        "startX": 1097745.6695232096,
+        "startY": 876685.654957331,
+        "endX": 1097745.8420232718,
+        "endY": 876663.5368145346,
         "color": "#00e5ff",
         "opacity": 0.85,
         "lineWidth": 3.5,
         "headSize": 18
       }
-    ]
+    ],
+    "polyStyles": {
+      "1": {
+        "color": "#ffd600",
+        "fillOpacity": 0.1
+      },
+      "2": {
+        "color": "#00e676",
+        "fillOpacity": 0.1
+      },
+      "3": {
+        "color": "#ff1744",
+        "fillOpacity": 0.14
+      },
+      "4": {
+        "color": "#2979ff",
+        "fillOpacity": 0.15
+      }
+    },
+    "dxfOpacity": {
+      "dxf_296": 0.89,
+      "dxf_1073": 0.63,
+      "dxf_196": 1,
+      "dxf_true": 1
+    },
+    "geotiffBW": false
   },
   {
     "id": 1790042870800,
