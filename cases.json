@@ -3,7 +3,8 @@
     "id": 1790035200054,
     "name": "Lotes A y B",
     "selectedPolyIds": [
-      3
+      2,
+      1
     ],
     "camera": {
       "scale": 1.170030505587996,
