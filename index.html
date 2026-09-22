@@ -1082,6 +1082,9 @@
                   <input type="number" id="lbl-padding" min="0" max="30" value="7" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
                 </label>
               </div>
+              <label class="window-checkbox" style="font-size:0.72rem;margin:4px 0 0 0;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                <input type="checkbox" id="lbl-show-bg" checked> Show background box
+              </label>
               <button id="btn-lbl-delete" class="btn btn-sm btn-danger-sm" style="width:100%;margin-top:6px;">🗑️ Delete Label</button>
             </div>
             <!-- HD Export -->
@@ -5514,6 +5517,8 @@ function selectCaseLabel(id) {
   boldBtn.style.borderColor = lbl.bold ? "var(--accent-cyan)" : "";
   italicBtn.style.background = lbl.italic ? "rgba(0,229,255,0.25)" : "";
   italicBtn.style.borderColor = lbl.italic ? "var(--accent-cyan)" : "";
+  const showBgEl = document.getElementById("lbl-show-bg");
+  if (showBgEl) showBgEl.checked = lbl.showBg !== false;
 }
 
 function updateSelectedLabelProp(key, value) {
@@ -5686,29 +5691,31 @@ function drawCaseLabels(ctx, vp, h) {
     const x = sp.x - pad;
     const y = sp.y - pad;
     lbl._box = { x, y, w: boxW, h: boxH };
-    const bgOp = lbl.bgOpacity !== undefined ? lbl.bgOpacity : 0.85;
-    const bgHex = lbl.bgColor || "#ffffff";
-    const br = parseInt(bgHex.slice(1,3),16) || 255;
-    const bg = parseInt(bgHex.slice(3,5),16) || 255;
-    const bb = parseInt(bgHex.slice(5,7),16) || 255;
-    ctx.fillStyle = `rgba(${br},${bg},${bb},${bgOp})`;
-    const bw = lbl.borderWidth !== undefined ? lbl.borderWidth : 1.5;
-    ctx.strokeStyle = lbl.borderColor || "#000000";
-    ctx.lineWidth = bw;
-    const radius = 4;
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + boxW - radius, y);
-    ctx.quadraticCurveTo(x + boxW, y, x + boxW, y + radius);
-    ctx.lineTo(x + boxW, y + boxH - radius);
-    ctx.quadraticCurveTo(x + boxW, y + boxH, x + boxW - radius, y + boxH);
-    ctx.lineTo(x + radius, y + boxH);
-    ctx.quadraticCurveTo(x, y + boxH, x, y + boxH - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-    ctx.fill();
-    if (bw > 0) ctx.stroke();
+    if (lbl.showBg !== false) {
+      const bgOp = lbl.bgOpacity !== undefined ? lbl.bgOpacity : 0.85;
+      const bgHex = lbl.bgColor || "#ffffff";
+      const br = parseInt(bgHex.slice(1,3),16) || 255;
+      const bg = parseInt(bgHex.slice(3,5),16) || 255;
+      const bb = parseInt(bgHex.slice(5,7),16) || 255;
+      ctx.fillStyle = `rgba(${br},${bg},${bb},${bgOp})`;
+      const bw = lbl.borderWidth !== undefined ? lbl.borderWidth : 1.5;
+      ctx.strokeStyle = lbl.borderColor || "#000000";
+      ctx.lineWidth = bw;
+      const radius = 4;
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + boxW - radius, y);
+      ctx.quadraticCurveTo(x + boxW, y, x + boxW, y + radius);
+      ctx.lineTo(x + boxW, y + boxH - radius);
+      ctx.quadraticCurveTo(x + boxW, y + boxH, x + boxW - radius, y + boxH);
+      ctx.lineTo(x + radius, y + boxH);
+      ctx.quadraticCurveTo(x, y + boxH, x, y + boxH - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      ctx.fill();
+      if (bw > 0) ctx.stroke();
+    }
     if (lbl.id === state.caseSelectedLabelId) {
       ctx.save();
       ctx.strokeStyle = "#00e5ff";
@@ -5820,7 +5827,8 @@ async function exportCaseImageHD() {
 
   state.measurePolygons.forEach(poly => {
     if (poly.visible === false || !poly.points || poly.points.length < 2) return;
-    const isSelected = ac.selectedPolyIds && ac.selectedPolyIds.includes(poly.id);
+    // Only render polygons selected in this case!
+    if (!ac.selectedPolyIds || !ac.selectedPolyIds.includes(poly.id)) return;
     ctx.beginPath();
     const first = worldToScreenGISExport(poly.points[0], vpExp, EXP_H);
     ctx.moveTo(first.x, first.y);
@@ -5831,11 +5839,11 @@ async function exportCaseImageHD() {
     ctx.closePath();
     const hex = poly.color;
     const r = parseInt(hex.slice(1,3),16) || 0, g = parseInt(hex.slice(3,5),16) || 229, b = parseInt(hex.slice(5,7),16) || 255;
-    const fillOp = isSelected ? (poly.fillOpacity || 0.18) * 1.5 : (poly.fillOpacity || 0.12);
+    const fillOp = (poly.fillOpacity || 0.18) * 1.5;
     ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(1, fillOp)})`;
     ctx.fill();
     ctx.strokeStyle = poly.color;
-    ctx.lineWidth = isSelected ? (poly.lineWidth || 2.5) * 2.5 : (poly.lineWidth || 2.5) * 1.5;
+    ctx.lineWidth = (poly.lineWidth || 2.5) * 2.5;
     ctx.setLineDash(getPolyLineDash(poly.lineType));
     ctx.stroke();
     ctx.setLineDash([]);
@@ -5871,29 +5879,31 @@ function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
     const boxH = lines.length * lineH + pad * 2;
     const x = sp.x - pad;
     const y = sp.y - pad;
-    const bgOp = lbl.bgOpacity !== undefined ? lbl.bgOpacity : 0.85;
-    const bgHex = lbl.bgColor || "#ffffff";
-    const br = parseInt(bgHex.slice(1,3),16) || 255;
-    const bg = parseInt(bgHex.slice(3,5),16) || 255;
-    const bb = parseInt(bgHex.slice(5,7),16) || 255;
-    ctx.fillStyle = `rgba(${br},${bg},${bb},${bgOp})`;
-    const bw = (lbl.borderWidth !== undefined ? lbl.borderWidth : 1.5) * scaleRatio;
-    ctx.strokeStyle = lbl.borderColor || "#000000";
-    ctx.lineWidth = bw;
-    const radius = 4 * scaleRatio;
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + boxW - radius, y);
-    ctx.quadraticCurveTo(x + boxW, y, x + boxW, y + radius);
-    ctx.lineTo(x + boxW, y + boxH - radius);
-    ctx.quadraticCurveTo(x + boxW, y + boxH, x + boxW - radius, y + boxH);
-    ctx.lineTo(x + radius, y + boxH);
-    ctx.quadraticCurveTo(x, y + boxH, x, y + boxH - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-    ctx.fill();
-    if (bw > 0) ctx.stroke();
+    if (lbl.showBg !== false) {
+      const bgOp = lbl.bgOpacity !== undefined ? lbl.bgOpacity : 0.85;
+      const bgHex = lbl.bgColor || "#ffffff";
+      const br = parseInt(bgHex.slice(1,3),16) || 255;
+      const bg = parseInt(bgHex.slice(3,5),16) || 255;
+      const bb = parseInt(bgHex.slice(5,7),16) || 255;
+      ctx.fillStyle = `rgba(${br},${bg},${bb},${bgOp})`;
+      const bw = (lbl.borderWidth !== undefined ? lbl.borderWidth : 1.5) * scaleRatio;
+      ctx.strokeStyle = lbl.borderColor || "#000000";
+      ctx.lineWidth = bw;
+      const radius = 4 * scaleRatio;
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + boxW - radius, y);
+      ctx.quadraticCurveTo(x + boxW, y, x + boxW, y + radius);
+      ctx.lineTo(x + boxW, y + boxH - radius);
+      ctx.quadraticCurveTo(x + boxW, y + boxH, x + boxW - radius, y + boxH);
+      ctx.lineTo(x + radius, y + boxH);
+      ctx.quadraticCurveTo(x, y + boxH, x, y + boxH - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      ctx.fill();
+      if (bw > 0) ctx.stroke();
+    }
     ctx.fillStyle = lbl.textColor || "#000000";
     ctx.font = `${bold}${italic}${fs}px sans-serif`;
     ctx.textAlign = "left";
@@ -6002,6 +6012,8 @@ function setupCasesPanel() {
   if (lblBw) lblBw.addEventListener("input", e => updateSelectedLabelProp("borderWidth", parseFloat(e.target.value)));
   const lblPad = document.getElementById("lbl-padding");
   if (lblPad) lblPad.addEventListener("input", e => updateSelectedLabelProp("padding", parseInt(e.target.value)));
+  const lblShowBg = document.getElementById("lbl-show-bg");
+  if (lblShowBg) lblShowBg.addEventListener("change", e => updateSelectedLabelProp("showBg", e.target.checked));
 
   const boldBtn = document.getElementById("lbl-bold");
   if (boldBtn) {

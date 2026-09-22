@@ -4,7 +4,7 @@
     "name": "LoteA",
     "color": "#ffd600",
     "fillOpacity": 0.1,
-    "lineWidth": 3,
+    "lineWidth": 1.5,
     "lineType": "dashed",
     "showArea": true,
     "showNodes": false,
@@ -60,6 +60,10 @@
       {
         "x": 1097823.795111426,
         "y": 876781.4190684791
+      },
+      {
+        "x": 1097878.826411427,
+        "y": 876848.838968479
       }
     ],
     "visible": true
@@ -69,7 +73,7 @@
     "name": "LoteB",
     "color": "#00e676",
     "fillOpacity": 0.1,
-    "lineWidth": 3,
+    "lineWidth": 1.5,
     "lineType": "dashed",
     "showArea": true,
     "showNodes": false,

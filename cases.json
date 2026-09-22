@@ -22,23 +22,71 @@
       {
         "id": "lbl_1790035279947",
         "text": "Lote A \n8,105m2 \n(1.27pl)",
-        "worldX": 1097869.6841659686,
-        "worldY": 876775.4479572561,
+        "worldX": 1097792.7630946203,
+        "worldY": 876844.6769214696,
         "fontSize": 14,
         "bold": true,
         "italic": false,
-        "textColor": "#000000",
+        "textColor": "#ffffff",
         "bgColor": "#ffff80",
         "bgOpacity": 0.6,
         "borderColor": "#000000",
         "borderWidth": 1,
-        "padding": 3
+        "padding": 3,
+        "_box": {
+          "x": 277,
+          "y": 105,
+          "w": 65.05555725097656,
+          "h": 60
+        }
       },
       {
-        "id": "lbl_1790035425404",
-        "text": "New Label",
-        "worldX": 1097743.1917375291,
-        "worldY": 876769.4652072624,
+        "id": "lbl_1790036085914",
+        "text": "Lote B\n4,042 m²\n0.63pl",
+        "worldX": 1097930.3663444766,
+        "worldY": 876913.905885683,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#ffffff",
+        "bgColor": "#008040",
+        "bgOpacity": 0.5,
+        "borderColor": "#008040",
+        "borderWidth": 1,
+        "padding": 2,
+        "_box": {
+          "x": 438.99999999976717,
+          "y": 25,
+          "w": 59.94444274902344,
+          "h": 58
+        }
+      },
+      {
+        "id": "lbl_1790036233309",
+        "text": "La Trinidad",
+        "worldX": 1097722.6794518363,
+        "worldY": 876721.6032073124,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#ffffff",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0,
+        "borderColor": "#ffffff",
+        "borderWidth": 0.5,
+        "padding": 2,
+        "_box": {
+          "x": 196,
+          "y": 249.99999999988358,
+          "w": 78.38888549804688,
+          "h": 22
+        }
+      },
+      {
+        "id": "lbl_1790036295497",
+        "text": "Casa del Sol",
+        "worldX": 1097721.8247732657,
+        "worldY": 876657.502314522,
         "fontSize": 14,
         "bold": true,
         "italic": false,
@@ -47,7 +95,13 @@
         "bgOpacity": 0.85,
         "borderColor": "#000000",
         "borderWidth": 1.5,
-        "padding": 7
+        "padding": 7,
+        "_box": {
+          "x": 190,
+          "y": 320.0000000001164,
+          "w": 97,
+          "h": 32
+        }
       }
     ]
   }
