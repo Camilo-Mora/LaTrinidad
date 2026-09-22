@@ -6,7 +6,7 @@
     "fillOpacity": 0.1,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
     "points": [
       {
@@ -64,6 +64,10 @@
       {
         "x": 1097878.826411427,
         "y": 876848.838968479
+      },
+      {
+        "x": 1097862.5462797221,
+        "y": 876829.9040325534
       }
     ],
     "visible": true
@@ -75,7 +79,7 @@
     "fillOpacity": 0.1,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
     "points": [
       {
@@ -105,6 +109,10 @@
       {
         "x": 1097948.7241520563,
         "y": 876825.8634029609
+      },
+      {
+        "x": 1097958.4151551158,
+        "y": 876806.2794074808
       }
     ],
     "visible": true
@@ -114,9 +122,9 @@
     "name": "Lote#5",
     "color": "#ff1744",
     "fillOpacity": 0.14,
-    "lineWidth": 2.5,
+    "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
     "points": [
       {
@@ -162,6 +170,10 @@
       {
         "x": 1097816.8731671036,
         "y": 876601.8471614093
+      },
+      {
+        "x": 1097843.1178870015,
+        "y": 876744.301642194
       }
     ],
     "visible": true
@@ -236,9 +248,9 @@
     "name": "Restitucion",
     "color": "#00e5ff",
     "fillOpacity": 0.25,
-    "lineWidth": 3,
+    "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": true,
+    "showArea": false,
     "showNodes": false,
     "visible": true,
     "points": [
@@ -265,6 +277,10 @@
       {
         "x": 1098062.97519184,
         "y": 876869.3592836752
+      },
+      {
+        "x": 1098134.6523936854,
+        "y": 877064.370676086
       }
     ]
   }

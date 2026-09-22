@@ -573,6 +573,25 @@
       width: 13px;
       height: 13px;
     }
+    .btn-order-btn {
+      padding: 0 4px;
+      font-size: 0.62rem;
+      line-height: 1.2;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .btn-order-btn:hover:not(:disabled) {
+      background: rgba(0,229,255,0.2);
+      border-color: var(--accent-cyan);
+    }
+    .btn-order-btn:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
     /* Panel body collapse: .panel-body-collapsed hides the body of a panel-card */
     .panel-body-collapsed { display: none !important; }
 
@@ -911,12 +930,14 @@
               <thead>
                 <tr>
                   <th class="col-name" colspan="2">Polygon</th>
+                  <th title="Drawing stack order">Order</th>
                   <th title="Visible on map">Show</th>
                   <th title="Display area measurement">Area</th>
                   <th title="Display vertex nodes">Nodes</th>
                 </tr>
                 <tr class="master-row">
                   <td colspan="2" class="col-name" style="color:var(--accent-cyan);font-size:0.7rem;">All</td>
+                  <td class="na-cell">—</td>
                   <td><input type="checkbox" id="sum-master-show" checked title="Toggle all polygons visible"></td>
                   <td><input type="checkbox" id="sum-master-area" title="Toggle all area displays"></td>
                   <td><input type="checkbox" id="sum-master-nodes" title="Toggle all node displays"></td>
@@ -924,11 +945,15 @@
               </thead>
               <tbody id="poly-summary-tbody">
                 <tr class="section-divider">
-                  <td colspan="5" style="padding-left:6px;">📐 DXF Layers</td>
+                  <td colspan="6" style="padding-left:6px;">📐 DXF Layers</td>
                 </tr>
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-purple);box-shadow:0 0 4px var(--accent-purple);"></span></td>
                   <td class="col-name" style="color:var(--accent-purple);">Escritura 296</td>
+                  <td style="white-space:nowrap;padding:1px 2px;">
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="-1" title="Send Backward (draw behind)">▼</button>
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                  </td>
                   <td><input type="checkbox" id="sum-show-dxf-296" checked title="Show/hide Escritura 296 on field map" style="accent-color:var(--accent-purple);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
@@ -936,6 +961,10 @@
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-red);box-shadow:0 0 4px var(--accent-red);"></span></td>
                   <td class="col-name" style="color:var(--accent-red);">Escritura 1073</td>
+                  <td style="white-space:nowrap;padding:1px 2px;">
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_1073" data-dir="-1" title="Send Backward (draw behind)">▼</button>
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_1073" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                  </td>
                   <td><input type="checkbox" id="sum-show-dxf-1073" checked title="Show/hide Escritura 1073 on field map" style="accent-color:var(--accent-red);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
@@ -943,6 +972,10 @@
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange);"></span></td>
                   <td class="col-name" style="color:var(--accent-orange);">Escritura 196</td>
+                  <td style="white-space:nowrap;padding:1px 2px;">
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_196" data-dir="-1" title="Send Backward (draw behind)">▼</button>
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_196" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                  </td>
                   <td><input type="checkbox" id="sum-show-dxf-196" checked title="Show/hide Escritura 196 on field map" style="accent-color:var(--accent-orange);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
@@ -950,17 +983,22 @@
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-green);box-shadow:0 0 4px var(--accent-green);"></span></td>
                   <td class="col-name" style="color:var(--accent-green);">Alambrado in 2019</td>
+                  <td style="white-space:nowrap;padding:1px 2px;">
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_true" data-dir="-1" title="Send Backward (draw behind)">▼</button>
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_true" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                  </td>
                   <td><input type="checkbox" id="sum-show-dxf-true" checked title="Show/hide Alambrado Historico on field map" style="accent-color:var(--accent-green);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
                 </tr>
                 <!-- JS renders dynamic measurement polygon rows AND the section divider here -->
                 <tr class="section-divider">
-                  <td colspan="5" style="padding-left:6px;">🎯 Anchor Points</td>
+                  <td colspan="6" style="padding-left:6px;">🎯 Anchor Points</td>
                 </tr>
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-purple);box-shadow:0 0 4px var(--accent-purple);"></span></td>
                   <td class="col-name" style="color:var(--accent-purple);">Anchors 296</td>
+                  <td class="na-cell">—</td>
                   <td><input type="checkbox" id="sum-show-anchors-296" title="Show/hide anchor points for Escritura 296" style="accent-color:var(--accent-purple);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
@@ -968,6 +1006,7 @@
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-red);box-shadow:0 0 4px var(--accent-red);"></span></td>
                   <td class="col-name" style="color:var(--accent-red);">Anchors 1073</td>
+                  <td class="na-cell">—</td>
                   <td><input type="checkbox" id="sum-show-anchors-1073" title="Show/hide anchor points for Escritura 1073" style="accent-color:var(--accent-red);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
@@ -975,6 +1014,7 @@
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange);"></span></td>
                   <td class="col-name" style="color:var(--accent-orange);">Anchors 196</td>
+                  <td class="na-cell">—</td>
                   <td><input type="checkbox" id="sum-show-anchors-196" title="Show/hide anchor points for Escritura 196" style="accent-color:var(--accent-orange);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
@@ -1785,8 +1825,13 @@ const state = {
   activeCaseId: null,
   caseMode: false,
   caseDraggingLabelId: null,
-  caseSelectedLabelId: null
+  caseSelectedLabelId: null,
+
+  // Layer order manager
+  layerOrder: ["dxf_true", "dxf_overlay", "dxf_296", "dxf_1073", "dxf_196", "dxf_anchors", "measure_polygons"]
 };
+
+const DEFAULT_LAYER_ORDER = ["dxf_true", "dxf_overlay", "dxf_296", "dxf_1073", "dxf_196", "dxf_anchors", "measure_polygons"];
 
 const anchorColors = ["#ff1744", "#00e676", "#00e5ff", "#ff9100", "#d500f9", "#ffff00", "#76ff03"];
 
@@ -1999,6 +2044,7 @@ async function autoLoadPolygons() {
         state.measurePolygons = data;
         state.activeMeasureIdx = 0;
         updateMeasurementUI();
+        updatePolygonSummaryUI();
         redrawAll();
         statusBar.textContent = "✅ Polygons loaded from polygons.json";
       }
@@ -2481,6 +2527,56 @@ function drawViewport196() {
   }
 }
 
+function drawLayerByKey(key, ctx, vp, h) {
+  switch (key) {
+    case "dxf_true":
+      if (state.showFieldDXFOnField !== false) {
+        drawEntitiesGIS(ctx, state.entitiesTrue, vp, h, "#00e676");
+      }
+      break;
+    case "dxf_overlay":
+      if (state.overlayLayer.visible && state.overlayLayer.entities.length > 0) {
+        drawEntitiesGISStyled(ctx, state.overlayLayer.entities, vp, h, state.overlayLayer);
+      }
+      break;
+    case "dxf_296":
+      if (state.showWarped296OnField !== false && getActiveAnchors(state.anchors296).length >= 2) {
+        try {
+          const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
+          drawWarpedEntitiesGIS(ctx, state.entities296, warper, vp, h, "rgba(213, 0, 249, 0.85)");
+        } catch (_) {}
+      }
+      break;
+    case "dxf_1073":
+      if (state.showWarped1073OnField !== false && getActiveAnchors(state.anchors1073).length >= 2) {
+        try {
+          const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
+          drawWarpedEntitiesGIS(ctx, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)");
+        } catch (_) {}
+      }
+      break;
+    case "dxf_196":
+      if (state.showWarped196OnField !== false && getActiveAnchors(state.anchors196).length >= 2) {
+        try {
+          const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
+          drawWarpedEntitiesGIS(ctx, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)");
+        } catch (_) {}
+      }
+      break;
+    case "dxf_anchors": {
+      const visibleDestAnchors = [];
+      if (state.showAnchors296)  visibleDestAnchors.push(...state.anchors296);
+      if (state.showAnchors1073) visibleDestAnchors.push(...state.anchors1073);
+      if (state.showAnchors196)  visibleDestAnchors.push(...state.anchors196);
+      drawDestinationAnchorsGIS(ctx, visibleDestAnchors, vp, h);
+      break;
+    }
+    case "measure_polygons":
+      drawMeasurementsGIS(ctx, vp, h);
+      break;
+  }
+}
+
 function drawViewportTrue() {
   const w = canvasTrue.width, h = canvasTrue.height, vp = state.vpTrue;
   ctxTrue.clearRect(0, 0, w, h);
@@ -2492,46 +2588,10 @@ function drawViewportTrue() {
     drawGeoTiff(ctxTrue, state.geoTiff, vp, h);
   }
 
-  // Target DXF (Green - Alambrado historico)
-  if (state.showFieldDXFOnField !== false) {
-    drawEntitiesGIS(ctxTrue, state.entitiesTrue, vp, h, "#00e676");
-  }
+  // Draw layers in user-configured stack order
+  const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
+  order.forEach(key => drawLayerByKey(key, ctxTrue, vp, h));
 
-  // Overlay Layer (DWG/DXF)
-  if (state.overlayLayer.visible && state.overlayLayer.entities.length > 0) {
-    drawEntitiesGISStyled(ctxTrue, state.overlayLayer.entities, vp, h, state.overlayLayer);
-  }
-
-  // Warped 296 overlay
-  if (state.showWarped296OnField !== false && getActiveAnchors(state.anchors296).length >= 2) {
-    try {
-      const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
-      drawWarpedEntitiesGIS(ctxTrue, state.entities296, warper, vp, h, "rgba(213, 0, 249, 0.85)");
-    } catch (_) {}
-  }
-
-  // Warped 1073 overlay
-  if (state.showWarped1073OnField !== false && getActiveAnchors(state.anchors1073).length >= 2) {
-    try {
-      const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
-      drawWarpedEntitiesGIS(ctxTrue, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)");
-    } catch (_) {}
-  }
-
-  // Warped 196 overlay (orange)
-  if (state.showWarped196OnField !== false && getActiveAnchors(state.anchors196).length >= 2) {
-    try {
-      const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-      drawWarpedEntitiesGIS(ctxTrue, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)");
-    } catch (_) {}
-  }
-
-  const visibleDestAnchors = [];
-  if (state.showAnchors296)  visibleDestAnchors.push(...state.anchors296);
-  if (state.showAnchors1073) visibleDestAnchors.push(...state.anchors1073);
-  if (state.showAnchors196)  visibleDestAnchors.push(...state.anchors196);
-  drawDestinationAnchorsGIS(ctxTrue, visibleDestAnchors, vp, h);
-  drawMeasurementsGIS(ctxTrue, vp, h);
   if (state.caseMode) {
     drawCaseLabels(ctxTrue, vp, h);
   }
@@ -2829,8 +2889,37 @@ function updateMeasurementUI() {
       updateMeasurementUI();
     });
 
+    const orderSpan = document.createElement("span");
+    orderSpan.style.cssText = "display:inline-flex;gap:2px;flex-shrink:0;";
+    const btnDown = document.createElement("button");
+    btnDown.type = "button";
+    btnDown.className = "btn-order-btn";
+    btnDown.style.cssText = "padding:0 3px;font-size:0.6rem;line-height:1.2;";
+    btnDown.title = "Send Backward (draw behind)";
+    btnDown.textContent = "▼";
+    btnDown.disabled = idx === 0;
+    btnDown.addEventListener("click", (e) => {
+      e.stopPropagation();
+      movePolygonOrder(idx, idx - 1);
+    });
+
+    const btnUp = document.createElement("button");
+    btnUp.type = "button";
+    btnUp.className = "btn-order-btn";
+    btnUp.style.cssText = "padding:0 3px;font-size:0.6rem;line-height:1.2;";
+    btnUp.title = "Bring Forward (draw on top)";
+    btnUp.textContent = "▲";
+    btnUp.disabled = idx === state.measurePolygons.length - 1;
+    btnUp.addEventListener("click", (e) => {
+      e.stopPropagation();
+      movePolygonOrder(idx, idx + 1);
+    });
+    orderSpan.appendChild(btnDown);
+    orderSpan.appendChild(btnUp);
+
     headerRow.appendChild(colorBtn);
     headerRow.appendChild(nameInput);
+    headerRow.appendChild(orderSpan);
     headerRow.appendChild(showLabel);
     headerRow.appendChild(areaLabel);
     headerRow.appendChild(nodesLabel);
@@ -3291,6 +3380,39 @@ function drawMeasurementsGIS(ctx, vp, h) {
   });
 }
 
+function movePolygonOrder(fromIdx, toIdx) {
+  if (toIdx < 0 || toIdx >= state.measurePolygons.length) return;
+  const poly = state.measurePolygons[fromIdx];
+  const item = state.measurePolygons.splice(fromIdx, 1)[0];
+  state.measurePolygons.splice(toIdx, 0, item);
+  if (state.activeMeasureIdx === fromIdx) {
+    state.activeMeasureIdx = toIdx;
+  } else if (state.activeMeasureIdx > fromIdx && state.activeMeasureIdx <= toIdx) {
+    state.activeMeasureIdx--;
+  } else if (state.activeMeasureIdx < fromIdx && state.activeMeasureIdx >= toIdx) {
+    state.activeMeasureIdx++;
+  }
+  const dirText = toIdx < fromIdx ? "backward (behind other lines)" : "forward (on top of other lines)";
+  statusBar.textContent = `Moved '${poly.name || "Polygon"}' ${dirText}.`;
+  updatePolygonSummaryUI();
+  updateMeasurementUI();
+  redrawAll();
+}
+
+function moveLayerOrder(layerKey, direction) {
+  if (!state.layerOrder) state.layerOrder = [...DEFAULT_LAYER_ORDER];
+  const idx = state.layerOrder.indexOf(layerKey);
+  if (idx === -1) return;
+  const targetIdx = idx + direction;
+  if (targetIdx < 0 || targetIdx >= state.layerOrder.length) return;
+  const item = state.layerOrder.splice(idx, 1)[0];
+  state.layerOrder.splice(targetIdx, 0, item);
+  const dirText = direction < 0 ? "backward (behind other layers)" : "forward (on top of other layers)";
+  statusBar.textContent = `Moved layer ${dirText}.`;
+  updatePolygonSummaryUI();
+  redrawAll();
+}
+
 /* EVENT LISTENERS & INTERACTION */
 /* =========================================================
    POLYGON SUMMARY PANEL
@@ -3313,9 +3435,16 @@ function updatePolygonSummaryUI() {
   if (!measDivider) {
     measDivider = document.createElement("tr");
     measDivider.className = "section-divider sum-meas-divider";
-    measDivider.innerHTML = '<td colspan="5" style="padding-left:6px;">\uD83D\uDCCF Measurement Polygons</td>';
     tbody.appendChild(measDivider);
   }
+  measDivider.innerHTML = `
+    <td colspan="2" style="padding-left:6px;">\uD83D\uDCCF Measurement Polygons</td>
+    <td style="white-space:nowrap;padding:1px 2px;">
+      <button type="button" class="btn-order-btn btn-order-layer" data-layer="measure_polygons" data-dir="-1" title="Send All Polygons Backward (draw behind DXF layers)">▼</button>
+      <button type="button" class="btn-order-btn btn-order-layer" data-layer="measure_polygons" data-dir="1" title="Bring All Polygons Forward (draw on top of DXF layers)">▲</button>
+    </td>
+    <td colspan="3"></td>
+  `;
 
   // Insert a row for every measurement polygon after the divider
   state.measurePolygons.forEach((poly, idx) => {
@@ -3325,15 +3454,42 @@ function updatePolygonSummaryUI() {
 
     const dot = `<span class="poly-color-dot" style="background:${poly.color};box-shadow:0 0 4px ${poly.color};"></span>`;
     const name = poly.name || `Polygon ${idx+1}`;
+    const isFirst = idx === 0;
+    const isLast = idx === state.measurePolygons.length - 1;
 
     tr.innerHTML = `
       <td>${dot}</td>
       <td class="col-name" style="color:${poly.color};" title="${name}">${name}</td>
+      <td style="white-space:nowrap;padding:1px 2px;">
+        <button type="button" class="btn-order-btn btn-poly-down" data-idx="${idx}" style="padding:0 3px;font-size:0.6rem;line-height:1.2;" title="Send Backward (draw behind)" ${isFirst ? "disabled" : ""}>▼</button>
+        <button type="button" class="btn-order-btn btn-poly-up" data-idx="${idx}" style="padding:0 3px;font-size:0.6rem;line-height:1.2;" title="Bring Forward (draw on top)" ${isLast ? "disabled" : ""}>▲</button>
+      </td>
       <td><input type="checkbox" class="sum-poly-show" data-idx="${idx}" ${poly.visible !== false ? "checked" : ""} style="accent-color:${poly.color};" title="Show/hide this polygon"></td>
       <td><input type="checkbox" class="sum-poly-area" data-idx="${idx}" ${poly.showArea ? "checked" : ""} style="accent-color:var(--accent-yellow);" title="Toggle area display"></td>
       <td><input type="checkbox" class="sum-poly-nodes" data-idx="${idx}" ${poly.showNodes !== false ? "checked" : ""} style="accent-color:var(--accent-cyan);" title="Toggle vertex nodes"></td>
     `;
     tbody.appendChild(tr);
+  });
+
+  // Wire order buttons
+  tbody.querySelectorAll(".btn-poly-down").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      movePolygonOrder(idx, idx - 1);
+    });
+  });
+  tbody.querySelectorAll(".btn-poly-up").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      movePolygonOrder(idx, idx + 1);
+    });
+  });
+  tbody.querySelectorAll(".btn-order-layer").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const layer = btn.dataset.layer;
+      const dir = parseInt(btn.dataset.dir, 10);
+      moveLayerOrder(layer, dir);
+    });
   });
 
   // Wire row checkboxes
@@ -3545,6 +3701,15 @@ function setupPolygonSummaryListeners() {
       redrawAll();
     });
   }
+
+  // ---- Static DXF order buttons ----
+  document.querySelectorAll("#poly-summary-tbody .btn-order-layer").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const layer = btn.dataset.layer;
+      const dir = parseInt(btn.dataset.dir, 10);
+      moveLayerOrder(layer, dir);
+    });
+  });
 
   // Initial render of summary
   updatePolygonSummaryUI();
@@ -4008,6 +4173,7 @@ function setupEventListeners() {
             state.measurePolygons = data;
             state.activeMeasureIdx = 0;
             updateMeasurementUI();
+            updatePolygonSummaryUI();
             redrawAll();
             statusBar.textContent = `✅ Loaded ${data.length} polygons from ${file.name}`;
           }
@@ -5774,6 +5940,70 @@ function drawGeoTiffWithCaseSpotlight(ctx, tiff, vp, canvasH, selectedPolyIds) {
   ctx.restore();
 }
 
+function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, selectedPolyIds) {
+  switch (key) {
+    case "dxf_true":
+      if (state.entitiesTrue && state.entitiesTrue.length > 0) {
+        drawEntitiesGISExport(ctx, state.entitiesTrue, vpExp, EXP_H, "#00a843", 6);
+      }
+      break;
+    case "dxf_overlay":
+      if (state.overlayLayer.visible && state.overlayLayer.entities.length > 0) {
+        drawEntitiesGISExport(ctx, state.overlayLayer.entities, vpExp, EXP_H, state.overlayLayer.color || "#ff9100", (state.overlayLayer.lineWidth || 2.5) * scaleRatio);
+      }
+      break;
+    case "dxf_296":
+      if (state.anchors296.length >= 2 && state.entities296.length > 0) {
+        try {
+          const w = TransformMath.createWarper(state.algorithm, state.anchors296);
+          drawWarpedEntitiesGISExport(ctx, state.entities296, w, vpExp, EXP_H, "#aa00ff", 6);
+        } catch (_) {}
+      }
+      break;
+    case "dxf_1073":
+      if (state.anchors1073.length >= 2 && state.entities1073.length > 0) {
+        try {
+          const w = TransformMath.createWarper(state.algorithm, state.anchors1073);
+          drawWarpedEntitiesGISExport(ctx, state.entities1073, w, vpExp, EXP_H, "#d50000", 6);
+        } catch (_) {}
+      }
+      break;
+    case "dxf_196":
+      if (state.anchors196.length >= 2 && state.entities196.length > 0) {
+        try {
+          const w = TransformMath.createWarper(state.algorithm, state.anchors196);
+          drawWarpedEntitiesGISExport(ctx, state.entities196, w, vpExp, EXP_H, "#e65100", 6);
+        } catch (_) {}
+      }
+      break;
+    case "measure_polygons":
+      state.measurePolygons.forEach(poly => {
+        if (poly.visible === false || !poly.points || poly.points.length < 2) return;
+        // Only render polygons selected in this case!
+        if (!selectedPolyIds || !selectedPolyIds.includes(poly.id)) return;
+        ctx.beginPath();
+        const first = worldToScreenGISExport(poly.points[0], vpExp, EXP_H);
+        ctx.moveTo(first.x, first.y);
+        for (let i = 1; i < poly.points.length; i++) {
+          const p = worldToScreenGISExport(poly.points[i], vpExp, EXP_H);
+          ctx.lineTo(p.x, p.y);
+        }
+        ctx.closePath();
+        const hex = poly.color;
+        const r = parseInt(hex.slice(1,3),16) || 0, g = parseInt(hex.slice(3,5),16) || 229, b = parseInt(hex.slice(5,7),16) || 255;
+        const fillOp = (poly.fillOpacity || 0.18) * 1.5;
+        ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(1, fillOp)})`;
+        ctx.fill();
+        ctx.strokeStyle = poly.color;
+        ctx.lineWidth = (poly.lineWidth || 2.5) * 2.5;
+        ctx.setLineDash(getPolyLineDash(poly.lineType));
+        ctx.stroke();
+        ctx.setLineDash([]);
+      });
+      break;
+  }
+}
+
 async function exportCaseImageHD() {
   const ac = getActiveCase();
   if (!ac) { statusBar.textContent = "⚠️ No active case selected."; return; }
@@ -5802,52 +6032,8 @@ async function exportCaseImageHD() {
 
   drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds);
 
-  if (state.entitiesTrue && state.entitiesTrue.length > 0) {
-    drawEntitiesGISExport(ctx, state.entitiesTrue, vpExp, EXP_H, "#00a843", 6);
-  }
-
-  if (state.anchors296.length >= 2 && state.entities296.length > 0) {
-    try {
-      const w = TransformMath.createWarper(state.algorithm, state.anchors296);
-      drawWarpedEntitiesGISExport(ctx, state.entities296, w, vpExp, EXP_H, "#aa00ff", 6);
-    } catch (_) {}
-  }
-  if (state.anchors1073.length >= 2 && state.entities1073.length > 0) {
-    try {
-      const w = TransformMath.createWarper(state.algorithm, state.anchors1073);
-      drawWarpedEntitiesGISExport(ctx, state.entities1073, w, vpExp, EXP_H, "#d50000", 6);
-    } catch (_) {}
-  }
-  if (state.anchors196.length >= 2 && state.entities196.length > 0) {
-    try {
-      const w = TransformMath.createWarper(state.algorithm, state.anchors196);
-      drawWarpedEntitiesGISExport(ctx, state.entities196, w, vpExp, EXP_H, "#e65100", 6);
-    } catch (_) {}
-  }
-
-  state.measurePolygons.forEach(poly => {
-    if (poly.visible === false || !poly.points || poly.points.length < 2) return;
-    // Only render polygons selected in this case!
-    if (!ac.selectedPolyIds || !ac.selectedPolyIds.includes(poly.id)) return;
-    ctx.beginPath();
-    const first = worldToScreenGISExport(poly.points[0], vpExp, EXP_H);
-    ctx.moveTo(first.x, first.y);
-    for (let i = 1; i < poly.points.length; i++) {
-      const p = worldToScreenGISExport(poly.points[i], vpExp, EXP_H);
-      ctx.lineTo(p.x, p.y);
-    }
-    ctx.closePath();
-    const hex = poly.color;
-    const r = parseInt(hex.slice(1,3),16) || 0, g = parseInt(hex.slice(3,5),16) || 229, b = parseInt(hex.slice(5,7),16) || 255;
-    const fillOp = (poly.fillOpacity || 0.18) * 1.5;
-    ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(1, fillOp)})`;
-    ctx.fill();
-    ctx.strokeStyle = poly.color;
-    ctx.lineWidth = (poly.lineWidth || 2.5) * 2.5;
-    ctx.setLineDash(getPolyLineDash(poly.lineType));
-    ctx.stroke();
-    ctx.setLineDash([]);
-  });
+  const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
+  order.forEach(key => drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac.selectedPolyIds));
 
   if (ac.labels && ac.labels.length > 0) {
     drawCaseLabelsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.labels);
