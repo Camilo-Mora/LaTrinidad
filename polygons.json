@@ -71,7 +71,7 @@
     "fillOpacity": 0.1,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": false,
+    "showArea": true,
     "showNodes": false,
     "points": [
       {
@@ -135,7 +135,7 @@
         "y": 876829.9040325534
       }
     ],
-    "visible": false
+    "visible": true
   },
   {
     "id": 2,
@@ -144,7 +144,7 @@
     "fillOpacity": 0.1,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": false,
+    "showArea": true,
     "showNodes": false,
     "points": [
       {
@@ -180,7 +180,7 @@
         "y": 876806.2794074808
       }
     ],
-    "visible": false
+    "visible": true
   },
   {
     "id": 3,
@@ -189,7 +189,7 @@
     "fillOpacity": 0.14,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": false,
+    "showArea": true,
     "showNodes": false,
     "points": [
       {
@@ -241,7 +241,7 @@
         "y": 876744.301642194
       }
     ],
-    "visible": false
+    "visible": true
   },
   {
     "id": 5,
@@ -250,9 +250,9 @@
     "fillOpacity": 0.25,
     "lineWidth": 1.5,
     "lineType": "dashed",
-    "showArea": false,
+    "showArea": true,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 1098134.6523936854,
