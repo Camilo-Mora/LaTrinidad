@@ -109,8 +109,8 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 86.13901382917538,
-          "y": 10.114192903856747,
+          "x": 117.53533105144743,
+          "y": 97.20870186702814,
           "w": 268.8888854980469,
           "h": 110
         },
@@ -131,8 +131,8 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 452.01207729731686,
-          "y": 264.9942528735846,
+          "x": 394.70775279041845,
+          "y": 290.3705192580819,
           "w": 241.88888549804688,
           "h": 83
         },
@@ -153,8 +153,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 173.13851407915354,
-          "y": 203.03273363341577,
+          "x": 183.87145279056858,
+          "y": 243.7149453451857,
           "w": 113.38888549804688,
           "h": 31
         },
@@ -176,8 +176,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 183.13501582783647,
-          "y": 291.99075462284964,
+          "x": 191.4378049642546,
+          "y": 311.0472714321222,
           "w": 124.88888549804688,
           "h": 31
         },
@@ -1618,6 +1618,241 @@
       },
       {
         "id": "arr_-881172360",
+        "name": "Arrow 4",
+        "startX": 1097757.7141126457,
+        "startY": 876686.4966085668,
+        "endX": 1097757.0622600638,
+        "endY": 876657.5722173839,
+        "color": "#0080ff",
+        "opacity": 0.85,
+        "lineWidth": 8,
+        "headSize": 18
+      }
+    ]
+  },
+  {
+    "id": 1790121523766,
+    "name": "Restitucion",
+    "selectedPolyIds": [
+      4,
+      5,
+      1
+    ],
+    "polyStyles": {
+      "1": {
+        "color": "#ffd600",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "2": {
+        "color": "#00e676",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "3": {
+        "color": "#ff1744",
+        "fillOpacity": 0.3,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "4": {
+        "color": "#2979ff",
+        "fillOpacity": 0.15,
+        "lineWidth": 6,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "5": {
+        "color": "#0000ff",
+        "fillOpacity": 0.36,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "showArea": false
+      },
+      "6": {
+        "color": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "7": {
+        "color": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "8": {
+        "color": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      },
+      "9": {
+        "color": "#ff6d00",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": false
+      }
+    },
+    "camera": {
+      "scale": 0.7704685980212121,
+      "offsetX": -845558.0874875605,
+      "offsetY": -675394.1990339052
+    },
+    "layers": {
+      "dxf296": true,
+      "dxf1073": true,
+      "dxf196": false,
+      "dxfTrue": false,
+      "geotiff": true
+    },
+    "dxfOpacity": {
+      "dxf_296": 0.25,
+      "dxf_1073": 0.25,
+      "dxf_196": 1,
+      "dxf_true": 1
+    },
+    "geotiffBW": false,
+    "labels": [
+      {
+        "id": "lbl_-879101834",
+        "text": "Lote A\n[size=14]Area 8,105 m²[/size]",
+        "worldX": 1097710.4566798757,
+        "worldY": 876902.7610403359,
+        "fontSize": 20,
+        "bold": true,
+        "italic": true,
+        "textColor": "#ffffff",
+        "bgColor": "#ffff00",
+        "bgOpacity": 0.3,
+        "borderColor": "#ffff00",
+        "borderWidth": 1.5,
+        "padding": 5,
+        "_box": {
+          "x": 188.34910380793735,
+          "y": 141.15813422761858,
+          "w": 100.88888549804688,
+          "h": 60
+        },
+        "showBorder": true
+      },
+      {
+        "id": "lbl_-879210777",
+        "text": "Restitucion sugerida\n[size=14]Area: 7581 m²[/size]",
+        "worldX": 1097730.2757963876,
+        "worldY": 877047.8924826257,
+        "fontSize": 20,
+        "bold": true,
+        "italic": true,
+        "textColor": "#ffffff",
+        "bgColor": "#004080",
+        "bgOpacity": 0.4,
+        "borderColor": "#ff0000",
+        "borderWidth": 1.5,
+        "padding": 4,
+        "_box": {
+          "x": 204.6191107208142,
+          "y": 30.33891535771545,
+          "w": 205.77777099609375,
+          "h": 58
+        },
+        "showBorder": false
+      },
+      {
+        "id": "lbl_-879265913",
+        "text": "La Trinidad",
+        "worldX": 1097650.716965363,
+        "worldY": 876746.0766120075,
+        "fontSize": 20,
+        "bold": true,
+        "italic": true,
+        "textColor": "#0080ff",
+        "bgColor": "#000000",
+        "bgOpacity": 0.45,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 3,
+        "_box": {
+          "x": 144.3215297210263,
+          "y": 263.87856605357956,
+          "w": 113.38888549804688,
+          "h": 31
+        },
+        "showBg": true,
+        "showBorder": false
+      },
+      {
+        "id": "lbl_-879079028",
+        "text": "Casa del Sol",
+        "worldX": 1097725.4542441291,
+        "worldY": 876660.9607177789,
+        "fontSize": 20,
+        "bold": true,
+        "italic": false,
+        "textColor": "#0080ff",
+        "bgColor": "#000000",
+        "bgOpacity": 0.45,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 3,
+        "_box": {
+          "x": 201.90425611194223,
+          "y": 329.4576897491934,
+          "w": 124.88888549804688,
+          "h": 31
+        },
+        "showBg": true,
+        "showBorder": false
+      }
+    ],
+    "arrows": [
+      {
+        "id": "arr_-879455096",
+        "name": "Arrow 1",
+        "startX": 1097811.5302451658,
+        "startY": 876823.1695785996,
+        "endX": 1097837.35249911,
+        "endY": 876786.5552159103,
+        "color": "#ff8000",
+        "opacity": 0.85,
+        "lineWidth": 10,
+        "headSize": 18
+      },
+      {
+        "id": "arr_-878861302",
+        "name": "Arrow 2",
+        "startX": 1097982.2180802547,
+        "startY": 876995.8805287287,
+        "endX": 1098061.6351932485,
+        "endY": 876993.8326414214,
+        "color": "#004080",
+        "opacity": 0.85,
+        "lineWidth": 10,
+        "headSize": 18
+      },
+      {
+        "id": "arr_-879460400",
+        "name": "Arrow 3",
+        "startX": 1097729.523814967,
+        "startY": 876681.3710998979,
+        "endX": 1097729.7262138298,
+        "endY": 876715.6625970084,
+        "color": "#0080ff",
+        "opacity": 0.85,
+        "lineWidth": 8,
+        "headSize": 18
+      },
+      {
+        "id": "arr_-879790520",
         "name": "Arrow 4",
         "startX": 1097757.7141126457,
         "startY": 876686.4966085668,
