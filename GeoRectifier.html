@@ -1039,28 +1039,61 @@
       }
 
       static buildSimilarityWarper(anchors) {
-        const A = Array.from({ length: 4 }, () => new Array(4).fill(0));
-        const B = new Array(4).fill(0);
+        if (!anchors || anchors.length < 2) return (pt) => ({ ...pt });
 
-        anchors.forEach(anc => {
-          const x = anc.src.x, y = anc.src.y;
-          const x_ = anc.dst.x, y_ = anc.dst.y;
-          const rows = [[x, -y, 1, 0], [y, x, 0, 1]];
-          const targets = [x_, y_];
+        // Helper to solve 4-param similarity system
+        function fit(isReflected) {
+          const A = Array.from({ length: 4 }, () => new Array(4).fill(0));
+          const B = new Array(4).fill(0);
 
-          for (let r = 0; r < 2; r++) {
-            for (let i = 0; i < 4; i++) {
-              for (let j = 0; j < 4; j++) A[i][j] += rows[r][i] * rows[r][j];
-              B[i] += rows[r][i] * targets[r];
+          anchors.forEach(anc => {
+            const x = anc.src.x, y = anc.src.y;
+            const x_ = anc.dst.x, y_ = anc.dst.y;
+            // When isReflected is true: x' = a*x + b*y + c, y' = b*x - a*y + d.
+            // This inverts Y (essential because deed space is Y-down, but GIS UTM is Y-up).
+            // On screen, this results in a true rigid rotation with NO sideways mirroring.
+            // When isReflected is false: x' = a*x - b*y + c, y' = b*x + a*y + d.
+            const rows = isReflected
+              ? [[x, y, 1, 0], [-y, x, 0, 1]]
+              : [[x, -y, 1, 0], [y, x, 0, 1]];
+            const targets = [x_, y_];
+
+            for (let r = 0; r < 2; r++) {
+              for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) A[i][j] += rows[r][i] * rows[r][j];
+                B[i] += rows[r][i] * targets[r];
+              }
             }
-          }
-        });
+          });
 
-        const c = TransformMath.solveLinearSystem(A, B);
-        return (pt) => ({
-          x: c[0] * pt.x - c[1] * pt.y + c[2],
-          y: c[1] * pt.x + c[0] * pt.y + c[3]
-        });
+          const c = TransformMath.solveLinearSystem(A, B);
+          if (isReflected) {
+            return (pt) => ({
+              x: c[0] * pt.x + c[1] * pt.y + c[2],
+              y: c[1] * pt.x - c[0] * pt.y + c[3]
+            });
+          } else {
+            return (pt) => ({
+              x: c[0] * pt.x - c[1] * pt.y + c[2],
+              y: c[1] * pt.x + c[0] * pt.y + c[3]
+            });
+          }
+        }
+
+        // For 2 anchors, always use the reflected model: since deed space has Y growing
+        // downwards (PDF coordinates) while GIS UTM has Y growing upwards (North),
+        // reflecting Y produces a pure physical rotation on screen with zero sideways reversal.
+        // For >= 3 anchors, automatically pick the orientation that produces lower RMSE.
+        if (anchors.length === 2) {
+          return fit(true);
+        }
+
+        const warperReflected = fit(true);
+        const warperDirect = fit(false);
+        const rmseReflected = TransformMath.computeRMSE(warperReflected, anchors).totalRMSE;
+        const rmseDirect = TransformMath.computeRMSE(warperDirect, anchors).totalRMSE;
+
+        return rmseReflected <= rmseDirect ? warperReflected : warperDirect;
       }
 
       static buildProjectiveWarper(anchors) {
