@@ -657,7 +657,12 @@
         <section class="panel-card flex-grow">
           <div class="panel-header">
             <h3>Control Point Pairs (Anchors)</h3>
-            <button id="btn-clear-anchors" class="btn-sm btn-secondary">Clear All</button>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <button id="btn-save-anchors" class="btn-sm btn-success" title="Download & save anchors to anchors_georectifier.json">💾 Save</button>
+              <label for="anchor-file-input" class="btn-sm btn-secondary" style="cursor:pointer;margin:0;" title="Load custom anchors JSON file">📂 Load</label>
+              <input type="file" id="anchor-file-input" accept=".json" style="display:none;">
+              <button id="btn-clear-anchors" class="btn-sm btn-secondary" title="Clear all anchor points">Clear All</button>
+            </div>
           </div>
 
           <div class="table-wrapper">
@@ -1885,9 +1890,71 @@ EOF`;
     chkShowOverlay.addEventListener("change", e => { state.showOverlay=e.target.checked; redrawAll(); });
     document.getElementById("chk-show-warped-pdf").addEventListener("change", e => { state.showWarpedPdf=e.target.checked; redrawAll(); });
 
+    // Anchor management: Save, Load, Clear, Delete
+    const btnSaveAnchors = document.getElementById("btn-save-anchors");
+    if (btnSaveAnchors) {
+      btnSaveAnchors.addEventListener("click", () => {
+        if (!state.anchors || state.anchors.length === 0) {
+          updateStatus("⚠️ No anchors to save. Place anchor pairs first using 🎯 Anchor Mode.");
+          return;
+        }
+        const jsonStr = JSON.stringify(state.anchors, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "anchors_georectifier.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateStatus(`💾 Saved ${state.anchors.length} anchors to anchors_georectifier.json.`);
+      });
+    }
+
+    const anchorFileInput = document.getElementById("anchor-file-input");
+    if (anchorFileInput) {
+      anchorFileInput.addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
+            if (list.length > 0) {
+              state.anchors = list.map((a, i) => ({
+                id: a.id || i + 1,
+                color: a.color || anchorColors[i % anchorColors.length],
+                src: { x: a.src.x, y: a.src.y },
+                dst: { x: a.dst.x, y: a.dst.y }
+              }));
+              state.pendingSource = null;
+              redrawAll();
+              updateStatus(`✅ Loaded ${state.anchors.length} anchors from ${file.name}`);
+            } else {
+              updateStatus("⚠️ No valid anchor pairs found in file.");
+            }
+          } catch (err) {
+            updateStatus(`❌ Failed to parse anchor file: ${err.message}`);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
     btnClearAnchors.addEventListener("click", () => {
-      state.anchors=[]; state.pendingSource=null; redrawAll(); updateStatus("Cleared all anchors.");
+      state.anchors = [];
+      state.pendingSource = null;
+      redrawAll();
+      updateStatus("Cleared all anchors.");
     });
+
+    window.deleteAnchor = function(id) {
+      state.anchors = state.anchors.filter(a => a.id !== id);
+      redrawAll();
+      updateStatus(`Deleted Anchor #${id}. Total remaining: ${state.anchors.length}`);
+    };
 
     // ── Opacity sliders ───────────────────────────────────────────────
     function bindOpacity(id, valId, stateKey) {
@@ -2191,22 +2258,26 @@ EOF`;
         console.warn("Auto Field DXF:", e.message);
       }
 
-      // 5. Saved anchors (anchors1073 from anchors.json)
+      // 5. Dedicated anchors for this app (anchors_georectifier.json)
       try {
-        const text = await fetchText("anchors.json");
+        const text = await fetchText("anchors_georectifier.json");
         const data = JSON.parse(text);
-        if (data.anchors1073 && data.anchors1073.length) {
-          state.anchors = data.anchors1073.map((a,i) => ({
-            id: a.id || i+1,
+        const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
+        if (list.length > 0) {
+          state.anchors = list.map((a, i) => ({
+            id: a.id || i + 1,
             color: a.color || anchorColors[i % anchorColors.length],
             src: { x: a.src.x, y: a.src.y },
             dst: { x: a.dst.x, y: a.dst.y },
           }));
-          updateStatus(`Loaded ${state.anchors.length} saved anchors for Escritura 1073.`);
+          updateStatus(`Loaded ${state.anchors.length} anchors from anchors_georectifier.json.`);
           redrawAll();
+        } else {
+          updateStatus("Ready • Use '🎯 Anchor Mode' to place control points, then click '💾 Save'.");
         }
       } catch(e) {
-        console.warn("Auto anchors:", e.message);
+        console.warn("anchors_georectifier.json:", e.message);
+        updateStatus("Ready • Use '🎯 Anchor Mode' to place control points, then click '💾 Save'.");
       }
     }
 
