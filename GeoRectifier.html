@@ -701,9 +701,14 @@
               <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
             </div>
             <div class="opacity-row">
-              <label style="min-width:85px;" title="True Field Survey Vectors">📍 Field DXF</label>
+              <label style="min-width:85px;" title="True Field Survey Vectors (CercoCampoSept_2026)">📍 Field DXF</label>
               <input type="range" class="opacity-slider" id="true-dxf-opacity" min="0" max="100" value="85">
               <span class="opacity-val" id="true-dxf-opacity-val">85%</span>
+            </div>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf">🗺️ Campo DXF</label>
+              <input type="range" class="opacity-slider" id="campo-dxf-opacity" min="0" max="100" value="85">
+              <span class="opacity-val" id="campo-dxf-opacity-val">85%</span>
             </div>
             <div style="display:flex;gap:12px;margin-top:4px;font-size:0.72rem;">
               <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
@@ -1285,6 +1290,7 @@ EOF`;
     const state = {
       histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
       trueEntities: [],      // DXF from CercoCampoSept_2026.dxf (GIS UTM coord space)
+      campoDxfEntities: [],  // DXF from Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf (GIS UTM)
       anchors: [],
       pendingSource: null,
       algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
@@ -1297,7 +1303,8 @@ EOF`;
       geoTiffOpacity: 0.7,
       warpedPdfOpacity: 0.5,   // deed PDF image drawn on true field canvas
       warpedDxfOpacity: 0.9,   // deed DXF drawn on true field canvas
-      trueDxfOpacity: 0.85,    // true field survey DXF opacity
+      trueDxfOpacity: 0.85,    // true field survey DXF (CercoCampo) opacity
+      campoDxfOpacity: 0.85,   // Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf opacity
       histPdfCanvas: null,     // offscreen canvas: rendered Mapa1073_FerminSuarez.pdf
       histPdfW: 0,             // PDF width in PDF-space pts
       histPdfH: 0,
@@ -1547,10 +1554,13 @@ EOF`;
         drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper, vp, h, "#ff1744", state.warpedDxfOpacity);
       }
 
-      // Layer 4: True Field Survey DXF (green)
+      // Layer 4: CercoCampoSept_2026.dxf — green
       drawEntitiesGIS(trueCtx, state.trueEntities, vp, h, "#00e676", state.trueDxfOpacity);
 
-      // Layer 5: Target anchor pins + residual lines
+      // Layer 5: Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf — cyan/teal
+      drawEntitiesGIS(trueCtx, state.campoDxfEntities, vp, h, "#00bcd4", state.campoDxfOpacity);
+
+      // Layer 6: Target anchor pins + residual lines
       state.anchors.forEach(anc => {
         const tp = worldToScreenGIS(anc.dst, vp, h);
         if (warper) {
@@ -1836,10 +1846,11 @@ EOF`;
       redrawAll(); updateStatus("Centered deed map view.");
     });
     document.getElementById("btn-fit-true").addEventListener("click", () => {
-      if (state.trueEntities.length>0)
-        state.trueViewport=fitViewport(trueCanvas,computeBoundingBox(state.trueEntities));
+      const allField = [...state.trueEntities, ...(state.campoDxfEntities || [])];
+      if (allField.length > 0)
+        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(allField));
       else if (state.geoTiff)
-        state.trueViewport=fitViewport(trueCanvas,state.geoTiff.bbox);
+        state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
       redrawAll(); updateStatus("Centered field survey view.");
     });
 
@@ -1871,6 +1882,7 @@ EOF`;
     bindOpacity("warped-pdf-opacity", "warped-pdf-opacity-val", "warpedPdfOpacity");
     bindOpacity("warped-dxf-opacity", "warped-dxf-opacity-val", "warpedDxfOpacity");
     bindOpacity("true-dxf-opacity",   "true-dxf-opacity-val",   "trueDxfOpacity");
+    bindOpacity("campo-dxf-opacity",  "campo-dxf-opacity-val",  "campoDxfOpacity");
 
     // ── Analytics / RMSE panel ────────────────────────────────────────
     const algoCompareList = document.getElementById("algo-compare-list");
@@ -2139,7 +2151,7 @@ EOF`;
         console.warn("Auto Deed DXF:", e.message);
       }
 
-      // 4. Field survey DXF
+      // 4. Field survey DXF (CercoCampoSept_2026.dxf)
       try {
         const text = await fetchText("CercoCampoSept_2026.dxf");
         state.trueEntities = DXFParser.parse(text);
@@ -2151,6 +2163,25 @@ EOF`;
         redrawAll();
       } catch(e) {
         console.warn("Auto Field DXF:", e.message);
+      }
+
+      // 4b. Campo Boundary DXF (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)
+      try {
+        let text;
+        try {
+          text = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf");
+        } catch(_) {
+          text = await fetchText(encodeURIComponent("Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf"));
+        }
+        state.campoDxfEntities = DXFParser.parse(text);
+        if (!state.trueViewport.bbox && state.campoDxfEntities.length > 0) {
+          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.campoDxfEntities));
+        }
+        trueStatus.textContent = `Field: ${state.trueEntities.length} cerco + ${state.campoDxfEntities.length} campo`;
+        updateStatus(`Campo boundary DXF loaded: ${state.campoDxfEntities.length} entities.`);
+        redrawAll();
+      } catch(e) {
+        console.warn("Auto Campo DXF:", e.message);
       }
 
       // 5. Saved anchors (anchors1073 from anchors.json)
@@ -2178,6 +2209,7 @@ EOF`;
     // ── Startup ───────────────────────────────────────────────────────
     state.histEntities = [];
     state.trueEntities = [];
+    state.campoDxfEntities = [];
     state.anchors = [];
     algorithmSelect.value = state.algorithm;
     setToolMode("pan");
