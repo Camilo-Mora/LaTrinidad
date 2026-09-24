@@ -4,8 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DXF Georectifier & Rubber-Sheeting App</title>
-  <meta name="description" content="Single-file interactive application to warp, rubber-sheet, and georectify historical DXF farm vectors onto true ground-truth field surveys using unlimited anchor pairs and real-time live preview.">
   <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
   <style>
     /* Core Design Tokens & Glassmorphic Dark Styling */
     :root {
@@ -537,19 +542,25 @@
       <div class="header-inputs">
         <label for="geotiff-input" class="btn-tiff" title="Load Shared GeoTIFF Background for Both Canvases">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          🗺️ Load GeoTIFF Background
+          🗺️ Drone GeoTIFF
         </label>
         <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff">
 
+        <label for="hist-pdf-input" class="btn btn-secondary" title="Load Historical Deed PDF Map">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Deed PDF
+        </label>
+        <input type="file" id="hist-pdf-input" accept=".pdf">
+
         <label for="hist-dxf-input" class="btn btn-secondary" title="Load Historical Deformed DXF">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-          Historical DXF
+          Deed DXF
         </label>
         <input type="file" id="hist-dxf-input" accept=".dxf">
 
         <label for="true-dxf-input" class="btn btn-primary" title="Load True Ground-Truth Field Survey DXF">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-          True Field DXF
+          Field DXF
         </label>
         <input type="file" id="true-dxf-input" accept=".dxf">
       </div>
@@ -568,9 +579,9 @@
       <div class="algorithm-selector-group">
         <label for="algorithm-select">Algorithm:</label>
         <select id="algorithm-select" class="select-dropdown">
-          <option value="TPS" selected>Thin Plate Spline (TPS Rubber-Sheeting)</option>
+          <option value="SIMILARITY" selected>Helmert Similarity (PowerPoint Rotate+Scale)</option>
           <option value="AFFINE">Affine Transformation (6-Param)</option>
-          <option value="SIMILARITY">Helmert Similarity (Rigid Scale + Rotate)</option>
+          <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
           <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
         </select>
       </div>
@@ -588,19 +599,19 @@
     <main class="app-workspace">
       <!-- Split Canvases Area -->
       <div class="split-viewport-area">
-        <!-- Left Window: Historical Deformed DXF -->
+        <!-- Left Window: Historical Deed (PDF + DXF) -->
         <div class="viewport-card">
           <div class="viewport-header">
-            <span class="view-title historical-title">📜 Historical Deformed Map (Source)</span>
+            <span class="view-title historical-title">📜 Historical Deed (PDF + DXF)</span>
             <div style="display:flex;align-items:center;gap:8px;">
               <button class="btn-fit-view" id="btn-fit-hist" title="Fit & Center Display">🎯 Center View</button>
-              <span id="hist-status" class="view-badge">No DXF file</span>
+              <span id="hist-status" class="view-badge">Loading…</span>
             </div>
           </div>
           <div class="canvas-container" id="hist-container">
             <canvas id="hist-canvas"></canvas>
           </div>
-          <div class="viewport-hint" id="hist-hint">🖐️ Left click and drag to move map display. Click '🎯 Anchor Mode' to drop points.</div>
+          <div class="viewport-hint" id="hist-hint">🖐️ Left click and drag to pan deed map. Click '🎯 Anchor Mode' to drop points.</div>
         </div>
 
         <!-- Right Window: True Field Survey DXF + Live Transformed Overlay -->
@@ -610,13 +621,13 @@
             <div class="view-controls">
               <button class="btn-fit-view" id="btn-fit-true" title="Fit & Center Display">🎯 Center View</button>
               <label class="toggle-overlay"><input type="checkbox" id="chk-show-overlay" checked> Live Warped Overlay</label>
-              <span id="true-status" class="view-badge">No DXF file</span>
+              <span id="true-status" class="view-badge">Loading…</span>
             </div>
           </div>
           <div class="canvas-container" id="true-container">
             <canvas id="true-canvas"></canvas>
           </div>
-          <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to move map display. Click '🎯 Anchor Mode' to drop points.</div>
+          <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to pan field survey. Click '🎯 Anchor Mode' to drop points.</div>
         </div>
       </div>
 
@@ -637,7 +648,7 @@
             <h3>🏆 Algorithm Comparison</h3>
           </div>
           <div class="algo-compare-list" id="algo-compare-list">
-            <p class="compare-note">Add ≥ 3 anchor pairs to compare algorithms.</p>
+            <p class="compare-note">Add ≥ 2 anchor pairs to compare algorithms.</p>
           </div>
           <p class="compare-note">Click any row to switch to that algorithm.</p>
         </section>
@@ -667,19 +678,39 @@
           </div>
         </section>
 
-        <!-- GeoTIFF Background Card -->
+        <!-- Layer Opacity & Overlays (PowerPoint Mode) Card -->
         <section class="panel-card">
           <div class="panel-header">
-            <h3>🗺️ GeoTIFF Background</h3>
+            <h3>🎨 Overlays & Opacity (PowerPoint Mode)</h3>
             <span class="geotiff-status" id="geotiff-status">No image loaded</span>
           </div>
           <div class="geotiff-panel">
             <div class="opacity-row">
-              <label>Opacity</label>
+              <label style="min-width:85px;">🛸 Drone TIF</label>
               <input type="range" class="opacity-slider" id="geotiff-opacity" min="0" max="100" value="70">
               <span class="opacity-val" id="geotiff-opacity-val">70%</span>
             </div>
-            <p class="geotiff-note">The loaded GeoTIFF is displayed as the shared background in both left and right windows.</p>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="Warped Deed PDF Map Image on Field">📜 Deed Map</label>
+              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50">
+              <span class="opacity-val" id="warped-pdf-opacity-val">50%</span>
+            </div>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="Warped Deed DXF Boundary Polygon on Field">📐 Deed DXF</label>
+              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90">
+              <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
+            </div>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="True Field Survey Vectors">📍 Field DXF</label>
+              <input type="range" class="opacity-slider" id="true-dxf-opacity" min="0" max="100" value="85">
+              <span class="opacity-val" id="true-dxf-opacity-val">85%</span>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:0.72rem;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="chk-show-warped-pdf" checked> Show Deed Map on Field
+              </label>
+            </div>
+            <p class="geotiff-note">Adjust opacities to visually inspect deed alignment over the drone imagery, just like in PowerPoint.</p>
           </div>
         </section>
 
@@ -1252,155 +1283,122 @@ EOF`;
        4. APPLICATION LOGIC & DUAL-CANVAS RENDERING ENGINE
        ========================================================================== */
     const state = {
-      histEntities: [],
-      trueEntities: [],
+      histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
+      trueEntities: [],      // DXF from CercoCampoSept_2026.dxf (GIS UTM coord space)
       anchors: [],
       pendingSource: null,
-      algorithm: "TPS",
-      toolMode: "pan", // "pan" or "anchor"
+      algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
+      toolMode: "pan",
       showOverlay: true,
+      showWarpedPdf: true,
       histViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
       trueViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
       geoTiff: null,
-      geoTiffOpacity: 0.7
+      geoTiffOpacity: 0.7,
+      warpedPdfOpacity: 0.5,   // deed PDF image drawn on true field canvas
+      warpedDxfOpacity: 0.9,   // deed DXF drawn on true field canvas
+      trueDxfOpacity: 0.85,    // true field survey DXF opacity
+      histPdfCanvas: null,     // offscreen canvas: rendered Mapa1073_FerminSuarez.pdf
+      histPdfW: 0,             // PDF width in PDF-space pts
+      histPdfH: 0,
     };
 
-    const anchorColors = ["#ff1744", "#00e676", "#00e5ff", "#ff9100", "#d500f9", "#ffff00", "#76ff03", "#f50057"];
+    const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
 
     const histCanvas = document.getElementById("hist-canvas");
-    const histCtx = histCanvas.getContext("2d");
+    const histCtx    = histCanvas.getContext("2d");
     const trueCanvas = document.getElementById("true-canvas");
-    const trueCtx = trueCanvas.getContext("2d");
+    const trueCtx    = trueCanvas.getContext("2d");
 
-    const histInput = document.getElementById("hist-dxf-input");
-    const trueInput = document.getElementById("true-dxf-input");
+    const histInput       = document.getElementById("hist-dxf-input");
+    const trueInput       = document.getElementById("true-dxf-input");
     const algorithmSelect = document.getElementById("algorithm-select");
-    const btnExportDxf = document.getElementById("btn-export-dxf");
+    const btnExportDxf    = document.getElementById("btn-export-dxf");
     const btnClearAnchors = document.getElementById("btn-clear-anchors");
-
-    const histStatus = document.getElementById("hist-status");
-    const trueStatus = document.getElementById("true-status");
-    const rmseDisplay = document.getElementById("rmse-display");
+    const histStatus      = document.getElementById("hist-status");
+    const trueStatus      = document.getElementById("true-status");
+    const rmseDisplay     = document.getElementById("rmse-display");
     const anchorTableBody = document.getElementById("anchor-table-body");
-    const chkShowOverlay = document.getElementById("chk-show-overlay");
-    const statusBar = document.getElementById("status-bar");
-    const coordsBar = document.getElementById("coords-bar");
+    const chkShowOverlay  = document.getElementById("chk-show-overlay");
+    const statusBar       = document.getElementById("status-bar");
+    const coordsBar       = document.getElementById("coords-bar");
 
-    function initSampleAnchors() {
-      state.anchors = [
-        { id: 1, color: anchorColors[0], src: { x: 105.0, y: 110.0 }, dst: { x: 500.0, y: 500.0 } },
-        { id: 2, color: anchorColors[1], src: { x: 295.0, y: 125.0 }, dst: { x: 900.0, y: 520.0 } },
-        { id: 3, color: anchorColors[2], src: { x: 310.0, y: 285.0 }, dst: { x: 950.0, y: 850.0 } },
-        { id: 4, color: anchorColors[3], src: { x: 115.0, y: 320.0 }, dst: { x: 520.0, y: 920.0 } }
-      ];
-    }
-
+    // ── Bounding box & viewport helpers ───────────────────────────────
     function computeBoundingBox(entities) {
       const allPoints = [];
-      entities.forEach((ent) => {
-        ent.points.forEach((pt) => {
-          allPoints.push(pt);
-        });
-      });
-
-      if (allPoints.length === 0) {
-        return { minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 };
-      }
-
-      // Filter out exactly (0,0) points if other coordinates exist
-      const nonZeroPoints = allPoints.filter(p => Math.abs(p.x) > 1e-4 || Math.abs(p.y) > 1e-4);
-      const candidates = (nonZeroPoints.length > 0 && nonZeroPoints.length < allPoints.length) ? nonZeroPoints : allPoints;
-
-      if (candidates.length === 0) {
-        return { minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 };
-      }
-
-      // Sort coordinates to compute median and interquartile range (IQR)
-      const xs = candidates.map(p => p.x).sort((a, b) => a - b);
-      const ys = candidates.map(p => p.y).sort((a, b) => a - b);
-
-      const medianX = xs[Math.floor(xs.length / 2)];
-      const medianY = ys[Math.floor(ys.length / 2)];
-
-      const q1X = xs[Math.floor(xs.length * 0.25)];
-      const q3X = xs[Math.floor(xs.length * 0.75)];
-      const iqrX = Math.max(q3X - q1X, 1.0);
-
-      const q1Y = ys[Math.floor(ys.length * 0.25)];
-      const q3Y = ys[Math.floor(ys.length * 0.75)];
-      const iqrY = Math.max(q3Y - q1Y, 1.0);
-
-      // Filter out points more than 4.5 * IQR from median (removes far-away title block frames/grids)
-      const thresholdX = 4.5 * iqrX;
-      const thresholdY = 4.5 * iqrY;
-
-      const cleanPoints = candidates.filter(p => {
-        return Math.abs(p.x - medianX) <= thresholdX && Math.abs(p.y - medianY) <= thresholdY;
-      });
-
-      const finalPoints = cleanPoints.length > 0 ? cleanPoints : candidates;
-
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      finalPoints.forEach((pt) => {
-        if (pt.x < minX) minX = pt.x;
-        if (pt.y < minY) minY = pt.y;
-        if (pt.x > maxX) maxX = pt.x;
-        if (pt.y > maxY) maxY = pt.y;
-      });
-
-      if (minX === Infinity || minX === maxX) return { minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 };
-      return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+      entities.forEach(ent => ent.points.forEach(pt => allPoints.push(pt)));
+      if (allPoints.length === 0) return { minX:0, minY:0, maxX:100, maxY:100, width:100, height:100 };
+      const nonZero = allPoints.filter(p => Math.abs(p.x) > 1e-4 || Math.abs(p.y) > 1e-4);
+      const pts = (nonZero.length > 0 && nonZero.length < allPoints.length) ? nonZero : allPoints;
+      const xs = pts.map(p => p.x).sort((a,b) => a-b);
+      const ys = pts.map(p => p.y).sort((a,b) => a-b);
+      const mid = n => Math.floor(n/2);
+      const q1X = xs[Math.floor(xs.length*0.25)], q3X = xs[Math.floor(xs.length*0.75)];
+      const q1Y = ys[Math.floor(ys.length*0.25)], q3Y = ys[Math.floor(ys.length*0.75)];
+      const iqrX = Math.max(q3X-q1X,1), iqrY = Math.max(q3Y-q1Y,1);
+      const mX = xs[mid(xs.length)], mY = ys[mid(ys.length)];
+      const clean = pts.filter(p => Math.abs(p.x-mX) <= 4.5*iqrX && Math.abs(p.y-mY) <= 4.5*iqrY);
+      const final = clean.length > 0 ? clean : pts;
+      let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+      final.forEach(p => { if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; });
+      if (minX===Infinity||minX===maxX) return {minX:0,minY:0,maxX:100,maxY:100,width:100,height:100};
+      return { minX, minY, maxX, maxY, width:maxX-minX, height:maxY-minY };
     }
 
     function fitViewport(canvas, bbox) {
-      const padding = 40;
-      const w = canvas.width - padding * 2;
-      const h = canvas.height - padding * 2;
-
-      const scaleX = w / (bbox.width || 1);
-      const scaleY = h / (bbox.height || 1);
-      const scale = Math.min(scaleX, scaleY);
-
-      const offsetX = padding + (w - bbox.width * scale) / 2 - bbox.minX * scale;
-      const offsetY = padding + (h - bbox.height * scale) / 2 - bbox.minY * scale;
-
-      return { scale, offsetX, offsetY, bbox };
+      const pad = 40, w = canvas.width-pad*2, h = canvas.height-pad*2;
+      const scale = Math.min(w/(bbox.width||1), h/(bbox.height||1));
+      return {
+        scale,
+        offsetX: pad + (w - bbox.width*scale)/2 - bbox.minX*scale,
+        offsetY: pad + (h - bbox.height*scale)/2 - bbox.minY*scale,
+        bbox
+      };
     }
 
-    function worldToScreen(pt, viewport, canvasH) {
-      const sx = pt.x * viewport.scale + viewport.offsetX;
-      const sy = canvasH - (pt.y * viewport.scale + viewport.offsetY);
-      return { x: sx, y: sy };
+    // Historical panel: PDF/deed-space coords (Y grows downward in canvas, no flip)
+    // Historical panel: PDF/deed-space coords (Y grows downward in canvas, no flip)
+    function worldToScreen(pt, vp, canvasH) {
+      return { x: pt.x * vp.scale + vp.offsetX, y: pt.y * vp.scale + vp.offsetY };
+    }
+    function screenToWorld(sx, sy, vp, canvasH) {
+      return { x: Math.round((sx - vp.offsetX) / vp.scale * 100) / 100, y: Math.round((sy - vp.offsetY) / vp.scale * 100) / 100 };
     }
 
-    function screenToWorld(sx, sy, viewport, canvasH) {
-      const realSy = canvasH - sy;
-      const wx = (sx - viewport.offsetX) / viewport.scale;
-      const wy = (realSy - viewport.offsetY) / viewport.scale;
-      return { x: Math.round(wx * 100) / 100, y: Math.round(wy * 100) / 100 };
+    // True-field panel: GIS/UTM-space coords (Y increases northward, so we flip)
+    function worldToScreenGIS(pt, vp, canvasH) {
+      return { x: pt.x * vp.scale + vp.offsetX, y: canvasH - (pt.y * vp.scale + vp.offsetY) };
+    }
+    function screenToWorldGIS(sx, sy, vp, canvasH) {
+      return { x: Math.round((sx - vp.offsetX) / vp.scale * 100) / 100, y: Math.round((canvasH - sy - vp.offsetY) / vp.scale * 100) / 100 };
     }
 
+    // ── Canvas resize ─────────────────────────────────────────────────
     function resizeCanvases() {
-      const histContainer = document.getElementById("hist-container");
-      const trueContainer = document.getElementById("true-container");
+      const hc = document.getElementById("hist-container");
+      const tc = document.getElementById("true-container");
+      histCanvas.width  = hc.clientWidth  || 500;
+      histCanvas.height = hc.clientHeight || 500;
+      trueCanvas.width  = tc.clientWidth  || 500;
+      trueCanvas.height = tc.clientHeight || 500;
 
-      histCanvas.width = histContainer.clientWidth || 500;
-      histCanvas.height = histContainer.clientHeight || 500;
-      trueCanvas.width = trueContainer.clientWidth || 500;
-      trueCanvas.height = trueContainer.clientHeight || 500;
-
-      if (state.histEntities.length > 0) {
-        state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+      if (!state.histViewport.bbox) {
+        if (state.histEntities.length > 0)
+          state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+        else if (state.histPdfCanvas)
+          state.histViewport = fitViewport(histCanvas, {minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH});
       }
-      if (state.trueEntities.length > 0) {
-        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+      if (!state.trueViewport.bbox) {
+        if (state.trueEntities.length > 0)
+          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+        else if (state.geoTiff)
+          state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
       }
-
       redrawAll();
     }
-
     window.addEventListener("resize", resizeCanvases);
 
+    // ── Redraw ────────────────────────────────────────────────────────
     function redrawAll() {
       redrawHistoricalCanvas();
       redrawTrueCanvas();
@@ -1408,244 +1406,261 @@ EOF`;
     }
 
     function drawGrid(ctx, w, h) {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+      ctx.strokeStyle = "rgba(255,255,255,0.04)";
       ctx.lineWidth = 1;
-      const step = 40;
-      for (let x = 0; x < w; x += step) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-      }
-      for (let y = 0; y < h; y += step) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-      }
+      for (let x=0;x<w;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke(); }
+      for (let y=0;y<h;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke(); }
     }
 
+    // Draw a GeoTIFF background using GIS (Y-flip) coordinates
     function drawGeoTiff(ctx, tiff, vp, canvasH, opacity) {
-      if (!tiff || !tiff.offscreen || !tiff.bbox) return;
-      const tl = worldToScreen({ x: tiff.bbox.minX, y: tiff.bbox.maxY }, vp, canvasH);
-      const br = worldToScreen({ x: tiff.bbox.maxX, y: tiff.bbox.minY }, vp, canvasH);
-      const x = Math.min(tl.x, br.x);
-      const y = Math.min(tl.y, br.y);
-      const sw = Math.abs(br.x - tl.x);
-      const sh = Math.abs(br.y - tl.y);
-      if (sw <= 0 || sh <= 0) return;
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.drawImage(tiff.offscreen, x, y, sw, sh);
+      if (!tiff||!tiff.offscreen||!tiff.bbox) return;
+      const tl = worldToScreenGIS({x:tiff.bbox.minX, y:tiff.bbox.maxY}, vp, canvasH);
+      const br = worldToScreenGIS({x:tiff.bbox.maxX, y:tiff.bbox.minY}, vp, canvasH);
+      const x=Math.min(tl.x,br.x), y=Math.min(tl.y,br.y);
+      const sw=Math.abs(br.x-tl.x), sh=Math.abs(br.y-tl.y);
+      if (sw<=0||sh<=0) return;
+      ctx.save(); ctx.globalAlpha=opacity; ctx.drawImage(tiff.offscreen,x,y,sw,sh); ctx.restore();
+    }
+
+    // Draw entities in deed-space (historical panel)
+    function drawEntities(ctx, entities, vp, canvasH, color, opacity) {
+      if (!entities.length) return;
+      ctx.save(); ctx.globalAlpha = opacity;
+      entities.forEach(ent => {
+        if (ent.points.length < 2) return;
+        ctx.beginPath();
+        const s = worldToScreen(ent.points[0], vp, canvasH);
+        ctx.moveTo(s.x, s.y);
+        for (let i=1;i<ent.points.length;i++) { const p=worldToScreen(ent.points[i],vp,canvasH); ctx.lineTo(p.x,p.y); }
+        if (ent.closed) ctx.closePath();
+        ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
+      });
       ctx.restore();
     }
 
-    function redrawHistoricalCanvas() {
-      const w = histCanvas.width;
-      const h = histCanvas.height;
-      histCtx.clearRect(0, 0, w, h);
+    // Draw entities in GIS-space (true-field panel, unwarped)
+    function drawEntitiesGIS(ctx, entities, vp, canvasH, color, opacity) {
+      if (!entities.length) return;
+      ctx.save(); ctx.globalAlpha = opacity;
+      entities.forEach(ent => {
+        if (ent.points.length < 2) return;
+        ctx.beginPath();
+        const s = worldToScreenGIS(ent.points[0], vp, canvasH);
+        ctx.moveTo(s.x, s.y);
+        for (let i=1;i<ent.points.length;i++) { const p=worldToScreenGIS(ent.points[i],vp,canvasH); ctx.lineTo(p.x,p.y); }
+        if (ent.closed) ctx.closePath();
+        ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke();
+      });
+      ctx.restore();
+    }
 
-      drawGrid(histCtx, w, h);
+    // Draw deed DXF warped into GIS space on the true-field panel
+    function drawWarpedEntitiesGIS(ctx, entities, warper, vp, canvasH, color, opacity) {
+      if (!entities.length || !warper) return;
+      ctx.save(); ctx.globalAlpha = opacity;
+      entities.forEach(ent => {
+        if (ent.points.length < 2) return;
+        ctx.beginPath();
+        const ws = warper(ent.points[0]);
+        const s  = worldToScreenGIS(ws, vp, canvasH);
+        ctx.moveTo(s.x, s.y);
+        for (let i=1;i<ent.points.length;i++) {
+          const wpt = warper(ent.points[i]);
+          const p   = worldToScreenGIS(wpt, vp, canvasH);
+          ctx.lineTo(p.x, p.y);
+        }
+        if (ent.closed) ctx.closePath();
+        ctx.strokeStyle=color; ctx.lineWidth=3; ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    // ── Historical Canvas ──────────────────────────────────────────────
+    function redrawHistoricalCanvas() {
+      const w = histCanvas.width, h = histCanvas.height;
+      histCtx.clearRect(0,0,w,h);
+      drawGrid(histCtx,w,h);
       const vp = state.histViewport;
 
-      // Shared GeoTIFF background
-      drawGeoTiff(histCtx, state.geoTiff, vp, h, state.geoTiffOpacity);
-
-      // Draw Historical Entities (Purple Accent)
-      state.histEntities.forEach((ent) => {
-        if (ent.points.length < 2) return;
-        histCtx.beginPath();
-        const start = worldToScreen(ent.points[0], vp, h);
-        histCtx.moveTo(start.x, start.y);
-
-        for (let i = 1; i < ent.points.length; i++) {
-          const p = worldToScreen(ent.points[i], vp, h);
-          histCtx.lineTo(p.x, p.y);
+      // Layer 1: Deed PDF background
+      if (state.histPdfCanvas && state.histPdfW > 0) {
+        const tl = worldToScreen({ x: 0, y: 0 }, vp, h);
+        const br = worldToScreen({ x: state.histPdfW, y: state.histPdfH }, vp, h);
+        const sw = br.x - tl.x, sh = br.y - tl.y;
+        if (sw > 0 && sh > 0) {
+          histCtx.save();
+          histCtx.globalAlpha = 0.85;
+          histCtx.drawImage(state.histPdfCanvas, tl.x, tl.y, sw, sh);
+          histCtx.restore();
         }
-        if (ent.closed) histCtx.closePath();
+      }
 
-        histCtx.strokeStyle = "#d500f9";
-        histCtx.lineWidth = 2.5;
-        histCtx.stroke();
-      });
+      // Layer 2: Deed DXF boundary polygon
+      drawEntities(histCtx, state.histEntities, vp, h, "#ff1744", 1.0);
 
-      // Pending Source Point
+      // Layer 3: Pending source anchor
       if (state.pendingSource) {
         const sp = worldToScreen(state.pendingSource, vp, h);
-        histCtx.beginPath();
-        histCtx.arc(sp.x, sp.y, 10, 0, Math.PI * 2);
-        histCtx.strokeStyle = "#00e5ff";
-        histCtx.lineWidth = 2.5;
-        histCtx.setLineDash([4, 4]);
-        histCtx.stroke();
-        histCtx.setLineDash([]);
-
-        histCtx.beginPath();
-        histCtx.arc(sp.x, sp.y, 4, 0, Math.PI * 2);
-        histCtx.fillStyle = "#00e5ff";
-        histCtx.fill();
+        histCtx.beginPath(); histCtx.arc(sp.x,sp.y,10,0,Math.PI*2);
+        histCtx.strokeStyle="#00e5ff"; histCtx.lineWidth=2.5;
+        histCtx.setLineDash([4,4]); histCtx.stroke(); histCtx.setLineDash([]);
+        histCtx.beginPath(); histCtx.arc(sp.x,sp.y,4,0,Math.PI*2);
+        histCtx.fillStyle="#00e5ff"; histCtx.fill();
       }
 
-      // Source Anchors
-      state.anchors.forEach((anc) => {
+      // Layer 4: Source anchor pins
+      state.anchors.forEach(anc => {
         const sp = worldToScreen(anc.src, vp, h);
-        histCtx.beginPath();
-        histCtx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
-        histCtx.fillStyle = anc.color;
-        histCtx.fill();
-        histCtx.strokeStyle = "#ffffff";
-        histCtx.lineWidth = 2;
-        histCtx.stroke();
-
-        histCtx.fillStyle = "#ffffff";
-        histCtx.font = "bold 11px sans-serif";
-        histCtx.fillText(`#${anc.id}`, sp.x + 10, sp.y - 6);
+        histCtx.beginPath(); histCtx.arc(sp.x,sp.y,7,0,Math.PI*2);
+        histCtx.fillStyle=anc.color; histCtx.fill();
+        histCtx.strokeStyle="#fff"; histCtx.lineWidth=2; histCtx.stroke();
+        histCtx.fillStyle="#fff"; histCtx.font="bold 11px sans-serif";
+        histCtx.fillText(`#${anc.id}`,sp.x+10,sp.y-6);
       });
     }
 
+    // ── True Field Canvas ──────────────────────────────────────────────
     function redrawTrueCanvas() {
-      const w = trueCanvas.width;
-      const h = trueCanvas.height;
-      trueCtx.clearRect(0, 0, w, h);
-
-      drawGrid(trueCtx, w, h);
+      const w = trueCanvas.width, h = trueCanvas.height;
+      trueCtx.clearRect(0,0,w,h);
+      drawGrid(trueCtx,w,h);
       const vp = state.trueViewport;
 
-      // Shared GeoTIFF background
+      // Layer 1: Drone GeoTIFF background
       drawGeoTiff(trueCtx, state.geoTiff, vp, h, state.geoTiffOpacity);
 
+      // Build warper from anchors (deed-space → GIS-space)
       let warper = null;
-      if (state.anchors.length > 0) {
-        try {
-          warper = TransformMath.createWarper(state.algorithm, state.anchors);
-        } catch (e) {
-          console.warn("Warper Calculation Error:", e);
-        }
+      if (state.showOverlay && state.anchors.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, state.anchors); }
+        catch(e) { console.warn("Warper error:", e); }
       }
 
-      // Live Transformed Overlay (Magenta Glow)
-      if (state.showOverlay && warper && state.histEntities.length > 0) {
-        state.histEntities.forEach((ent) => {
-          if (ent.points.length < 2) return;
-          trueCtx.beginPath();
-
-          const warpedStart = warper(ent.points[0]);
-          const start = worldToScreen(warpedStart, vp, h);
-          trueCtx.moveTo(start.x, start.y);
-
-          for (let i = 1; i < ent.points.length; i++) {
-            const warpedPt = warper(ent.points[i]);
-            const p = worldToScreen(warpedPt, vp, h);
-            trueCtx.lineTo(p.x, p.y);
-          }
-          if (ent.closed) trueCtx.closePath();
-
-          trueCtx.strokeStyle = "rgba(213, 0, 249, 0.8)";
-          trueCtx.lineWidth = 2.5;
-          trueCtx.stroke();
-        });
+      // Layer 2: Warped deed PDF image (the PowerPoint transparent overlay)
+      if (state.showWarpedPdf && warper && state.histPdfCanvas && state.histPdfW > 0) {
+        drawWarpedPdfImage(trueCtx, warper, vp, w, h);
       }
 
-      // True Field Survey Entities (Green Accent)
-      state.trueEntities.forEach((ent) => {
-        if (ent.points.length < 2) return;
-        trueCtx.beginPath();
-        const start = worldToScreen(ent.points[0], vp, h);
-        trueCtx.moveTo(start.x, start.y);
+      // Layer 3: Warped deed DXF boundary
+      if (warper) {
+        drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper, vp, h, "#ff1744", state.warpedDxfOpacity);
+      }
 
-        for (let i = 1; i < ent.points.length; i++) {
-          const p = worldToScreen(ent.points[i], vp, h);
-          trueCtx.lineTo(p.x, p.y);
-        }
-        if (ent.closed) trueCtx.closePath();
+      // Layer 4: True Field Survey DXF (green)
+      drawEntitiesGIS(trueCtx, state.trueEntities, vp, h, "#00e676", state.trueDxfOpacity);
 
-        trueCtx.strokeStyle = "#00e676";
-        trueCtx.lineWidth = 2;
-        trueCtx.stroke();
-      });
-
-      // Target Anchors & Residual Lines
-      state.anchors.forEach((anc) => {
-        const tp = worldToScreen(anc.dst, vp, h);
-
+      // Layer 5: Target anchor pins + residual lines
+      state.anchors.forEach(anc => {
+        const tp = worldToScreenGIS(anc.dst, vp, h);
         if (warper) {
-          const warpedPt = warper(anc.src);
-          const wp = worldToScreen(warpedPt, vp, h);
-
-          trueCtx.beginPath();
-          trueCtx.moveTo(wp.x, wp.y);
-          trueCtx.lineTo(tp.x, tp.y);
-          trueCtx.strokeStyle = "#ff1744";
-          trueCtx.lineWidth = 1.5;
-          trueCtx.setLineDash([3, 3]);
-          trueCtx.stroke();
-          trueCtx.setLineDash([]);
-
-          trueCtx.beginPath();
-          trueCtx.arc(wp.x, wp.y, 4, 0, Math.PI * 2);
-          trueCtx.fillStyle = "#ff1744";
-          trueCtx.fill();
+          const wp = worldToScreenGIS(warper(anc.src), vp, h);
+          trueCtx.beginPath(); trueCtx.moveTo(wp.x,wp.y); trueCtx.lineTo(tp.x,tp.y);
+          trueCtx.strokeStyle="#ff1744"; trueCtx.lineWidth=1.5;
+          trueCtx.setLineDash([3,3]); trueCtx.stroke(); trueCtx.setLineDash([]);
+          trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y,4,0,Math.PI*2);
+          trueCtx.fillStyle="#ff1744"; trueCtx.fill();
         }
-
-        trueCtx.beginPath();
-        trueCtx.arc(tp.x, tp.y, 7, 0, Math.PI * 2);
-        trueCtx.fillStyle = anc.color;
-        trueCtx.fill();
-        trueCtx.strokeStyle = "#ffffff";
-        trueCtx.lineWidth = 2;
-        trueCtx.stroke();
-
-        trueCtx.fillStyle = "#ffffff";
-        trueCtx.font = "bold 11px sans-serif";
-        trueCtx.fillText(`#${anc.id}`, tp.x + 10, tp.y - 6);
+        trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
+        trueCtx.fillStyle=anc.color; trueCtx.fill();
+        trueCtx.strokeStyle="#fff"; trueCtx.lineWidth=2; trueCtx.stroke();
+        trueCtx.fillStyle="#fff"; trueCtx.font="bold 11px sans-serif";
+        trueCtx.fillText(`#${anc.id}`,tp.x+10,tp.y-6);
       });
     }
 
-    // Canvas Interactions & Pan/Zoom Event Engine
-    let spacePressed = false;
-    let isPanning = false;
-    let panStart = { x: 0, y: 0 };
-    let vpStart = { offsetX: 0, offsetY: 0 };
-    let activePanViewport = null;
-    let clickStart = { x: 0, y: 0 };
+    /* -----------------------------------------------------------------------
+       Draw the deed PDF image warped into GIS space on the true-field canvas.
+       For Helmert/Affine this is an exact hardware-accelerated affine transform.
+       For TPS we fall back to sampling a grid of corner points.
+    ----------------------------------------------------------------------- */
+    function drawWarpedPdfImage(ctx, warper, vp, canvasW, canvasH) {
+      if (!state.histPdfCanvas || state.histPdfW <= 0) return;
+      const pdfW = state.histPdfW, pdfH = state.histPdfH;
 
-    const btnModePan = document.getElementById("btn-mode-pan");
+      // Map the four PDF corners through the warper → GIS → screen
+      const corners = [
+        {px:0,     py:0     },
+        {px:pdfW,  py:0     },
+        {px:pdfW,  py:pdfH  },
+        {px:0,     py:pdfH  },
+      ].map(c => {
+        const gis = warper({x:c.px, y:c.py});
+        const scr = worldToScreenGIS(gis, vp, canvasH);
+        return scr;
+      });
+
+      // Check if the transform is a valid affine (3 unique corners produce a non-degenerate triangle)
+      const [s0,s1,s2,s3] = corners;
+
+      ctx.save();
+      ctx.globalAlpha = state.warpedPdfOpacity;
+
+      // Use canvas setTransform with the affine computed from the corner mapping.
+      // The affine that maps (0,0)→s0, (pdfW,0)→s1, (0,pdfH)→s3:
+      //   | a  c  e |   pdfW·[a,c,e] = s1-s0
+      //   | b  d  f |   pdfH·[b,d,f] = s3-s0
+      const a  = (s1.x - s0.x) / pdfW;
+      const b  = (s1.y - s0.y) / pdfW;
+      const c_ = (s3.x - s0.x) / pdfH;
+      const d_ = (s3.y - s0.y) / pdfH;
+      const e  = s0.x;
+      const f  = s0.y;
+
+      ctx.setTransform(a, b, c_, d_, e, f);
+      // Clip to canvas bounds to avoid drawing far outside
+      ctx.drawImage(state.histPdfCanvas, 0, 0, pdfW, pdfH);
+      ctx.restore();
+    }
+
+    // ── Pan / Zoom / Anchor interactions ──────────────────────────────
+    let spacePressed=false, isPanning=false;
+    let panStart={x:0,y:0}, vpStart={offsetX:0,offsetY:0}, activePanViewport=null, clickStart={x:0,y:0};
+
+    const btnModePan    = document.getElementById("btn-mode-pan");
     const btnModeAnchor = document.getElementById("btn-mode-anchor");
 
     function setToolMode(mode) {
       state.toolMode = mode;
-      btnModePan.classList.toggle("active", mode === "pan");
-      btnModeAnchor.classList.toggle("active", mode === "anchor");
-
-      const cursor = mode === "pan" ? "grab" : "crosshair";
-      histCanvas.style.cursor = cursor;
-      trueCanvas.style.cursor = cursor;
-
-      if (mode === "pan") {
-        updateStatus("🖐️ Pan Mode active — click and drag anywhere to move map display.");
-      } else {
-        updateStatus("🎯 Anchor Mode active — click on map landmarks to place control points.");
-      }
+      btnModePan.classList.toggle("active", mode==="pan");
+      btnModeAnchor.classList.toggle("active", mode==="anchor");
+      const cursor = mode==="pan" ? "grab" : "crosshair";
+      histCanvas.style.cursor = trueCanvas.style.cursor = cursor;
+      updateStatus(mode==="pan"
+        ? "🖐️ Pan Mode — drag to move. Scroll to zoom."
+        : "🎯 Anchor Mode — click a point on the deed map, then its matching point on the field survey.");
     }
 
-    btnModePan.addEventListener("click", () => setToolMode("pan"));
+    btnModePan.addEventListener("click",    () => setToolMode("pan"));
     btnModeAnchor.addEventListener("click", () => setToolMode("anchor"));
 
-    window.addEventListener("keydown", (e) => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
-      if (e.code === "KeyP") setToolMode("pan");
-      if (e.code === "KeyA") setToolMode("anchor");
-      if (e.code === "Space") {
-        spacePressed = true;
-        e.preventDefault();
-      }
+    window.addEventListener("keydown", e => {
+      if (e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
+      if (e.code==="KeyP") setToolMode("pan");
+      if (e.code==="KeyA") setToolMode("anchor");
+      if (e.code==="Space") { spacePressed=true; e.preventDefault(); }
     });
+    window.addEventListener("keyup", e => { if(e.code==="Space") spacePressed=false; });
 
-    window.addEventListener("keyup", (e) => {
-      if (e.code === "Space") {
-        spacePressed = false;
+    function hitTestAnchor(sx, sy, isHist) {
+      const radius = 14;
+      const vp = isHist ? state.histViewport : state.trueViewport;
+      const h = isHist ? histCanvas.height : trueCanvas.height;
+      for (const anc of state.anchors) {
+        const pt = isHist ? worldToScreen(anc.src, vp, h) : worldToScreenGIS(anc.dst, vp, h);
+        if (Math.hypot(pt.x - sx, pt.y - sy) <= radius) {
+          return anc;
+        }
       }
-    });
+      return null;
+    }
 
-    function handleMouseDown(e, canvas, viewport) {
+    let draggingAnchor = null; // { anc, isHist }
+
+    function handleMouseDown(e, canvas, viewport, isHist) {
       clickStart.x = e.clientX;
       clickStart.y = e.clientY;
 
-      // Initiate panning: Left-click in Pan mode OR Right-Click (2) OR Middle-Click (1) OR Space+Click
       if (state.toolMode === "pan" || e.button === 2 || e.button === 1 || spacePressed) {
         isPanning = true;
         panStart.x = e.clientX;
@@ -1654,6 +1669,17 @@ EOF`;
         vpStart.offsetY = viewport.offsetY;
         activePanViewport = viewport;
         canvas.style.cursor = "grabbing";
+        return;
+      }
+
+      if (state.toolMode === "anchor" && e.button === 0) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const hit = hitTestAnchor(sx, sy, isHist);
+        if (hit) {
+          draggingAnchor = { anc: hit, isHist };
+          canvas.style.cursor = "move";
+        }
       }
     }
 
@@ -1664,30 +1690,32 @@ EOF`;
         canvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
       }
 
-      // In Pan mode, left drag/click only moves display
+      if (draggingAnchor) {
+        updateStatus(`Updated Anchor #${draggingAnchor.anc.id} position.`);
+        draggingAnchor = null;
+        canvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        redrawAll();
+        return;
+      }
+
       if (state.toolMode === "pan") return;
-
-      // Distinguish click from pan (drag threshold 6px)
-      const dx = Math.abs(e.clientX - clickStart.x);
-      const dy = Math.abs(e.clientY - clickStart.y);
-      if (dx > 6 || dy > 6) return;
-
-      if (e.button !== 0) return; // Left click only for anchors
+      if (Math.abs(e.clientX - clickStart.x) > 6 || Math.abs(e.clientY - clickStart.y) > 6) return;
+      if (e.button !== 0) return;
 
       const rect = canvas.getBoundingClientRect();
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
-      const worldPt = screenToWorld(sx, sy, viewport, canvas.height);
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
 
       if (isHist) {
+        const worldPt = screenToWorld(sx, sy, viewport, canvas.height);
         state.pendingSource = worldPt;
         redrawAll();
-        updateStatus(`Selected Source Anchor #${state.anchors.length + 1} at (${worldPt.x}, ${worldPt.y}). Now click matching Target point on right map.`);
+        updateStatus(`Source Anchor #${state.anchors.length + 1} at deed (${worldPt.x.toFixed(1)}, ${worldPt.y.toFixed(1)}). Now click matching location on drone survey.`);
       } else {
         if (!state.pendingSource) {
-          updateStatus("Please click a landmark on the left Historical Map first to pick a Source Anchor.");
+          updateStatus("Click a landmark on the deed map (left) first.");
           return;
         }
+        const worldPt = screenToWorldGIS(sx, sy, viewport, canvas.height);
         const nextId = state.anchors.length + 1;
         const color = anchorColors[(nextId - 1) % anchorColors.length];
         state.anchors.push({
@@ -1698,16 +1726,33 @@ EOF`;
         });
         state.pendingSource = null;
         redrawAll();
-        updateStatus(`Anchor Pair #${nextId} created! Transformation updated live.`);
+        updateStatus(`Anchor Pair #${nextId} created! Transformation updating live.`);
       }
     }
 
-    window.addEventListener("mousemove", (e) => {
+    window.addEventListener("mousemove", e => {
       if (isPanning && activePanViewport) {
         const dx = e.clientX - panStart.x;
         const dy = e.clientY - panStart.y;
         activePanViewport.offsetX = vpStart.offsetX + dx;
-        activePanViewport.offsetY = vpStart.offsetY - dy; // Flip Y offset
+        if (activePanViewport === state.trueViewport) {
+          activePanViewport.offsetY = vpStart.offsetY - dy; // GIS flips Y
+        } else {
+          activePanViewport.offsetY = vpStart.offsetY + dy; // Historical doesn't flip Y
+        }
+        redrawAll();
+        return;
+      }
+
+      if (draggingAnchor) {
+        const canvas = draggingAnchor.isHist ? histCanvas : trueCanvas;
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        if (draggingAnchor.isHist) {
+          draggingAnchor.anc.src = screenToWorld(sx, sy, state.histViewport, histCanvas.height);
+        } else {
+          draggingAnchor.anc.dst = screenToWorldGIS(sx, sy, state.trueViewport, trueCanvas.height);
+        }
         redrawAll();
       }
     });
@@ -1717,470 +1762,431 @@ EOF`;
         isPanning = false;
         activePanViewport = null;
         const cursor = state.toolMode === "pan" ? "grab" : "crosshair";
-        histCanvas.style.cursor = cursor;
-        trueCanvas.style.cursor = cursor;
+        histCanvas.style.cursor = trueCanvas.style.cursor = cursor;
+      }
+      if (draggingAnchor) {
+        draggingAnchor = null;
+        const cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        histCanvas.style.cursor = trueCanvas.style.cursor = cursor;
+        redrawAll();
       }
     });
 
-    // Fit / Center View Event Handlers
-    document.getElementById("btn-fit-hist").addEventListener("click", () => {
-      if (state.histEntities.length > 0) {
-        state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
-      } else if (state.geoTiff) {
-        state.histViewport = fitViewport(histCanvas, state.geoTiff.bbox);
+    // Coordinate display on mousemove
+    histCanvas.addEventListener("mousemove", e => {
+      const r = histCanvas.getBoundingClientRect();
+      const p = screenToWorld(e.clientX - r.left, e.clientY - r.top, state.histViewport, histCanvas.height);
+      coordsBar.textContent = `Deed: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+      if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
+        const hit = hitTestAnchor(e.clientX - r.left, e.clientY - r.top, true);
+        histCanvas.style.cursor = hit ? "move" : "crosshair";
       }
-      redrawAll();
-      updateStatus("Recentered Historical map view.");
+    });
+    trueCanvas.addEventListener("mousemove", e => {
+      const r = trueCanvas.getBoundingClientRect();
+      const p = screenToWorldGIS(e.clientX - r.left, e.clientY - r.top, state.trueViewport, trueCanvas.height);
+      coordsBar.textContent = `Field UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+      if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
+        const hit = hitTestAnchor(e.clientX - r.left, e.clientY - r.top, false);
+        trueCanvas.style.cursor = hit ? "move" : "crosshair";
+      }
     });
 
-    document.getElementById("btn-fit-true").addEventListener("click", () => {
-      if (state.trueEntities.length > 0) {
-        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
-      } else if (state.geoTiff) {
-        state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
-      }
-      redrawAll();
-      updateStatus("Recentered True Field map view.");
-    });
-
-    function handleWheelZoom(e, canvas, viewport) {
+    histCanvas.addEventListener("wheel", e => {
       e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      // World point under mouse before zoom
-      const worldX = (mouseX - viewport.offsetX) / viewport.scale;
-      const worldY = (canvas.height - mouseY - viewport.offsetY) / viewport.scale;
-
-      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
-      viewport.scale = Math.min(Math.max(viewport.scale * zoomFactor, 0.02), 200.0);
-
-      // Re-align offset so world point remains under mouse
-      viewport.offsetX = mouseX - worldX * viewport.scale;
-      viewport.offsetY = (canvas.height - mouseY) - worldY * viewport.scale;
-
+      const r = histCanvas.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
+      const vp = state.histViewport;
+      const wx = (mx - vp.offsetX) / vp.scale;
+      const wy = (my - vp.offsetY) / vp.scale;
+      const factor = e.deltaY < 0 ? 1.15 : 0.85;
+      vp.scale = Math.min(Math.max(vp.scale * factor, 0.001), 500);
+      vp.offsetX = mx - wx * vp.scale;
+      vp.offsetY = my - wy * vp.scale;
       redrawAll();
-    }
+    }, { passive: false });
 
-    histCanvas.addEventListener("mousedown", (e) => handleMouseDown(e, histCanvas, state.histViewport));
-    histCanvas.addEventListener("mouseup", (e) => handleMouseUp(e, histCanvas, state.histViewport, true));
-    histCanvas.addEventListener("wheel", (e) => handleWheelZoom(e, histCanvas, state.histViewport));
-    histCanvas.addEventListener("contextmenu", (e) => e.preventDefault());
-
-    trueCanvas.addEventListener("mousedown", (e) => handleMouseDown(e, trueCanvas, state.trueViewport));
-    trueCanvas.addEventListener("mouseup", (e) => handleMouseUp(e, trueCanvas, state.trueViewport, false));
-    trueCanvas.addEventListener("wheel", (e) => handleWheelZoom(e, trueCanvas, state.trueViewport));
-    trueCanvas.addEventListener("contextmenu", (e) => e.preventDefault());
-
-    histCanvas.addEventListener("mousemove", (e) => updateCoordsDisplay(e, histCanvas, state.histViewport, "Hist"));
-    trueCanvas.addEventListener("mousemove", (e) => updateCoordsDisplay(e, trueCanvas, state.trueViewport, "True"));
-
-    function updateCoordsDisplay(e, canvas, vp, label) {
-      const rect = canvas.getBoundingClientRect();
-      const pt = screenToWorld(e.clientX - rect.left, e.clientY - rect.top, vp, canvas.height);
-      coordsBar.textContent = `${label}: (${pt.x.toFixed(2)}, ${pt.y.toFixed(2)})`;
-    }
-
-    algorithmSelect.addEventListener("change", (e) => {
-      state.algorithm = e.target.value;
+    trueCanvas.addEventListener("wheel", e => {
+      e.preventDefault();
+      const r = trueCanvas.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
+      const vp = state.trueViewport;
+      const wx = (mx - vp.offsetX) / vp.scale;
+      const wy = (trueCanvas.height - my - vp.offsetY) / vp.scale;
+      const factor = e.deltaY < 0 ? 1.15 : 0.85;
+      vp.scale = Math.min(Math.max(vp.scale * factor, 0.001), 500);
+      vp.offsetX = mx - wx * vp.scale;
+      vp.offsetY = (trueCanvas.height - my) - wy * vp.scale;
       redrawAll();
-      updateStatus(`Switched algorithm to ${e.target.options[e.target.selectedIndex].text}`);
+    }, { passive: false });
+
+    histCanvas.addEventListener("mousedown", e => handleMouseDown(e, histCanvas, state.histViewport, true));
+    histCanvas.addEventListener("mouseup",   e => handleMouseUp(e, histCanvas, state.histViewport, true));
+    histCanvas.addEventListener("contextmenu", e => e.preventDefault());
+    trueCanvas.addEventListener("mousedown", e => handleMouseDown(e, trueCanvas, state.trueViewport, false));
+    trueCanvas.addEventListener("mouseup",   e => handleMouseUp(e, trueCanvas, state.trueViewport, false));
+    trueCanvas.addEventListener("contextmenu", e => e.preventDefault());
+
+    // Fit/center buttons
+    document.getElementById("btn-fit-hist").addEventListener("click", () => {
+      if (state.histPdfW > 0)
+        state.histViewport = fitViewport(histCanvas, { minX: 0, minY: 0, maxX: state.histPdfW, maxY: state.histPdfH, width: state.histPdfW, height: state.histPdfH });
+      else if (state.histEntities.length > 0)
+        state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+      redrawAll(); updateStatus("Centered deed map view.");
+    });
+    document.getElementById("btn-fit-true").addEventListener("click", () => {
+      if (state.trueEntities.length>0)
+        state.trueViewport=fitViewport(trueCanvas,computeBoundingBox(state.trueEntities));
+      else if (state.geoTiff)
+        state.trueViewport=fitViewport(trueCanvas,state.geoTiff.bbox);
+      redrawAll(); updateStatus("Centered field survey view.");
     });
 
-    chkShowOverlay.addEventListener("change", (e) => {
-      state.showOverlay = e.target.checked;
-      redrawAll();
+    // Algorithm & overlay controls
+    algorithmSelect.value = state.algorithm;
+    algorithmSelect.addEventListener("change", e => {
+      state.algorithm=e.target.value; redrawAll();
+      updateStatus(`Switched to: ${e.target.options[e.target.selectedIndex].text}`);
     });
+    chkShowOverlay.addEventListener("change", e => { state.showOverlay=e.target.checked; redrawAll(); });
+    document.getElementById("chk-show-warped-pdf").addEventListener("change", e => { state.showWarpedPdf=e.target.checked; redrawAll(); });
 
     btnClearAnchors.addEventListener("click", () => {
-      state.anchors = [];
-      state.pendingSource = null;
-      redrawAll();
-      updateStatus("Cleared all anchor pairs.");
+      state.anchors=[]; state.pendingSource=null; redrawAll(); updateStatus("Cleared all anchors.");
     });
 
+    // ── Opacity sliders ───────────────────────────────────────────────
+    function bindOpacity(id, valId, stateKey) {
+      const el = document.getElementById(id);
+      const vl = document.getElementById(valId);
+      if (!el) return;
+      el.addEventListener("input", e => {
+        state[stateKey] = parseInt(e.target.value,10)/100;
+        vl.textContent = e.target.value+"%";
+        redrawAll();
+      });
+    }
+    bindOpacity("geotiff-opacity",    "geotiff-opacity-val",    "geoTiffOpacity");
+    bindOpacity("warped-pdf-opacity", "warped-pdf-opacity-val", "warpedPdfOpacity");
+    bindOpacity("warped-dxf-opacity", "warped-dxf-opacity-val", "warpedDxfOpacity");
+    bindOpacity("true-dxf-opacity",   "true-dxf-opacity-val",   "trueDxfOpacity");
+
+    // ── Analytics / RMSE panel ────────────────────────────────────────
     const algoCompareList = document.getElementById("algo-compare-list");
-
     const ALGORITHMS = [
-      { key: "TPS",        label: "Thin Plate Spline",    minAnchors: 3 },
-      { key: "AFFINE",     label: "Affine (6-Param)",     minAnchors: 3 },
-      { key: "SIMILARITY", label: "Helmert Similarity",   minAnchors: 2 },
-      { key: "PROJECTIVE", label: "Projective / Homography", minAnchors: 4 }
+      { key:"SIMILARITY", label:"Helmert (PowerPoint)", minAnchors:2 },
+      { key:"AFFINE",     label:"Affine (6-Param)",     minAnchors:3 },
+      { key:"TPS",        label:"Thin Plate Spline",    minAnchors:3 },
+      { key:"PROJECTIVE", label:"Projective/Homography",minAnchors:4 },
     ];
-
-    // Bar fill colours ranked by quality
     const RANK_COLORS = [
-      "linear-gradient(90deg, #00e676, #00c853)",
-      "linear-gradient(90deg, #ffd600, #ff9100)",
-      "linear-gradient(90deg, #ff9100, #ff6d00)",
-      "linear-gradient(90deg, #ff1744, #d50000)"
+      "linear-gradient(90deg,#00e676,#00c853)",
+      "linear-gradient(90deg,#ffd600,#ff9100)",
+      "linear-gradient(90deg,#ff9100,#ff6d00)",
+      "linear-gradient(90deg,#ff1744,#d50000)",
     ];
 
     function updateAnalyticsUI() {
-      anchorTableBody.innerHTML = "";
-      let warper = null;
-      let rmseInfo = { totalRMSE: 0, residuals: [] };
-
-      if (state.anchors.length > 0) {
-        try {
-          warper = TransformMath.createWarper(state.algorithm, state.anchors);
-          rmseInfo = TransformMath.computeRMSE(warper, state.anchors);
-        } catch (err) {
-          console.warn("Warper Error:", err);
-        }
+      anchorTableBody.innerHTML="";
+      let warper=null, rmseInfo={totalRMSE:0,residuals:[]};
+      if (state.anchors.length>0) {
+        try { warper=TransformMath.createWarper(state.algorithm,state.anchors); rmseInfo=TransformMath.computeRMSE(warper,state.anchors); } catch(_){}
       }
-
-      rmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
-
-      state.anchors.forEach((anc, idx) => {
-        const errVal = rmseInfo.residuals[idx] !== undefined ? rmseInfo.residuals[idx].toFixed(2) : "0.00";
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><span class="anchor-badge" style="background:${anc.color}">#${anc.id}</span></td>
-          <td>(${anc.src.x}, ${anc.src.y})</td>
-          <td>(${anc.dst.x}, ${anc.dst.y})</td>
-          <td style="color:${parseFloat(errVal) > 5 ? 'var(--accent-red)' : 'var(--accent-cyan)'}">${errVal}</td>
-          <td><button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})">✕</button></td>
-        `;
+      rmseDisplay.textContent=`RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
+      state.anchors.forEach((anc,idx) => {
+        const err=(rmseInfo.residuals[idx]||0).toFixed(2);
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td><span class="anchor-badge" style="background:${anc.color}">#${anc.id}</span></td>
+          <td>(${anc.src.x.toFixed(1)},${anc.src.y.toFixed(1)})</td>
+          <td>(${anc.dst.x.toFixed(1)},${anc.dst.y.toFixed(1)})</td>
+          <td style="color:${parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)'}">${err}</td>
+          <td><button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})">✕</button></td>`;
         anchorTableBody.appendChild(tr);
       });
-
-      // ── Algorithm Comparison Scoreboard ──────────────────────────
       updateAlgoComparePanel();
     }
 
     function updateAlgoComparePanel() {
-      const n = state.anchors.length;
-
-      if (n < 2) {
-        algoCompareList.innerHTML = `<p class="compare-note">Add ≥ 3 anchor pairs to compare algorithms.</p>`;
-        return;
-      }
-
-      // Compute RMSE for every algorithm (with graceful fallback for too-few anchors)
-      const scores = ALGORITHMS.map(algo => {
-        if (n < algo.minAnchors) {
-          return { ...algo, rmse: null, note: `needs ≥${algo.minAnchors} anchors` };
-        }
-        try {
-          const w = TransformMath.createWarper(algo.key, state.anchors);
-          const info = TransformMath.computeRMSE(w, state.anchors);
-          return { ...algo, rmse: info.totalRMSE, note: null };
-        } catch (e) {
-          return { ...algo, rmse: null, note: "error" };
-        }
+      const n=state.anchors.length;
+      if (n<2) { algoCompareList.innerHTML=`<p class="compare-note">Add ≥ 2 anchor pairs to compare algorithms.</p>`; return; }
+      const scores=ALGORITHMS.map(algo => {
+        if (n<algo.minAnchors) return {...algo,rmse:null,note:`needs ≥${algo.minAnchors}`};
+        try { const w=TransformMath.createWarper(algo.key,state.anchors); return {...algo,rmse:TransformMath.computeRMSE(w,state.anchors).totalRMSE,note:null}; }
+        catch(e) { return {...algo,rmse:null,note:"error"}; }
       });
-
-      // Sort by RMSE ascending (nulls last)
-      const ranked = [...scores].sort((a, b) => {
-        if (a.rmse === null && b.rmse === null) return 0;
-        if (a.rmse === null) return 1;
-        if (b.rmse === null) return -1;
-        return a.rmse - b.rmse;
-      });
-
-      // Map key → rank (1 = best)
-      const rankMap = {};
-      ranked.forEach((r, i) => { rankMap[r.key] = i + 1; });
-
-      // Worst finite RMSE for bar scaling
-      const maxRmse = Math.max(...scores.filter(s => s.rmse !== null).map(s => s.rmse), 1);
-      const bestKey = ranked[0].rmse !== null ? ranked[0].key : null;
-
-      algoCompareList.innerHTML = "";
-
+      const ranked=[...scores].sort((a,b) => a.rmse===null?1:b.rmse===null?-1:a.rmse-b.rmse);
+      const rankMap={};ranked.forEach((r,i)=>{rankMap[r.key]=i+1;});
+      const maxRmse=Math.max(...scores.filter(s=>s.rmse!==null).map(s=>s.rmse),1);
+      const bestKey=ranked[0].rmse!==null?ranked[0].key:null;
+      algoCompareList.innerHTML="";
       scores.forEach(algo => {
-        const rank = rankMap[algo.key];
-        const isActive = algo.key === state.algorithm;
-        const isBest = algo.key === bestKey;
-        const barPct = algo.rmse !== null ? Math.round((algo.rmse / maxRmse) * 100) : 100;
-        const barColor = RANK_COLORS[Math.min(rank - 1, 3)];
-        const rmseText = algo.rmse !== null ? algo.rmse.toFixed(3) : (algo.note || "—");
-
-        const row = document.createElement("div");
-        row.className = `algo-row${isActive ? " algo-active" : ""}${isBest ? " algo-best" : ""}`;
-        row.title = `Click to switch to ${algo.label}`;
-        row.innerHTML = `
-          <div class="algo-row-header">
-            <span class="algo-name">${algo.label}</span>
-            <div class="algo-badges">
-              ${isBest && algo.rmse !== null ? `<span class="badge-best">✦ BEST</span>` : ""}
-              ${isActive ? `<span class="badge-active-tag">Active</span>` : ""}
-              <span class="badge-rank rank-${Math.min(rank, 4)}">#${rank}</span>
-              <span class="algo-rmse-val">${rmseText}</span>
-            </div>
-          </div>
-          <div class="algo-bar-track">
-            <div class="algo-bar-fill" style="width:${barPct}%; background:${barColor};"></div>
-          </div>
-        `;
-
-        row.addEventListener("click", () => {
-          state.algorithm = algo.key;
-          algorithmSelect.value = algo.key;
-          redrawAll();
+        const rank=rankMap[algo.key], isActive=algo.key===state.algorithm, isBest=algo.key===bestKey;
+        const barPct=algo.rmse!==null?Math.round((algo.rmse/maxRmse)*100):100;
+        const rmseText=algo.rmse!==null?algo.rmse.toFixed(3):(algo.note||"—");
+        const row=document.createElement("div");
+        row.className=`algo-row${isActive?" algo-active":""}${isBest?" algo-best":""}`;
+        row.title=`Click to switch to ${algo.label}`;
+        row.innerHTML=`<div class="algo-row-header">
+          <span class="algo-name">${algo.label}</span>
+          <div class="algo-badges">
+            ${isBest&&algo.rmse!==null?`<span class="badge-best">✦ BEST</span>`:""}
+            ${isActive?`<span class="badge-active-tag">Active</span>`:""}
+            <span class="badge-rank rank-${Math.min(rank,4)}">#${rank}</span>
+            <span class="algo-rmse-val">${rmseText}</span>
+          </div></div>
+          <div class="algo-bar-track"><div class="algo-bar-fill" style="width:${barPct}%;background:${RANK_COLORS[Math.min(rank-1,3)]}"></div></div>`;
+        row.addEventListener("click",()=>{
+          state.algorithm=algo.key; algorithmSelect.value=algo.key; redrawAll();
           updateStatus(`Switched to ${algo.label} (RMSE: ${rmseText})`);
         });
-
         algoCompareList.appendChild(row);
       });
     }
 
-    window.deleteAnchor = (id) => {
-      state.anchors = state.anchors.filter(a => a.id !== id);
-      redrawAll();
-      updateStatus(`Deleted Anchor Pair #${id}.`);
-    };
+    window.deleteAnchor = id => { state.anchors=state.anchors.filter(a=>a.id!==id); redrawAll(); updateStatus(`Deleted Anchor #${id}.`); };
+    function updateStatus(msg) { statusBar.textContent=msg; }
 
-    function updateStatus(msg) {
-      statusBar.textContent = msg;
-    }
-
-    // DXF File Input Listeners
-    histInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function () {
-          state.histEntities = DXFParser.parse(this.result);
-          histStatus.textContent = `Loaded (${state.histEntities.length} entities)`;
-          // Clear anchors when loading new coordinates to prevent math mismatches
-          state.anchors = [];
-          state.pendingSource = null;
-          resizeCanvases();
-          updateStatus(`Loaded Historical DXF containing ${state.histEntities.length} entities. Anchors cleared.`);
-        };
-        reader.readAsText(file);
-      }
+    // ── Manual file-input listeners ───────────────────────────────────
+    histInput.addEventListener("change", e => {
+      const f=e.target.files[0]; if (!f) return;
+      const r=new FileReader();
+      r.onload=function(){
+        state.histEntities=DXFParser.parse(this.result);
+        histStatus.textContent=`Deed DXF: ${state.histEntities.length} entities`;
+        state.anchors=[]; state.pendingSource=null;
+        state.histViewport={scale:1,offsetX:0,offsetY:0,bbox:null};
+        resizeCanvases();
+        updateStatus(`Loaded deed DXF: ${state.histEntities.length} entities.`);
+      };
+      r.readAsText(f);
     });
 
-    trueInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function () {
-          state.trueEntities = DXFParser.parse(this.result);
-          trueStatus.textContent = `Loaded (${state.trueEntities.length} entities)`;
-          // Clear anchors when loading new coordinates to prevent math mismatches
-          state.anchors = [];
-          state.pendingSource = null;
-          resizeCanvases();
-          updateStatus(`Loaded True Field Survey DXF containing ${state.trueEntities.length} entities. Anchors cleared.`);
-        };
-        reader.readAsText(file);
-      }
+    trueInput.addEventListener("change", e => {
+      const f=e.target.files[0]; if (!f) return;
+      const r=new FileReader();
+      r.onload=function(){
+        state.trueEntities=DXFParser.parse(this.result);
+        trueStatus.textContent=`Field DXF: ${state.trueEntities.length} entities`;
+        state.trueViewport={scale:1,offsetX:0,offsetY:0,bbox:null};
+        resizeCanvases();
+        updateStatus(`Loaded field survey DXF: ${state.trueEntities.length} entities.`);
+      };
+      r.readAsText(f);
     });
 
-    // EXPORT RECTIFIED DXF
+    document.getElementById("hist-pdf-input").addEventListener("change", e => {
+      const f=e.target.files[0]; if (!f) return;
+      loadPdfFromBlob(f);
+    });
+
+    // ── Export DXF ────────────────────────────────────────────────────
     btnExportDxf.addEventListener("click", () => {
-      if (state.histEntities.length === 0) {
-        alert("No historical DXF loaded to export!");
-        return;
-      }
-
-      if (state.anchors.length === 0) {
-        alert("Please add at least 2 or 3 anchor pairs before exporting!");
-        return;
-      }
-
-      const warper = TransformMath.createWarper(state.algorithm, state.anchors);
-
-      const rectifiedEntities = state.histEntities.map((ent) => ({
-        ...ent,
-        layer: `${ent.layer}_RECTIFIED`,
-        points: ent.points.map(pt => warper(pt))
-      }));
-
-      const rectifiedDxfText = DXFParser.serialize(rectifiedEntities);
-      downloadFile("rectified_farm_survey.dxf", rectifiedDxfText, "application/dxf");
-      updateStatus("Successfully exported rectified DXF aligned to true survey coordinates!");
+      if (!state.histEntities.length) { alert("No deed DXF loaded."); return; }
+      if (!state.anchors.length) { alert("Add at least 2 anchor pairs before exporting."); return; }
+      const warper=TransformMath.createWarper(state.algorithm,state.anchors);
+      const rectified=state.histEntities.map(ent=>({...ent,layer:`${ent.layer}_RECTIFIED`,points:ent.points.map(pt=>warper(pt))}));
+      const txt=DXFParser.serialize(rectified);
+      const blob=new Blob([txt],{type:"application/dxf"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a"); a.href=url; a.download="rectified_escritura1073.dxf";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      updateStatus("Exported rectified DXF.");
     });
-
-    function downloadFile(filename, content, mimeType) {
-      const blob = new Blob([content], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
 
     /* ======================================================
-       GEOTIFF LOADING — streaming + downsampled for large files
-       ====================================================== */
-    const MAX_DISPLAY_DIM = 2048; // max canvas dimension for display
+       GEOTIFF LOADING
+    ====================================================== */
+    const MAX_DISPLAY_DIM = 2048;
 
     async function parseGeoTiff(fileOrBlob) {
       const statusEl = document.getElementById("geotiff-status");
-      if (statusEl) {
-        statusEl.textContent = "⏳ Reading…";
-        statusEl.className = "geotiff-status";
-      }
-      const sizeMB = fileOrBlob && fileOrBlob.size ? `${(fileOrBlob.size / 1024 / 1024).toFixed(1)} MB` : "file";
+      if (statusEl) { statusEl.textContent="⏳ Reading…"; statusEl.className="geotiff-status"; }
+      const sizeMB=fileOrBlob&&fileOrBlob.size?`${(fileOrBlob.size/1024/1024).toFixed(1)} MB`:"file";
       updateStatus(`Loading GeoTIFF (${sizeMB}) — please wait…`);
-
-      // Yield to browser UI thread
-      await new Promise(r => setTimeout(r, 50));
-
+      await new Promise(r=>setTimeout(r,50));
       try {
-        const tiff = await GeoTIFF.fromBlob(fileOrBlob);
-        const fullImage = await tiff.getImage(0);
-        const fullW = fullImage.getWidth();
-        const fullH = fullImage.getHeight();
-
-        // ── Georeferencing bbox ──────────────────────────────
-        let bbox, hasGeoRef = false;
+        const tiff=await GeoTIFF.fromBlob(fileOrBlob);
+        const fullImg=await tiff.getImage(0);
+        const fullW=fullImg.getWidth(), fullH=fullImg.getHeight();
+        let bbox, hasGeoRef=false;
         try {
-          const origin = fullImage.getOrigin();
-          const res    = fullImage.getResolution();
-          if (origin && res && origin.length >= 2 && Math.abs(res[0]) > 0) {
-            bbox = {
-              minX: origin[0],
-              maxY: origin[1],
-              maxX: origin[0] + fullW * Math.abs(res[0]),
-              minY: origin[1] - fullH * Math.abs(res[1])
-            };
-            hasGeoRef = true;
+          const origin=fullImg.getOrigin(), res=fullImg.getResolution();
+          if (origin&&res&&origin.length>=2&&Math.abs(res[0])>0) {
+            bbox={minX:origin[0],maxY:origin[1],maxX:origin[0]+fullW*Math.abs(res[0]),minY:origin[1]-fullH*Math.abs(res[1])};
+            hasGeoRef=true;
           }
-        } catch(_) {}
+        } catch(_){}
+        if (!bbox) bbox={minX:0,minY:0,maxX:fullW,maxY:fullH};
+        bbox.width=Math.abs(bbox.maxX-bbox.minX); bbox.height=Math.abs(bbox.maxY-bbox.minY);
 
-        if (!bbox) {
-          bbox = { minX: 0, minY: 0, maxX: fullW, maxY: fullH };
+        const imageCount=await tiff.getImageCount();
+        let readImg=fullImg;
+        for (let l=1;l<imageCount;l++) {
+          const img=await tiff.getImage(l); readImg=img;
+          if (Math.max(img.getWidth(),img.getHeight())<=MAX_DISPLAY_DIM) break;
         }
-        bbox.width = Math.abs(bbox.maxX - bbox.minX);
-        bbox.height = Math.abs(bbox.maxY - bbox.minY);
+        const readW=readImg.getWidth(), readH=readImg.getHeight();
+        const sc=Math.min(1,MAX_DISPLAY_DIM/Math.max(readW,readH));
+        const tW=Math.max(1,Math.round(readW*sc)), tH=Math.max(1,Math.round(readH*sc));
+        if (statusEl) statusEl.textContent=`⏳ Decoding ${tW}×${tH}…`;
+        updateStatus(`Decoding ${tW}×${tH} from ${fullW}×${fullH}…`);
+        await new Promise(r=>setTimeout(r,20));
 
-        // ── Choose best pyramid level ─────────────────────────
-        const imageCount = await tiff.getImageCount();
-        let readImage = fullImage;
-        for (let lvl = 1; lvl < imageCount; lvl++) {
-          const img = await tiff.getImage(lvl);
-          const maxDim = Math.max(img.getWidth(), img.getHeight());
-          readImage = img;
-          if (maxDim <= MAX_DISPLAY_DIM) break;
+        const rasters=await readImg.readRasters({width:tW,height:tH,interleave:true});
+        const spp=readImg.getSamplesPerPixel();
+        const off=document.createElement("canvas"); off.width=tW; off.height=tH;
+        const oc=off.getContext("2d"), id=oc.createImageData(tW,tH), d=id.data;
+        const clamp=v=>{if(v==null)return 0;if(v>=0&&v<=255&&Number.isInteger(v))return v;if(v>255)return Math.min(255,Math.round(v/256));if(v<=1&&v>=0)return Math.round(v*255);return Math.min(255,Math.max(0,Math.round(v)));};
+        let mn=Infinity,mx=-Infinity;
+        if (spp===1){for(let k=0;k<rasters.length;k++){if(rasters[k]<mn)mn=rasters[k];if(rasters[k]>mx)mx=rasters[k];}}
+        for (let i=0;i<tW*tH;i++){
+          let r=0,g=0,b=0,a=255;
+          if(spp===1){const n=mx===mn?0.5:(rasters[i]-mn)/(mx-mn);r=g=b=Math.round(n*255);}
+          else if(spp===3){r=clamp(rasters[i*3]);g=clamp(rasters[i*3+1]);b=clamp(rasters[i*3+2]);}
+          else if(spp>=4){r=clamp(rasters[i*4]);g=clamp(rasters[i*4+1]);b=clamp(rasters[i*4+2]);a=clamp(rasters[i*4+3]);}
+          d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=a;
         }
-
-        const readW = readImage.getWidth();
-        const readH = readImage.getHeight();
-
-        // ── Target display size ───────────────────────────────
-        const scale   = Math.min(1, MAX_DISPLAY_DIM / Math.max(readW, readH));
-        const targetW = Math.max(1, Math.round(readW * scale));
-        const targetH = Math.max(1, Math.round(readH * scale));
-
-        if (statusEl) statusEl.textContent = `⏳ Decoding ${targetW}×${targetH}…`;
-        updateStatus(`Decoding GeoTIFF at ${targetW}×${targetH} (from ${fullW}×${fullH} original)…`);
-        await new Promise(r => setTimeout(r, 20));
-
-        const rasters         = await readImage.readRasters({ width: targetW, height: targetH, interleave: true });
-        const samplesPerPixel = readImage.getSamplesPerPixel();
-
-        const offscreen = document.createElement("canvas");
-        offscreen.width  = targetW;
-        offscreen.height = targetH;
-        const offCtx  = offscreen.getContext("2d");
-        const imgData = offCtx.createImageData(targetW, targetH);
-        const d       = imgData.data;
-
-        const clamp = v => {
-          if (v == null) return 0;
-          if (v >= 0 && v <= 255 && Number.isInteger(v)) return v;
-          if (v > 255) return Math.min(255, Math.round(v / 256));
-          if (v <= 1.0 && v >= 0) return Math.round(v * 255);
-          return Math.min(255, Math.max(0, Math.round(v)));
-        };
-
-        let mn = Infinity, mx2 = -Infinity;
-        if (samplesPerPixel === 1) {
-          for (let k = 0; k < rasters.length; k++) {
-            if (rasters[k] < mn) mn = rasters[k];
-            if (rasters[k] > mx2) mx2 = rasters[k];
-          }
-        }
-
-        const total = targetW * targetH;
-        for (let i = 0; i < total; i++) {
-          let r = 0, g = 0, b = 0, a = 255;
-          if (samplesPerPixel === 1) {
-            const norm = mx2 === mn ? 0.5 : (rasters[i] - mn) / (mx2 - mn);
-            r = g = b = Math.round(norm * 255);
-          } else if (samplesPerPixel === 3) {
-            r = clamp(rasters[i*3]); g = clamp(rasters[i*3+1]); b = clamp(rasters[i*3+2]);
-          } else if (samplesPerPixel >= 4) {
-            r = clamp(rasters[i*4]); g = clamp(rasters[i*4+1]); b = clamp(rasters[i*4+2]); a = clamp(rasters[i*4+3]);
-          }
-          d[i*4]=r; d[i*4+1]=g; d[i*4+2]=b; d[i*4+3]=a;
-        }
-        offCtx.putImageData(imgData, 0, 0);
-
-        state.geoTiff = { offscreen, bbox, hasGeoRef };
-
-        // Automatically center/fit both viewports on the GeoTIFF background bounds
-        state.histViewport = fitViewport(histCanvas, bbox);
-        state.trueViewport = fitViewport(trueCanvas, bbox);
-
-        const georefNote = hasGeoRef ? "Georef ✓" : "No georef tag";
-        if (statusEl) {
-          statusEl.textContent = `${targetW}×${targetH} · ${georefNote}`;
-          statusEl.className   = "geotiff-status ok";
-        }
-        updateStatus(`GeoTIFF loaded (${targetW}×${targetH}). Viewports aligned to image bounds.`);
+        oc.putImageData(id,0,0);
+        state.geoTiff={offscreen:off,bbox,hasGeoRef};
+        state.trueViewport=fitViewport(trueCanvas,bbox);
+        if (statusEl) { statusEl.textContent=`${tW}×${tH} · ${hasGeoRef?"Georef ✓":"No georef"}`; statusEl.className="geotiff-status ok"; }
+        updateStatus(`Drone GeoTIFF loaded (${tW}×${tH}). ${hasGeoRef?"Georeferenced.":""}`);
         redrawAll();
-
       } catch(err) {
-        console.error("GeoTIFF error:", err);
-        if (statusEl) {
-          statusEl.textContent = "Error — see console";
-          statusEl.className = "geotiff-status";
-        }
+        console.error("GeoTIFF error:",err);
+        if (statusEl) { statusEl.textContent="Error"; statusEl.className="geotiff-status"; }
         updateStatus(`GeoTIFF failed: ${err.message}`);
       }
     }
 
-    async function autoLoadGeoTiff() {
+    /* ======================================================
+       PDF LOADING (Mapa1073_FerminSuarez.pdf)
+    ====================================================== */
+    async function loadPdfFromBlob(fileOrBlob) {
+      if (!window.pdfjsLib) { console.warn("PDF.js not available"); return; }
+      updateStatus("⏳ Loading deed PDF…");
       try {
-        updateStatus("⏳ Checking for Trinidad_Dron_Resized.tif...");
-        const response = await fetch("Trinidad_Dron_Resized.tif");
-        if (response.ok) {
-          const blob = await response.blob();
-          await parseGeoTiff(blob);
-        } else {
-          console.warn("Auto-load GeoTIFF fetch status:", response.status);
-          updateStatus("Ready • Click '🗺️ Load GeoTIFF Background' to select the drone image.");
+        const arrayBuffer = await fileOrBlob.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+        const page = await pdf.getPage(1);
+        const vp = page.getViewport({scale: 2.0}); // render at 2× for clarity
+        const origVp = page.getViewport({scale: 1.0});
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width  = vp.width;
+        offCanvas.height = vp.height;
+        const offCtx = offCanvas.getContext("2d");
+        await page.render({canvasContext: offCtx, viewport: vp}).promise;
+        state.histPdfCanvas = offCanvas;
+        state.histPdfW = origVp.width;
+        state.histPdfH = origVp.height;
+        histStatus.textContent = `PDF: ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts`;
+        // Fit historical viewport to PDF bounds if DXF not yet loaded
+        if (!state.histViewport.bbox) {
+          const pdfBbox={minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH};
+          state.histViewport = fitViewport(histCanvas, pdfBbox);
         }
-      } catch (err) {
-        console.warn("Auto-load GeoTIFF fetch error (CORS or file protocol):", err);
-        updateStatus("Ready • Click '🗺️ Load GeoTIFF Background' to select Trinidad_Dron_Resized.tif.");
+        updateStatus(`Deed PDF loaded — ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts. Drop anchors to align.`);
+        redrawAll();
+      } catch(err) {
+        console.error("PDF error:", err);
+        updateStatus(`PDF failed: ${err.message}`);
       }
     }
 
-    document.getElementById("geotiff-input").addEventListener("change", e => {
-      const f = e.target.files[0]; if (f) parseGeoTiff(f);
-    });
+    /* ======================================================
+       AUTO-LOADERS — fetch defaults when served via HTTP
+    ====================================================== */
+    async function fetchBlob(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.blob();
+    }
+    async function fetchText(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.text();
+    }
 
-    document.getElementById("geotiff-opacity").addEventListener("input", e => {
-      state.geoTiffOpacity = parseInt(e.target.value, 10) / 100;
-      document.getElementById("geotiff-opacity-val").textContent = `${e.target.value}%`;
-      redrawAll();
-    });
+    async function autoLoadAll() {
+      // 1. Drone GeoTIFF
+      try {
+        updateStatus("⏳ Loading drone GeoTIFF…");
+        const blob = await fetchBlob("Trinidad_Dron_Resized.tif");
+        await parseGeoTiff(blob);
+      } catch(e) {
+        console.warn("Auto GeoTIFF:", e.message);
+        updateStatus("Drone GeoTIFF not auto-loaded (CORS). Use 🛸 Drone GeoTIFF button.");
+      }
 
-    // Startup Initialization: start clean with NO default sample DXFs
+      // 2. Deed PDF
+      try {
+        const blob = await fetchBlob("Mapa1073_FerminSuarez.pdf");
+        await loadPdfFromBlob(blob);
+      } catch(e) {
+        console.warn("Auto PDF:", e.message);
+        histStatus.textContent = "Use 'Deed PDF' button";
+      }
+
+      // 3. Deed DXF (Escritura 1073)
+      try {
+        const text = await fetchText("Polygon_Escritura1073_FerminSuarez.dxf");
+        state.histEntities = DXFParser.parse(text);
+        histStatus.textContent = `DXF+PDF ready (${state.histEntities.length} ents)`;
+        updateStatus(`Deed DXF loaded: ${state.histEntities.length} entities.`);
+        redrawAll();
+      } catch(e) {
+        console.warn("Auto Deed DXF:", e.message);
+      }
+
+      // 4. Field survey DXF
+      try {
+        const text = await fetchText("CercoCampoSept_2026.dxf");
+        state.trueEntities = DXFParser.parse(text);
+        trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
+        if (!state.trueViewport.bbox) {
+          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+        }
+        updateStatus(`Field survey DXF loaded: ${state.trueEntities.length} entities.`);
+        redrawAll();
+      } catch(e) {
+        console.warn("Auto Field DXF:", e.message);
+      }
+
+      // 5. Saved anchors (anchors1073 from anchors.json)
+      try {
+        const text = await fetchText("anchors.json");
+        const data = JSON.parse(text);
+        if (data.anchors1073 && data.anchors1073.length) {
+          state.anchors = data.anchors1073.map((a,i) => ({
+            id: a.id || i+1,
+            color: a.color || anchorColors[i % anchorColors.length],
+            src: { x: a.src.x, y: a.src.y },
+            dst: { x: a.dst.x, y: a.dst.y },
+          }));
+          updateStatus(`Loaded ${state.anchors.length} saved anchors for Escritura 1073.`);
+          redrawAll();
+        }
+      } catch(e) {
+        console.warn("Auto anchors:", e.message);
+      }
+    }
+
+    // File input listeners for manual override
+    document.getElementById("geotiff-input").addEventListener("change", e => { const f=e.target.files[0]; if(f) parseGeoTiff(f); });
+
+    // ── Startup ───────────────────────────────────────────────────────
     state.histEntities = [];
     state.trueEntities = [];
     state.anchors = [];
-    histStatus.textContent = "No DXF file";
-    trueStatus.textContent = "No DXF file";
-    setToolMode("pan"); // Default mode is Pan Mode
-    updateStatus("Ready • Click '🗺️ Load GeoTIFF Background' to start.");
+    algorithmSelect.value = state.algorithm;
+    setToolMode("pan");
+    updateStatus("⏳ Initialising — loading deed PDF, DXF files and drone imagery…");
 
     setTimeout(() => {
       resizeCanvases();
-      autoLoadGeoTiff();
-    }, 100);
+      autoLoadAll();
+    }, 150);
   </script>
 </body>
 </html>
