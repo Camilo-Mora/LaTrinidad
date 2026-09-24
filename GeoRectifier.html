@@ -1420,14 +1420,17 @@ EOF`;
     }
 
     function drawGeoTiff(ctx, tiff, vp, canvasH, opacity) {
-      if (!tiff || !tiff.offscreen) return;
+      if (!tiff || !tiff.offscreen || !tiff.bbox) return;
       const tl = worldToScreen({ x: tiff.bbox.minX, y: tiff.bbox.maxY }, vp, canvasH);
       const br = worldToScreen({ x: tiff.bbox.maxX, y: tiff.bbox.minY }, vp, canvasH);
-      const sw = br.x - tl.x, sh = br.y - tl.y;
+      const x = Math.min(tl.x, br.x);
+      const y = Math.min(tl.y, br.y);
+      const sw = Math.abs(br.x - tl.x);
+      const sh = Math.abs(br.y - tl.y);
       if (sw <= 0 || sh <= 0) return;
       ctx.save();
       ctx.globalAlpha = opacity;
-      ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh);
+      ctx.drawImage(tiff.offscreen, x, y, sw, sh);
       ctx.restore();
     }
 
@@ -2011,17 +2014,20 @@ EOF`;
        ====================================================== */
     const MAX_DISPLAY_DIM = 2048; // max canvas dimension for display
 
-    async function parseGeoTiff(file) {
+    async function parseGeoTiff(fileOrBlob) {
       const statusEl = document.getElementById("geotiff-status");
-      statusEl.textContent = "⏳ Reading…";
-      statusEl.className = "geotiff-status";
-      updateStatus(`Loading GeoTIFF (${(file.size / 1024 / 1024).toFixed(1)} MB) — please wait…`);
+      if (statusEl) {
+        statusEl.textContent = "⏳ Reading…";
+        statusEl.className = "geotiff-status";
+      }
+      const sizeMB = fileOrBlob && fileOrBlob.size ? `${(fileOrBlob.size / 1024 / 1024).toFixed(1)} MB` : "file";
+      updateStatus(`Loading GeoTIFF (${sizeMB}) — please wait…`);
 
       // Yield to browser UI thread
       await new Promise(r => setTimeout(r, 50));
 
       try {
-        const tiff = await GeoTIFF.fromBlob(file);
+        const tiff = await GeoTIFF.fromBlob(fileOrBlob);
         const fullImage = await tiff.getImage(0);
         const fullW = fullImage.getWidth();
         const fullH = fullImage.getHeight();
@@ -2045,6 +2051,8 @@ EOF`;
         if (!bbox) {
           bbox = { minX: 0, minY: 0, maxX: fullW, maxY: fullH };
         }
+        bbox.width = Math.abs(bbox.maxX - bbox.minX);
+        bbox.height = Math.abs(bbox.maxY - bbox.minY);
 
         // ── Choose best pyramid level ─────────────────────────
         const imageCount = await tiff.getImageCount();
@@ -2064,7 +2072,7 @@ EOF`;
         const targetW = Math.max(1, Math.round(readW * scale));
         const targetH = Math.max(1, Math.round(readH * scale));
 
-        statusEl.textContent = `⏳ Decoding ${targetW}×${targetH}…`;
+        if (statusEl) statusEl.textContent = `⏳ Decoding ${targetW}×${targetH}…`;
         updateStatus(`Decoding GeoTIFF at ${targetW}×${targetH} (from ${fullW}×${fullH} original)…`);
         await new Promise(r => setTimeout(r, 20));
 
@@ -2116,16 +2124,37 @@ EOF`;
         state.trueViewport = fitViewport(trueCanvas, bbox);
 
         const georefNote = hasGeoRef ? "Georef ✓" : "No georef tag";
-        statusEl.textContent = `${targetW}×${targetH} · ${georefNote}`;
-        statusEl.className   = "geotiff-status ok";
+        if (statusEl) {
+          statusEl.textContent = `${targetW}×${targetH} · ${georefNote}`;
+          statusEl.className   = "geotiff-status ok";
+        }
         updateStatus(`GeoTIFF loaded (${targetW}×${targetH}). Viewports aligned to image bounds.`);
         redrawAll();
 
       } catch(err) {
         console.error("GeoTIFF error:", err);
-        statusEl.textContent = "Error — see console";
-        statusEl.className = "geotiff-status";
+        if (statusEl) {
+          statusEl.textContent = "Error — see console";
+          statusEl.className = "geotiff-status";
+        }
         updateStatus(`GeoTIFF failed: ${err.message}`);
+      }
+    }
+
+    async function autoLoadGeoTiff() {
+      try {
+        updateStatus("⏳ Checking for Trinidad_Dron_Resized.tif...");
+        const response = await fetch("Trinidad_Dron_Resized.tif");
+        if (response.ok) {
+          const blob = await response.blob();
+          await parseGeoTiff(blob);
+        } else {
+          console.warn("Auto-load GeoTIFF fetch status:", response.status);
+          updateStatus("Ready • Click '🗺️ Load GeoTIFF Background' to select the drone image.");
+        }
+      } catch (err) {
+        console.warn("Auto-load GeoTIFF fetch error (CORS or file protocol):", err);
+        updateStatus("Ready • Click '🗺️ Load GeoTIFF Background' to select Trinidad_Dron_Resized.tif.");
       }
     }
 
@@ -2150,6 +2179,7 @@ EOF`;
 
     setTimeout(() => {
       resizeCanvases();
+      autoLoadGeoTiff();
     }, 100);
   </script>
 </body>

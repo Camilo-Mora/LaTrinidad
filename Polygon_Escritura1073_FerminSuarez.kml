@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Polygon Escritura 1073 - Fermín Suárez</name>
+    <description>Polígonos de lotes reconstruidos y georreferenciados de Escritura 1073 (Fermín Suárez, Valle del Cauca, Colombia). Área Total: 112,613.41 m² (17.60 plazas / 11.26 ha)</description>
+    <Style id="style_Lote_7">
+      <LineStyle>
+        <color>ffd500f9</color>
+        <width>2.5</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4dd500f9</color>
+      </PolyStyle>
+    </Style>
+    <Style id="style_Lote_6">
+      <LineStyle>
+        <color>ffffaa00</color>
+        <width>2.5</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4dffaa00</color>
+      </PolyStyle>
+    </Style>
+    <Style id="style_Lote_5">
+      <LineStyle>
+        <color>ff00aa00</color>
+        <width>2.5</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d00aa00</color>
+      </PolyStyle>
+    </Style>
+    <Style id="style_Lote_4">
+      <LineStyle>
+        <color>ff0055ff</color>
+        <width>2.5</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d0055ff</color>
+      </PolyStyle>
+    </Style>
+    <Style id="style_Camino">
+      <LineStyle>
+        <color>ff888888</color>
+        <width>2.5</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d888888</color>
+      </PolyStyle>
+    </Style>
+    <Style id="style_Lote_8">
+      <LineStyle>
+        <color>ff00d5ff</color>
+        <width>2.5</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d00d5ff</color>
+      </PolyStyle>
+    </Style>
+
+    <Placemark>
+      <name>Lote 7 (Escritura 1073)</name>
+      <description><![CDATA[
+        <h3>Predio Fermín Suárez - Lote 7</h3>
+        <ul>
+          <li><b>Documento:</b> Escritura 1073</li>
+          <li><b>Lote:</b> Lote_7</li>
+          <li><b>Área:</b> 33,727.85 m² (5.27 plazas / 3.37 ha)</li>
+          <li><b>Vértices:</b> 6</li>
+          <li><b>Sistema Geodésico Origen:</b> MAGNA-SIRGAS Colombia Oeste (EPSG:3115)</li>
+          <li><b>Sistema KML:</b> WGS 84 (EPSG:4326)</li>
+        </ul>
+      ]]></description>
+      <styleUrl>#style_Lote_7</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+            -76.1934274,3.4825462,0
+            -76.1937288,3.4811368,0
+            -76.1955424,3.4812132,0
+            -76.1959872,3.4808410,0
+            -76.1950097,3.4822849,0
+            -76.1951509,3.4829407,0
+            -76.1934274,3.4825462,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Lote 6 (Escritura 1073)</name>
+      <description><![CDATA[
+        <h3>Predio Fermín Suárez - Lote 6</h3>
+        <ul>
+          <li><b>Documento:</b> Escritura 1073</li>
+          <li><b>Lote:</b> Lote_6</li>
+          <li><b>Área:</b> 2,735.61 m² (0.43 plazas / 0.27 ha)</li>
+          <li><b>Vértices:</b> 4</li>
+          <li><b>Sistema Geodésico Origen:</b> MAGNA-SIRGAS Colombia Oeste (EPSG:3115)</li>
+          <li><b>Sistema KML:</b> WGS 84 (EPSG:4326)</li>
+        </ul>
+      ]]></description>
+      <styleUrl>#style_Lote_6</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+            -76.1950053,3.4822805,0
+            -76.1952707,3.4822230,0
+            -76.1961343,3.4807253,0
+            -76.1959892,3.4808390,0
+            -76.1950053,3.4822805,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Lote 5 (Escritura 1073)</name>
+      <description><![CDATA[
+        <h3>Predio Fermín Suárez - Lote 5</h3>
+        <ul>
+          <li><b>Documento:</b> Escritura 1073</li>
+          <li><b>Lote:</b> Lote_5</li>
+          <li><b>Área:</b> 17,964.45 m² (2.81 plazas / 1.80 ha)</li>
+          <li><b>Vértices:</b> 11</li>
+          <li><b>Sistema Geodésico Origen:</b> MAGNA-SIRGAS Colombia Oeste (EPSG:3115)</li>
+          <li><b>Sistema KML:</b> WGS 84 (EPSG:4326)</li>
+        </ul>
+      ]]></description>
+      <styleUrl>#style_Lote_5</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+            -76.1952643,3.4822256,0
+            -76.1961243,3.4807354,0
+            -76.1970029,3.4799575,0
+            -76.1971017,3.4797107,0
+            -76.1969421,3.4812172,0
+            -76.1963954,3.4817168,0
+            -76.1961734,3.4816815,0
+            -76.1960751,3.4817548,0
+            -76.1959249,3.4817519,0
+            -76.1956028,3.4819716,0
+            -76.1955786,3.4821516,0
+            -76.1952643,3.4822256,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Lote 4 (Escritura 1073)</name>
+      <description><![CDATA[
+        <h3>Predio Fermín Suárez - Lote 4</h3>
+        <ul>
+          <li><b>Documento:</b> Escritura 1073</li>
+          <li><b>Lote:</b> Lote_4</li>
+          <li><b>Área:</b> 27,390.87 m² (4.28 plazas / 2.74 ha)</li>
+          <li><b>Vértices:</b> 9</li>
+          <li><b>Sistema Geodésico Origen:</b> MAGNA-SIRGAS Colombia Oeste (EPSG:3115)</li>
+          <li><b>Sistema KML:</b> WGS 84 (EPSG:4326)</li>
+        </ul>
+      ]]></description>
+      <styleUrl>#style_Lote_4</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+            -76.1969407,3.4812235,0
+            -76.1975069,3.4807209,0
+            -76.1983017,3.4804942,0
+            -76.1981807,3.4795050,0
+            -76.1967051,3.4784529,0
+            -76.1966888,3.4788094,0
+            -76.1964706,3.4788560,0
+            -76.1967513,3.4790677,0
+            -76.1971081,3.4797030,0
+            -76.1969407,3.4812235,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Camino (Escritura 1073)</name>
+      <description><![CDATA[
+        <h3>Predio Fermín Suárez - Camino</h3>
+        <ul>
+          <li><b>Documento:</b> Escritura 1073</li>
+          <li><b>Lote:</b> Camino</li>
+          <li><b>Área:</b> 1,239.44 m² (0.19 plazas / 0.12 ha)</li>
+          <li><b>Vértices:</b> 4</li>
+          <li><b>Sistema Geodésico Origen:</b> MAGNA-SIRGAS Colombia Oeste (EPSG:3115)</li>
+          <li><b>Sistema KML:</b> WGS 84 (EPSG:4326)</li>
+        </ul>
+      ]]></description>
+      <styleUrl>#style_Camino</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+            -76.1983488,3.4808477,0
+            -76.1982941,3.4808587,0
+            -76.1974874,3.4789418,0
+            -76.1975658,3.4790130,0
+            -76.1983488,3.4808477,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Lote 8 (Escritura 1073)</name>
+      <description><![CDATA[
+        <h3>Predio Fermín Suárez - Lote 8</h3>
+        <ul>
+          <li><b>Documento:</b> Escritura 1073</li>
+          <li><b>Lote:</b> Lote_8</li>
+          <li><b>Área:</b> 29,555.19 m² (4.62 plazas / 2.96 ha)</li>
+          <li><b>Vértices:</b> 8</li>
+          <li><b>Sistema Geodésico Origen:</b> MAGNA-SIRGAS Colombia Oeste (EPSG:3115)</li>
+          <li><b>Sistema KML:</b> WGS 84 (EPSG:4326)</li>
+        </ul>
+      ]]></description>
+      <styleUrl>#style_Lote_8</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+            -76.1951506,3.4829347,0
+            -76.1934353,3.4825481,0
+            -76.1929772,3.4837187,0
+            -76.1943623,3.4840457,0
+            -76.1948062,3.4840573,0
+            -76.1948641,3.4838748,0
+            -76.1954673,3.4833742,0
+            -76.1952182,3.4833445,0
+            -76.1951506,3.4829347,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>
