@@ -1393,6 +1393,8 @@ EOF`;
         drawMode: false,
         show: true,
       },
+      draggingUserPolyNode: null,
+      currentSnapTarget: null,
     };
 
     const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
@@ -1662,6 +1664,11 @@ EOF`;
 
       // Layer 6: Hand-crafted user polygon
       drawUserPolygon(trueCtx, vp, h);
+
+      // Layer 7: Snap target ring indicator
+      if (state.currentSnapTarget) {
+        drawSnapTargetOnCanvas(trueCtx, state.currentSnapTarget.screenPt);
+      }
     }
 
     /* -----------------------------------------------------------------------
@@ -1716,38 +1723,77 @@ EOF`;
     const btnModeAnchor = document.getElementById("btn-mode-anchor");
 
     /* ==========================================================================
-       USER POLYGON — Distance & Area Feature
+       USER POLYGON — Distance & Area Feature (node drag, delete, snap ring)
        ========================================================================== */
     const POLY_SNAP_RADIUS = 15; // screen pixels – matches index.html snap radius
 
-    /** Collect all world-space points from loaded DXF entities (true-field space) */
-    function getAllSnapPoints() {
-      const pts = [];
-      (state.trueEntities || []).forEach(ent => (ent.points || []).forEach(p => pts.push(p)));
-      // Also snap to warped deed vertices if warper is available
+    /** Draw yellow snap target indicator on canvas (matches index.html) */
+    function drawSnapTargetOnCanvas(ctx, screenPt) {
+      if (!screenPt) return;
+      const { x: sx, y: sy } = screenPt;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2);
+      ctx.strokeStyle = "#ffd600"; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#00e5ff"; ctx.fill();
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(sx - 16, sy); ctx.lineTo(sx + 16, sy);
+      ctx.moveTo(sx, sy - 16); ctx.lineTo(sx, sy + 16);
+      ctx.strokeStyle = "rgba(255, 214, 0, 0.85)"; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.restore();
+    }
+
+    /** Find nearest DXF vertex or other polygon vertex to snap to (matches index.html getFieldSnapTarget) */
+    function getPolygonSnapTarget(mouseX, mouseY, vp, canvasH, ignorePtIdx = null) {
+      const chk = document.getElementById("chk-polygon-snap");
+      if (chk && !chk.checked) return null;
+
+      let minDistance = POLY_SNAP_RADIUS;
+      let closestTarget = null;
+
+      const checkPoint = (pt, isPolyPt = false, ptIdx = null) => {
+        if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number" || isNaN(pt.x) || isNaN(pt.y)) return;
+        if (isPolyPt && ignorePtIdx !== null && ptIdx === ignorePtIdx) return;
+        const sp = worldToScreenGIS(pt, vp, canvasH);
+        const dist = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+        if (dist <= minDistance) {
+          minDistance = dist;
+          closestTarget = { worldPt: { x: pt.x, y: pt.y }, screenPt: { x: sp.x, y: sp.y }, dist };
+        }
+      };
+
+      // 1. True field DXF vertices
+      (state.trueEntities || []).forEach(ent => {
+        (ent.points || []).forEach(pt => checkPoint(pt));
+      });
+
+      // 2. Warped deed DXF vertices
       if (state.anchors.length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors);
-          (state.histEntities || []).forEach(ent => (ent.points || []).forEach(p => pts.push(warper(p))));
-        } catch(_) {}
+          (state.histEntities || []).forEach(ent => {
+            (ent.points || []).forEach(pt => checkPoint(warper(pt)));
+          });
+        } catch (_) {}
       }
-      return pts;
+
+      // 3. User polygon's other vertices
+      (state.userPolygon.vertices || []).forEach((pt, i) => checkPoint(pt, true, i));
+
+      return closestTarget;
     }
 
-    /** Snap a screen-space click to the nearest DXF vertex within POLY_SNAP_RADIUS.
-     *  Returns the snapped GIS world point, or null if nothing is close enough. */
-    function snapToVertex(sx, sy, vp, canvasH) {
-      const chk = document.getElementById("chk-polygon-snap");
-      if (!chk || !chk.checked) return null;
-      const allPts = getAllSnapPoints();
-      let minDist = POLY_SNAP_RADIUS;
-      let best = null;
-      allPts.forEach(wp => {
-        const sp = worldToScreenGIS(wp, vp, canvasH);
-        const d = Math.hypot(sp.x - sx, sp.y - sy);
-        if (d < minDist) { minDist = d; best = wp; }
-      });
-      return best;
+    /** Hit test user polygon nodes (matches index.html findMeasureMarkerAt) */
+    function findUserPolyNodeAt(mouseX, mouseY, vp, canvasH) {
+      const poly = state.userPolygon;
+      if (!poly || !poly.vertices) return -1;
+      const HIT_RADIUS = 12; // screen pixels
+      for (let i = 0; i < poly.vertices.length; i++) {
+        const sp = worldToScreenGIS(poly.vertices[i], vp, canvasH);
+        if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) return i;
+      }
+      return -1;
     }
 
     /** Draw the user polygon on the true-field canvas */
@@ -2044,65 +2090,104 @@ EOF`;
       updateStatus("📐 Exported polygon to user_polygon.dxf.");
     });
 
-    // ── Intercept trueCanvas clicks for polygon drawing mode ───────────
-    // We prepend this listener; the existing mouseup handler will also fire
-    // but we gate it on !state.userPolygon.drawMode (handled below).
-    trueCanvas.addEventListener("mouseup", function(e) {
-      if (!state.userPolygon.drawMode) return;
-      if (isPanning) return;
-      if (Math.abs(e.clientX - clickStart.x) > 6 || Math.abs(e.clientY - clickStart.y) > 6) return;
-      if (e.button !== 0) return;
-      e.stopImmediatePropagation(); // prevent normal anchor logic
+    // Context menu handler on trueCanvas (prevents context menu when clicking nodes or drawing)
+    trueCanvas.addEventListener("contextmenu", e => {
+      const rect = trueCanvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const hitNode = findUserPolyNodeAt(sx, sy, state.trueViewport, trueCanvas.height);
+      if ((state.userPolygon && state.userPolygon.drawMode) || hitNode >= 0) {
+        e.preventDefault();
+      }
+    });
 
+    // Capture-phase mouse listener for trueCanvas (user polygon creation, node drag & right-click node delete)
+    trueCanvas.addEventListener("mousedown", function(e) {
       const rect = trueCanvas.getBoundingClientRect();
       const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
       const vp = state.trueViewport, h = trueCanvas.height;
-
       const poly = state.userPolygon;
 
-      // Check if clicking near first vertex → close polygon
-      if (poly.vertices.length >= 3) {
-        const first = worldToScreenGIS(poly.vertices[0], vp, h);
-        if (Math.hypot(first.x - sx, first.y - sy) <= POLY_SNAP_RADIUS + 4) {
-          poly.closed = true;
-          poly.drawMode = false;
-          document.getElementById("btn-cancel-polygon").style.display = "none";
-          document.getElementById("btn-close-polygon").style.display = "none";
+      const hitNode = findUserPolyNodeAt(sx, sy, vp, h);
+
+      // Right-click (button === 2): Delete node if hit!
+      if (e.button === 2) {
+        if (hitNode >= 0) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          poly.vertices.splice(hitNode, 1);
+          poly.segmentLengths.splice(hitNode, 1);
+          if (poly.vertices.length < 3) poly.closed = false;
           rebuildSegmentInputs();
           recomputeUserPolygonMetrics();
           updatePolygonButtonStates();
-          updateStatus("Polygon closed ✓ Enter deed segment distances to compute errors.");
           redrawTrueCanvas();
+          updateStatus(`🗑 Deleted polygon vertex #${hitNode + 1}. Remaining: ${poly.vertices.length}`);
           return;
         }
+        return;
       }
 
-      // Try snapping, else use raw click
-      const snapped = snapToVertex(sx, sy, vp, h);
-      const worldPt = snapped || screenToWorldGIS(sx, sy, vp, h);
+      // Left-click (button === 0):
+      if (e.button === 0 && !spacePressed) {
+        // If clicking an existing node -> start dragging it!
+        if (hitNode >= 0) {
+          e.stopImmediatePropagation();
+          state.draggingUserPolyNode = hitNode;
+          trueCanvas.style.cursor = "move";
+          return;
+        }
 
-      poly.vertices.push({ x: worldPt.x, y: worldPt.y });
-      // Extend segmentLengths array
-      while (poly.segmentLengths.length < poly.vertices.length) poly.segmentLengths.push(null);
+        // If in polygon draw mode -> add a node or close
+        if (poly && poly.drawMode) {
+          e.stopImmediatePropagation();
+          // Check if clicking near first vertex -> close polygon
+          if (poly.vertices.length >= 3) {
+            const first = worldToScreenGIS(poly.vertices[0], vp, h);
+            if (Math.hypot(first.x - sx, first.y - sy) <= POLY_SNAP_RADIUS + 4) {
+              poly.closed = true;
+              poly.drawMode = false;
+              document.getElementById("btn-cancel-polygon").style.display = "none";
+              document.getElementById("btn-close-polygon").style.display = "none";
+              trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+              rebuildSegmentInputs();
+              recomputeUserPolygonMetrics();
+              updatePolygonButtonStates();
+              updateStatus("Polygon closed ✓ Enter deed segment distances to compute errors.");
+              redrawTrueCanvas();
+              return;
+            }
+          }
 
-      const n = poly.vertices.length;
-      if (n >= 2) {
-        rebuildSegmentInputs();
-        document.getElementById("btn-close-polygon").style.display = n >= 3 ? "" : "none";
+          // Snapped vertex or raw GIS click
+          const snap = state.currentSnapTarget || getPolygonSnapTarget(sx, sy, vp, h);
+          const worldPt = snap ? { ...snap.worldPt } : screenToWorldGIS(sx, sy, vp, h);
+
+          poly.vertices.push(worldPt);
+          while (poly.segmentLengths.length < poly.vertices.length) poly.segmentLengths.push(null);
+
+          const n = poly.vertices.length;
+          if (n >= 2) {
+            rebuildSegmentInputs();
+            document.getElementById("btn-close-polygon").style.display = n >= 3 ? "" : "none";
+          }
+          recomputeUserPolygonMetrics();
+          updatePolygonButtonStates();
+          updateStatus(`Polygon vertex ${n} placed${snap ? " (snapped)" : ""}. ${n >= 3 ? "Click near first vertex or '✓ Close polygon' to close." : "Continue adding vertices."}`);
+          redrawTrueCanvas();
+        }
       }
-      recomputeUserPolygonMetrics();
-      updatePolygonButtonStates();
-      updateStatus(`Polygon vertex ${n} placed${snapped ? " (snapped)" : ""}. ${n >= 3 ? "Click near first vertex or '✓ Close polygon' to close." : "Continue adding vertices."}`);
-      redrawTrueCanvas();
-    }, true); // capture phase so it fires before the normal mouseup
+    }, true);
 
     // Tool mode switcher
     function setToolMode(mode) {
       state.toolMode = mode;
       btnModePan.classList.toggle("active", mode==="pan");
       btnModeAnchor.classList.toggle("active", mode==="anchor");
-      const cursor = mode==="pan" ? "grab" : "crosshair";
-      histCanvas.style.cursor = trueCanvas.style.cursor = cursor;
+      const cursor = (state.userPolygon && state.userPolygon.drawMode)
+        ? "crosshair"
+        : (mode==="pan" ? "grab" : "crosshair");
+      histCanvas.style.cursor = mode==="pan" ? "grab" : "crosshair";
+      trueCanvas.style.cursor = cursor;
       updateStatus(mode==="pan"
         ? "🖐️ Pan Mode — drag to move. Scroll to zoom."
         : "🎯 Anchor Mode — click a point on the deed map, then its matching point on the field survey.");
@@ -2242,6 +2327,14 @@ EOF`;
     });
 
     window.addEventListener("mouseup", () => {
+      if (state.draggingUserPolyNode !== null) {
+        state.draggingUserPolyNode = null;
+        state.currentSnapTarget = null;
+        rebuildSegmentInputs();
+        recomputeUserPolygonMetrics();
+        updatePolygonButtonStates();
+        redrawTrueCanvas();
+      }
       if (isPanning) {
         isPanning = false;
         activePanViewport = null;
@@ -2270,14 +2363,32 @@ EOF`;
     });
     trueCanvas.addEventListener("mousemove", e => {
       const r = trueCanvas.getBoundingClientRect();
-      const p = screenToWorldGIS(e.clientX - r.left, e.clientY - r.top, state.trueViewport, trueCanvas.height);
+      const mouseX = e.clientX - r.left, mouseY = e.clientY - r.top;
+      const vp = state.trueViewport, h = trueCanvas.height;
+      const p = screenToWorldGIS(mouseX, mouseY, vp, h);
       coordsBar.textContent = `Field UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
-      if (state.userPolygon && state.userPolygon.drawMode && !isPanning) {
-        trueCanvas.style.cursor = "crosshair";
+
+      // 1. Node dragging active
+      if (state.draggingUserPolyNode !== null) {
+        const snap = getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode);
+        state.currentSnapTarget = snap;
+        state.userPolygon.vertices[state.draggingUserPolyNode] = snap ? { ...snap.worldPt } : p;
+        recomputeUserPolygonMetrics();
+        redrawTrueCanvas();
         return;
       }
-      if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
-        const hit = hitTestAnchor(e.clientX - r.left, e.clientY - r.top, false);
+
+      // 2. Hovering/drawing user polygon
+      if (state.userPolygon && (state.userPolygon.drawMode || state.userPolygon.vertices.length > 0)) {
+        const snap = getPolygonSnapTarget(mouseX, mouseY, vp, h);
+        state.currentSnapTarget = snap;
+        const hitNode = findUserPolyNodeAt(mouseX, mouseY, vp, h);
+        if (!isPanning) {
+          trueCanvas.style.cursor = hitNode >= 0 ? "move" : (state.userPolygon.drawMode ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair"));
+        }
+        redrawTrueCanvas();
+      } else if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
+        const hit = hitTestAnchor(mouseX, mouseY, vp, trueCanvas, "true");
         trueCanvas.style.cursor = hit ? "move" : "crosshair";
       }
     });
