@@ -1510,11 +1510,12 @@ EOF`;
       showSegmentLabels: true,
       layoutMode: "split",     // "split" | "left" | "right"
       sidebarVisible: true,
-      // Deed DXF vertex editing on field panel
+      // Deed DXF vertex editing on field panel & historical panel
       histFileName: "Polygon_Escritura1073_FerminSuarez.dxf",
       editDeedNodes: false,
-      draggingDeedNode: null,  // { entIdx, ptIdx, origDeedPt: {x,y}, origFieldPt: {x,y} }
-      hoverDeedNode: null,     // { entIdx, ptIdx, deedPt: {x,y}, warpedPt: {x,y} }
+      draggingDeedNode: null,      // { entIdx, ptIdx, origDeedPt: {x,y}, origFieldPt: {x,y} }
+      hoverDeedNode: null,         // { entIdx, ptIdx, deedPt: {x,y}, warpedPt: {x,y} }
+      draggingDeedNodeHist: null,  // { entIdx, ptIdx, origDeedPt: {x,y} }
     };
 
     const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
@@ -1663,6 +1664,26 @@ EOF`;
         if (ent.closed) ctx.closePath();
         ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
       });
+
+      // If Edit Deed Nodes is active, render interactive vertex handles on historical canvas
+      if (state.editDeedNodes) {
+        entities.forEach((ent, entIdx) => {
+          (ent.points || []).forEach((pt, ptIdx) => {
+            const p = worldToScreen(pt, vp, canvasH);
+            const isHover = state.hoverDeedNode && state.hoverDeedNode.entIdx === entIdx && state.hoverDeedNode.ptIdx === ptIdx;
+            const isDrag = (state.draggingDeedNode && state.draggingDeedNode.entIdx === entIdx && state.draggingDeedNode.ptIdx === ptIdx) ||
+                           (state.draggingDeedNodeHist && state.draggingDeedNodeHist.entIdx === entIdx && state.draggingDeedNodeHist.ptIdx === ptIdx);
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, isDrag ? 8.5 : (isHover ? 7 : 5), 0, Math.PI * 2);
+            ctx.fillStyle = isDrag ? "#ffd600" : (isHover ? "#ff9100" : "#ff1744");
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = isDrag || isHover ? 2 : 1.2;
+            ctx.stroke();
+          });
+        });
+      }
       ctx.restore();
     }
 
@@ -2017,6 +2038,26 @@ EOF`;
       });
 
       return closestTarget;
+    }
+
+    /** Hit test deed DXF vertices on histCanvas */
+    function findDeedNodeOnHistCanvas(mouseX, mouseY, vp, canvasH) {
+      if (!state.histEntities || state.histEntities.length === 0) return null;
+      const HIT_RADIUS = 14; // pixels
+      for (let entIdx = 0; entIdx < state.histEntities.length; entIdx++) {
+        const ent = state.histEntities[entIdx];
+        if (!ent.points) continue;
+        for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+          const dPt = ent.points[ptIdx];
+          const sp = worldToScreen(dPt, vp, canvasH);
+          if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) {
+            return { entIdx, ptIdx, deedPt: dPt, screenPt: sp };
+          }
+        }
+      }
+      return null;
+    }
+
     /** Hit test deed DXF vertices on trueCanvas (warped to GIS space) */
     function findDeedNodeOnTrueCanvas(mouseX, mouseY, vp, canvasH) {
       if (!state.anchors || state.anchors.length < 2 || !state.histEntities || state.histEntities.length === 0) return null;
@@ -2733,6 +2774,45 @@ EOF`;
       chkShowSegLabelsSidebar.addEventListener("change", e => setSegmentLabelsVisible(e.target.checked));
     }
 
+    // Edit Deed Nodes toggle handler
+    const chkEditDeedNodes = document.getElementById("chk-edit-deed-nodes");
+    if (chkEditDeedNodes) {
+      chkEditDeedNodes.addEventListener("change", e => {
+        state.editDeedNodes = e.target.checked;
+        if (state.editDeedNodes) {
+          updateStatus("✏️ Edit Deed Nodes active — click and drag deed vertices on field canvas (or deed map) to adjust alignment.");
+        } else {
+          state.hoverDeedNode = null;
+          state.draggingDeedNode = null;
+          state.draggingDeedNodeHist = null;
+          updateStatus("Edit Deed Nodes disabled.");
+        }
+        redrawAll();
+      });
+    }
+
+    // Save Deed DXF button handler
+    const btnSaveDeedDxf = document.getElementById("btn-save-deed-dxf");
+    if (btnSaveDeedDxf) {
+      btnSaveDeedDxf.addEventListener("click", () => {
+        if (!state.histEntities || state.histEntities.length === 0) {
+          alert("No deed DXF loaded to save.");
+          return;
+        }
+        const txt = DXFParser.serialize(state.histEntities);
+        const blob = new Blob([txt], { type: "application/dxf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = state.histFileName || "Polygon_Escritura1073_FerminSuarez.dxf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateStatus(`💾 Saved modified Deed DXF to '${a.download}'.`);
+      });
+    }
+
     window.addEventListener("keydown", e => {
       if (e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
       if (e.code==="KeyP") setToolMode("pan");
@@ -2759,6 +2839,25 @@ EOF`;
     function handleMouseDown(e, canvas, viewport, isHist) {
       clickStart.x = e.clientX;
       clickStart.y = e.clientY;
+
+      // Edit Deed Nodes mode: priority drag of deed vertices on historical canvas
+      if (isHist && state.editDeedNodes && e.button === 0 && !spacePressed && state.toolMode === "pan") {
+        const rect = histCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const deedHit = findDeedNodeOnHistCanvas(sx, sy, state.histViewport, histCanvas.height);
+        if (deedHit) {
+          e.preventDefault();
+          state.draggingDeedNodeHist = {
+            entIdx: deedHit.entIdx,
+            ptIdx: deedHit.ptIdx,
+            origDeedPt: { x: deedHit.deedPt.x, y: deedHit.deedPt.y }
+          };
+          histCanvas.style.cursor = "move";
+          updateStatus(`✏️ Dragging Deed Vertex #${deedHit.ptIdx + 1} on deed map.`);
+          redrawAll();
+          return;
+        }
+      }
 
       const isPolyDrawOnTrue = (!isHist && state.userPolygon && state.userPolygon.drawMode && state.toolMode === "pan");
       const shouldPan = (state.toolMode === "pan" && !isPolyDrawOnTrue) || e.button === 2 || e.button === 1 || spacePressed;
@@ -2863,6 +2962,43 @@ EOF`;
         return;
       }
 
+      // Dragging deed node on historical canvas
+      if (state.draggingDeedNodeHist) {
+        const vp = state.histViewport;
+        const h = histCanvas.height;
+        const rect = histCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+        const deedPt = screenToWorld(mouseX, mouseY, vp, h);
+        const ent = state.histEntities[state.draggingDeedNodeHist.entIdx];
+        if (ent && ent.points && ent.points[state.draggingDeedNodeHist.ptIdx]) {
+          const origDeed = state.draggingDeedNodeHist.origDeedPt;
+          ent.points[state.draggingDeedNodeHist.ptIdx].x = deedPt.x;
+          ent.points[state.draggingDeedNodeHist.ptIdx].y = deedPt.y;
+
+          // Synchronize any user polygon vertex linked to this deed point
+          if (state.userPolygon && state.userPolygon.vertices) {
+            let warper = null;
+            if (state.anchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+            }
+            state.userPolygon.vertices.forEach(v => {
+              if (v.deedPt && Math.hypot(v.deedPt.x - origDeed.x, v.deedPt.y - origDeed.y) < 0.05) {
+                v.deedPt.x = deedPt.x;
+                v.deedPt.y = deedPt.y;
+                if (warper) {
+                  const w = warper(deedPt);
+                  v.x = w.x;
+                  v.y = w.y;
+                }
+              }
+            });
+            recomputeUserPolygonMetrics();
+          }
+          redrawAll();
+        }
+        return;
+      }
+
       // Dragging deed node with live reverse-transform (backtracking)
       if (state.draggingDeedNode) {
         const vp = state.trueViewport;
@@ -2900,6 +3036,12 @@ EOF`;
     });
 
     window.addEventListener("mouseup", () => {
+      if (state.draggingDeedNodeHist) {
+        const ptIdx = state.draggingDeedNodeHist.ptIdx;
+        state.draggingDeedNodeHist = null;
+        updateStatus(`✏️ Deed vertex #${ptIdx + 1} updated. Click '💾 Save Deed DXF' to download '${state.histFileName || "deed DXF"}'.`);
+        redrawAll();
+      }
       if (state.draggingDeedNode) {
         const ptIdx = state.draggingDeedNode.ptIdx;
         state.draggingDeedNode = null;
@@ -2938,6 +3080,19 @@ EOF`;
       if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
         const hit = hitTestAnchor(e.clientX - r.left, e.clientY - r.top, true);
         histCanvas.style.cursor = hit ? "move" : "crosshair";
+      } else if (state.editDeedNodes && !isPanning && !state.draggingDeedNodeHist) {
+        const deedHit = findDeedNodeOnHistCanvas(e.clientX - r.left, e.clientY - r.top, state.histViewport, histCanvas.height);
+        const prevHover = state.hoverDeedNode;
+        state.hoverDeedNode = deedHit;
+        if (deedHit) {
+          histCanvas.style.cursor = "move";
+          coordsBar.textContent = `Deed Node #${deedHit.ptIdx + 1}: (${deedHit.deedPt.x.toFixed(1)}, ${deedHit.deedPt.y.toFixed(1)})`;
+          redrawHistoricalCanvas();
+          return;
+        } else if (prevHover !== null) {
+          histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+          redrawHistoricalCanvas();
+        }
       }
     });
     trueCanvas.addEventListener("mousemove", e => {
@@ -3225,6 +3380,7 @@ EOF`;
     // ── Manual file-input listeners ───────────────────────────────────
     histInput.addEventListener("change", e => {
       const f=e.target.files[0]; if (!f) return;
+      state.histFileName = f.name;
       const r=new FileReader();
       r.onload=function(){
         state.histEntities=DXFParser.parse(this.result);
@@ -3232,7 +3388,7 @@ EOF`;
         state.anchors=[]; state.pendingSource=null;
         state.histViewport={scale:1,offsetX:0,offsetY:0,bbox:null};
         resizeCanvases();
-        updateStatus(`Loaded deed DXF: ${state.histEntities.length} entities.`);
+        updateStatus(`Loaded deed DXF (${f.name}): ${state.histEntities.length} entities.`);
       };
       r.readAsText(f);
     });
