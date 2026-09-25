@@ -863,6 +863,53 @@
                 <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#ff1744;"></span>&gt;20%</span>
               </div>
             </div>
+            <!-- Boundary Optimization Panel -->
+            <div id="boundary-optimization-panel" style="display:none;flex-direction:column;gap:8px;padding:8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.25);border-radius:6px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.75rem;font-weight:700;color:var(--accent-cyan);display:flex;align-items:center;gap:4px;">
+                  ⚡ Boundary Optimization
+                </span>
+                <span id="opt-status-badge" style="font-size:0.65rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-muted);">Ready</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);">
+                  <span>Pen Buffer Radius (R):</span>
+                  <strong id="opt-buffer-val" style="color:var(--accent-cyan);font-family:monospace;">±3.0 m</strong>
+                </div>
+                <input type="range" id="opt-buffer-slider" min="0.5" max="8.0" step="0.1" value="3.0" class="opacity-slider" style="height:4px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-muted);">
+                  <span>0.5m (strict)</span>
+                  <span>1973 ink blot (~3m)</span>
+                  <span>8.0m (wide)</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);">
+                  <span>Priority Balance:</span>
+                  <span id="opt-balance-val" style="color:var(--accent-cyan);font-family:monospace;font-size:0.67rem;">Balanced (50/50)</span>
+                </div>
+                <input type="range" id="opt-balance-slider" min="0" max="100" value="50" class="opacity-slider" style="height:4px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-muted);">
+                  <span>Distance</span>
+                  <span>Balanced</span>
+                  <span>Area 296</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;" title="Draw translucent buffer disks and shift arrows on canvas">
+                  <input type="checkbox" id="chk-show-buffer-disks" checked style="accent-color:var(--accent-cyan);">
+                  Show Buffer Halos &amp; Vectors
+                </label>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button id="btn-run-optimization" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;" title="Automatically relax boundary vertices inside their pen buffers to match deed lengths &amp; area">
+                  ⚡ Auto-Optimize
+                </button>
+                <button id="btn-reset-optimization" class="btn btn-secondary btn-sm" title="Reset dynamic vertices back to unadjusted deed centers">
+                  ↺ Reset
+                </button>
+              </div>
+            </div>
             <!-- Metrics -->
             <div id="polygon-metrics" style="display:none;font-size:0.78rem;line-height:1.7;background:rgba(0,0,0,0.25);border-radius:6px;padding:8px;border:1px solid rgba(0,229,255,0.25);">
               <div>Vertices: <strong id="poly-vertex-count">—</strong></div>
@@ -1476,6 +1523,223 @@ ENDSEC
 EOF`;
 
     /* ==========================================================================
+       3.5. BOUNDARY OPTIMIZATION ENGINE (Constrained Relaxation: Spring & Area Model)
+       ========================================================================== */
+    class BoundaryOptimizer {
+      /**
+       * Optimize dynamic vertices of userPolygon within buffer radius R.
+       * @param {Object} options
+       *   - vertices: Array<{ x, y, deedPt, origX?, origY? }>
+       *   - segmentLengths: Array<number|null>
+       *   - bufferRadius: number (meters, e.g. 3.0)
+       *   - balance: number (0 = distance focus, 50 = balanced, 100 = area focus)
+       *   - targetArea: number (default 162156.0 m²)
+       *   - iterations: number (default 220)
+       * @returns {{ success: boolean, vertices: Array, maxDisplacement: number, initialLoss: number, finalLoss: number, reason?: string }}
+       */
+      static optimize(options) {
+        const {
+          vertices,
+          segmentLengths,
+          bufferRadius = 3.0,
+          balance = 50,
+          targetArea = 162156.0,
+          iterations = 220
+        } = options;
+
+        if (!vertices || vertices.length < 3) {
+          return { success: false, reason: "Polygon requires ≥ 3 vertices." };
+        }
+
+        const N = vertices.length;
+
+        // Clone vertices and ensure baseline nominal coordinates (origX, origY)
+        const pts = vertices.map(v => ({
+          x: v.x,
+          y: v.y,
+          deedPt: v.deedPt ? { ...v.deedPt } : null,
+          origX: (v.origX !== undefined && v.origX !== null) ? v.origX : v.x,
+          origY: (v.origY !== undefined && v.origY !== null) ? v.origY : v.y,
+        }));
+
+        // Identify dynamic vertex indices (only deed-anchored vertices are optimized)
+        const dynamicIndices = [];
+        for (let i = 0; i < N; i++) {
+          if (pts[i].deedPt !== null) {
+            dynamicIndices.push(i);
+          }
+        }
+
+        if (dynamicIndices.length === 0) {
+          return { success: false, reason: "No dynamic deed vertices found to optimize." };
+        }
+
+        // Count segments with deed distances
+        let countSegs = 0;
+        for (let i = 0; i < N; i++) {
+          const dl = segmentLengths[i];
+          if (dl !== null && dl !== undefined && dl > 0) countSegs++;
+        }
+
+        // Weighting from balance slider (0..100)
+        const b = Math.max(0, Math.min(100, balance));
+        const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
+        const wArea = b >= 50 ? 1.0 : b / 50;
+
+        // Loss and analytical gradients
+        function evaluate(currentPts) {
+          let distLoss = 0;
+          const gradDist = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+
+          // 1. Distance loss & gradients
+          for (let i = 0; i < N; i++) {
+            const deedLen = segmentLengths[i];
+            if (deedLen !== null && deedLen !== undefined && deedLen > 0) {
+              const a = currentPts[i];
+              const nextIdx = (i + 1) % N;
+              const nextPt = currentPts[nextIdx];
+
+              const dx = nextPt.x - a.x;
+              const dy = nextPt.y - a.y;
+              const currLen = Math.hypot(dx, dy);
+
+              if (currLen > 1e-6) {
+                const diff = currLen - deedLen;
+                const relErr = diff / deedLen;
+                distLoss += relErr * relErr;
+
+                // Gradient of ( (currLen - deedLen) / deedLen )^2
+                const factor = (2 * diff) / (deedLen * deedLen * currLen);
+                const gbx = factor * dx;
+                const gby = factor * dy;
+
+                gradDist[nextIdx].x += gbx;
+                gradDist[nextIdx].y += gby;
+                gradDist[i].x -= gbx;
+                gradDist[i].y -= gby;
+              }
+            }
+          }
+
+          // 2. Shoelace Area loss & gradients
+          let signedArea = 0;
+          for (let i = 0; i < N; i++) {
+            const j = (i + 1) % N;
+            signedArea += currentPts[i].x * currentPts[j].y - currentPts[j].x * currentPts[i].y;
+          }
+          signedArea /= 2;
+          const currArea = Math.abs(signedArea);
+          const areaSign = signedArea >= 0 ? 1 : -1;
+
+          const areaDiff = currArea - targetArea;
+          const relAreaErr = areaDiff / targetArea;
+          const areaLoss = relAreaErr * relAreaErr;
+
+          const gradArea = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+          const aFactor = (2 * areaDiff) / (targetArea * targetArea);
+
+          for (let i = 0; i < N; i++) {
+            const prev = (i - 1 + N) % N;
+            const next = (i + 1) % N;
+            const dAdx = areaSign * 0.5 * (currentPts[next].y - currentPts[prev].y);
+            const dAdy = areaSign * 0.5 * (currentPts[prev].x - currentPts[next].x);
+
+            gradArea[i].x = aFactor * dAdx;
+            gradArea[i].y = aFactor * dAdy;
+          }
+
+          // Normalized composite loss
+          const normDistLoss = countSegs > 0 ? (distLoss / countSegs) : 0;
+          const totalLoss = wDist * normDistLoss + wArea * areaLoss;
+
+          // Composite gradient for dynamic vertices only
+          const grad = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+          const distScale = countSegs > 0 ? (1 / countSegs) : 1;
+          for (const idx of dynamicIndices) {
+            grad[idx].x = wDist * distScale * gradDist[idx].x + wArea * gradArea[idx].x;
+            grad[idx].y = wDist * distScale * gradDist[idx].y + wArea * gradArea[idx].y;
+          }
+
+          return { totalLoss, grad, normDistLoss, areaLoss, currArea };
+        }
+
+        // Adam Optimizer state
+        const m = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+        const v = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+        const beta1 = 0.9;
+        const beta2 = 0.999;
+        const eps = 1e-8;
+        const baseLr = 0.14;
+
+        const initialEval = evaluate(pts);
+        let bestLoss = initialEval.totalLoss;
+        let bestPts = pts.map(p => ({ ...p }));
+
+        for (let t = 1; t <= iterations; t++) {
+          const { totalLoss, grad } = evaluate(pts);
+
+          if (totalLoss < bestLoss) {
+            bestLoss = totalLoss;
+            bestPts = pts.map(p => ({ ...p }));
+          }
+
+          // Learning rate decay for fine convergence
+          const lr = baseLr * (1.0 - 0.45 * (t / iterations));
+
+          for (const i of dynamicIndices) {
+            // Update biased 1st moment estimate
+            m[i].x = beta1 * m[i].x + (1 - beta1) * grad[i].x;
+            m[i].y = beta1 * m[i].y + (1 - beta1) * grad[i].y;
+
+            // Update biased 2nd raw moment estimate
+            v[i].x = beta2 * v[i].x + (1 - beta2) * (grad[i].x * grad[i].x);
+            v[i].y = beta2 * v[i].y + (1 - beta2) * (grad[i].y * grad[i].y);
+
+            // Compute bias-corrected estimates
+            const mHatX = m[i].x / (1 - Math.pow(beta1, t));
+            const mHatY = m[i].y / (1 - Math.pow(beta1, t));
+            const vHatX = v[i].x / (1 - Math.pow(beta2, t));
+            const vHatY = v[i].y / (1 - Math.pow(beta2, t));
+
+            // Position step
+            pts[i].x -= lr * mHatX / (Math.sqrt(vHatX) + eps);
+            pts[i].y -= lr * mHatY / (Math.sqrt(vHatY) + eps);
+
+            // Strict Radial Projection (Clamp to buffer disk radius R from origX, origY)
+            const ox = pts[i].origX;
+            const oy = pts[i].origY;
+            const dx = pts[i].x - ox;
+            const dy = pts[i].y - oy;
+            const distFromOrig = Math.hypot(dx, dy);
+
+            if (distFromOrig > bufferRadius) {
+              const scale = bufferRadius / distFromOrig;
+              pts[i].x = ox + dx * scale;
+              pts[i].y = oy + dy * scale;
+            }
+          }
+        }
+
+        const finalEval = evaluate(bestPts);
+        let maxDisplacement = 0;
+        for (const i of dynamicIndices) {
+          const d = Math.hypot(bestPts[i].x - bestPts[i].origX, bestPts[i].y - bestPts[i].origY);
+          if (d > maxDisplacement) maxDisplacement = d;
+        }
+
+        return {
+          success: true,
+          vertices: bestPts,
+          maxDisplacement,
+          initialLoss: initialEval.totalLoss,
+          finalLoss: finalEval.totalLoss,
+          initialArea: initialEval.currArea,
+          finalArea: finalEval.currArea
+        };
+      }
+    }
+
+    /* ==========================================================================
        4. APPLICATION LOGIC & DUAL-CANVAS RENDERING ENGINE
        ========================================================================== */
     const state = {
@@ -1499,7 +1763,7 @@ EOF`;
       histPdfH: 0,
       // Hand-crafted user polygon (Distance & Area panel)
       userPolygon: {
-        vertices: [],          // [{x, y}] in GIS world space
+        vertices: [],          // [{x, y, deedPt, origX, origY}] in GIS world space
         segmentLengths: [],    // parallel array: deed length (m) or null
         closed: false,
         drawMode: false,
@@ -1510,11 +1774,16 @@ EOF`;
       showSegmentLabels: true,
       layoutMode: "split",     // "split" | "left" | "right"
       sidebarVisible: true,
-      // Deed DXF vertex editing on field panel
+      // Boundary Optimization
+      optBufferRadius: 3.0,    // pen buffer radius in meters
+      optBalance: 50,          // 0 = dist, 50 = balanced, 100 = area
+      showBufferDisks: true,   // render buffer halos and displacement vectors
+      // Deed DXF vertex editing on field panel & historical panel
       histFileName: "Polygon_Escritura1073_FerminSuarez.dxf",
       editDeedNodes: false,
-      draggingDeedNode: null,  // { entIdx, ptIdx, origDeedPt: {x,y}, origFieldPt: {x,y} }
-      hoverDeedNode: null,     // { entIdx, ptIdx, deedPt: {x,y}, warpedPt: {x,y} }
+      draggingDeedNode: null,      // { entIdx, ptIdx, origDeedPt: {x,y}, origFieldPt: {x,y} }
+      hoverDeedNode: null,         // { entIdx, ptIdx, deedPt: {x,y}, warpedPt: {x,y} }
+      draggingDeedNodeHist: null,  // { entIdx, ptIdx, origDeedPt: {x,y} }
     };
 
     const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
@@ -1663,6 +1932,26 @@ EOF`;
         if (ent.closed) ctx.closePath();
         ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
       });
+
+      // If Edit Deed Nodes is active, render interactive vertex handles on historical canvas
+      if (state.editDeedNodes) {
+        entities.forEach((ent, entIdx) => {
+          (ent.points || []).forEach((pt, ptIdx) => {
+            const p = worldToScreen(pt, vp, canvasH);
+            const isHover = state.hoverDeedNode && state.hoverDeedNode.entIdx === entIdx && state.hoverDeedNode.ptIdx === ptIdx;
+            const isDrag = (state.draggingDeedNode && state.draggingDeedNode.entIdx === entIdx && state.draggingDeedNode.ptIdx === ptIdx) ||
+                           (state.draggingDeedNodeHist && state.draggingDeedNodeHist.entIdx === entIdx && state.draggingDeedNodeHist.ptIdx === ptIdx);
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, isDrag ? 8.5 : (isHover ? 7 : 5), 0, Math.PI * 2);
+            ctx.fillStyle = isDrag ? "#ffd600" : (isHover ? "#ff9100" : "#ff1744");
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = isDrag || isHover ? 2 : 1.2;
+            ctx.stroke();
+          });
+        });
+      }
       ctx.restore();
     }
 
@@ -1817,6 +2106,8 @@ EOF`;
         poly.vertices.forEach(v => {
           if (v.deedPt) {
             const w = warper(v.deedPt);
+            v.origX = w.x;
+            v.origY = w.y;
             v.x = w.x;
             v.y = w.y;
             changed = true;
@@ -2017,6 +2308,26 @@ EOF`;
       });
 
       return closestTarget;
+    }
+
+    /** Hit test deed DXF vertices on histCanvas */
+    function findDeedNodeOnHistCanvas(mouseX, mouseY, vp, canvasH) {
+      if (!state.histEntities || state.histEntities.length === 0) return null;
+      const HIT_RADIUS = 14; // pixels
+      for (let entIdx = 0; entIdx < state.histEntities.length; entIdx++) {
+        const ent = state.histEntities[entIdx];
+        if (!ent.points) continue;
+        for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+          const dPt = ent.points[ptIdx];
+          const sp = worldToScreen(dPt, vp, canvasH);
+          if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) {
+            return { entIdx, ptIdx, deedPt: dPt, screenPt: sp };
+          }
+        }
+      }
+      return null;
+    }
+
     /** Hit test deed DXF vertices on trueCanvas (warped to GIS space) */
     function findDeedNodeOnTrueCanvas(mouseX, mouseY, vp, canvasH) {
       if (!state.anchors || state.anchors.length < 2 || !state.histEntities || state.histEntities.length === 0) return null;
@@ -2130,15 +2441,72 @@ EOF`;
         ctx.stroke();
       }
 
+      // 2.5. Pen buffer halos and displacement vectors (Boundary Optimization visualization)
+      if (state.showBufferDisks !== false && state.optBufferRadius > 0) {
+        ctx.save();
+        const rPx = state.optBufferRadius * vp.scale;
+        verts.forEach((v) => {
+          if (!v.deedPt) return;
+          const origX = v.origX != null ? v.origX : v.x;
+          const origY = v.origY != null ? v.origY : v.y;
+          const sOrig = worldToScreenGIS({ x: origX, y: origY }, vp, canvasH);
+
+          // Draw buffer halo circle
+          ctx.beginPath();
+          ctx.arc(sOrig.x, sOrig.y, rPx, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(0, 229, 255, 0.07)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+          ctx.lineWidth = 1.2;
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Nominal deed center marker
+          ctx.beginPath();
+          ctx.arc(sOrig.x, sOrig.y, 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(0, 229, 255, 0.75)";
+          ctx.fill();
+
+          // Displacement vector if shifted > 0.05m
+          const disp = Math.hypot(v.x - origX, v.y - origY);
+          if (disp > 0.05) {
+            const sCurr = worldToScreenGIS(v, vp, canvasH);
+            ctx.beginPath();
+            ctx.moveTo(sOrig.x, sOrig.y);
+            ctx.lineTo(sCurr.x, sCurr.y);
+            ctx.strokeStyle = "#ffd600";
+            ctx.lineWidth = 2.0;
+            ctx.stroke();
+
+            // Arrow head
+            const angle = Math.atan2(sCurr.y - sOrig.y, sCurr.x - sOrig.x);
+            const arrowSize = 6;
+            ctx.beginPath();
+            ctx.moveTo(sCurr.x, sCurr.y);
+            ctx.lineTo(sCurr.x - arrowSize * Math.cos(angle - Math.PI / 6), sCurr.y - arrowSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(sCurr.x - arrowSize * Math.cos(angle + Math.PI / 6), sCurr.y - arrowSize * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = "#ffd600";
+            ctx.fill();
+          }
+        });
+        ctx.restore();
+      }
+
       // 3. Vertex dots (Orange = anchored to Deed DXF, Cyan = field/unanchored)
       verts.forEach((v, i) => {
         const sp = worldToScreenGIS(v, vp, canvasH);
+        const origX = v.origX != null ? v.origX : v.x;
+        const origY = v.origY != null ? v.origY : v.y;
+        const isShifted = v.deedPt && Math.hypot(v.x - origX, v.y - origY) > 0.05;
+
         ctx.beginPath();
-        ctx.arc(sp.x, sp.y, i === 0 ? 7.5 : 5.5, 0, Math.PI * 2);
-        ctx.fillStyle = v.deedPt ? "#ff9100" : "#00e5ff";
+        ctx.arc(sp.x, sp.y, i === 0 ? 7.5 : (isShifted ? 6.5 : 5.5), 0, Math.PI * 2);
+        ctx.fillStyle = v.deedPt ? (isShifted ? "#ffd600" : "#ff9100") : "#00e5ff";
         ctx.fill();
-        ctx.strokeStyle = i === 0 ? "#ffffff" : (v.deedPt ? "#ffffff" : "#000000");
-        ctx.lineWidth = i === 0 ? 2 : 1.5;
+        ctx.strokeStyle = i === 0 ? "#ffffff" : (isShifted ? "#ffffff" : (v.deedPt ? "#ffffff" : "#000000"));
+        ctx.lineWidth = (i === 0 || isShifted) ? 2 : 1.5;
         ctx.stroke();
       });
 
@@ -2280,6 +2648,14 @@ EOF`;
         wrap.appendChild(rightGroup);
         inp.appendChild(wrap);
       }
+
+      // Update visibility of boundary optimization sub-panel
+      const optPanel = document.getElementById("boundary-optimization-panel");
+      if (optPanel) {
+        const hasDeedPoints = poly.vertices && poly.vertices.some(v => v.deedPt !== null);
+        const hasDeedLengths = poly.segmentLengths && poly.segmentLengths.some(l => l !== null && l > 0);
+        optPanel.style.display = (hasDeedPoints && hasDeedLengths) ? "flex" : "none";
+      }
     }
 
     /** Compute and display polygon metrics in the sub-panel */
@@ -2368,6 +2744,8 @@ EOF`;
       state.userPolygon = { vertices: [], segmentLengths: [], closed: false, drawMode: false, show: true };
       document.getElementById("polygon-seg-inputs").innerHTML = "";
       document.getElementById("polygon-segments-container").style.display = "none";
+      const optPanel = document.getElementById("boundary-optimization-panel");
+      if (optPanel) optPanel.style.display = "none";
       document.getElementById("polygon-metrics").style.display = "none";
       document.getElementById("btn-cancel-polygon").style.display = "none";
       document.getElementById("btn-close-polygon").style.display = "none";
@@ -2460,7 +2838,13 @@ EOF`;
             const obj = JSON.parse(content);
             if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
             state.userPolygon = {
-              vertices: obj.vertices || [],
+              vertices: (obj.vertices || []).map(v => ({
+                x: v.x,
+                y: v.y,
+                deedPt: v.deedPt || null,
+                origX: v.origX != null ? v.origX : v.x,
+                origY: v.origY != null ? v.origY : v.y
+              })),
               segmentLengths: obj.segmentLengths || [],
               closed: !!obj.closed,
               drawMode: false,
@@ -2511,6 +2895,124 @@ EOF`;
       URL.revokeObjectURL(url);
       updateStatus("📐 Exported polygon to user_polygon.dxf.");
     });
+
+    // ── Boundary Optimization Handlers ──────────────────────────────────
+    const optBufferSlider = document.getElementById("opt-buffer-slider");
+    const optBufferVal = document.getElementById("opt-buffer-val");
+    const optBalanceSlider = document.getElementById("opt-balance-slider");
+    const optBalanceVal = document.getElementById("opt-balance-val");
+    const chkShowBufferDisks = document.getElementById("chk-show-buffer-disks");
+    const btnRunOpt = document.getElementById("btn-run-optimization");
+    const btnResetOpt = document.getElementById("btn-reset-optimization");
+    const optStatusBadge = document.getElementById("opt-status-badge");
+
+    if (optBufferSlider) {
+      optBufferSlider.addEventListener("input", e => {
+        const val = parseFloat(e.target.value) || 3.0;
+        state.optBufferRadius = val;
+        if (optBufferVal) optBufferVal.textContent = `±${val.toFixed(1)} m`;
+        redrawTrueCanvas();
+      });
+    }
+
+    if (optBalanceSlider) {
+      optBalanceSlider.addEventListener("input", e => {
+        const val = parseInt(e.target.value, 10);
+        state.optBalance = val;
+        if (optBalanceVal) {
+          if (val === 50) optBalanceVal.textContent = "Balanced (50/50)";
+          else if (val < 50) optBalanceVal.textContent = `Dist Focus (${100 - val}% / ${val}%)`;
+          else optBalanceVal.textContent = `Area Focus (${100 - val}% / ${val}%)`;
+        }
+      });
+    }
+
+    if (chkShowBufferDisks) {
+      chkShowBufferDisks.addEventListener("change", e => {
+        state.showBufferDisks = e.target.checked;
+        redrawTrueCanvas();
+      });
+    }
+
+    if (btnRunOpt) {
+      btnRunOpt.addEventListener("click", () => {
+        const poly = state.userPolygon;
+        if (!poly || !poly.vertices || poly.vertices.length < 3) {
+          alert("Polygon requires ≥ 3 vertices to optimize.");
+          return;
+        }
+
+        // Ensure each vertex has baseline origX, origY
+        poly.vertices.forEach(v => {
+          if (v.origX === undefined || v.origX === null) v.origX = v.x;
+          if (v.origY === undefined || v.origY === null) v.origY = v.y;
+        });
+
+        if (optStatusBadge) {
+          optStatusBadge.textContent = "Optimizing…";
+          optStatusBadge.style.color = "var(--accent-cyan)";
+        }
+
+        setTimeout(() => {
+          const result = BoundaryOptimizer.optimize({
+            vertices: poly.vertices,
+            segmentLengths: poly.segmentLengths,
+            bufferRadius: state.optBufferRadius,
+            balance: state.optBalance,
+            targetArea: 162156.0,
+            iterations: 240
+          });
+
+          if (!result.success) {
+            if (optStatusBadge) {
+              optStatusBadge.textContent = "Notice";
+              optStatusBadge.style.color = "var(--accent-orange)";
+            }
+            alert(`Optimization notice: ${result.reason || "Unable to optimize."}`);
+            return;
+          }
+
+          // Apply optimized vertices
+          poly.vertices = result.vertices;
+          recomputeUserPolygonMetrics();
+          rebuildSegmentInputs();
+          redrawTrueCanvas();
+
+          if (optStatusBadge) {
+            optStatusBadge.textContent = `✓ Fitted (Max: ${result.maxDisplacement.toFixed(2)}m)`;
+            optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
+            optStatusBadge.style.color = "#00e676";
+          }
+
+          updateStatus(`⚡ Boundary optimized: max vertex shift = ${result.maxDisplacement.toFixed(2)}m within ±${state.optBufferRadius.toFixed(1)}m pen buffer.`);
+        }, 15);
+      });
+    }
+
+    if (btnResetOpt) {
+      btnResetOpt.addEventListener("click", () => {
+        const poly = state.userPolygon;
+        if (!poly || !poly.vertices) return;
+        let count = 0;
+        poly.vertices.forEach(v => {
+          if (v.deedPt && v.origX !== undefined && v.origX !== null) {
+            v.x = v.origX;
+            v.y = v.origY;
+            count++;
+          }
+        });
+        recomputeUserPolygonMetrics();
+        rebuildSegmentInputs();
+        redrawTrueCanvas();
+
+        if (optStatusBadge) {
+          optStatusBadge.textContent = "Reset to deed";
+          optStatusBadge.style.background = "rgba(255, 255, 255, 0.08)";
+          optStatusBadge.style.color = "var(--text-muted)";
+        }
+        updateStatus(`↺ Reset ${count} dynamic vertices back to unadjusted deed centers.`);
+      });
+    }
 
     // Context menu handler on trueCanvas (prevents context menu when clicking nodes or drawing)
     trueCanvas.addEventListener("contextmenu", e => {
@@ -2733,6 +3235,45 @@ EOF`;
       chkShowSegLabelsSidebar.addEventListener("change", e => setSegmentLabelsVisible(e.target.checked));
     }
 
+    // Edit Deed Nodes toggle handler
+    const chkEditDeedNodes = document.getElementById("chk-edit-deed-nodes");
+    if (chkEditDeedNodes) {
+      chkEditDeedNodes.addEventListener("change", e => {
+        state.editDeedNodes = e.target.checked;
+        if (state.editDeedNodes) {
+          updateStatus("✏️ Edit Deed Nodes active — click and drag deed vertices on field canvas (or deed map) to adjust alignment.");
+        } else {
+          state.hoverDeedNode = null;
+          state.draggingDeedNode = null;
+          state.draggingDeedNodeHist = null;
+          updateStatus("Edit Deed Nodes disabled.");
+        }
+        redrawAll();
+      });
+    }
+
+    // Save Deed DXF button handler
+    const btnSaveDeedDxf = document.getElementById("btn-save-deed-dxf");
+    if (btnSaveDeedDxf) {
+      btnSaveDeedDxf.addEventListener("click", () => {
+        if (!state.histEntities || state.histEntities.length === 0) {
+          alert("No deed DXF loaded to save.");
+          return;
+        }
+        const txt = DXFParser.serialize(state.histEntities);
+        const blob = new Blob([txt], { type: "application/dxf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = state.histFileName || "Polygon_Escritura1073_FerminSuarez.dxf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateStatus(`💾 Saved modified Deed DXF to '${a.download}'.`);
+      });
+    }
+
     window.addEventListener("keydown", e => {
       if (e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
       if (e.code==="KeyP") setToolMode("pan");
@@ -2759,6 +3300,25 @@ EOF`;
     function handleMouseDown(e, canvas, viewport, isHist) {
       clickStart.x = e.clientX;
       clickStart.y = e.clientY;
+
+      // Edit Deed Nodes mode: priority drag of deed vertices on historical canvas
+      if (isHist && state.editDeedNodes && e.button === 0 && !spacePressed && state.toolMode === "pan") {
+        const rect = histCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const deedHit = findDeedNodeOnHistCanvas(sx, sy, state.histViewport, histCanvas.height);
+        if (deedHit) {
+          e.preventDefault();
+          state.draggingDeedNodeHist = {
+            entIdx: deedHit.entIdx,
+            ptIdx: deedHit.ptIdx,
+            origDeedPt: { x: deedHit.deedPt.x, y: deedHit.deedPt.y }
+          };
+          histCanvas.style.cursor = "move";
+          updateStatus(`✏️ Dragging Deed Vertex #${deedHit.ptIdx + 1} on deed map.`);
+          redrawAll();
+          return;
+        }
+      }
 
       const isPolyDrawOnTrue = (!isHist && state.userPolygon && state.userPolygon.drawMode && state.toolMode === "pan");
       const shouldPan = (state.toolMode === "pan" && !isPolyDrawOnTrue) || e.button === 2 || e.button === 1 || spacePressed;
@@ -2863,6 +3423,43 @@ EOF`;
         return;
       }
 
+      // Dragging deed node on historical canvas
+      if (state.draggingDeedNodeHist) {
+        const vp = state.histViewport;
+        const h = histCanvas.height;
+        const rect = histCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+        const deedPt = screenToWorld(mouseX, mouseY, vp, h);
+        const ent = state.histEntities[state.draggingDeedNodeHist.entIdx];
+        if (ent && ent.points && ent.points[state.draggingDeedNodeHist.ptIdx]) {
+          const origDeed = state.draggingDeedNodeHist.origDeedPt;
+          ent.points[state.draggingDeedNodeHist.ptIdx].x = deedPt.x;
+          ent.points[state.draggingDeedNodeHist.ptIdx].y = deedPt.y;
+
+          // Synchronize any user polygon vertex linked to this deed point
+          if (state.userPolygon && state.userPolygon.vertices) {
+            let warper = null;
+            if (state.anchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+            }
+            state.userPolygon.vertices.forEach(v => {
+              if (v.deedPt && Math.hypot(v.deedPt.x - origDeed.x, v.deedPt.y - origDeed.y) < 0.05) {
+                v.deedPt.x = deedPt.x;
+                v.deedPt.y = deedPt.y;
+                if (warper) {
+                  const w = warper(deedPt);
+                  v.x = w.x;
+                  v.y = w.y;
+                }
+              }
+            });
+            recomputeUserPolygonMetrics();
+          }
+          redrawAll();
+        }
+        return;
+      }
+
       // Dragging deed node with live reverse-transform (backtracking)
       if (state.draggingDeedNode) {
         const vp = state.trueViewport;
@@ -2900,6 +3497,12 @@ EOF`;
     });
 
     window.addEventListener("mouseup", () => {
+      if (state.draggingDeedNodeHist) {
+        const ptIdx = state.draggingDeedNodeHist.ptIdx;
+        state.draggingDeedNodeHist = null;
+        updateStatus(`✏️ Deed vertex #${ptIdx + 1} updated. Click '💾 Save Deed DXF' to download '${state.histFileName || "deed DXF"}'.`);
+        redrawAll();
+      }
       if (state.draggingDeedNode) {
         const ptIdx = state.draggingDeedNode.ptIdx;
         state.draggingDeedNode = null;
@@ -2938,6 +3541,19 @@ EOF`;
       if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
         const hit = hitTestAnchor(e.clientX - r.left, e.clientY - r.top, true);
         histCanvas.style.cursor = hit ? "move" : "crosshair";
+      } else if (state.editDeedNodes && !isPanning && !state.draggingDeedNodeHist) {
+        const deedHit = findDeedNodeOnHistCanvas(e.clientX - r.left, e.clientY - r.top, state.histViewport, histCanvas.height);
+        const prevHover = state.hoverDeedNode;
+        state.hoverDeedNode = deedHit;
+        if (deedHit) {
+          histCanvas.style.cursor = "move";
+          coordsBar.textContent = `Deed Node #${deedHit.ptIdx + 1}: (${deedHit.deedPt.x.toFixed(1)}, ${deedHit.deedPt.y.toFixed(1)})`;
+          redrawHistoricalCanvas();
+          return;
+        } else if (prevHover !== null) {
+          histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+          redrawHistoricalCanvas();
+        }
       }
     });
     trueCanvas.addEventListener("mousemove", e => {
@@ -3225,6 +3841,7 @@ EOF`;
     // ── Manual file-input listeners ───────────────────────────────────
     histInput.addEventListener("change", e => {
       const f=e.target.files[0]; if (!f) return;
+      state.histFileName = f.name;
       const r=new FileReader();
       r.onload=function(){
         state.histEntities=DXFParser.parse(this.result);
@@ -3232,7 +3849,7 @@ EOF`;
         state.anchors=[]; state.pendingSource=null;
         state.histViewport={scale:1,offsetX:0,offsetY:0,bbox:null};
         resizeCanvases();
-        updateStatus(`Loaded deed DXF: ${state.histEntities.length} entities.`);
+        updateStatus(`Loaded deed DXF (${f.name}): ${state.histEntities.length} entities.`);
       };
       r.readAsText(f);
     });
@@ -3475,7 +4092,13 @@ EOF`;
         const obj = JSON.parse(text);
         if (Array.isArray(obj.vertices) && obj.vertices.length > 0) {
           state.userPolygon = {
-            vertices: obj.vertices || [],
+            vertices: (obj.vertices || []).map(v => ({
+              x: v.x,
+              y: v.y,
+              deedPt: v.deedPt || null,
+              origX: v.origX != null ? v.origX : v.x,
+              origY: v.origY != null ? v.origY : v.y
+            })),
             segmentLengths: obj.segmentLengths || [],
             closed: !!obj.closed,
             drawMode: false,
