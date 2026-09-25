@@ -1846,13 +1846,13 @@ EOF`;
         const len = Math.hypot(b.x - a.x, b.y - a.y);
         const deedLen = poly.segmentLengths[i];
         const label = deedLen != null
-          ? `${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m`
-          : `${len.toFixed(1)}m`;
-        ctx.fillStyle = "rgba(0,0,0,0.55)";
+          ? `Seg ${i + 1}: ${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m`
+          : `Seg ${i + 1}: ${len.toFixed(1)}m`;
+        ctx.fillStyle = "rgba(0,0,0,0.65)";
         const tw = ctx.measureText(label).width;
-        ctx.fillRect(mid.x - tw/2 - 2, mid.y - 9, tw + 4, 13);
+        ctx.fillRect(mid.x - tw/2 - 4, mid.y - 9, tw + 8, 14);
         ctx.fillStyle = "#00e5ff";
-        ctx.fillText(label, mid.x, mid.y);
+        ctx.fillText(label, mid.x, mid.y + 2);
       }
       ctx.textAlign = "left";
       ctx.restore();
@@ -1868,17 +1868,21 @@ EOF`;
       if (nSegs === 0) { container.style.display = "none"; return; }
       container.style.display = "flex";
       for (let i = 0; i < nSegs; i++) {
+        const a = poly.vertices[i], b = poly.vertices[(i + 1) % poly.vertices.length];
+        const calcLen = Math.hypot(b.x - a.x, b.y - a.y);
+
         const wrap = document.createElement("div");
-        wrap.style.cssText = "display:flex;align-items:center;gap:6px;margin-bottom:2px;";
+        wrap.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px;";
         const lbl = document.createElement("span");
-        lbl.style.cssText = "font-size:0.7rem;color:var(--text-muted);min-width:60px;";
-        lbl.textContent = `Seg ${i + 1}:`;
+        lbl.style.cssText = "font-size:0.72rem;color:var(--text-muted);min-width:130px;display:flex;align-items:center;gap:4px;";
+        lbl.innerHTML = `<strong style="color:var(--accent-cyan);">Seg ${i + 1}</strong> (${calcLen.toFixed(1)}m):`;
+
         const field = document.createElement("input");
         field.type = "number";
         field.step = "0.1";
         field.min = "0";
         field.placeholder = "deed m";
-        field.style.cssText = "width:80px;padding:2px 5px;font-size:0.72rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;";
+        field.style.cssText = "width:75px;padding:2px 5px;font-size:0.72rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;";
         if (poly.segmentLengths[i] != null) field.value = poly.segmentLengths[i];
         field.dataset.segIdx = i;
         field.addEventListener("input", () => {
