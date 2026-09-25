@@ -1554,6 +1554,49 @@
             <input type="range" id="vec-zoom-slider" min="0.5" max="8.0" step="0.1" value="1.5" style="margin-top:6px;accent-color:var(--accent-cyan);">
           </section>
 
+          <section class="panel-card">
+            <h3>Display Styles</h3>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                  <label for="vec-outline-thickness" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Outline Thickness</label>
+                  <span id="vec-outline-thickness-val" style="font-size:0.78rem; font-family:monospace; font-weight:700; color:var(--accent-cyan);">3 px</span>
+                </div>
+                <div style="display:flex; gap:4px; margin-bottom:4px;">
+                  <button class="preset-btn" data-vecthick="1.5">1.5px</button>
+                  <button class="preset-btn" data-vecthick="3">3px</button>
+                  <button class="preset-btn" data-vecthick="5">5px</button>
+                  <button class="preset-btn" data-vecthick="8">8px</button>
+                </div>
+                <input type="range" id="vec-outline-thickness" min="1" max="12" step="0.5" value="3" style="width:100%; accent-color:var(--accent-cyan); cursor:pointer;">
+                <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-muted); margin-top:2px;">
+                  <span>1 px (Thin)</span>
+                  <span>6 px</span>
+                  <span>12 px (Thick)</span>
+                </div>
+              </div>
+
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                  <label for="vec-vertex-size" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Vertex Point Size</label>
+                  <span id="vec-vertex-size-val" style="font-size:0.78rem; font-family:monospace; font-weight:700; color:var(--accent-cyan);">6 px</span>
+                </div>
+                <div style="display:flex; gap:4px; margin-bottom:4px;">
+                  <button class="preset-btn" data-vecsize="4">4px</button>
+                  <button class="preset-btn" data-vecsize="6">6px</button>
+                  <button class="preset-btn" data-vecsize="9">9px</button>
+                  <button class="preset-btn" data-vecsize="14">14px</button>
+                </div>
+                <input type="range" id="vec-vertex-size" min="2" max="18" step="1" value="6" style="width:100%; accent-color:var(--accent-cyan); cursor:pointer;">
+                <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-muted); margin-top:2px;">
+                  <span>2 px (Small)</span>
+                  <span>10 px</span>
+                  <span>18 px (Large)</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <section class="panel-card flex-grow">
             <div class="panel-header">
               <h3>Vectorized Polygons</h3>
@@ -4483,6 +4526,54 @@ function setupEventListeners() {
     });
   });
 
+  // Vectorizer outline thickness controls
+  const vecThickSlider = document.getElementById("vec-outline-thickness");
+  const vecThickVal = document.getElementById("vec-outline-thickness-val");
+  if (vecThickSlider && vecThickVal) {
+    vecThickSlider.addEventListener("input", (e) => {
+      const val = parseFloat(e.target.value);
+      vecState.outlineThickness = val;
+      vecThickVal.textContent = `${val} px`;
+      try { localStorage.setItem("vec_outline_thickness", val); } catch (err) {}
+      redrawVecDrawCanvas();
+    });
+  }
+
+  document.querySelectorAll(".preset-btn[data-vecthick]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const val = parseFloat(btn.getAttribute("data-vecthick"));
+      vecState.outlineThickness = val;
+      if (vecThickSlider) vecThickSlider.value = val;
+      if (vecThickVal) vecThickVal.textContent = `${val} px`;
+      try { localStorage.setItem("vec_outline_thickness", val); } catch (err) {}
+      redrawVecDrawCanvas();
+    });
+  });
+
+  // Vectorizer vertex point size controls
+  const vecSizeSlider = document.getElementById("vec-vertex-size");
+  const vecSizeVal = document.getElementById("vec-vertex-size-val");
+  if (vecSizeSlider && vecSizeVal) {
+    vecSizeSlider.addEventListener("input", (e) => {
+      const val = parseFloat(e.target.value);
+      vecState.vertexSize = val;
+      vecSizeVal.textContent = `${val} px`;
+      try { localStorage.setItem("vec_vertex_size", val); } catch (err) {}
+      redrawVecDrawCanvas();
+    });
+  }
+
+  document.querySelectorAll(".preset-btn[data-vecsize]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const val = parseFloat(btn.getAttribute("data-vecsize"));
+      vecState.vertexSize = val;
+      if (vecSizeSlider) vecSizeSlider.value = val;
+      if (vecSizeVal) vecSizeVal.textContent = `${val} px`;
+      try { localStorage.setItem("vec_vertex_size", val); } catch (err) {}
+      redrawVecDrawCanvas();
+    });
+  });
+
   // Vectorizer page navigation
   const btnPrev = document.getElementById("btn-vec-prev-page");
   const btnNext = document.getElementById("btn-vec-next-page");
@@ -5451,12 +5542,39 @@ const vecState = {
   pdfDoc: null,
   pageNum: 1,
   scale: 1.5,
+  outlineThickness: (function() {
+    try {
+      const v = parseFloat(localStorage.getItem("vec_outline_thickness"));
+      return Number.isFinite(v) && v > 0 ? v : 3;
+    } catch (e) { return 3; }
+  })(),
+  vertexSize: (function() {
+    try {
+      const v = parseFloat(localStorage.getItem("vec_vertex_size"));
+      return Number.isFinite(v) && v > 0 ? v : 6;
+    } catch (e) { return 6; }
+  })(),
   polygons: [],
   activePolyIndex: 0,
   isDraggingVertex: false,
   draggedVertexIndex: null,
   currentSnapTarget: null
 };
+
+function syncVecStyleControls() {
+  const thickSlider = document.getElementById("vec-outline-thickness");
+  const thickVal = document.getElementById("vec-outline-thickness-val");
+  if (thickSlider && thickVal) {
+    thickSlider.value = vecState.outlineThickness;
+    thickVal.textContent = `${vecState.outlineThickness} px`;
+  }
+  const sizeSlider = document.getElementById("vec-vertex-size");
+  const sizeVal = document.getElementById("vec-vertex-size-val");
+  if (sizeSlider && sizeVal) {
+    sizeSlider.value = vecState.vertexSize;
+    sizeVal.textContent = `${vecState.vertexSize} px`;
+  }
+}
 
 const vecModal = document.getElementById("vectorizer-modal");
 const vecPdfCanvas = document.getElementById("vec-pdf-canvas");
@@ -5466,6 +5584,7 @@ const vecDrawCtx = vecDrawCanvas.getContext("2d");
 
 function openVectorizerModal(mapKey) {
   vecState.activeMapKey = mapKey;
+  syncVecStyleControls();
   const mapTitle = mapKey === "296" ? "Escritura 296 (Mapa2096_LaTrinidad.pdf)"
     : mapKey === "1073" ? "Escritura 1073 (Mapa1073_FerminSuarez.pdf)"
     : "Escritura 196 (Mapa196_ErrorCasaDelSol.pdf)";
@@ -5516,7 +5635,7 @@ function getVecSnapTarget(canvasX, canvasY, ignorePIdx = -1, ignoreVIdx = -1, is
   if (!isSnapActive) return null;
 
   let closestTarget = null;
-  let minDistance = state.snapRadius || 15;
+  let minDistance = Math.max(state.snapRadius || 15, (vecState.vertexSize || 6) + 6);
 
   vecState.polygons.forEach((poly, pIdx) => {
     poly.points.forEach((pt, vIdx) => {
@@ -5539,6 +5658,9 @@ function getVecSnapTarget(canvasX, canvasY, ignorePIdx = -1, ignoreVIdx = -1, is
 
 function redrawVecDrawCanvas() {
   vecDrawCtx.clearRect(0, 0, vecDrawCanvas.width, vecDrawCanvas.height);
+  const baseThickness = vecState.outlineThickness || 3;
+  const baseVertexRadius = vecState.vertexSize || 6;
+
   vecState.polygons.forEach((poly, pIdx) => {
     if (poly.points.length === 0) return;
     const isActive = pIdx === vecState.activePolyIndex;
@@ -5550,22 +5672,27 @@ function redrawVecDrawCanvas() {
     }
     vecDrawCtx.closePath();
     vecDrawCtx.strokeStyle = poly.color;
-    vecDrawCtx.lineWidth = isActive ? 3 : 1.8;
+    vecDrawCtx.lineWidth = isActive ? baseThickness : Math.max(1, Math.round(baseThickness * 0.65 * 10) / 10);
     vecDrawCtx.stroke();
 
     poly.points.forEach((pt, idx) => {
-      const handleRadius = isActive ? 6 : 4;
+      const handleRadius = isActive ? baseVertexRadius : Math.max(2, Math.round(baseVertexRadius * 0.7));
       const sx = pt.x * vecState.scale;
       const sy = pt.y * vecState.scale;
       vecDrawCtx.beginPath(); vecDrawCtx.arc(sx, sy, handleRadius, 0, Math.PI * 2);
       vecDrawCtx.fillStyle = isActive ? "#ffffff" : poly.color; vecDrawCtx.fill();
-      vecDrawCtx.strokeStyle = poly.color; vecDrawCtx.lineWidth = 2; vecDrawCtx.stroke();
+      vecDrawCtx.strokeStyle = poly.color;
+      vecDrawCtx.lineWidth = Math.max(1.5, Math.min(3, handleRadius * 0.35));
+      vecDrawCtx.stroke();
 
       if (isActive) {
+        const reticleLen = Math.max(5, handleRadius + 3);
         vecDrawCtx.beginPath();
-        vecDrawCtx.moveTo(sx - 8, sy); vecDrawCtx.lineTo(sx + 8, sy);
-        vecDrawCtx.moveTo(sx, sy - 8); vecDrawCtx.lineTo(sx, sy + 8);
-        vecDrawCtx.strokeStyle = "rgba(255, 255, 255, 0.6)"; vecDrawCtx.lineWidth = 1; vecDrawCtx.stroke();
+        vecDrawCtx.moveTo(sx - reticleLen, sy); vecDrawCtx.lineTo(sx + reticleLen, sy);
+        vecDrawCtx.moveTo(sx, sy - reticleLen); vecDrawCtx.lineTo(sx + reticleLen);
+        vecDrawCtx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+        vecDrawCtx.lineWidth = Math.max(1, Math.min(2, handleRadius * 0.2));
+        vecDrawCtx.stroke();
       }
     });
   });
@@ -5573,15 +5700,16 @@ function redrawVecDrawCanvas() {
   // Render magnetic snap ring visual indicator
   if (vecState.currentSnapTarget) {
     const { x: sx, y: sy } = vecState.currentSnapTarget.screenPt;
+    const snapR = Math.max(12, baseVertexRadius + 6);
     vecDrawCtx.save();
-    vecDrawCtx.beginPath(); vecDrawCtx.arc(sx, sy, 12, 0, Math.PI * 2);
+    vecDrawCtx.beginPath(); vecDrawCtx.arc(sx, sy, snapR, 0, Math.PI * 2);
     vecDrawCtx.strokeStyle = "#ffd600"; vecDrawCtx.lineWidth = 2.5; vecDrawCtx.stroke();
-    vecDrawCtx.beginPath(); vecDrawCtx.arc(sx, sy, 6, 0, Math.PI * 2);
+    vecDrawCtx.beginPath(); vecDrawCtx.arc(sx, sy, Math.max(4, snapR * 0.45), 0, Math.PI * 2);
     vecDrawCtx.fillStyle = "#00e5ff"; vecDrawCtx.fill();
     vecDrawCtx.strokeStyle = "#ffffff"; vecDrawCtx.lineWidth = 1.5; vecDrawCtx.stroke();
     vecDrawCtx.beginPath();
-    vecDrawCtx.moveTo(sx - 16, sy); vecDrawCtx.lineTo(sx + 16, sy);
-    vecDrawCtx.moveTo(sx, sy - 16); vecDrawCtx.lineTo(sx, sy + 16);
+    vecDrawCtx.moveTo(sx - (snapR + 4), sy); vecDrawCtx.lineTo(sx + (snapR + 4), sy);
+    vecDrawCtx.moveTo(sx, sy - (snapR + 4)); vecDrawCtx.lineTo(sx + (snapR + 4));
     vecDrawCtx.strokeStyle = "rgba(255, 214, 0, 0.85)"; vecDrawCtx.lineWidth = 1.2; vecDrawCtx.stroke();
     vecDrawCtx.restore();
   }
@@ -5648,14 +5776,15 @@ function deleteVecPolygon(index) {
   redrawVecDrawCanvas();
 }
 
-function findVecPolygonAndVertexAt(canvasX, canvasY, radius = 10) {
+function findVecPolygonAndVertexAt(canvasX, canvasY, radius = null) {
+  const effRadius = radius !== null ? radius : Math.max(10, (vecState.vertexSize || 6) + 4);
   for (let pIdx = vecState.polygons.length - 1; pIdx >= 0; pIdx--) {
     const poly = vecState.polygons[pIdx];
     for (let i = 0; i < poly.points.length; i++) {
       const pt = poly.points[i];
       const sx = pt.x * vecState.scale;
       const sy = pt.y * vecState.scale;
-      if (Math.hypot(sx - canvasX, sy - canvasY) <= radius) return { pIdx, vIdx: i };
+      if (Math.hypot(sx - canvasX, sy - canvasY) <= effRadius) return { pIdx, vIdx: i };
     }
   }
   return null;
