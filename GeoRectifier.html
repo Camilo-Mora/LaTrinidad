@@ -751,7 +751,7 @@
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
               <button id="btn-save-polygon" class="btn btn-sm" style="background:rgba(0,200,83,0.25);border:1px solid rgba(0,200,83,0.5);color:#00e676;" disabled title="Save polygon to user_polygon.json">💾 Save JSON</button>
               <label id="btn-load-polygon-lbl" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:0.72rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;">
-                📂 Load JSON<input type="file" id="polygon-file-input" accept=".json" style="display:none;">
+                📂 Load File<input type="file" id="polygon-file-input" accept=".json,.dxf" style="display:none;">
               </label>
               <button id="btn-clear-polygon" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear and delete the current polygon">🗑 Clear</button>
             </div>
@@ -1950,36 +1950,67 @@ EOF`;
       updateStatus("💾 Saved polygon to user_polygon.json.");
     });
 
-    // Load polygon from JSON
+    // Helper to load polygon from DXF text
+    function loadUserPolygonFromDXF(dxfText, filename) {
+      const entities = DXFParser.parse(dxfText);
+      if (!entities || entities.length === 0) throw new Error("No polyline entities found in DXF.");
+      const polyEnt = entities.find(e => e.points && e.points.length >= 2) || entities[0];
+      if (!polyEnt || !polyEnt.points || polyEnt.points.length === 0) throw new Error("No points found in DXF entity.");
+      
+      state.userPolygon = {
+        vertices: polyEnt.points.map(p => ({ x: p.x, y: p.y })),
+        segmentLengths: polyEnt.points.map(() => null),
+        closed: !!polyEnt.closed,
+        drawMode: false,
+        show: true,
+      };
+      document.getElementById("btn-cancel-polygon").style.display = "none";
+      document.getElementById("btn-close-polygon").style.display = "none";
+      rebuildSegmentInputs();
+      recomputeUserPolygonMetrics();
+      updatePolygonButtonStates();
+      if (state.userPolygon.vertices.length > 0 && !state.trueViewport.bbox) {
+        const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
+        state.trueViewport = fitViewport(trueCanvas, bb);
+      }
+      redrawTrueCanvas();
+      updateStatus(`📂 Loaded polygon (${state.userPolygon.vertices.length} vertices) from ${filename || "DXF"}`);
+    }
+
+    // Load polygon from JSON or DXF file
     document.getElementById("polygon-file-input").addEventListener("change", e => {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = ev => {
         try {
-          const obj = JSON.parse(ev.target.result);
-          if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
-          state.userPolygon = {
-            vertices: obj.vertices || [],
-            segmentLengths: obj.segmentLengths || [],
-            closed: !!obj.closed,
-            drawMode: false,
-            show: true,
-          };
-          // Pad segmentLengths to match vertices count
-          while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
-            state.userPolygon.segmentLengths.push(null);
+          const content = ev.target.result;
+          if (file.name.toLowerCase().endsWith(".dxf")) {
+            loadUserPolygonFromDXF(content, file.name);
+          } else {
+            const obj = JSON.parse(content);
+            if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
+            state.userPolygon = {
+              vertices: obj.vertices || [],
+              segmentLengths: obj.segmentLengths || [],
+              closed: !!obj.closed,
+              drawMode: false,
+              show: true,
+            };
+            while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
+              state.userPolygon.segmentLengths.push(null);
+            }
+            document.getElementById("btn-cancel-polygon").style.display = "none";
+            document.getElementById("btn-close-polygon").style.display = "none";
+            rebuildSegmentInputs();
+            recomputeUserPolygonMetrics();
+            updatePolygonButtonStates();
+            if (state.userPolygon.vertices.length > 0 && !state.trueViewport.bbox) {
+              const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
+              state.trueViewport = fitViewport(trueCanvas, bb);
+            }
+            redrawTrueCanvas();
+            updateStatus(`📂 Loaded polygon with ${state.userPolygon.vertices.length} vertices from ${file.name}`);
           }
-          document.getElementById("btn-cancel-polygon").style.display = "none";
-          document.getElementById("btn-close-polygon").style.display = "none";
-          rebuildSegmentInputs();
-          recomputeUserPolygonMetrics();
-          updatePolygonButtonStates();
-          if (state.userPolygon.vertices.length > 0 && !state.trueViewport.bbox) {
-            const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
-            state.trueViewport = fitViewport(trueCanvas, bb);
-          }
-          redrawTrueCanvas();
-          updateStatus(`📂 Loaded polygon with ${state.userPolygon.vertices.length} vertices from ${file.name}`);
         } catch(err) {
           alert("Failed to load polygon: " + err.message);
         }
@@ -2646,6 +2677,14 @@ EOF`;
         redrawAll();
       } catch(e) {
         console.warn("Auto Deed DXF:", e.message);
+        if (state.histEntities.length === 0 && typeof HISTORICAL_DXF_SAMPLE !== "undefined") {
+          state.histEntities = DXFParser.parse(HISTORICAL_DXF_SAMPLE);
+          histStatus.textContent = `Sample DXF ready (${state.histEntities.length} ents)`;
+          if (!state.histViewport.bbox) {
+            state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+          }
+          redrawAll();
+        }
       }
 
       // 4. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)
@@ -2665,6 +2704,14 @@ EOF`;
         redrawAll();
       } catch(e) {
         console.warn("Auto Field DXF:", e.message);
+        if (state.trueEntities.length === 0 && typeof TRUE_FIELD_DXF_SAMPLE !== "undefined") {
+          state.trueEntities = DXFParser.parse(TRUE_FIELD_DXF_SAMPLE);
+          trueStatus.textContent = `Sample Field DXF (${state.trueEntities.length} ents)`;
+          if (!state.trueViewport.bbox) {
+            state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+          }
+          redrawAll();
+        }
       }
 
       // 5. Dedicated anchors for this app (anchors_georectifier.json)
@@ -2681,15 +2728,13 @@ EOF`;
           }));
           updateStatus(`Loaded ${state.anchors.length} anchors from anchors_georectifier.json.`);
           redrawAll();
-        } else {
-          updateStatus("Ready • Use '🎯 Anchor Mode' to place control points, then click '💾 Save'.");
         }
       } catch(e) {
         console.warn("anchors_georectifier.json:", e.message);
-        updateStatus("Ready • Use '🎯 Anchor Mode' to place control points, then click '💾 Save'.");
       }
 
-      // 6. User polygon preload (user_polygon.json)
+      // 6. User polygon preload (user_polygon.json or user_polygon.dxf)
+      let loadedPoly = false;
       try {
         const text = await fetchText("user_polygon.json");
         const obj = JSON.parse(text);
@@ -2709,9 +2754,20 @@ EOF`;
           updatePolygonButtonStates();
           redrawTrueCanvas();
           updateStatus(`Preloaded polygon (${state.userPolygon.vertices.length} vertices) from user_polygon.json.`);
+          loadedPoly = true;
         }
       } catch(e) {
         console.warn("user_polygon.json preload:", e.message);
+      }
+
+      if (!loadedPoly) {
+        try {
+          const dxfText = await fetchText("user_polygon.dxf");
+          loadUserPolygonFromDXF(dxfText, "user_polygon.dxf");
+          updateStatus(`Preloaded polygon from user_polygon.dxf.`);
+        } catch(e) {
+          console.warn("user_polygon.dxf preload:", e.message);
+        }
       }
     }
 
