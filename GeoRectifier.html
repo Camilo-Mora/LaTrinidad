@@ -232,6 +232,10 @@
       text-align: center;
     }
 
+    .viewport-card.hidden {
+      display: none !important;
+    }
+
     /* Sidebar */
     .sidebar {
       width: 380px;
@@ -242,6 +246,50 @@
       gap: 12px;
       padding: 12px;
       overflow-y: auto;
+      transition: width 0.2s ease, opacity 0.2s ease;
+    }
+
+    .sidebar.collapsed {
+      display: none !important;
+    }
+
+    /* Panel Layout Display Controls */
+    .panel-layout-group {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .layout-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .layout-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .layout-btn.active {
+      background: rgba(0, 229, 255, 0.18);
+      color: var(--accent-cyan);
+      border-color: rgba(0, 229, 255, 0.4);
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
     }
 
     .panel-card {
@@ -586,6 +634,39 @@
         </select>
       </div>
 
+      <!-- Panel Display / Layout Options -->
+      <div class="panel-layout-group" title="Window & Panel Display Options">
+        <button class="layout-btn" id="btn-layout-left" title="Show Left Panel Only (Historical Deed)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
+            <line x1="9" y1="3" x2="9" y2="21"/>
+            <rect x="3" y="3" width="6" height="18" rx="2" fill="currentColor" opacity="0.3"/>
+          </svg>
+          <span>Left</span>
+        </button>
+        <button class="layout-btn active" id="btn-layout-split" title="Split View: Both Panels Side by Side">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
+            <line x1="12" y1="3" x2="12" y2="21"/>
+          </svg>
+          <span>Split</span>
+        </button>
+        <button class="layout-btn" id="btn-layout-right" title="Show Right Panel Only (Field Survey & Drone)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
+            <line x1="15" y1="3" x2="15" y2="21"/>
+            <rect x="15" y="3" width="6" height="18" rx="2" fill="currentColor" opacity="0.3"/>
+          </svg>
+          <span>Right</span>
+        </button>
+        <button class="layout-btn active" id="btn-toggle-sidebar" title="Toggle Sidebar (Expand/Collapse)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
+            <line x1="16" y1="3" x2="16" y2="21"/>
+          </svg>
+        </button>
+      </div>
+
       <!-- Export Action -->
       <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
         <button id="btn-export-dxf" class="btn btn-success">
@@ -604,7 +685,7 @@
       <!-- Split Canvases Area -->
       <div class="split-viewport-area">
         <!-- Left Window: Historical Deed (PDF + DXF) -->
-        <div class="viewport-card">
+        <div class="viewport-card" id="hist-card">
           <div class="viewport-header">
             <span class="view-title historical-title">📜 Historical Deed (PDF + DXF)</span>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -619,11 +700,12 @@
         </div>
 
         <!-- Right Window: True Field Survey DXF + Live Transformed Overlay -->
-        <div class="viewport-card">
+        <div class="viewport-card" id="true-card">
           <div class="viewport-header">
             <span class="view-title true-title">📍 True Field Survey & Live Rectification (Target)</span>
             <div class="view-controls">
               <button class="btn-fit-view" id="btn-fit-true" title="Fit & Center Display">🎯 Center View</button>
+              <label class="toggle-overlay" title="Show or hide polygon segment length labels"><input type="checkbox" id="chk-show-seg-labels" checked> Labels</label>
               <label class="toggle-overlay"><input type="checkbox" id="chk-show-overlay" checked> Live Warped Overlay</label>
               <span id="true-status" class="view-badge">Loading…</span>
             </div>
@@ -636,7 +718,7 @@
       </div>
 
       <!-- Sidebar: Anchors & Transformation Analytics -->
-      <aside class="sidebar">
+      <aside class="sidebar" id="sidebar">
         <!-- Transformation Accuracy & Analytics Card -->
         <section class="panel-card">
           <div class="panel-header">
@@ -755,11 +837,17 @@
               </label>
               <button id="btn-clear-polygon" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear and delete the current polygon">🗑 Clear</button>
             </div>
-            <!-- Snap toggle -->
-            <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;">
-              <input type="checkbox" id="chk-polygon-snap" checked style="accent-color:var(--accent-cyan);">
-              Snap vertices to DXF (15 px radius)
-            </label>
+            <!-- Snap and Labels toggles -->
+            <div style="display:flex;align-items:center;gap:16px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;">
+                <input type="checkbox" id="chk-polygon-snap" checked style="accent-color:var(--accent-cyan);">
+                Snap vertices
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;" title="Show or hide segment distance labels on the field canvas">
+                <input type="checkbox" id="chk-show-seg-labels-sidebar" checked style="accent-color:var(--accent-cyan);">
+                Labels
+              </label>
+            </div>
             <!-- Per-segment inputs container -->
             <div id="polygon-segments-container" style="display:none;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px;background:rgba(0,0,0,0.2);">
               <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">Segment deed distances (m) — optional:</div>
@@ -1397,6 +1485,9 @@ EOF`;
       },
       draggingUserPolyNode: null,
       currentSnapTarget: null,
+      showSegmentLabels: true,
+      layoutMode: "split",     // "split" | "left" | "right"
+      sidebarVisible: true,
     };
 
     const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
@@ -1473,10 +1564,17 @@ EOF`;
     function resizeCanvases() {
       const hc = document.getElementById("hist-container");
       const tc = document.getElementById("true-container");
-      histCanvas.width  = hc.clientWidth  || 500;
-      histCanvas.height = hc.clientHeight || 500;
-      trueCanvas.width  = tc.clientWidth  || 500;
-      trueCanvas.height = tc.clientHeight || 500;
+      const histCard = document.getElementById("hist-card");
+      const trueCard = document.getElementById("true-card");
+
+      if (histCard && !histCard.classList.contains("hidden") && hc && hc.clientWidth > 0 && hc.clientHeight > 0) {
+        histCanvas.width  = hc.clientWidth;
+        histCanvas.height = hc.clientHeight;
+      }
+      if (trueCard && !trueCard.classList.contains("hidden") && tc && tc.clientWidth > 0 && tc.clientHeight > 0) {
+        trueCanvas.width  = tc.clientWidth;
+        trueCanvas.height = tc.clientHeight;
+      }
 
       if (!state.histViewport.bbox) {
         if (state.histEntities.length > 0)
@@ -1496,8 +1594,14 @@ EOF`;
 
     // ── Redraw ────────────────────────────────────────────────────────
     function redrawAll() {
-      redrawHistoricalCanvas();
-      redrawTrueCanvas();
+      const histCard = document.getElementById("hist-card");
+      const trueCard = document.getElementById("true-card");
+      if (!histCard || !histCard.classList.contains("hidden")) {
+        redrawHistoricalCanvas();
+      }
+      if (!trueCard || !trueCard.classList.contains("hidden")) {
+        redrawTrueCanvas();
+      }
       updateAnalyticsUI();
     }
 
@@ -1882,23 +1986,25 @@ EOF`;
       });
 
       // Segment length labels (measured in world units = metres for GIS)
-      ctx.fillStyle = "rgba(0,229,255,0.9)";
-      ctx.font = "bold 10px sans-serif";
-      ctx.textAlign = "center";
-      const nSegs = poly.closed ? verts.length : verts.length - 1;
-      for (let i = 0; i < nSegs; i++) {
-        const a = verts[i], b = verts[(i + 1) % verts.length];
-        const mid = worldToScreenGIS({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, vp, canvasH);
-        const len = Math.hypot(b.x - a.x, b.y - a.y);
-        const deedLen = poly.segmentLengths[i];
-        const label = deedLen != null
-          ? `Seg ${i + 1}: ${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m`
-          : `Seg ${i + 1}: ${len.toFixed(1)}m`;
-        ctx.fillStyle = "rgba(0,0,0,0.65)";
-        const tw = ctx.measureText(label).width;
-        ctx.fillRect(mid.x - tw/2 - 4, mid.y - 9, tw + 8, 14);
-        ctx.fillStyle = "#00e5ff";
-        ctx.fillText(label, mid.x, mid.y + 2);
+      if (state.showSegmentLabels !== false) {
+        ctx.fillStyle = "rgba(0,229,255,0.9)";
+        ctx.font = "bold 10px sans-serif";
+        ctx.textAlign = "center";
+        const nSegs = poly.closed ? verts.length : verts.length - 1;
+        for (let i = 0; i < nSegs; i++) {
+          const a = verts[i], b = verts[(i + 1) % verts.length];
+          const mid = worldToScreenGIS({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, vp, canvasH);
+          const len = Math.hypot(b.x - a.x, b.y - a.y);
+          const deedLen = poly.segmentLengths[i];
+          const label = deedLen != null
+            ? `Seg ${i + 1}: ${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m`
+            : `Seg ${i + 1}: ${len.toFixed(1)}m`;
+          ctx.fillStyle = "rgba(0,0,0,0.65)";
+          const tw = ctx.measureText(label).width;
+          ctx.fillRect(mid.x - tw/2 - 4, mid.y - 9, tw + 8, 14);
+          ctx.fillStyle = "#00e5ff";
+          ctx.fillText(label, mid.x, mid.y + 2);
+        }
       }
 
       // Center area callout box (when polygon is closed)
@@ -2337,6 +2443,76 @@ EOF`;
 
     btnModePan.addEventListener("click",    () => setToolMode("pan"));
     btnModeAnchor.addEventListener("click", () => setToolMode("anchor"));
+
+    // ── Panel Layout Switcher & Labels Toggle ────────────────────────────
+    const histCard = document.getElementById("hist-card");
+    const trueCard = document.getElementById("true-card");
+    const sidebarEl = document.getElementById("sidebar");
+    const btnLayoutLeft = document.getElementById("btn-layout-left");
+    const btnLayoutSplit = document.getElementById("btn-layout-split");
+    const btnLayoutRight = document.getElementById("btn-layout-right");
+    const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+
+    function setPanelLayout(mode) {
+      state.layoutMode = mode;
+      if (btnLayoutLeft) btnLayoutLeft.classList.toggle("active", mode === "left");
+      if (btnLayoutSplit) btnLayoutSplit.classList.toggle("active", mode === "split");
+      if (btnLayoutRight) btnLayoutRight.classList.toggle("active", mode === "right");
+
+      if (mode === "left") {
+        if (histCard) histCard.classList.remove("hidden");
+        if (trueCard) trueCard.classList.add("hidden");
+        updateStatus("Display: Left panel only (Historical Deed map).");
+      } else if (mode === "right") {
+        if (histCard) histCard.classList.add("hidden");
+        if (trueCard) trueCard.classList.remove("hidden");
+        updateStatus("Display: Right panel only (Field survey & drone map).");
+      } else {
+        // split view
+        if (histCard) histCard.classList.remove("hidden");
+        if (trueCard) trueCard.classList.remove("hidden");
+        updateStatus("Display: Split view (both Deed & Field panels).");
+      }
+
+      requestAnimationFrame(() => {
+        resizeCanvases();
+      });
+    }
+
+    if (btnLayoutLeft) btnLayoutLeft.addEventListener("click", () => setPanelLayout("left"));
+    if (btnLayoutSplit) btnLayoutSplit.addEventListener("click", () => setPanelLayout("split"));
+    if (btnLayoutRight) btnLayoutRight.addEventListener("click", () => setPanelLayout("right"));
+
+    if (btnToggleSidebar) {
+      btnToggleSidebar.addEventListener("click", () => {
+        state.sidebarVisible = !state.sidebarVisible;
+        if (sidebarEl) sidebarEl.classList.toggle("collapsed", !state.sidebarVisible);
+        btnToggleSidebar.classList.toggle("active", state.sidebarVisible);
+        updateStatus(state.sidebarVisible ? "Sidebar expanded." : "Sidebar collapsed to maximize map area.");
+        requestAnimationFrame(() => {
+          resizeCanvases();
+        });
+      });
+    }
+
+    // Segment Labels toggle handlers (synchronized across header and sidebar)
+    const chkShowSegLabels = document.getElementById("chk-show-seg-labels");
+    const chkShowSegLabelsSidebar = document.getElementById("chk-show-seg-labels-sidebar");
+
+    function setSegmentLabelsVisible(visible) {
+      state.showSegmentLabels = visible;
+      if (chkShowSegLabels) chkShowSegLabels.checked = visible;
+      if (chkShowSegLabelsSidebar) chkShowSegLabelsSidebar.checked = visible;
+      redrawTrueCanvas();
+      updateStatus(visible ? "Segment labels enabled on field canvas." : "Segment labels hidden.");
+    }
+
+    if (chkShowSegLabels) {
+      chkShowSegLabels.addEventListener("change", e => setSegmentLabelsVisible(e.target.checked));
+    }
+    if (chkShowSegLabelsSidebar) {
+      chkShowSegLabelsSidebar.addEventListener("change", e => setSegmentLabelsVisible(e.target.checked));
+    }
 
     window.addEventListener("keydown", e => {
       if (e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
