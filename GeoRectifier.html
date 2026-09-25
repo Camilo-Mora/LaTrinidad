@@ -766,13 +766,15 @@
               <div id="polygon-seg-inputs"></div>
             </div>
             <!-- Metrics -->
-            <div id="polygon-metrics" style="display:none;font-size:0.8rem;line-height:1.8;background:rgba(0,0,0,0.2);border-radius:6px;padding:8px;border:1px solid rgba(0,229,255,0.2);">
+            <div id="polygon-metrics" style="display:none;font-size:0.78rem;line-height:1.7;background:rgba(0,0,0,0.25);border-radius:6px;padding:8px;border:1px solid rgba(0,229,255,0.25);">
               <div>Vertices: <strong id="poly-vertex-count">—</strong></div>
-              <div>Area (field): <strong id="poly-area">—</strong> m²</div>
+              <div>Field Area: <strong id="poly-area" style="color:#00e5ff;">—</strong> m² (<strong id="poly-area-plazas" style="color:#00e5ff;">—</strong> plazas)</div>
+              <div>Deed 296 Area: <strong>162,156.00 m²</strong> (25.34 plazas)</div>
+              <div>Area Error: <strong id="poly-area-error" style="color:#ffd600;">—</strong> m² (<strong id="poly-area-error-pct" style="color:#ffd600;">—</strong> %)</div>
               <hr style="border-color:rgba(255,255,255,0.1);margin:4px 0;">
               <div>Segments with deed dist: <strong id="poly-seg-with-dist">—</strong></div>
               <div>Avg segment error: <strong id="avg-seg-error" style="color:var(--accent-cyan);">—</strong> %</div>
-              <div>Overall error: <strong id="overall-error" style="color:var(--accent-cyan);">—</strong> %</div>
+              <div>Overall error: <strong id="overall-error" style="color:#00e676;font-size:0.85rem;">—</strong> %</div>
             </div>
             <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);">Click "+ Create new polygon" then click on the field canvas to place vertices. Click near the first vertex to close.</p>
           </div>
@@ -1854,6 +1856,39 @@ EOF`;
         ctx.fillStyle = "#00e5ff";
         ctx.fillText(label, mid.x, mid.y + 2);
       }
+
+      // Center area callout box (when polygon is closed)
+      if (poly.closed && verts.length >= 3) {
+        let cx = 0, cy = 0, areaM2 = 0;
+        for (let i = 0; i < verts.length; i++) {
+          cx += verts[i].x; cy += verts[i].y;
+          const j = (i + 1) % verts.length;
+          areaM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
+        }
+        cx /= verts.length; cy /= verts.length;
+        areaM2 = Math.abs(areaM2) / 2;
+        const plazas = areaM2 / 6400;
+
+        const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
+        const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
+        const txt2 = `${plazas.toFixed(2)} plazas`;
+
+        const bw = 110, bh = 32;
+        ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(txt1, sc.x, sc.y - 3);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "9px sans-serif";
+        ctx.fillText(txt2, sc.x, sc.y + 9);
+      }
+
       ctx.textAlign = "left";
       ctx.restore();
     }
@@ -1907,17 +1942,35 @@ EOF`;
 
       document.getElementById("poly-vertex-count").textContent = poly.vertices.length;
 
+      const REF_DEED_AREA_M2 = 162156; // 25 plazas + 2,156 m² = 162,156.00 m² (25.34 plazas)
+
       // Shoelace area (only meaningful when closed)
-      let area = 0;
+      let areaM2 = 0;
       if (poly.closed && poly.vertices.length >= 3) {
         const V = poly.vertices;
         for (let i = 0; i < V.length; i++) {
           const j = (i + 1) % V.length;
-          area += V[i].x * V[j].y - V[j].x * V[i].y;
+          areaM2 += V[i].x * V[j].y - V[j].x * V[i].y;
         }
-        area = Math.abs(area) / 2;
+        areaM2 = Math.abs(areaM2) / 2;
       }
-      document.getElementById("poly-area").textContent = area > 0 ? area.toFixed(2) : "—";
+
+      if (areaM2 > 0) {
+        const plazas = areaM2 / 6400;
+        document.getElementById("poly-area").textContent = areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById("poly-area-plazas").textContent = plazas.toFixed(2);
+
+        const areaErrM2 = Math.abs(areaM2 - REF_DEED_AREA_M2);
+        const areaErrPct = (areaErrM2 / REF_DEED_AREA_M2) * 100;
+
+        document.getElementById("poly-area-error").textContent = areaErrM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById("poly-area-error-pct").textContent = areaErrPct.toFixed(2);
+      } else {
+        document.getElementById("poly-area").textContent = "—";
+        document.getElementById("poly-area-plazas").textContent = "—";
+        document.getElementById("poly-area-error").textContent = "—";
+        document.getElementById("poly-area-error-pct").textContent = "—";
+      }
 
       // Segment errors
       const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
@@ -1931,9 +1984,23 @@ EOF`;
         }
       }
       document.getElementById("poly-seg-with-dist").textContent = `${errors.length} / ${nSegs}`;
-      const avgErr = errors.length ? errors.reduce((s, v) => s + v, 0) / errors.length : null;
-      document.getElementById("avg-seg-error").textContent = avgErr != null ? avgErr.toFixed(2) : "—";
-      document.getElementById("overall-error").textContent = avgErr != null ? avgErr.toFixed(2) : "—";
+      const avgSegErr = errors.length ? errors.reduce((s, v) => s + v, 0) / errors.length : null;
+      document.getElementById("avg-seg-error").textContent = avgSegErr != null ? avgSegErr.toFixed(2) : "—";
+
+      // Overall error combining segment error % and area error %
+      let overallErr = null;
+      if (areaM2 > 0) {
+        const areaErrPct = (Math.abs(areaM2 - REF_DEED_AREA_M2) / REF_DEED_AREA_M2) * 100;
+        if (avgSegErr != null) {
+          overallErr = (avgSegErr + areaErrPct) / 2;
+        } else {
+          overallErr = areaErrPct;
+        }
+      } else if (avgSegErr != null) {
+        overallErr = avgSegErr;
+      }
+
+      document.getElementById("overall-error").textContent = overallErr != null ? overallErr.toFixed(2) : "—";
     }
 
     /** Update Save / Export button states */
