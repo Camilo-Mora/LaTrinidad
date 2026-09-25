@@ -1617,6 +1617,31 @@ EOF`;
     }
 
     // ── True Field Canvas ──────────────────────────────────────────────
+    /** Update all deed-anchored polygon vertices using the current transformation warper */
+    function updateUserPolygonWarp() {
+      const poly = state.userPolygon;
+      if (!poly || !poly.vertices || poly.vertices.length === 0) return;
+      if (!state.anchors || state.anchors.length < 2) return;
+
+      try {
+        const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+        let changed = false;
+        poly.vertices.forEach(v => {
+          if (v.deedPt) {
+            const w = warper(v.deedPt);
+            v.x = w.x;
+            v.y = w.y;
+            changed = true;
+          }
+        });
+        if (changed) {
+          recomputeUserPolygonMetrics();
+        }
+      } catch (e) {
+        console.warn("Polygon warp error:", e);
+      }
+    }
+
     function redrawTrueCanvas() {
       const w = trueCanvas.width, h = trueCanvas.height;
       trueCtx.clearRect(0,0,w,h);
@@ -1632,6 +1657,9 @@ EOF`;
         try { warper = TransformMath.createWarper(state.algorithm, state.anchors); }
         catch(e) { console.warn("Warper error:", e); }
       }
+
+      // Live update any polygon vertices anchored to deed DXF space
+      updateUserPolygonWarp();
 
       // Layer 2: Warped deed PDF image (the PowerPoint transparent overlay)
       if (state.showWarpedPdf && warper && state.histPdfCanvas && state.histPdfW > 0) {
@@ -1754,34 +1782,51 @@ EOF`;
       let minDistance = POLY_SNAP_RADIUS;
       let closestTarget = null;
 
-      const checkPoint = (pt, isPolyPt = false, ptIdx = null) => {
+      const checkPoint = (pt, sourceType, deedPt = null, isPolyPt = false, ptIdx = null) => {
         if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number" || isNaN(pt.x) || isNaN(pt.y)) return;
         if (isPolyPt && ignorePtIdx !== null && ptIdx === ignorePtIdx) return;
         const sp = worldToScreenGIS(pt, vp, canvasH);
         const dist = Math.hypot(sp.x - mouseX, sp.y - mouseY);
         if (dist <= minDistance) {
           minDistance = dist;
-          closestTarget = { worldPt: { x: pt.x, y: pt.y }, screenPt: { x: sp.x, y: sp.y }, dist };
+          closestTarget = {
+            worldPt: { x: pt.x, y: pt.y },
+            screenPt: { x: sp.x, y: sp.y },
+            sourceType,
+            deedPt: deedPt ? { x: deedPt.x, y: deedPt.y } : null,
+            dist
+          };
         }
       };
 
-      // 1. True field DXF vertices
-      (state.trueEntities || []).forEach(ent => {
-        (ent.points || []).forEach(pt => checkPoint(pt));
-      });
-
-      // 2. Warped deed DXF vertices
+      // 1. Warped deed DXF vertices (Historical Deed) -> store original deedPt!
       if (state.anchors.length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors);
           (state.histEntities || []).forEach(ent => {
-            (ent.points || []).forEach(pt => checkPoint(warper(pt)));
+            (ent.points || []).forEach(dPt => {
+              const wPt = warper(dPt);
+              checkPoint(wPt, "deed", dPt);
+            });
           });
         } catch (_) {}
+      } else {
+        (state.histEntities || []).forEach(ent => {
+          (ent.points || []).forEach(dPt => {
+            checkPoint(dPt, "deed", dPt);
+          });
+        });
       }
 
+      // 2. True field DXF vertices (GIS ground truth)
+      (state.trueEntities || []).forEach(ent => {
+        (ent.points || []).forEach(pt => checkPoint(pt, "field", null));
+      });
+
       // 3. User polygon's other vertices
-      (state.userPolygon.vertices || []).forEach((pt, i) => checkPoint(pt, true, i));
+      (state.userPolygon.vertices || []).forEach((pt, i) => {
+        checkPoint(pt, "polygon", pt.deedPt || null, true, i);
+      });
 
       return closestTarget;
     }
@@ -1824,17 +1869,16 @@ EOF`;
       }
       ctx.stroke();
 
-      // Vertex dots
-      ctx.fillStyle = "#00e5ff";
+      // Vertex dots (Orange = anchored to Deed DXF, Cyan = field/unanchored)
       verts.forEach((v, i) => {
         const sp = worldToScreenGIS(v, vp, canvasH);
         ctx.beginPath();
-        ctx.arc(sp.x, sp.y, i === 0 ? 7 : 5, 0, Math.PI * 2);
+        ctx.arc(sp.x, sp.y, i === 0 ? 7.5 : 5.5, 0, Math.PI * 2);
+        ctx.fillStyle = v.deedPt ? "#ff9100" : "#00e5ff";
         ctx.fill();
-        if (i === 0) {
-          ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
-          ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 2.5;
-        }
+        ctx.strokeStyle = i === 0 ? "#ffffff" : (v.deedPt ? "#ffffff" : "#000000");
+        ctx.lineWidth = i === 0 ? 2 : 1.5;
+        ctx.stroke();
       });
 
       // Segment length labels (measured in world units = metres for GIS)
@@ -2231,7 +2275,16 @@ EOF`;
 
           // Snapped vertex or raw GIS click
           const snap = state.currentSnapTarget || getPolygonSnapTarget(sx, sy, vp, h);
-          const worldPt = snap ? { ...snap.worldPt } : screenToWorldGIS(sx, sy, vp, h);
+          const rawPt = screenToWorldGIS(sx, sy, vp, h);
+          const worldPt = snap ? {
+            x: snap.worldPt.x,
+            y: snap.worldPt.y,
+            deedPt: snap.deedPt ? { x: snap.deedPt.x, y: snap.deedPt.y } : null
+          } : {
+            x: rawPt.x,
+            y: rawPt.y,
+            deedPt: null
+          };
 
           poly.vertices.push(worldPt);
           while (poly.segmentLengths.length < poly.vertices.length) poly.segmentLengths.push(null);
@@ -2243,7 +2296,7 @@ EOF`;
           }
           recomputeUserPolygonMetrics();
           updatePolygonButtonStates();
-          updateStatus(`Polygon vertex ${n} placed${snap ? " (snapped)" : ""}. ${n >= 3 ? "Click near first vertex or '✓ Close polygon' to close." : "Continue adding vertices."}`);
+          updateStatus(`Polygon vertex ${n} placed${snap ? (snap.deedPt ? " (anchored to Deed DXF)" : " (snapped)") : ""}. ${n >= 3 ? "Click near first vertex or '✓ Close polygon' to close." : "Continue adding vertices."}`);
           redrawTrueCanvas();
         }
       }
@@ -2443,7 +2496,15 @@ EOF`;
       if (state.draggingUserPolyNode !== null) {
         const snap = getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode);
         state.currentSnapTarget = snap;
-        state.userPolygon.vertices[state.draggingUserPolyNode] = snap ? { ...snap.worldPt } : p;
+        state.userPolygon.vertices[state.draggingUserPolyNode] = snap ? {
+          x: snap.worldPt.x,
+          y: snap.worldPt.y,
+          deedPt: snap.deedPt ? { x: snap.deedPt.x, y: snap.deedPt.y } : null
+        } : {
+          x: p.x,
+          y: p.y,
+          deedPt: null
+        };
         recomputeUserPolygonMetrics();
         redrawTrueCanvas();
         return;
