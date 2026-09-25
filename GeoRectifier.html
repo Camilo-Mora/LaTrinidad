@@ -1905,6 +1905,7 @@ EOF`;
       document.getElementById("btn-cancel-polygon").style.display = "none";
       document.getElementById("btn-close-polygon").style.display = "none";
       document.getElementById("poly-status-hint").textContent = "Click \"+ Create new polygon\" then click on the field canvas to place vertices. Click near the first vertex to close.";
+      if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
       updatePolygonButtonStates();
       updateStatus("Polygon cleared.");
       redrawTrueCanvas();
@@ -1914,6 +1915,7 @@ EOF`;
     document.getElementById("btn-create-polygon").addEventListener("click", () => {
       resetUserPolygon();
       state.userPolygon.drawMode = true;
+      if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = "crosshair";
       document.getElementById("btn-cancel-polygon").style.display = "";
       document.getElementById("poly-status-hint").textContent = "Click on the field canvas to place vertices. Click near the first vertex (blue dot) to close the polygon.";
       updateStatus("📐 Polygon draw mode — click on field canvas to add vertices.");
@@ -2136,7 +2138,10 @@ EOF`;
       clickStart.x = e.clientX;
       clickStart.y = e.clientY;
 
-      if (state.toolMode === "pan" || e.button === 2 || e.button === 1 || spacePressed) {
+      const isPolyDrawOnTrue = (!isHist && state.userPolygon && state.userPolygon.drawMode);
+      const shouldPan = (state.toolMode === "pan" && !isPolyDrawOnTrue) || e.button === 2 || e.button === 1 || spacePressed;
+
+      if (shouldPan) {
         isPanning = true;
         panStart.x = e.clientX;
         panStart.y = e.clientY;
@@ -2147,7 +2152,7 @@ EOF`;
         return;
       }
 
-      if (state.toolMode === "anchor" && e.button === 0) {
+      if (state.toolMode === "anchor" && e.button === 0 && !isPolyDrawOnTrue) {
         const rect = canvas.getBoundingClientRect();
         const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
         const hit = hitTestAnchor(sx, sy, isHist);
@@ -2162,18 +2167,22 @@ EOF`;
       if (isPanning) {
         isPanning = false;
         activePanViewport = null;
-        canvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
       }
 
       if (draggingAnchor) {
         updateStatus(`Updated Anchor #${draggingAnchor.anc.id} position.`);
         draggingAnchor = null;
-        canvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
         redrawAll();
         return;
       }
 
-      if (state.toolMode === "pan") return;
+      if (state.toolMode === "pan" && (!state.userPolygon || !state.userPolygon.drawMode || isHist)) return;
       if (Math.abs(e.clientX - clickStart.x) > 6 || Math.abs(e.clientY - clickStart.y) > 6) return;
       if (e.button !== 0) return;
 
@@ -2236,13 +2245,15 @@ EOF`;
       if (isPanning) {
         isPanning = false;
         activePanViewport = null;
-        const cursor = state.toolMode === "pan" ? "grab" : "crosshair";
-        histCanvas.style.cursor = trueCanvas.style.cursor = cursor;
+        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
       }
       if (draggingAnchor) {
         draggingAnchor = null;
-        const cursor = state.toolMode === "pan" ? "grab" : "crosshair";
-        histCanvas.style.cursor = trueCanvas.style.cursor = cursor;
+        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
         redrawAll();
       }
     });
@@ -2261,6 +2272,10 @@ EOF`;
       const r = trueCanvas.getBoundingClientRect();
       const p = screenToWorldGIS(e.clientX - r.left, e.clientY - r.top, state.trueViewport, trueCanvas.height);
       coordsBar.textContent = `Field UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+      if (state.userPolygon && state.userPolygon.drawMode && !isPanning) {
+        trueCanvas.style.cursor = "crosshair";
+        return;
+      }
       if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
         const hit = hitTestAnchor(e.clientX - r.left, e.clientY - r.top, false);
         trueCanvas.style.cursor = hit ? "move" : "crosshair";
