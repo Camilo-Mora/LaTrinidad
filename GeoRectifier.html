@@ -849,9 +849,17 @@
               </label>
             </div>
             <!-- Per-segment inputs container -->
-            <div id="polygon-segments-container" style="display:none;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px;background:rgba(0,0,0,0.2);">
-              <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">Segment deed distances (m) — optional:</div>
+            <div id="polygon-segments-container" style="display:none;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px;background:rgba(0,0,0,0.2);">
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">Segment deed distances (m) &amp; Error %:</div>
               <div id="polygon-seg-inputs"></div>
+              <!-- Segment Error Color Legend -->
+              <div id="segment-error-legend" style="display:flex;align-items:center;justify-content:space-between;font-size:0.67rem;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:4px;border:1px solid rgba(255,255,255,0.08);margin-top:6px;color:var(--text-muted);">
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#00e676;"></span>&lt;2%</span>
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#aeea00;"></span>2–5%</span>
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#ffd600;"></span>5–10%</span>
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#ff9100;"></span>10–20%</span>
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#ff1744;"></span>&gt;20%</span>
+              </div>
             </div>
             <!-- Metrics -->
             <div id="polygon-metrics" style="display:none;font-size:0.78rem;line-height:1.7;background:rgba(0,0,0,0.25);border-radius:6px;padding:8px;border:1px solid rgba(0,229,255,0.25);">
@@ -1947,6 +1955,41 @@ EOF`;
       return -1;
     }
 
+    /**
+     * Get error percentage and display color for a segment based on percent error
+     * Color scale:
+     *   < 2%   : Bright Green (#00e676) - Excellent match
+     *   2 - 5% : Lime Green   (#aeea00) - Good match
+     *   5 - 10%: Yellow       (#ffd600) - Moderate discrepancy
+     *   10-20% : Orange       (#ff9100) - High error
+     *   > 20%  : Red          (#ff1744) - Severe error
+     *   No deed: Cyan         (#00e5ff) - Neutral unmeasured
+     */
+    function getSegmentErrorMeta(measLen, deedLen) {
+      if (deedLen == null || isNaN(deedLen) || deedLen <= 0) {
+        return { errPct: null, color: "#00e5ff", badgeColor: "rgba(0,229,255,0.18)" };
+      }
+      const errPct = Math.abs(measLen - deedLen) / deedLen * 100;
+      let color, badgeColor;
+      if (errPct < 2.0) {
+        color = "#00e676"; // <2%
+        badgeColor = "rgba(0,230,118,0.22)";
+      } else if (errPct < 5.0) {
+        color = "#aeea00"; // 2-5%
+        badgeColor = "rgba(174,234,0,0.22)";
+      } else if (errPct < 10.0) {
+        color = "#ffd600"; // 5-10%
+        badgeColor = "rgba(255,214,0,0.22)";
+      } else if (errPct < 20.0) {
+        color = "#ff9100"; // 10-20%
+        badgeColor = "rgba(255,145,0,0.22)";
+      } else {
+        color = "#ff1744"; // >20%
+        badgeColor = "rgba(255,23,68,0.25)";
+      }
+      return { errPct, color, badgeColor };
+    }
+
     /** Draw the user polygon on the true-field canvas */
     function drawUserPolygon(ctx, vp, canvasH) {
       const poly = state.userPolygon;
@@ -1955,25 +1998,43 @@ EOF`;
       if (verts.length === 0) return;
 
       ctx.save();
-      ctx.strokeStyle = "#00e5ff";
-      ctx.fillStyle = "rgba(0,229,255,0.12)";
-      ctx.lineWidth = 2.5;
       ctx.globalAlpha = 1;
 
-      ctx.beginPath();
-      const s0 = worldToScreenGIS(verts[0], vp, canvasH);
-      ctx.moveTo(s0.x, s0.y);
-      for (let i = 1; i < verts.length; i++) {
-        const s = worldToScreenGIS(verts[i], vp, canvasH);
-        ctx.lineTo(s.x, s.y);
-      }
-      if (poly.closed) {
+      // 1. Polygon interior fill (when closed)
+      if (poly.closed && verts.length >= 3) {
+        ctx.beginPath();
+        const s0 = worldToScreenGIS(verts[0], vp, canvasH);
+        ctx.moveTo(s0.x, s0.y);
+        for (let i = 1; i < verts.length; i++) {
+          const s = worldToScreenGIS(verts[i], vp, canvasH);
+          ctx.lineTo(s.x, s.y);
+        }
         ctx.closePath();
+        ctx.fillStyle = "rgba(0,229,255,0.08)";
         ctx.fill();
       }
-      ctx.stroke();
 
-      // Vertex dots (Orange = anchored to Deed DXF, Cyan = field/unanchored)
+      // 2. Individual segment strokes color-coded by percent error
+      const nSegs = poly.closed ? verts.length : verts.length - 1;
+      for (let i = 0; i < nSegs; i++) {
+        const a = verts[i], b = verts[(i + 1) % verts.length];
+        const measLen = Math.hypot(b.x - a.x, b.y - a.y);
+        const deedLen = poly.segmentLengths[i];
+        const meta = getSegmentErrorMeta(measLen, deedLen);
+
+        const sa = worldToScreenGIS(a, vp, canvasH);
+        const sb = worldToScreenGIS(b, vp, canvasH);
+
+        ctx.beginPath();
+        ctx.moveTo(sa.x, sa.y);
+        ctx.lineTo(sb.x, sb.y);
+        ctx.strokeStyle = meta.color;
+        ctx.lineWidth = meta.errPct != null ? 3.5 : 2.5;
+        ctx.lineCap = "round";
+        ctx.stroke();
+      }
+
+      // 3. Vertex dots (Orange = anchored to Deed DXF, Cyan = field/unanchored)
       verts.forEach((v, i) => {
         const sp = worldToScreenGIS(v, vp, canvasH);
         ctx.beginPath();
@@ -1985,24 +2046,32 @@ EOF`;
         ctx.stroke();
       });
 
-      // Segment length labels (measured in world units = metres for GIS)
+      // 4. Segment length labels with error percentage (when Labels checkbox is active)
       if (state.showSegmentLabels !== false) {
-        ctx.fillStyle = "rgba(0,229,255,0.9)";
-        ctx.font = "bold 10px sans-serif";
-        ctx.textAlign = "center";
-        const nSegs = poly.closed ? verts.length : verts.length - 1;
         for (let i = 0; i < nSegs; i++) {
           const a = verts[i], b = verts[(i + 1) % verts.length];
           const mid = worldToScreenGIS({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, vp, canvasH);
           const len = Math.hypot(b.x - a.x, b.y - a.y);
           const deedLen = poly.segmentLengths[i];
-          const label = deedLen != null
-            ? `Seg ${i + 1}: ${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m`
+          const meta = getSegmentErrorMeta(len, deedLen);
+
+          const label = meta.errPct != null
+            ? `Seg ${i + 1}: ${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m (${meta.errPct.toFixed(1)}%)`
             : `Seg ${i + 1}: ${len.toFixed(1)}m`;
-          ctx.fillStyle = "rgba(0,0,0,0.65)";
+
+          ctx.font = "bold 10px sans-serif";
+          ctx.textAlign = "center";
           const tw = ctx.measureText(label).width;
-          ctx.fillRect(mid.x - tw/2 - 4, mid.y - 9, tw + 8, 14);
-          ctx.fillStyle = "#00e5ff";
+          const bw = tw + 10, bh = 15;
+
+          // Box background & border colored by error
+          ctx.fillStyle = "rgba(6, 9, 15, 0.9)";
+          ctx.fillRect(mid.x - bw / 2, mid.y - 10, bw, bh);
+          ctx.strokeStyle = meta.color;
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(mid.x - bw / 2, mid.y - 10, bw, bh);
+
+          ctx.fillStyle = meta.color;
           ctx.fillText(label, mid.x, mid.y + 2);
         }
       }
@@ -2055,29 +2124,64 @@ EOF`;
       for (let i = 0; i < nSegs; i++) {
         const a = poly.vertices[i], b = poly.vertices[(i + 1) % poly.vertices.length];
         const calcLen = Math.hypot(b.x - a.x, b.y - a.y);
+        const deedLen = poly.segmentLengths[i];
+        const meta = getSegmentErrorMeta(calcLen, deedLen);
 
         const wrap = document.createElement("div");
-        wrap.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px;";
+        wrap.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);";
+
         const lbl = document.createElement("span");
-        lbl.style.cssText = "font-size:0.72rem;color:var(--text-muted);min-width:130px;display:flex;align-items:center;gap:4px;";
-        lbl.innerHTML = `<strong style="color:var(--accent-cyan);">Seg ${i + 1}</strong> (${calcLen.toFixed(1)}m):`;
+        lbl.style.cssText = "font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:5px;flex:1;";
+
+        const dot = document.createElement("span");
+        dot.style.cssText = `width:7px;height:7px;border-radius:50%;background:${meta.color};box-shadow:0 0 5px ${meta.color};flex-shrink:0;`;
+
+        const segTitle = document.createElement("strong");
+        segTitle.style.cssText = `color:${meta.color};`;
+        segTitle.textContent = `Seg ${i + 1}`;
+
+        const lenText = document.createElement("span");
+        lenText.textContent = `(${calcLen.toFixed(1)}m):`;
+
+        lbl.appendChild(dot);
+        lbl.appendChild(segTitle);
+        lbl.appendChild(lenText);
+
+        const rightGroup = document.createElement("div");
+        rightGroup.style.cssText = "display:flex;align-items:center;gap:4px;";
 
         const field = document.createElement("input");
         field.type = "number";
         field.step = "0.1";
         field.min = "0";
         field.placeholder = "deed m";
-        field.style.cssText = "width:75px;padding:2px 5px;font-size:0.72rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;";
+        field.style.cssText = "width:62px;padding:2px 5px;font-size:0.72rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;";
         if (poly.segmentLengths[i] != null) field.value = poly.segmentLengths[i];
         field.dataset.segIdx = i;
+
+        const errBadge = document.createElement("span");
+        errBadge.style.cssText = `font-size:0.67rem;font-weight:700;padding:2px 5px;border-radius:3px;min-width:44px;text-align:center;background:${meta.badgeColor};color:${meta.color};border:1px solid ${meta.color}40;`;
+        errBadge.textContent = meta.errPct != null ? `${meta.errPct.toFixed(1)}%` : "—";
+
         field.addEventListener("input", () => {
           const v = parseFloat(field.value);
           state.userPolygon.segmentLengths[i] = isNaN(v) ? null : v;
+          const updatedMeta = getSegmentErrorMeta(calcLen, state.userPolygon.segmentLengths[i]);
+          errBadge.textContent = updatedMeta.errPct != null ? `${updatedMeta.errPct.toFixed(1)}%` : "—";
+          errBadge.style.background = updatedMeta.badgeColor;
+          errBadge.style.color = updatedMeta.color;
+          errBadge.style.borderColor = updatedMeta.color + "40";
+          dot.style.background = updatedMeta.color;
+          dot.style.boxShadow = `0 0 5px ${updatedMeta.color}`;
+          segTitle.style.color = updatedMeta.color;
           recomputeUserPolygonMetrics();
           redrawTrueCanvas();
         });
+
+        rightGroup.appendChild(field);
+        rightGroup.appendChild(errBadge);
         wrap.appendChild(lbl);
-        wrap.appendChild(field);
+        wrap.appendChild(rightGroup);
         inp.appendChild(wrap);
       }
     }
