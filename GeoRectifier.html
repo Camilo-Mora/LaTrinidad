@@ -2074,6 +2074,7 @@ EOF`;
 
     // ── Polygon button handlers ──────────────────────────────────────────
     document.getElementById("btn-create-polygon").addEventListener("click", () => {
+      setToolMode("pan");
       resetUserPolygon();
       state.userPolygon.drawMode = true;
       if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = "crosshair";
@@ -2207,6 +2208,8 @@ EOF`;
 
     // Context menu handler on trueCanvas (prevents context menu when clicking nodes or drawing)
     trueCanvas.addEventListener("contextmenu", e => {
+      // In Anchor Mode: block ALL polygon context menu interactions — anchors have exclusive control
+      if (state.toolMode === "anchor") return;
       const rect = trueCanvas.getBoundingClientRect();
       const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
       const hitNode = findUserPolyNodeAt(sx, sy, state.trueViewport, trueCanvas.height);
@@ -2217,6 +2220,11 @@ EOF`;
 
     // Capture-phase mouse listener for trueCanvas (user polygon creation, node drag & right-click node delete)
     trueCanvas.addEventListener("mousedown", function(e) {
+      // In Anchor Mode: block ALL polygon interactions — move, create, delete — anchors have exclusive control
+      if (state.toolMode === "anchor") {
+        return;
+      }
+
       const rect = trueCanvas.getBoundingClientRect();
       const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
       const vp = state.trueViewport, h = trueCanvas.height;
@@ -2307,14 +2315,24 @@ EOF`;
       state.toolMode = mode;
       btnModePan.classList.toggle("active", mode==="pan");
       btnModeAnchor.classList.toggle("active", mode==="anchor");
-      const cursor = (state.userPolygon && state.userPolygon.drawMode)
-        ? "crosshair"
-        : (mode==="pan" ? "grab" : "crosshair");
+      if (mode === "anchor") {
+        state.draggingUserPolyNode = null;
+        state.currentSnapTarget = null;
+        if (state.userPolygon && state.userPolygon.drawMode) {
+          state.userPolygon.drawMode = false;
+          const btnCancel = document.getElementById("btn-cancel-polygon");
+          if (btnCancel) btnCancel.style.display = "none";
+          const btnClose = document.getElementById("btn-close-polygon");
+          if (btnClose) btnClose.style.display = "none";
+        }
+        redrawTrueCanvas();
+      }
+      const cursor = (mode==="anchor") ? "crosshair" : ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : "grab");
       histCanvas.style.cursor = mode==="pan" ? "grab" : "crosshair";
       trueCanvas.style.cursor = cursor;
       updateStatus(mode==="pan"
-        ? "🖐️ Pan Mode — drag to move. Scroll to zoom."
-        : "🎯 Anchor Mode — click a point on the deed map, then its matching point on the field survey.");
+        ? "🖐️ Pan Mode — drag to move. Scroll to zoom. Polygon nodes can be created, moved, or deleted."
+        : "🎯 Anchor Mode — only anchors are active. Click/drag anchor pairs. Polygon vertices cannot be moved or altered.");
     }
 
     btnModePan.addEventListener("click",    () => setToolMode("pan"));
@@ -2347,7 +2365,7 @@ EOF`;
       clickStart.x = e.clientX;
       clickStart.y = e.clientY;
 
-      const isPolyDrawOnTrue = (!isHist && state.userPolygon && state.userPolygon.drawMode);
+      const isPolyDrawOnTrue = (!isHist && state.userPolygon && state.userPolygon.drawMode && state.toolMode === "pan");
       const shouldPan = (state.toolMode === "pan" && !isPolyDrawOnTrue) || e.button === 2 || e.button === 1 || spacePressed;
 
       if (shouldPan) {
@@ -2361,7 +2379,7 @@ EOF`;
         return;
       }
 
-      if (state.toolMode === "anchor" && e.button === 0 && !isPolyDrawOnTrue) {
+      if (state.toolMode === "anchor" && e.button === 0) {
         const rect = canvas.getBoundingClientRect();
         const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
         const hit = hitTestAnchor(sx, sy, isHist);
@@ -2510,18 +2528,28 @@ EOF`;
         return;
       }
 
-      // 2. Hovering/drawing user polygon
+      // 2. Anchor Mode active: prioritize anchor pin hovering and ignore polygon node interactions completely
+      if (state.toolMode === "anchor") {
+        if (!isPanning && !draggingAnchor) {
+          const hit = hitTestAnchor(mouseX, mouseY, false);
+          trueCanvas.style.cursor = hit ? "move" : "crosshair";
+        }
+        if (state.currentSnapTarget !== null) {
+          state.currentSnapTarget = null;
+          redrawTrueCanvas();
+        }
+        return;
+      }
+
+      // 3. Pan Mode: Hovering/drawing user polygon (creating, snapping, and dragging nodes)
       if (state.userPolygon && (state.userPolygon.drawMode || state.userPolygon.vertices.length > 0)) {
         const snap = getPolygonSnapTarget(mouseX, mouseY, vp, h);
         state.currentSnapTarget = snap;
         const hitNode = findUserPolyNodeAt(mouseX, mouseY, vp, h);
         if (!isPanning) {
-          trueCanvas.style.cursor = hitNode >= 0 ? "move" : (state.userPolygon.drawMode ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair"));
+          trueCanvas.style.cursor = hitNode >= 0 ? "move" : (state.userPolygon.drawMode ? "crosshair" : "grab");
         }
         redrawTrueCanvas();
-      } else if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
-        const hit = hitTestAnchor(mouseX, mouseY, vp, trueCanvas, "true");
-        trueCanvas.style.cursor = hit ? "move" : "crosshair";
       }
     });
 
