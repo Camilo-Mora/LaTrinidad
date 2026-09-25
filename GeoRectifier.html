@@ -2094,10 +2094,7 @@ EOF`;
       redrawTrueCanvas();
     }, true); // capture phase so it fires before the normal mouseup
 
-
-    const btnModePan    = document.getElementById("btn-mode-pan");
-    const btnModeAnchor = document.getElementById("btn-mode-anchor");
-
+    // Tool mode switcher
     function setToolMode(mode) {
       state.toolMode = mode;
       btnModePan.classList.toggle("active", mode==="pan");
