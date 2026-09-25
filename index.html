@@ -1594,6 +1594,32 @@
                   <span>18 px (Large)</span>
                 </div>
               </div>
+
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                  <label for="vec-vertex-stroke" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Vertex Stroke Thickness</label>
+                  <span id="vec-vertex-stroke-val" style="font-size:0.78rem; font-family:monospace; font-weight:700; color:var(--accent-cyan);">2 px</span>
+                </div>
+                <div style="display:flex; gap:4px; margin-bottom:4px;">
+                  <button class="preset-btn" data-vecstroke="1">1px</button>
+                  <button class="preset-btn" data-vecstroke="2">2px</button>
+                  <button class="preset-btn" data-vecstroke="4">4px</button>
+                  <button class="preset-btn" data-vecstroke="6">6px</button>
+                </div>
+                <input type="range" id="vec-vertex-stroke" min="0.5" max="8" step="0.5" value="2" style="width:100%; accent-color:var(--accent-cyan); cursor:pointer;">
+                <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-muted); margin-top:2px;">
+                  <span>0.5 px (Fine)</span>
+                  <span>4 px</span>
+                  <span>8 px (Bold)</span>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px solid var(--border-color);">
+                <input type="checkbox" id="vec-vertex-hollow" style="width:15px; height:15px; accent-color:var(--accent-cyan); cursor:pointer; flex-shrink:0;">
+                <label for="vec-vertex-hollow" style="font-size:0.75rem; color:var(--text-muted); font-weight:600; cursor:pointer; user-select:none;">
+                  Hollow Vertices <span style="color:var(--text-muted); font-weight:400;">(outline only, no fill)</span>
+                </label>
+              </div>
             </div>
           </section>
 
@@ -4574,6 +4600,40 @@ function setupEventListeners() {
     });
   });
 
+  // Vectorizer vertex stroke thickness controls
+  const vecStrokeSlider = document.getElementById("vec-vertex-stroke");
+  const vecStrokeVal = document.getElementById("vec-vertex-stroke-val");
+  if (vecStrokeSlider && vecStrokeVal) {
+    vecStrokeSlider.addEventListener("input", (e) => {
+      const val = parseFloat(e.target.value);
+      vecState.vertexStroke = val;
+      vecStrokeVal.textContent = `${val} px`;
+      try { localStorage.setItem("vec_vertex_stroke", val); } catch (err) {}
+      redrawVecDrawCanvas();
+    });
+  }
+
+  document.querySelectorAll(".preset-btn[data-vecstroke]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const val = parseFloat(btn.getAttribute("data-vecstroke"));
+      vecState.vertexStroke = val;
+      if (vecStrokeSlider) vecStrokeSlider.value = val;
+      if (vecStrokeVal) vecStrokeVal.textContent = `${val} px`;
+      try { localStorage.setItem("vec_vertex_stroke", val); } catch (err) {}
+      redrawVecDrawCanvas();
+    });
+  });
+
+  // Vectorizer hollow vertex checkbox
+  const vecHollowChk = document.getElementById("vec-vertex-hollow");
+  if (vecHollowChk) {
+    vecHollowChk.addEventListener("change", (e) => {
+      vecState.vertexHollow = e.target.checked;
+      try { localStorage.setItem("vec_vertex_hollow", e.target.checked); } catch (err) {}
+      redrawVecDrawCanvas();
+    });
+  }
+
   // Vectorizer page navigation
   const btnPrev = document.getElementById("btn-vec-prev-page");
   const btnNext = document.getElementById("btn-vec-next-page");
@@ -5554,6 +5614,16 @@ const vecState = {
       return Number.isFinite(v) && v > 0 ? v : 6;
     } catch (e) { return 6; }
   })(),
+  vertexStroke: (function() {
+    try {
+      const v = parseFloat(localStorage.getItem("vec_vertex_stroke"));
+      return Number.isFinite(v) && v > 0 ? v : 2;
+    } catch (e) { return 2; }
+  })(),
+  vertexHollow: (function() {
+    try { return localStorage.getItem("vec_vertex_hollow") === "true"; }
+    catch (e) { return false; }
+  })(),
   polygons: [],
   activePolyIndex: 0,
   isDraggingVertex: false,
@@ -5574,6 +5644,14 @@ function syncVecStyleControls() {
     sizeSlider.value = vecState.vertexSize;
     sizeVal.textContent = `${vecState.vertexSize} px`;
   }
+  const strokeSlider = document.getElementById("vec-vertex-stroke");
+  const strokeVal = document.getElementById("vec-vertex-stroke-val");
+  if (strokeSlider && strokeVal) {
+    strokeSlider.value = vecState.vertexStroke;
+    strokeVal.textContent = `${vecState.vertexStroke} px`;
+  }
+  const hollowChk = document.getElementById("vec-vertex-hollow");
+  if (hollowChk) hollowChk.checked = vecState.vertexHollow;
 }
 
 const vecModal = document.getElementById("vectorizer-modal");
@@ -5660,6 +5738,8 @@ function redrawVecDrawCanvas() {
   vecDrawCtx.clearRect(0, 0, vecDrawCanvas.width, vecDrawCanvas.height);
   const baseThickness = vecState.outlineThickness || 3;
   const baseVertexRadius = vecState.vertexSize || 6;
+  const baseVertexStroke = vecState.vertexStroke || 2;
+  const hollow = vecState.vertexHollow || false;
 
   vecState.polygons.forEach((poly, pIdx) => {
     if (poly.points.length === 0) return;
@@ -5680,16 +5760,23 @@ function redrawVecDrawCanvas() {
       const sx = pt.x * vecState.scale;
       const sy = pt.y * vecState.scale;
       vecDrawCtx.beginPath(); vecDrawCtx.arc(sx, sy, handleRadius, 0, Math.PI * 2);
-      vecDrawCtx.fillStyle = isActive ? "#ffffff" : poly.color; vecDrawCtx.fill();
+      if (hollow) {
+        // Hollow: transparent fill, colored stroke only
+        vecDrawCtx.fillStyle = "transparent";
+      } else {
+        // Filled: white fill for active, polygon color for inactive
+        vecDrawCtx.fillStyle = isActive ? "#ffffff" : poly.color;
+      }
+      vecDrawCtx.fill();
       vecDrawCtx.strokeStyle = poly.color;
-      vecDrawCtx.lineWidth = Math.max(1.5, Math.min(3, handleRadius * 0.35));
+      vecDrawCtx.lineWidth = baseVertexStroke;
       vecDrawCtx.stroke();
 
       if (isActive) {
         const reticleLen = Math.max(5, handleRadius + 3);
         vecDrawCtx.beginPath();
         vecDrawCtx.moveTo(sx - reticleLen, sy); vecDrawCtx.lineTo(sx + reticleLen, sy);
-        vecDrawCtx.moveTo(sx, sy - reticleLen); vecDrawCtx.lineTo(sx + reticleLen);
+        vecDrawCtx.moveTo(sx, sy - reticleLen); vecDrawCtx.lineTo(sx, sy + reticleLen);
         vecDrawCtx.strokeStyle = "rgba(255, 255, 255, 0.65)";
         vecDrawCtx.lineWidth = Math.max(1, Math.min(2, handleRadius * 0.2));
         vecDrawCtx.stroke();
@@ -5709,7 +5796,7 @@ function redrawVecDrawCanvas() {
     vecDrawCtx.strokeStyle = "#ffffff"; vecDrawCtx.lineWidth = 1.5; vecDrawCtx.stroke();
     vecDrawCtx.beginPath();
     vecDrawCtx.moveTo(sx - (snapR + 4), sy); vecDrawCtx.lineTo(sx + (snapR + 4), sy);
-    vecDrawCtx.moveTo(sx, sy - (snapR + 4)); vecDrawCtx.lineTo(sx + (snapR + 4));
+    vecDrawCtx.moveTo(sx, sy - (snapR + 4)); vecDrawCtx.lineTo(sx, sy + (snapR + 4));
     vecDrawCtx.strokeStyle = "rgba(255, 214, 0, 0.85)"; vecDrawCtx.lineWidth = 1.2; vecDrawCtx.stroke();
     vecDrawCtx.restore();
   }
