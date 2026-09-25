@@ -587,10 +587,14 @@
       </div>
 
       <!-- Export Action -->
-      <div class="header-actions">
+      <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
         <button id="btn-export-dxf" class="btn btn-success">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           Export Rectified DXF
+        </button>
+        <button id="btn-export-polygon-dxf" class="btn btn-success" disabled style="opacity:0.45;" title="Export the hand-crafted polygon as a DXF file (user_polygon.dxf)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          Export Polygon DXF
         </button>
       </div>
     </header>
@@ -730,6 +734,48 @@
             <li>Add 3+ pairs to activate real-time rubber-sheeting!</li>
             <li>Click <strong>Export Rectified DXF</strong> when satisfied!</li>
           </ol>
+        </section>
+
+        <!-- ===== DISTANCE & AREA PANEL ===== -->
+        <section class="panel-card" id="panel-distance-area">
+          <div class="panel-header">
+            <h3>📏 Distance &amp; Area</h3>
+          </div>
+          <div id="body-distance-area" style="display:flex;flex-direction:column;gap:8px;">
+            <!-- Action buttons -->
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button id="btn-create-polygon" class="btn btn-primary btn-sm" title="Start drawing a new polygon on the field canvas">+ Create new polygon</button>
+              <button id="btn-cancel-polygon" class="btn btn-secondary btn-sm" style="display:none;" title="Cancel current polygon drawing">✕ Cancel</button>
+              <button id="btn-close-polygon" class="btn btn-secondary btn-sm" style="display:none;" title="Close and finish the polygon (or click near first vertex)">✓ Close polygon</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button id="btn-save-polygon" class="btn btn-sm" style="background:rgba(0,200,83,0.25);border:1px solid rgba(0,200,83,0.5);color:#00e676;" disabled title="Save polygon to user_polygon.json">💾 Save JSON</button>
+              <label id="btn-load-polygon-lbl" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:0.72rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;">
+                📂 Load JSON<input type="file" id="polygon-file-input" accept=".json" style="display:none;">
+              </label>
+              <button id="btn-clear-polygon" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear and delete the current polygon">🗑 Clear</button>
+            </div>
+            <!-- Snap toggle -->
+            <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;">
+              <input type="checkbox" id="chk-polygon-snap" checked style="accent-color:var(--accent-cyan);">
+              Snap vertices to DXF (15 px radius)
+            </label>
+            <!-- Per-segment inputs container -->
+            <div id="polygon-segments-container" style="display:none;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px;background:rgba(0,0,0,0.2);">
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">Segment deed distances (m) — optional:</div>
+              <div id="polygon-seg-inputs"></div>
+            </div>
+            <!-- Metrics -->
+            <div id="polygon-metrics" style="display:none;font-size:0.8rem;line-height:1.8;background:rgba(0,0,0,0.2);border-radius:6px;padding:8px;border:1px solid rgba(0,229,255,0.2);">
+              <div>Vertices: <strong id="poly-vertex-count">—</strong></div>
+              <div>Area (field): <strong id="poly-area">—</strong> m²</div>
+              <hr style="border-color:rgba(255,255,255,0.1);margin:4px 0;">
+              <div>Segments with deed dist: <strong id="poly-seg-with-dist">—</strong></div>
+              <div>Avg segment error: <strong id="avg-seg-error" style="color:var(--accent-cyan);">—</strong> %</div>
+              <div>Overall error: <strong id="overall-error" style="color:var(--accent-cyan);">—</strong> %</div>
+            </div>
+            <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);">Click "+ Create new polygon" then click on the field canvas to place vertices. Click near the first vertex to close.</p>
+          </div>
         </section>
       </aside>
     </main>
@@ -1339,6 +1385,14 @@ EOF`;
       histPdfCanvas: null,     // offscreen canvas: rendered Mapa1073_FerminSuarez.pdf
       histPdfW: 0,             // PDF width in PDF-space pts
       histPdfH: 0,
+      // Hand-crafted user polygon (Distance & Area panel)
+      userPolygon: {
+        vertices: [],          // [{x, y}] in GIS world space
+        segmentLengths: [],    // parallel array: deed length (m) or null
+        closed: false,
+        drawMode: false,
+        show: true,
+      },
     };
 
     const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
@@ -1605,6 +1659,9 @@ EOF`;
         trueCtx.fillStyle="#fff"; trueCtx.font="bold 11px sans-serif";
         trueCtx.fillText(`#${anc.id}`,tp.x+10,tp.y-6);
       });
+
+      // Layer 6: Hand-crafted user polygon
+      drawUserPolygon(trueCtx, vp, h);
     }
 
     /* -----------------------------------------------------------------------
@@ -1654,6 +1711,358 @@ EOF`;
     // ── Pan / Zoom / Anchor interactions ──────────────────────────────
     let spacePressed=false, isPanning=false;
     let panStart={x:0,y:0}, vpStart={offsetX:0,offsetY:0}, activePanViewport=null, clickStart={x:0,y:0};
+
+    const btnModePan    = document.getElementById("btn-mode-pan");
+    const btnModeAnchor = document.getElementById("btn-mode-anchor");
+
+    /* ==========================================================================
+       USER POLYGON — Distance & Area Feature
+       ========================================================================== */
+    const POLY_SNAP_RADIUS = 15; // screen pixels – matches index.html snap radius
+
+    /** Collect all world-space points from loaded DXF entities (true-field space) */
+    function getAllSnapPoints() {
+      const pts = [];
+      (state.trueEntities || []).forEach(ent => (ent.points || []).forEach(p => pts.push(p)));
+      // Also snap to warped deed vertices if warper is available
+      if (state.anchors.length >= 2) {
+        try {
+          const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+          (state.histEntities || []).forEach(ent => (ent.points || []).forEach(p => pts.push(warper(p))));
+        } catch(_) {}
+      }
+      return pts;
+    }
+
+    /** Snap a screen-space click to the nearest DXF vertex within POLY_SNAP_RADIUS.
+     *  Returns the snapped GIS world point, or null if nothing is close enough. */
+    function snapToVertex(sx, sy, vp, canvasH) {
+      const chk = document.getElementById("chk-polygon-snap");
+      if (!chk || !chk.checked) return null;
+      const allPts = getAllSnapPoints();
+      let minDist = POLY_SNAP_RADIUS;
+      let best = null;
+      allPts.forEach(wp => {
+        const sp = worldToScreenGIS(wp, vp, canvasH);
+        const d = Math.hypot(sp.x - sx, sp.y - sy);
+        if (d < minDist) { minDist = d; best = wp; }
+      });
+      return best;
+    }
+
+    /** Draw the user polygon on the true-field canvas */
+    function drawUserPolygon(ctx, vp, canvasH) {
+      const poly = state.userPolygon;
+      if (!poly.show) return;
+      const verts = poly.vertices;
+      if (verts.length === 0) return;
+
+      ctx.save();
+      ctx.strokeStyle = "#00e5ff";
+      ctx.fillStyle = "rgba(0,229,255,0.12)";
+      ctx.lineWidth = 2.5;
+      ctx.globalAlpha = 1;
+
+      ctx.beginPath();
+      const s0 = worldToScreenGIS(verts[0], vp, canvasH);
+      ctx.moveTo(s0.x, s0.y);
+      for (let i = 1; i < verts.length; i++) {
+        const s = worldToScreenGIS(verts[i], vp, canvasH);
+        ctx.lineTo(s.x, s.y);
+      }
+      if (poly.closed) {
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.stroke();
+
+      // Vertex dots
+      ctx.fillStyle = "#00e5ff";
+      verts.forEach((v, i) => {
+        const sp = worldToScreenGIS(v, vp, canvasH);
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, i === 0 ? 7 : 5, 0, Math.PI * 2);
+        ctx.fill();
+        if (i === 0) {
+          ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
+          ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 2.5;
+        }
+      });
+
+      // Segment length labels (measured in world units = metres for GIS)
+      ctx.fillStyle = "rgba(0,229,255,0.9)";
+      ctx.font = "bold 10px sans-serif";
+      ctx.textAlign = "center";
+      const nSegs = poly.closed ? verts.length : verts.length - 1;
+      for (let i = 0; i < nSegs; i++) {
+        const a = verts[i], b = verts[(i + 1) % verts.length];
+        const mid = worldToScreenGIS({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, vp, canvasH);
+        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        const deedLen = poly.segmentLengths[i];
+        const label = deedLen != null
+          ? `${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m`
+          : `${len.toFixed(1)}m`;
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
+        const tw = ctx.measureText(label).width;
+        ctx.fillRect(mid.x - tw/2 - 2, mid.y - 9, tw + 4, 13);
+        ctx.fillStyle = "#00e5ff";
+        ctx.fillText(label, mid.x, mid.y);
+      }
+      ctx.textAlign = "left";
+      ctx.restore();
+    }
+
+    /** Rebuild the per-segment <input> rows in the sidebar */
+    function rebuildSegmentInputs() {
+      const poly = state.userPolygon;
+      const container = document.getElementById("polygon-segments-container");
+      const inp = document.getElementById("polygon-seg-inputs");
+      inp.innerHTML = "";
+      const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
+      if (nSegs === 0) { container.style.display = "none"; return; }
+      container.style.display = "flex";
+      for (let i = 0; i < nSegs; i++) {
+        const wrap = document.createElement("div");
+        wrap.style.cssText = "display:flex;align-items:center;gap:6px;margin-bottom:2px;";
+        const lbl = document.createElement("span");
+        lbl.style.cssText = "font-size:0.7rem;color:var(--text-muted);min-width:60px;";
+        lbl.textContent = `Seg ${i + 1}:`;
+        const field = document.createElement("input");
+        field.type = "number";
+        field.step = "0.1";
+        field.min = "0";
+        field.placeholder = "deed m";
+        field.style.cssText = "width:80px;padding:2px 5px;font-size:0.72rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;";
+        if (poly.segmentLengths[i] != null) field.value = poly.segmentLengths[i];
+        field.dataset.segIdx = i;
+        field.addEventListener("input", () => {
+          const v = parseFloat(field.value);
+          state.userPolygon.segmentLengths[i] = isNaN(v) ? null : v;
+          recomputeUserPolygonMetrics();
+          redrawTrueCanvas();
+        });
+        wrap.appendChild(lbl);
+        wrap.appendChild(field);
+        inp.appendChild(wrap);
+      }
+    }
+
+    /** Compute and display polygon metrics in the sub-panel */
+    function recomputeUserPolygonMetrics() {
+      const poly = state.userPolygon;
+      const metricsDiv = document.getElementById("polygon-metrics");
+      if (!metricsDiv) return;
+      if (poly.vertices.length < 2) { metricsDiv.style.display = "none"; return; }
+      metricsDiv.style.display = "block";
+
+      document.getElementById("poly-vertex-count").textContent = poly.vertices.length;
+
+      // Shoelace area (only meaningful when closed)
+      let area = 0;
+      if (poly.closed && poly.vertices.length >= 3) {
+        const V = poly.vertices;
+        for (let i = 0; i < V.length; i++) {
+          const j = (i + 1) % V.length;
+          area += V[i].x * V[j].y - V[j].x * V[i].y;
+        }
+        area = Math.abs(area) / 2;
+      }
+      document.getElementById("poly-area").textContent = area > 0 ? area.toFixed(2) : "—";
+
+      // Segment errors
+      const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
+      const errors = [];
+      for (let i = 0; i < nSegs; i++) {
+        const a = poly.vertices[i], b = poly.vertices[(i + 1) % poly.vertices.length];
+        const measLen = Math.hypot(b.x - a.x, b.y - a.y);
+        const deedLen = poly.segmentLengths[i];
+        if (deedLen != null && deedLen > 0) {
+          errors.push(Math.abs(measLen - deedLen) / deedLen * 100);
+        }
+      }
+      document.getElementById("poly-seg-with-dist").textContent = `${errors.length} / ${nSegs}`;
+      const avgErr = errors.length ? errors.reduce((s, v) => s + v, 0) / errors.length : null;
+      document.getElementById("avg-seg-error").textContent = avgErr != null ? avgErr.toFixed(2) : "—";
+      document.getElementById("overall-error").textContent = avgErr != null ? avgErr.toFixed(2) : "—";
+    }
+
+    /** Update Save / Export button states */
+    function updatePolygonButtonStates() {
+      const poly = state.userPolygon;
+      const hasPoly = poly.vertices.length >= 2;
+      document.getElementById("btn-save-polygon").disabled = !hasPoly;
+      const expBtn = document.getElementById("btn-export-polygon-dxf");
+      expBtn.disabled = !poly.closed;
+      expBtn.style.opacity = poly.closed ? "1" : "0.45";
+    }
+
+    /** Reset the polygon to a clean state */
+    function resetUserPolygon() {
+      state.userPolygon = { vertices: [], segmentLengths: [], closed: false, drawMode: false, show: true };
+      document.getElementById("polygon-seg-inputs").innerHTML = "";
+      document.getElementById("polygon-segments-container").style.display = "none";
+      document.getElementById("polygon-metrics").style.display = "none";
+      document.getElementById("btn-cancel-polygon").style.display = "none";
+      document.getElementById("btn-close-polygon").style.display = "none";
+      document.getElementById("poly-status-hint").textContent = "Click \"+ Create new polygon\" then click on the field canvas to place vertices. Click near the first vertex to close.";
+      updatePolygonButtonStates();
+      updateStatus("Polygon cleared.");
+      redrawTrueCanvas();
+    }
+
+    // ── Polygon button handlers ──────────────────────────────────────────
+    document.getElementById("btn-create-polygon").addEventListener("click", () => {
+      resetUserPolygon();
+      state.userPolygon.drawMode = true;
+      document.getElementById("btn-cancel-polygon").style.display = "";
+      document.getElementById("poly-status-hint").textContent = "Click on the field canvas to place vertices. Click near the first vertex (blue dot) to close the polygon.";
+      updateStatus("📐 Polygon draw mode — click on field canvas to add vertices.");
+    });
+
+    document.getElementById("btn-cancel-polygon").addEventListener("click", resetUserPolygon);
+
+    document.getElementById("btn-close-polygon").addEventListener("click", () => {
+      const poly = state.userPolygon;
+      if (poly.vertices.length >= 3 && !poly.closed) {
+        poly.closed = true;
+        poly.drawMode = false;
+        document.getElementById("btn-cancel-polygon").style.display = "none";
+        document.getElementById("btn-close-polygon").style.display = "none";
+        rebuildSegmentInputs();
+        recomputeUserPolygonMetrics();
+        updatePolygonButtonStates();
+        updateStatus("Polygon closed. Enter deed segment distances (optional) to compute errors.");
+        redrawTrueCanvas();
+      }
+    });
+
+    document.getElementById("btn-clear-polygon").addEventListener("click", resetUserPolygon);
+
+    // Save polygon to JSON
+    document.getElementById("btn-save-polygon").addEventListener("click", () => {
+      const data = JSON.stringify(state.userPolygon, null, 2);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "user_polygon.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      updateStatus("💾 Saved polygon to user_polygon.json.");
+    });
+
+    // Load polygon from JSON
+    document.getElementById("polygon-file-input").addEventListener("change", e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const obj = JSON.parse(ev.target.result);
+          if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
+          state.userPolygon = {
+            vertices: obj.vertices || [],
+            segmentLengths: obj.segmentLengths || [],
+            closed: !!obj.closed,
+            drawMode: false,
+            show: true,
+          };
+          // Pad segmentLengths to match vertices count
+          while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
+            state.userPolygon.segmentLengths.push(null);
+          }
+          document.getElementById("btn-cancel-polygon").style.display = "none";
+          document.getElementById("btn-close-polygon").style.display = "none";
+          rebuildSegmentInputs();
+          recomputeUserPolygonMetrics();
+          updatePolygonButtonStates();
+          if (state.userPolygon.vertices.length > 0 && !state.trueViewport.bbox) {
+            const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
+            state.trueViewport = fitViewport(trueCanvas, bb);
+          }
+          redrawTrueCanvas();
+          updateStatus(`📂 Loaded polygon with ${state.userPolygon.vertices.length} vertices from ${file.name}`);
+        } catch(err) {
+          alert("Failed to load polygon: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = ""; // reset so same file can be reloaded
+    });
+
+    // Export polygon as DXF
+    document.getElementById("btn-export-polygon-dxf").addEventListener("click", () => {
+      const poly = state.userPolygon;
+      if (!poly.closed || poly.vertices.length < 3) {
+        alert("Close the polygon first before exporting to DXF.");
+        return;
+      }
+      const entity = {
+        type: "POLYLINE",
+        layer: "USER_POLYGON",
+        closed: true,
+        points: poly.vertices.map(v => ({ x: v.x, y: v.y }))
+      };
+      const dxfStr = DXFParser.serialize([entity]);
+      const blob = new Blob([dxfStr], { type: "application/dxf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "user_polygon.dxf";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      updateStatus("📐 Exported polygon to user_polygon.dxf.");
+    });
+
+    // ── Intercept trueCanvas clicks for polygon drawing mode ───────────
+    // We prepend this listener; the existing mouseup handler will also fire
+    // but we gate it on !state.userPolygon.drawMode (handled below).
+    trueCanvas.addEventListener("mouseup", function(e) {
+      if (!state.userPolygon.drawMode) return;
+      if (isPanning) return;
+      if (Math.abs(e.clientX - clickStart.x) > 6 || Math.abs(e.clientY - clickStart.y) > 6) return;
+      if (e.button !== 0) return;
+      e.stopImmediatePropagation(); // prevent normal anchor logic
+
+      const rect = trueCanvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const vp = state.trueViewport, h = trueCanvas.height;
+
+      const poly = state.userPolygon;
+
+      // Check if clicking near first vertex → close polygon
+      if (poly.vertices.length >= 3) {
+        const first = worldToScreenGIS(poly.vertices[0], vp, h);
+        if (Math.hypot(first.x - sx, first.y - sy) <= POLY_SNAP_RADIUS + 4) {
+          poly.closed = true;
+          poly.drawMode = false;
+          document.getElementById("btn-cancel-polygon").style.display = "none";
+          document.getElementById("btn-close-polygon").style.display = "none";
+          rebuildSegmentInputs();
+          recomputeUserPolygonMetrics();
+          updatePolygonButtonStates();
+          updateStatus("Polygon closed ✓ Enter deed segment distances to compute errors.");
+          redrawTrueCanvas();
+          return;
+        }
+      }
+
+      // Try snapping, else use raw click
+      const snapped = snapToVertex(sx, sy, vp, h);
+      const worldPt = snapped || screenToWorldGIS(sx, sy, vp, h);
+
+      poly.vertices.push({ x: worldPt.x, y: worldPt.y });
+      // Extend segmentLengths array
+      while (poly.segmentLengths.length < poly.vertices.length) poly.segmentLengths.push(null);
+
+      const n = poly.vertices.length;
+      if (n >= 2) {
+        rebuildSegmentInputs();
+        document.getElementById("btn-close-polygon").style.display = n >= 3 ? "" : "none";
+      }
+      recomputeUserPolygonMetrics();
+      updatePolygonButtonStates();
+      updateStatus(`Polygon vertex ${n} placed${snapped ? " (snapped)" : ""}. ${n >= 3 ? "Click near first vertex or '✓ Close polygon' to close." : "Continue adding vertices."}`);
+      redrawTrueCanvas();
+    }, true); // capture phase so it fires before the normal mouseup
+
 
     const btnModePan    = document.getElementById("btn-mode-pan");
     const btnModeAnchor = document.getElementById("btn-mode-anchor");
@@ -2278,6 +2687,31 @@ EOF`;
       } catch(e) {
         console.warn("anchors_georectifier.json:", e.message);
         updateStatus("Ready • Use '🎯 Anchor Mode' to place control points, then click '💾 Save'.");
+      }
+
+      // 6. User polygon preload (user_polygon.json)
+      try {
+        const text = await fetchText("user_polygon.json");
+        const obj = JSON.parse(text);
+        if (Array.isArray(obj.vertices) && obj.vertices.length > 0) {
+          state.userPolygon = {
+            vertices: obj.vertices || [],
+            segmentLengths: obj.segmentLengths || [],
+            closed: !!obj.closed,
+            drawMode: false,
+            show: true,
+          };
+          while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
+            state.userPolygon.segmentLengths.push(null);
+          }
+          rebuildSegmentInputs();
+          recomputeUserPolygonMetrics();
+          updatePolygonButtonStates();
+          redrawTrueCanvas();
+          updateStatus(`Preloaded polygon (${state.userPolygon.vertices.length} vertices) from user_polygon.json.`);
+        }
+      } catch(e) {
+        console.warn("user_polygon.json preload:", e.message);
       }
     }
 
