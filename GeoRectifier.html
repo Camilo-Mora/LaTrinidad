@@ -567,9 +567,36 @@
     .status-bar { color: var(--accent-cyan); }
 
     /* Hover explainer tooltip windows for optimization buttons */
+    .btn-help-bubble {
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.38);
+      color: var(--accent-cyan);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 0.70rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      box-sizing: border-box;
+    }
+    .btn-help-bubble:hover,
+    .opt-hover-wrap.active .btn-help-bubble {
+      background: rgba(0, 229, 255, 0.28);
+      border-color: var(--accent-cyan);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.45);
+    }
     .opt-hover-wrap {
       position: relative;
       display: inline-flex;
+      align-items: center;
     }
     .opt-hover-card {
       position: absolute;
@@ -601,9 +628,11 @@
       border-style: solid;
       border-color: rgba(11, 17, 30, 0.98) transparent transparent transparent;
     }
-    .opt-hover-wrap:hover .opt-hover-card {
+    .opt-hover-wrap:hover .opt-hover-card,
+    .opt-hover-wrap.active .opt-hover-card {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
     }
     .opt-hover-card.align-right {
       left: auto;
@@ -612,9 +641,10 @@
     }
     .opt-hover-card.align-right::after {
       left: auto;
-      right: 20px;
+      right: 6px;
     }
-    .opt-hover-wrap:hover .opt-hover-card.align-right {
+    .opt-hover-wrap:hover .opt-hover-card.align-right,
+    .opt-hover-wrap.active .opt-hover-card.align-right {
       transform: translateY(0);
     }
     .opt-hover-title {
@@ -995,33 +1025,31 @@
                 </div>
               </div>
               <div style="display:flex;flex-direction:column;gap:6px;">
-                <div style="display:flex;gap:6px;">
-                  <div class="opt-hover-wrap" style="flex:1;">
-                    <button id="btn-run-optimization" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;">
-                      ⚡ Auto-Optimize
-                    </button>
-                    <div class="opt-hover-card">
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <button id="btn-run-optimization" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
+                    ⚡ Auto-Optimize
+                  </button>
+                  <div class="opt-hover-wrap">
+                    <button type="button" class="btn-help-bubble" aria-label="Help Auto-Optimize" title="Help: Auto-Optimize">?</button>
+                    <div class="opt-hover-card align-right">
                       <div class="opt-hover-title">⚡ Auto-Optimize (Current Anchors)</div>
                       <div class="opt-hover-body">Relaxes polygon boundary vertices within their Deed buffers to minimize distance and area error, keeping current anchor positions fixed.</div>
                     </div>
                   </div>
-                  <div class="opt-hover-wrap">
-                    <button id="btn-reset-optimization" class="btn btn-secondary btn-sm" style="justify-content:center;">
-                      ↺ Reset
-                    </button>
-                    <div class="opt-hover-card align-right">
-                      <div class="opt-hover-title">↺ Reset to Deed Nominal</div>
-                      <div class="opt-hover-body">Resets all dynamic boundary vertices back to unadjusted deed positions.</div>
-                    </div>
-                  </div>
+                  <button id="btn-reset-optimization" class="btn btn-secondary btn-sm" style="justify-content:center;" title="Reset all dynamic boundary vertices back to unadjusted deed positions.">
+                    ↺ Reset
+                  </button>
                 </div>
-                <div class="opt-hover-wrap" style="width:100%;">
-                  <button id="btn-autotune-anchors" class="btn btn-sm" style="width:100%;justify-content:center;background:linear-gradient(135deg, #00b0ff, #7c4dff);color:#fff;border:none;font-weight:600;box-shadow:0 2px 8px rgba(0,176,255,0.25);">
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <button id="btn-autotune-anchors" class="btn btn-sm" style="flex:1;justify-content:center;background:linear-gradient(135deg, #00b0ff, #7c4dff);color:#fff;border:none;font-weight:600;box-shadow:0 2px 8px rgba(0,176,255,0.25);">
                     ⚡ Auto-Tune Anchors
                   </button>
-                  <div class="opt-hover-card" style="width:280px;">
-                    <div class="opt-hover-title">⚡ Auto-Tune Anchors (Global Search)</div>
-                    <div class="opt-hover-body">Explores anchor positions within their Field buffers using either <strong>Genetic Algorithm (Differential Evolution)</strong> or <strong>All Combinations (exhaustive grid)</strong> to find the anchor alignment that minimizes overall boundary and area error. Live-animates the polygon during execution.</div>
+                  <div class="opt-hover-wrap">
+                    <button type="button" class="btn-help-bubble" aria-label="Help Auto-Tune Anchors" title="Help: Auto-Tune Anchors">?</button>
+                    <div class="opt-hover-card align-right" style="width:280px;">
+                      <div class="opt-hover-title">⚡ Auto-Tune Anchors (Global Search)</div>
+                      <div class="opt-hover-body">Explores anchor positions within their Field buffers using either <strong>Genetic Algorithm (Differential Evolution)</strong> or <strong>All Combinations (exhaustive grid)</strong> to find the anchor alignment that minimizes overall boundary and area error. Live-animates the polygon during execution.</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3945,9 +3973,28 @@ EOF`;
       });
     }
     window.addEventListener("keydown", e => {
-      if (e.key === "Escape" && modalLegalHelp && modalLegalHelp.style.display === "flex") {
-        closeLegalHelpModal();
+      if (e.key === "Escape") {
+        if (modalLegalHelp && modalLegalHelp.style.display === "flex") {
+          closeLegalHelpModal();
+        }
+        document.querySelectorAll(".opt-hover-wrap.active").forEach(w => w.classList.remove("active"));
       }
+    });
+
+    // Optimization Help Bubble click toggle handlers
+    document.querySelectorAll(".btn-help-bubble").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const wrap = btn.closest(".opt-hover-wrap");
+        if (wrap) {
+          const wasActive = wrap.classList.contains("active");
+          document.querySelectorAll(".opt-hover-wrap.active").forEach(w => w.classList.remove("active"));
+          if (!wasActive) wrap.classList.add("active");
+        }
+      });
+    });
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".opt-hover-wrap.active").forEach(w => w.classList.remove("active"));
     });
 
     // Context menu handler on trueCanvas (prevents context menu when clicking nodes or drawing)
