@@ -3310,36 +3310,47 @@ EOF`;
         }
       }
 
-      // Center area callout box (when polygon is closed)
+      // Area callout HUD box pinned to top-left of the field frame (when polygon is closed)
       if (poly.closed && verts.length >= 3) {
-        let cx = 0, cy = 0, areaM2 = 0;
+        let areaM2 = 0;
         for (let i = 0; i < verts.length; i++) {
-          cx += verts[i].x; cy += verts[i].y;
           const j = (i + 1) % verts.length;
           areaM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
         }
-        cx /= verts.length; cy /= verts.length;
         areaM2 = Math.abs(areaM2) / 2;
         const plazas = areaM2 / 6400;
 
-        const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
         const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
         const txt2 = `${plazas.toFixed(2)} plazas`;
 
-        const bw = 110, bh = 32;
-        ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
-        ctx.strokeStyle = "#00e5ff";
-        ctx.lineWidth = 1.5;
-        ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-        ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        const boxX = 14;
+        const boxY = 14;
+        const bw = 130;
+        const bh = 34;
 
+        ctx.save();
+        ctx.fillStyle = "rgba(6, 9, 16, 0.90)";
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(boxX, boxY, bw, bh, 6);
+        } else {
+          ctx.rect(boxX, boxY, bw, bh);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        const centerX = boxX + bw / 2;
         ctx.fillStyle = "#00e5ff";
-        ctx.font = "bold 10px monospace";
+        ctx.font = "bold 11px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(txt1, sc.x, sc.y - 3);
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "9px sans-serif";
-        ctx.fillText(txt2, sc.x, sc.y + 9);
+        ctx.fillText(txt1, centerX, boxY + 14);
+        ctx.fillStyle = "#cbd5e1";
+        ctx.font = "10px sans-serif";
+        ctx.fillText(txt2, centerX, boxY + 28);
+        ctx.restore();
       }
 
       ctx.textAlign = "left";
