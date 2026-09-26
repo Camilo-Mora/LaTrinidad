@@ -755,7 +755,7 @@
             <div class="view-controls">
               <button class="btn-fit-view" id="btn-fit-true" title="Fit & Center Display">🎯 Center View</button>
               <label class="toggle-overlay" style="color:var(--accent-orange);font-weight:600;" title="Enable dragging deed vertices directly on the field canvas to fine-tune alignment within print range"><input type="checkbox" id="chk-edit-deed-nodes"> ✏️ Edit Deed Nodes</label>
-              <label class="toggle-overlay" title="Show or hide polygon segment length labels"><input type="checkbox" id="chk-show-seg-labels" checked> Labels</label>
+              <label class="toggle-overlay" title="Show or hide polygon segment length labels"><input type="checkbox" id="chk-show-seg-labels"> Labels</label>
               <label class="toggle-overlay"><input type="checkbox" id="chk-show-overlay" checked> Live Warped Overlay</label>
               <span id="true-status" class="view-badge">Loading…</span>
             </div>
@@ -902,7 +902,7 @@
                   Snap vertices
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;" title="Show or hide segment distance labels on the field canvas">
-                  <input type="checkbox" id="chk-show-seg-labels-sidebar" checked style="accent-color:var(--accent-cyan);">
+                  <input type="checkbox" id="chk-show-seg-labels-sidebar" style="accent-color:var(--accent-cyan);">
                   Labels
                 </label>
               </div>
@@ -1950,7 +1950,7 @@ EOF`;
       },
       draggingUserPolyNode: null,
       currentSnapTarget: null,
-      showSegmentLabels: true,
+      showSegmentLabels: false,
       showDeedPanel: false,     // Deed map panel (hidden by default)
       showFieldPanel: true,     // Field map panel (active by default)
       sidebarVisible: true,     // Control Panel sidebar (active by default)
@@ -2839,7 +2839,7 @@ EOF`;
       });
 
       // 4. Segment length labels with error percentage (when Labels checkbox is active)
-      if (state.showSegmentLabels !== false) {
+      if (state.showSegmentLabels) {
         for (let i = 0; i < nSegs; i++) {
           const a = verts[i], b = verts[(i + 1) % verts.length];
           const mid = worldToScreenGIS({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, vp, canvasH);
@@ -4092,6 +4092,11 @@ EOF`;
     // Segment Labels toggle handlers (synchronized across header and sidebar)
     const chkShowSegLabels = document.getElementById("chk-show-seg-labels");
     const chkShowSegLabelsSidebar = document.getElementById("chk-show-seg-labels-sidebar");
+
+    // Initialize labels as hidden by default
+    state.showSegmentLabels = false;
+    if (chkShowSegLabels) chkShowSegLabels.checked = false;
+    if (chkShowSegLabelsSidebar) chkShowSegLabelsSidebar.checked = false;
 
     function setSegmentLabelsVisible(visible) {
       state.showSegmentLabels = visible;
