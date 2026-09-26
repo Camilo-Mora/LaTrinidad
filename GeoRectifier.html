@@ -802,7 +802,7 @@
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging within the Pen Buffer Radius of Field.dxf vertices">
-              <input type="checkbox" id="chk-constrain-anchors" style="accent-color:var(--accent-cyan);">
+              <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
               🔒 Constrain to Field Vertices
             </label>
             <span id="anchor-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
@@ -909,7 +909,7 @@
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px;border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain polygon vertices to move only within the Pen Buffer Radius of Deed DXF vertices">
-                <input type="checkbox" id="chk-constrain-deed-vertices" style="accent-color:var(--accent-cyan);">
+                <input type="checkbox" id="chk-constrain-deed-vertices" checked style="accent-color:var(--accent-cyan);">
                 🔒 Constrain to Deed Vertices
               </label>
               <span id="deed-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
@@ -1961,9 +1961,9 @@ EOF`;
       tuningAnchorsActive: false,
       tuningCancelRequested: false,
       // Anchor field vertex constraint
-      constrainAnchorsToField: false,
+      constrainAnchorsToField: true,
       // Polygon deed vertex constraint
-      constrainPolyToDeed: false,
+      constrainPolyToDeed: true,
       // Deed DXF vertex editing on field panel & historical panel
       histFileName: "Polygon_Escritura1073_FerminSuarez.dxf",
       editDeedNodes: false,
@@ -3211,7 +3211,11 @@ EOF`;
         const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
         state.trueViewport = fitViewport(trueCanvas, bb);
       }
-      redrawTrueCanvas();
+      if (state.constrainPolyToDeed) {
+        applyDeedConstraints(false);
+      } else {
+        redrawTrueCanvas();
+      }
       updateStatus(`📂 Loaded polygon (${state.userPolygon.vertices.length} vertices) from ${filename || "DXF"}`);
     }
 
@@ -3252,7 +3256,11 @@ EOF`;
               const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
               state.trueViewport = fitViewport(trueCanvas, bb);
             }
-            redrawTrueCanvas();
+            if (state.constrainPolyToDeed) {
+              applyDeedConstraints(false);
+            } else {
+              redrawTrueCanvas();
+            }
             updateStatus(`📂 Loaded polygon with ${state.userPolygon.vertices.length} vertices from ${file.name}`);
           }
         } catch(err) {
@@ -3556,9 +3564,11 @@ EOF`;
             const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
             const wArea = b >= 50 ? 1.0 : b / 50;
             const compositeLoss = (wDist * avgSegErr + wArea * areaDiffPct) / (wDist + wArea);
+            const overallErr = countSegs > 0 ? (avgSegErr + areaDiffPct) / 2 : areaDiffPct;
 
             return {
               loss: compositeLoss,
+              overallErr,
               optRes,
               candAnchors,
               areaDiffPct,
@@ -3567,7 +3577,7 @@ EOF`;
               offsets: offsets.map(o => ({ ...o }))
             };
           } catch (e) {
-            return { loss: 999999, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
+            return { loss: 999999, overallErr: 999, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
           }
         }
 
@@ -3664,18 +3674,25 @@ EOF`;
           await new Promise(resolve => setTimeout(resolve, isAutoMin ? 15 : 40));
         }
 
-        const isZeroError = (globalBest.loss < 0.005) || (globalBest.areaDiffPct < 0.005);
+        const currentOverallErr = (globalBest.overallErr != null)
+          ? globalBest.overallErr
+          : ((globalBest.avgSegErr != null && globalBest.areaDiffPct != null)
+              ? (globalBest.avgSegErr + globalBest.areaDiffPct) / 2
+              : globalBest.loss);
+
+        // Convergence check: stops ONLY when the overall error reaches zero (< 0.005%)
+        const isZeroError = currentOverallErr < 0.005;
 
         if (!globalOverallBest || globalBest.loss < globalOverallBest.loss) {
           globalOverallBest = globalBest;
           winningR = currentR;
         }
 
-        // Convergence check: stops ONLY when first reaching 0 error (0.00%) or completes sweep till 3.0m
+        // Convergence check: stops ONLY when first reaching 0 overall error (0.00%) or completes sweep till 3.0m
         if (isAutoMin && isZeroError) {
           winningR = currentR;
           globalOverallBest = globalBest;
-          updateStatus(`⚡ Auto-Detect: Error cero (0.00%) alcanzado en radio mínimo de ±${currentR.toFixed(1)}m.`);
+          updateStatus(`⚡ Auto-Detect: Overall error cero (0.00%) alcanzado en radio mínimo de ±${currentR.toFixed(1)}m.`);
           break;
         }
       }
@@ -4718,50 +4735,68 @@ EOF`;
     const chkConstrainDeedVertices = document.getElementById("chk-constrain-deed-vertices");
     const chkPolygonSnap = document.getElementById("chk-polygon-snap");
 
+    function applyDeedConstraints(verbose = true) {
+      const chkPolygonSnap = document.getElementById("chk-polygon-snap");
+      if (state.constrainPolyToDeed) {
+        if (chkPolygonSnap && chkPolygonSnap.checked) {
+          chkPolygonSnap.checked = false;
+        }
+        state.currentSnapTarget = null;
+        if (state.userPolygon && state.userPolygon.vertices) {
+          let warper = null;
+          if (state.anchors && state.anchors.length >= 2) {
+            try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+          }
+          state.userPolygon.vertices.forEach((v, idx) => {
+            if (vertexHasDeedLength(state.userPolygon, idx)) {
+              const nearest = findNearestWarpedDeedVertex(v);
+              if (nearest && nearest.dist <= 35.0) {
+                v.deedPt = nearest.deedPt;
+                v.origX = nearest.x;
+                v.origY = nearest.y;
+              } else if (v.deedPt && warper) {
+                const w = warper(v.deedPt);
+                v.origX = w.x;
+                v.origY = w.y;
+              }
+
+              // If vertex is currently outside the buffer disk of its deed vertex, clamp it to the perimeter
+              if (v.origX != null && v.origY != null && state.optBufferRadius > 0) {
+                const d = Math.hypot(v.x - v.origX, v.y - v.origY);
+                if (d > state.optBufferRadius) {
+                  const angle = Math.atan2(v.y - v.origY, v.x - v.origX);
+                  v.x = v.origX + state.optBufferRadius * Math.cos(angle);
+                  v.y = v.origY + state.optBufferRadius * Math.sin(angle);
+                }
+              }
+            }
+          });
+          recomputeUserPolygonMetrics();
+        }
+        if (verbose) updateStatus(`🔒 Polygon constrained: buffers (±${state.optBufferRadius.toFixed(1)}m) generated around Deed DXF vertices. Drag vertices within buffers.`);
+      } else {
+        if (verbose) updateStatus("🔓 Polygon constraint disabled: vertices movable freely on map.");
+      }
+      redrawTrueCanvas();
+    }
+
+    function initConstraintsAndBuffers() {
+      const chkAnchors = document.getElementById("chk-constrain-anchors");
+      const chkDeed = document.getElementById("chk-constrain-deed-vertices");
+      if (chkAnchors) state.constrainAnchorsToField = chkAnchors.checked;
+      if (chkDeed) state.constrainPolyToDeed = chkDeed.checked;
+
+      if (state.constrainPolyToDeed) {
+        applyDeedConstraints(false);
+      } else {
+        redrawTrueCanvas();
+      }
+    }
+
     if (chkConstrainDeedVertices) {
       chkConstrainDeedVertices.addEventListener("change", e => {
         state.constrainPolyToDeed = e.target.checked;
-        if (state.constrainPolyToDeed) {
-          if (chkPolygonSnap && chkPolygonSnap.checked) {
-            chkPolygonSnap.checked = false;
-          }
-          state.currentSnapTarget = null;
-          if (state.userPolygon && state.userPolygon.vertices) {
-            let warper = null;
-            if (state.anchors && state.anchors.length >= 2) {
-              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
-            }
-            state.userPolygon.vertices.forEach((v, idx) => {
-              if (vertexHasDeedLength(state.userPolygon, idx)) {
-                const nearest = findNearestWarpedDeedVertex(v);
-                if (nearest && nearest.dist <= 35.0) {
-                  v.deedPt = nearest.deedPt;
-                  v.origX = nearest.x;
-                  v.origY = nearest.y;
-                } else if (v.deedPt && warper) {
-                  const w = warper(v.deedPt);
-                  v.origX = w.x;
-                  v.origY = w.y;
-                }
-
-                // If vertex is currently outside the buffer disk of its deed vertex, clamp it to the perimeter
-                if (v.origX != null && v.origY != null && state.optBufferRadius > 0) {
-                  const d = Math.hypot(v.x - v.origX, v.y - v.origY);
-                  if (d > state.optBufferRadius) {
-                    const angle = Math.atan2(v.y - v.origY, v.x - v.origX);
-                    v.x = v.origX + state.optBufferRadius * Math.cos(angle);
-                    v.y = v.origY + state.optBufferRadius * Math.sin(angle);
-                  }
-                }
-              }
-            });
-            recomputeUserPolygonMetrics();
-          }
-          updateStatus(`🔒 Polygon constrained: buffers (±${state.optBufferRadius.toFixed(1)}m) generated around Deed DXF vertices. Drag vertices within buffers.`);
-        } else {
-          updateStatus("🔓 Polygon constraint disabled: vertices movable freely on map.");
-        }
-        redrawTrueCanvas();
+        applyDeedConstraints(true);
       });
     }
 
@@ -5162,6 +5197,9 @@ EOF`;
           console.warn("user_polygon.dxf preload:", e.message);
         }
       }
+
+      // 7. Initialize constraints and display buffers immediately if checkboxes are active
+      initConstraintsAndBuffers();
     }
 
     // File input listeners for manual override
