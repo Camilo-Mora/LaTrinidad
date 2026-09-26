@@ -566,6 +566,71 @@
       z-index: 100;
     }
     .status-bar { color: var(--accent-cyan); }
+
+    /* Hover explainer tooltip windows for optimization buttons */
+    .opt-hover-wrap {
+      position: relative;
+      display: inline-flex;
+    }
+    .opt-hover-card {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      width: 255px;
+      background: rgba(11, 17, 30, 0.98);
+      border: 1px solid rgba(0, 229, 255, 0.45);
+      border-radius: 8px;
+      padding: 9px 12px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 14px rgba(0, 229, 255, 0.2);
+      backdrop-filter: blur(10px);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 2000;
+      font-size: 0.70rem;
+      line-height: 1.45;
+      text-align: left;
+    }
+    .opt-hover-card::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: rgba(11, 17, 30, 0.98) transparent transparent transparent;
+    }
+    .opt-hover-wrap:hover .opt-hover-card {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .opt-hover-card.align-right {
+      left: auto;
+      right: 0;
+      transform: translateY(4px);
+    }
+    .opt-hover-card.align-right::after {
+      left: auto;
+      right: 20px;
+    }
+    .opt-hover-wrap:hover .opt-hover-card.align-right {
+      transform: translateY(0);
+    }
+    .opt-hover-title {
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 4px;
+      font-size: 0.74rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .opt-hover-body {
+      color: #cbd5e1;
+      font-weight: 400;
+    }
   </style>
 </head>
 <body>
@@ -917,13 +982,36 @@
                   Show Buffer Halos &amp; Vectors
                 </label>
               </div>
-              <div style="display:flex;gap:6px;">
-                <button id="btn-run-optimization" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;" title="Automatically relax boundary vertices inside their pen buffers to match deed lengths &amp; area">
-                  ⚡ Auto-Optimize
-                </button>
-                <button id="btn-reset-optimization" class="btn btn-secondary btn-sm" title="Reset dynamic vertices back to unadjusted deed centers">
-                  ↺ Reset
-                </button>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;gap:6px;">
+                  <div class="opt-hover-wrap" style="flex:1;">
+                    <button id="btn-run-optimization" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;">
+                      ⚡ Auto-Optimize
+                    </button>
+                    <div class="opt-hover-card">
+                      <div class="opt-hover-title">⚡ Auto-Optimize (Current Anchors)</div>
+                      <div class="opt-hover-body">Relaxes polygon boundary vertices within their Deed buffers to minimize distance and area error, keeping current anchor positions fixed.</div>
+                    </div>
+                  </div>
+                  <div class="opt-hover-wrap">
+                    <button id="btn-reset-optimization" class="btn btn-secondary btn-sm" style="justify-content:center;">
+                      ↺ Reset
+                    </button>
+                    <div class="opt-hover-card align-right">
+                      <div class="opt-hover-title">↺ Reset to Deed Nominal</div>
+                      <div class="opt-hover-body">Resets all dynamic boundary vertices back to unadjusted deed positions.</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="opt-hover-wrap" style="width:100%;">
+                  <button id="btn-autotune-anchors" class="btn btn-sm" style="width:100%;justify-content:center;background:linear-gradient(135deg, #00b0ff, #7c4dff);color:#fff;border:none;font-weight:600;box-shadow:0 2px 8px rgba(0,176,255,0.25);">
+                    ⚡ Auto-Tune Anchors
+                  </button>
+                  <div class="opt-hover-card" style="width:270px;">
+                    <div class="opt-hover-title">⚡ Auto-Tune Anchors (Global Search)</div>
+                    <div class="opt-hover-body">Iterates through combinations of anchor positions within their Field buffers using continuous heuristic search, testing boundary fits to find the anchor alignment with the least overall error. Live-animates the polygon during iteration.</div>
+                  </div>
+                </div>
               </div>
             </div>
             <!-- Metrics -->
@@ -1794,6 +1882,8 @@ EOF`;
       optBufferRadius: 3.0,    // pen buffer radius in meters
       optBalance: 50,          // 0 = dist, 50 = balanced, 100 = area
       showBufferDisks: false,  // render buffer halos and displacement vectors
+      tuningAnchorsActive: false,
+      tuningCancelRequested: false,
       // Anchor field vertex constraint
       constrainAnchorsToField: false,
       // Polygon deed vertex constraint
@@ -2120,8 +2210,8 @@ EOF`;
       if (!poly || !poly.vertices || poly.vertices.length === 0) return;
       if (!state.anchors || state.anchors.length < 2) return;
 
-      // Never overwrite vertex positions while actively dragging a polygon node!
-      if (state.draggingUserPolyNode !== null) return;
+      // Never overwrite vertex positions while actively dragging a polygon node or tuning anchors!
+      if (state.draggingUserPolyNode !== null || state.tuningAnchorsActive) return;
 
       try {
         const warper = TransformMath.createWarper(state.algorithm, state.anchors);
@@ -3133,6 +3223,10 @@ EOF`;
 
     if (btnRunOpt) {
       btnRunOpt.addEventListener("click", () => {
+        if (state.tuningAnchorsActive) {
+          alert("Auto-Tune is currently running. Please stop or wait for it to complete.");
+          return;
+        }
         const poly = state.userPolygon;
         if (!poly || !poly.vertices || poly.vertices.length < 3) {
           alert("Polygon requires ≥ 3 vertices to optimize.");
@@ -3188,6 +3282,7 @@ EOF`;
 
     if (btnResetOpt) {
       btnResetOpt.addEventListener("click", () => {
+        if (state.tuningAnchorsActive) return;
         const poly = state.userPolygon;
         if (!poly || !poly.vertices) return;
         let count = 0;
@@ -3208,6 +3303,309 @@ EOF`;
           optStatusBadge.style.color = "var(--text-muted)";
         }
         updateStatus(`↺ Reset ${count} dynamic vertices back to unadjusted deed centers.`);
+      });
+    }
+
+    // ── Auto-Tune Anchors (Global Heuristic Optimizer) ─────────────────
+    const btnAutoTune = document.getElementById("btn-autotune-anchors");
+
+    async function runAutoTuneAnchors() {
+      if (!state.anchors || state.anchors.length < 2) {
+        alert("Auto-Tune requires ≥ 2 anchor pairs.");
+        return;
+      }
+      const poly = state.userPolygon;
+      if (!poly || !poly.vertices || poly.vertices.length < 3) {
+        alert("Polygon requires ≥ 3 vertices to auto-tune.");
+        return;
+      }
+      const hasDeedNodes = poly.vertices.some(v => v.deedPt != null);
+      if (!hasDeedNodes) {
+        alert("Polygon vertices must be anchored to Deed DXF vertices to auto-tune.");
+        return;
+      }
+
+      const R = state.optBufferRadius > 0 ? state.optBufferRadius : 3.0;
+      const M = state.anchors.length;
+
+      // Identify buffer centers for each anchor
+      const anchorCenters = state.anchors.map(anc => {
+        const nearestField = findNearestFieldVertex(anc.dst);
+        if (nearestField && nearestField.dist <= R * 2.5) {
+          return { x: nearestField.x, y: nearestField.y };
+        }
+        return { x: anc.dst.x, y: anc.dst.y };
+      });
+
+      // Current normalized offsets inside unit disk
+      const currentOffsets = state.anchors.map((anc, idx) => {
+        const center = anchorCenters[idx];
+        let du = (anc.dst.x - center.x) / R;
+        let dv = (anc.dst.y - center.y) / R;
+        const d = Math.hypot(du, dv);
+        if (d > 1) { du /= d; dv /= d; }
+        return { u: du, v: dv };
+      });
+
+      // Candidate fitness evaluation function
+      function evaluateCandidate(offsets) {
+        try {
+          const candAnchors = state.anchors.map((anc, idx) => ({
+            ...anc,
+            dst: {
+              x: anchorCenters[idx].x + offsets[idx].u * R,
+              y: anchorCenters[idx].y + offsets[idx].v * R
+            }
+          }));
+
+          const candWarper = TransformMath.createWarper(state.algorithm, candAnchors);
+
+          // Warped deed vertices
+          const candVertices = poly.vertices.map(v => {
+            if (v.deedPt) {
+              const w = candWarper(v.deedPt);
+              return { x: w.x, y: w.y, deedPt: v.deedPt, origX: w.x, origY: w.y };
+            }
+            return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
+          });
+
+          // Fast boundary relaxation (55 iterations)
+          const optRes = BoundaryOptimizer.optimize({
+            vertices: candVertices,
+            segmentLengths: poly.segmentLengths,
+            bufferRadius: R,
+            balance: state.optBalance,
+            targetArea: 162156.0,
+            iterations: 55
+          });
+
+          if (!optRes.success) {
+            return { loss: 999999, optRes: null, candAnchors, offsets, areaDiffPct: 999, avgSegErr: 999 };
+          }
+
+          const V = optRes.vertices;
+          let areaM2 = 0;
+          for (let i = 0; i < V.length; i++) {
+            const j = (i + 1) % V.length;
+            areaM2 += V[i].x * V[j].y - V[j].x * V[i].y;
+          }
+          areaM2 = Math.abs(areaM2) / 2;
+          const areaDiffPct = (Math.abs(areaM2 - 162156.0) / 162156.0) * 100;
+
+          const nSegs = V.length;
+          let segErrSum = 0, countSegs = 0;
+          for (let i = 0; i < nSegs; i++) {
+            const dLen = poly.segmentLengths[i];
+            if (dLen != null && dLen > 0) {
+              const mLen = Math.hypot(V[(i + 1) % nSegs].x - V[i].x, V[(i + 1) % nSegs].y - V[i].y);
+              segErrSum += (Math.abs(mLen - dLen) / dLen) * 100;
+              countSegs++;
+            }
+          }
+          const avgSegErr = countSegs > 0 ? (segErrSum / countSegs) : 0;
+
+          // Composite balance loss
+          const b = Math.max(0, Math.min(100, state.optBalance));
+          const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
+          const wArea = b >= 50 ? 1.0 : b / 50;
+          const compositeLoss = (wDist * avgSegErr + wArea * areaDiffPct) / (wDist + wArea);
+
+          return {
+            loss: compositeLoss,
+            optRes,
+            candAnchors,
+            areaDiffPct,
+            avgSegErr,
+            offsets: offsets.map(o => ({ ...o }))
+          };
+        } catch (e) {
+          return { loss: 999999, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999 };
+        }
+      }
+
+      // UI state setup
+      state.tuningAnchorsActive = true;
+      state.tuningCancelRequested = false;
+
+      if (btnAutoTune) {
+        btnAutoTune.innerHTML = "⏹ Stop Auto-Tune";
+        btnAutoTune.style.background = "linear-gradient(135deg, #ff1744, #ff9100)";
+        btnAutoTune.style.boxShadow = "0 0 14px rgba(255, 23, 68, 0.45)";
+      }
+      if (btnRunOpt) btnRunOpt.disabled = true;
+      if (btnResetOpt) btnResetOpt.disabled = true;
+
+      // Initialize population
+      const POP_SIZE = 16;
+      const MAX_GEN = 22;
+
+      function sampleDisk() {
+        const theta = Math.random() * 2 * Math.PI;
+        const rad = Math.sqrt(Math.random());
+        return { u: rad * Math.cos(theta), v: rad * Math.sin(theta) };
+      }
+
+      const population = [];
+
+      // 1. Current anchor positions
+      population.push(evaluateCandidate(currentOffsets));
+
+      // 2. Buffer centers (0, 0)
+      population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
+
+      // 3. Cardinal directional shifts
+      const cardinals = [
+        { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
+        { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
+        { u: 0.55, v: 0.55 }, { u: -0.55, v: 0.55 },
+        { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
+      ];
+      for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
+        const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i] }));
+        population.push(evaluateCandidate(offsetArr));
+      }
+
+      // 4. Fill rest with random samples
+      while (population.length < POP_SIZE) {
+        const offsetArr = Array.from({ length: M }, () => sampleDisk());
+        population.push(evaluateCandidate(offsetArr));
+      }
+
+      let globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
+
+      // Iterative evolution loop with live canvas animation
+      for (let gen = 1; gen <= MAX_GEN; gen++) {
+        if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
+
+        for (let i = 0; i < POP_SIZE; i++) {
+          if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
+
+          let r1, r2, r3;
+          do { r1 = Math.floor(Math.random() * POP_SIZE); } while (r1 === i);
+          do { r2 = Math.floor(Math.random() * POP_SIZE); } while (r2 === i || r2 === r1);
+          do { r3 = Math.floor(Math.random() * POP_SIZE); } while (r3 === i || r3 === r1 || r3 === r2);
+
+          const F = 0.65;
+          const CR = 0.85;
+          const trialOffsets = [];
+
+          for (let k = 0; k < M; k++) {
+            let u, v;
+            if (Math.random() < CR || k === 0) {
+              u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
+                  + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
+              v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
+                  + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
+              if (Math.random() < 0.12) {
+                u += (Math.random() - 0.5) * 0.18;
+                v += (Math.random() - 0.5) * 0.18;
+              }
+            } else {
+              u = population[i].offsets[k].u;
+              v = population[i].offsets[k].v;
+            }
+
+            const dist = Math.hypot(u, v);
+            if (dist > 1.0) {
+              u /= dist;
+              v /= dist;
+            }
+            trialOffsets.push({ u, v });
+          }
+
+          const trialEval = evaluateCandidate(trialOffsets);
+          if (trialEval.loss < population[i].loss) {
+            population[i] = trialEval;
+          }
+          if (population[i].loss < globalBest.loss) {
+            globalBest = population[i];
+          }
+        }
+
+        // Live screen animation update: anchor pins, warped deed & relaxed polygon move
+        if (globalBest.candAnchors && globalBest.optRes) {
+          for (let k = 0; k < M; k++) {
+            state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
+            state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+          }
+          poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
+          recomputeUserPolygonMetrics();
+          redrawTrueCanvas();
+
+          if (optStatusBadge) {
+            optStatusBadge.textContent = `Tune ${gen}/${MAX_GEN} (${globalBest.loss.toFixed(2)}%)`;
+            optStatusBadge.style.color = "var(--accent-cyan)";
+            optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
+          }
+        }
+
+        // Yield to browser frame
+        await new Promise(resolve => setTimeout(resolve, 40));
+      }
+
+      // Final thorough relaxation (240 iterations) on winning anchors
+      if (globalBest && globalBest.candAnchors) {
+        for (let k = 0; k < M; k++) {
+          state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
+          state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+        }
+
+        const finalWarper = TransformMath.createWarper(state.algorithm, state.anchors);
+        const finalNominal = poly.vertices.map(v => {
+          if (v.deedPt) {
+            const w = finalWarper(v.deedPt);
+            return { x: w.x, y: w.y, deedPt: v.deedPt, origX: w.x, origY: w.y };
+          }
+          return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
+        });
+
+        const finalOpt = BoundaryOptimizer.optimize({
+          vertices: finalNominal,
+          segmentLengths: poly.segmentLengths,
+          bufferRadius: R,
+          balance: state.optBalance,
+          targetArea: 162156.0,
+          iterations: 240
+        });
+
+        if (finalOpt.success) {
+          poly.vertices = finalOpt.vertices;
+        }
+
+        state.tuningAnchorsActive = false;
+        recomputeUserPolygonMetrics();
+        rebuildSegmentInputs();
+        redrawAll();
+
+        const finalOverall = document.getElementById("overall-error")?.textContent || globalBest.loss.toFixed(2);
+        if (optStatusBadge) {
+          optStatusBadge.textContent = `✓ Auto-Tuned (${finalOverall}%)`;
+          optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
+          optStatusBadge.style.color = "#00e676";
+        }
+        updateStatus(`⚡ Auto-Tune finished! Best anchor placement found with overall error = ${finalOverall}% within ±${R.toFixed(1)}m buffers.`);
+      }
+
+      // Cleanup state & UI
+      state.tuningAnchorsActive = false;
+      state.tuningCancelRequested = false;
+      if (btnRunOpt) btnRunOpt.disabled = false;
+      if (btnResetOpt) btnResetOpt.disabled = false;
+      if (btnAutoTune) {
+        btnAutoTune.innerHTML = "⚡ Auto-Tune Anchors";
+        btnAutoTune.style.background = "linear-gradient(135deg, #00b0ff, #7c4dff)";
+        btnAutoTune.style.boxShadow = "0 2px 8px rgba(0, 176, 255, 0.25)";
+      }
+    }
+
+    if (btnAutoTune) {
+      btnAutoTune.addEventListener("click", () => {
+        if (state.tuningAnchorsActive) {
+          state.tuningCancelRequested = true;
+          updateStatus("Stopping Auto-Tune… applying best solution found so far.");
+          return;
+        }
+        runAutoTuneAnchors();
       });
     }
 
