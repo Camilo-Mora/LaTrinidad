@@ -1069,8 +1069,8 @@
                     <option value="3.5" selected>3.5px</option>
                     <option value="5">5px</option>
                   </select>
-                  <label style="font-size:0.65rem;color:var(--text-muted);display:flex;align-items:center;gap:3px;cursor:pointer;" title="Color segments by error percentage (<2%, 5%, 10%...)">
-                    <input type="checkbox" id="style-poly-deed-error-colors" checked style="accent-color:var(--accent-cyan);"> Error %
+                  <label style="font-size:0.65rem;color:var(--text-muted);display:flex;align-items:center;gap:3px;cursor:pointer;" title="Color segments by error percentage (<2%, 5%, 10%...) instead of chosen solid color">
+                    <input type="checkbox" id="style-poly-deed-error-colors" style="accent-color:var(--accent-cyan);"> Error % colors
                   </label>
                 </div>
               </div>
@@ -2236,7 +2236,7 @@ EOF`;
         dash: "solid",
         width: 3.5,
         showNodes: true,
-        useErrorColors: true,
+        useErrorColors: false,
       },
       stylePolyNoDeed: {
         color: "#00e5ff",
@@ -3273,11 +3273,9 @@ EOF`;
         const baseR = isDeedNode ? (state.stylePolyDeed.width + 2) : (state.stylePolyNoDeed.width + 2);
         ctx.beginPath();
         ctx.arc(sp.x, sp.y, i === 0 ? (baseR + 2) : (isShifted ? (baseR + 1) : baseR), 0, Math.PI * 2);
-        ctx.fillStyle = isDeedNode
-          ? (v.deedPt ? (isShifted ? "#ffd600" : "#ff9100") : state.stylePolyDeed.color)
-          : state.stylePolyNoDeed.color;
+        ctx.fillStyle = isDeedNode ? state.stylePolyDeed.color : state.stylePolyNoDeed.color;
         ctx.fill();
-        ctx.strokeStyle = i === 0 ? "#ffffff" : (isShifted ? "#ffffff" : (v.deedPt ? "#ffffff" : "#000000"));
+        ctx.strokeStyle = i === 0 ? "#ffffff" : (isShifted ? "#ffd600" : "#ffffff");
         ctx.lineWidth = (i === 0 || isShifted) ? 2 : 1.5;
         ctx.stroke();
       });
@@ -3920,7 +3918,14 @@ EOF`;
       const stylePolyDeedNodes = document.getElementById("style-poly-deed-nodes");
       const stylePolyDeedErr   = document.getElementById("style-poly-deed-error-colors");
 
-      if (stylePolyDeedColor) stylePolyDeedColor.addEventListener("input", e => { state.stylePolyDeed.color = e.target.value; redrawTrueCanvas(); });
+      if (stylePolyDeedColor) stylePolyDeedColor.addEventListener("input", e => {
+        state.stylePolyDeed.color = e.target.value;
+        if (stylePolyDeedErr) {
+          stylePolyDeedErr.checked = false;
+          state.stylePolyDeed.useErrorColors = false;
+        }
+        redrawTrueCanvas();
+      });
       if (stylePolyDeedDash)  stylePolyDeedDash.addEventListener("change", e => { state.stylePolyDeed.dash = e.target.value; redrawTrueCanvas(); });
       if (stylePolyDeedWidth) stylePolyDeedWidth.addEventListener("change", e => { state.stylePolyDeed.width = parseFloat(e.target.value) || 3.5; redrawTrueCanvas(); });
       if (stylePolyDeedNodes) stylePolyDeedNodes.addEventListener("change", e => { state.stylePolyDeed.showNodes = e.target.checked; redrawTrueCanvas(); });
