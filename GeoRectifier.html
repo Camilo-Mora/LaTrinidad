@@ -851,65 +851,8 @@
 
       <!-- Sidebar: Anchors & Transformation Analytics -->
       <aside class="sidebar" id="sidebar">
-        <!-- Transformation Accuracy & Analytics Card -->
-        <section class="panel-card">
-          <div class="panel-header">
-            <h3>Alignment Accuracy</h3>
-            <span id="rmse-display" class="badge-rmse">RMSE: 0.00</span>
-          </div>
-          <p class="rmse-subtitle">Lower RMSE = higher geometric precision at control points.</p>
-        </section>
-
-        <!-- Algorithm Comparison Scoreboard -->
-        <section class="panel-card" id="algo-compare-card">
-          <div class="panel-header">
-            <h3>🏆 Algorithm Comparison</h3>
-          </div>
-          <div class="algo-compare-list" id="algo-compare-list">
-            <p class="compare-note">Add ≥ 2 anchor pairs to compare algorithms.</p>
-          </div>
-          <p class="compare-note">Click any row to switch to that algorithm.</p>
-        </section>
-
-        <!-- Anchor Pairs Manager -->
-        <section class="panel-card flex-grow">
-          <div class="panel-header">
-            <h3>Control Point Pairs (Anchors)</h3>
-            <div style="display:flex;gap:5px;align-items:center;">
-              <button id="btn-save-anchors" class="btn-sm btn-success" title="Download & save anchors to anchors_georectifier.json">💾 Save</button>
-              <label for="anchor-file-input" class="btn-sm btn-secondary" style="cursor:pointer;margin:0;" title="Load custom anchors JSON file">📂 Load</label>
-              <input type="file" id="anchor-file-input" accept=".json" style="display:none;">
-              <button id="btn-clear-anchors" class="btn-sm btn-secondary" title="Clear all anchor points">Clear All</button>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging within the Pen Buffer Radius of Field.dxf vertices">
-              <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
-              🔒 Constrain to Field Vertices
-            </label>
-            <span id="anchor-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
-          </div>
-
-          <div class="table-wrapper">
-            <table class="anchor-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Source (Hist X, Y)</th>
-                  <th>Target (True X, Y)</th>
-                  <th>Error</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="anchor-table-body">
-                <!-- Anchor rows dynamically added here -->
-              </tbody>
-            </table>
-          </div>
-        </section>
-
         <!-- Layer Opacity & Overlays (PowerPoint Mode) Card -->
-        <section class="panel-card">
+        <section class="panel-card" id="panel-overlays-opacity">
           <div class="panel-header">
             <h3>🎨 Overlays & Opacity (PowerPoint Mode)</h3>
             <span class="geotiff-status" id="geotiff-status">No image loaded</span>
@@ -986,63 +929,9 @@
               </label>
             </div>
             <p class="geotiff-note">Adjust opacities to visually inspect deed alignment over the drone imagery, just like in PowerPoint.</p>
-          </div>
-        </section>
 
-        <!-- Instructions Card -->
-        <section class="panel-card info-card">
-          <h4>How to Georectify</h4>
-          <ol>
-            <li>Click <strong>🗺️ Load GeoTIFF Background</strong> to display your satellite/aerial image.</li>
-            <li>Load your <strong>Historical DXF</strong> (left) and <strong>True Field DXF</strong> (right) vectors.</li>
-            <li><strong>Click a landmark</strong> on the Historical Map to place a Source Anchor.</li>
-            <li><strong>Click the matching point</strong> on the True Survey Map to complete the pair.</li>
-            <li>Add 3+ pairs to activate real-time rubber-sheeting!</li>
-            <li>Click <strong>Export Rectified DXF</strong> when satisfied!</li>
-          </ol>
-        </section>
-
-        <section class="panel-card" id="panel-distance-area">
-          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
-            <h3>📏 Distance &amp; Area</h3>
-            <span id="distance-area-mode-badge" style="font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(0,230,118,0.12);color:#00e676;font-weight:600;">Active</span>
-          </div>
-          <div id="body-distance-area" style="display:flex;flex-direction:column;gap:8px;">
-            <!-- Action buttons -->
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <button id="btn-create-polygon" class="btn btn-primary btn-sm" title="Start drawing a new polygon on the field canvas">+ Create new polygon</button>
-              <button id="btn-cancel-polygon" class="btn btn-secondary btn-sm" style="display:none;" title="Cancel current polygon drawing">✕ Cancel</button>
-              <button id="btn-close-polygon" class="btn btn-secondary btn-sm" style="display:none;" title="Close and finish the polygon (or click near first vertex)">✓ Close polygon</button>
-            </div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <button id="btn-save-polygon" class="btn btn-sm" style="background:rgba(0,200,83,0.25);border:1px solid rgba(0,200,83,0.5);color:#00e676;" disabled title="Save polygon to user_polygon.json">💾 Save JSON</button>
-              <label id="btn-load-polygon-lbl" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:0.72rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;">
-                📂 Load File<input type="file" id="polygon-file-input" accept=".json,.dxf" style="display:none;">
-              </label>
-              <button id="btn-clear-polygon" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear and delete the current polygon">🗑 Clear</button>
-            </div>
-            <!-- Snap, Labels, and Constrain to Deed toggles -->
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-              <div style="display:flex;align-items:center;gap:14px;">
-                <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;">
-                  <input type="checkbox" id="chk-polygon-snap" checked style="accent-color:var(--accent-cyan);">
-                  Snap vertices
-                </label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;" title="Show or hide segment distance labels on the field canvas">
-                  <input type="checkbox" id="chk-show-seg-labels-sidebar" style="accent-color:var(--accent-cyan);">
-                  Labels
-                </label>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px;border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
-              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain polygon vertices to move only within the Pen Buffer Radius of Deed DXF vertices">
-                <input type="checkbox" id="chk-constrain-deed-vertices" checked style="accent-color:var(--accent-cyan);">
-                🔒 Constrain to Deed Vertices
-              </label>
-              <span id="deed-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
-            </div>
             <!-- Polygon Dynamic Styling Controls -->
-            <div id="poly-styling-container" style="display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;">
+            <div id="poly-styling-container" style="display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;margin-top:6px;">
               <div style="font-size:0.71rem;font-weight:700;color:var(--text-main);display:flex;align-items:center;justify-content:space-between;">
                 <span>🎨 Polygon Display Styles</span>
               </div>
@@ -1098,6 +987,107 @@
                   </select>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Transformation Accuracy & Analytics Card -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>Alignment Accuracy</h3>
+            <span id="rmse-display" class="badge-rmse">RMSE: 0.00</span>
+          </div>
+          <p class="rmse-subtitle">Lower RMSE = higher geometric precision at control points.</p>
+        </section>
+
+        <!-- Anchor Pairs Manager -->
+        <section class="panel-card flex-grow">
+          <div class="panel-header">
+            <h3>Control Point Pairs (Anchors)</h3>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <button id="btn-save-anchors" class="btn-sm btn-success" title="Download & save anchors to anchors_georectifier.json">💾 Save</button>
+              <label for="anchor-file-input" class="btn-sm btn-secondary" style="cursor:pointer;margin:0;" title="Load custom anchors JSON file">📂 Load</label>
+              <input type="file" id="anchor-file-input" accept=".json" style="display:none;">
+              <button id="btn-clear-anchors" class="btn-sm btn-secondary" title="Clear all anchor points">Clear All</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging within the Pen Buffer Radius of Field.dxf vertices">
+              <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
+              🔒 Constrain to Field Vertices
+            </label>
+            <span id="anchor-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="anchor-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Source (Hist X, Y)</th>
+                  <th>Target (True X, Y)</th>
+                  <th>Error</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="anchor-table-body">
+                <!-- Anchor rows dynamically added here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Instructions Card -->
+        <section class="panel-card info-card">
+          <h4>How to Georectify</h4>
+          <ol>
+            <li>Click <strong>🗺️ Load GeoTIFF Background</strong> to display your satellite/aerial image.</li>
+            <li>Load your <strong>Historical DXF</strong> (left) and <strong>True Field DXF</strong> (right) vectors.</li>
+            <li><strong>Click a landmark</strong> on the Historical Map to place a Source Anchor.</li>
+            <li><strong>Click the matching point</strong> on the True Survey Map to complete the pair.</li>
+            <li>Add 3+ pairs to activate real-time rubber-sheeting!</li>
+            <li>Click <strong>Export Rectified DXF</strong> when satisfied!</li>
+          </ol>
+        </section>
+
+        <section class="panel-card" id="panel-distance-area">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <h3>📏 Distance &amp; Area</h3>
+            <span id="distance-area-mode-badge" style="font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(0,230,118,0.12);color:#00e676;font-weight:600;">Active</span>
+          </div>
+          <div id="body-distance-area" style="display:flex;flex-direction:column;gap:8px;">
+            <!-- Action buttons -->
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button id="btn-create-polygon" class="btn btn-primary btn-sm" title="Start drawing a new polygon on the field canvas">+ Create new polygon</button>
+              <button id="btn-cancel-polygon" class="btn btn-secondary btn-sm" style="display:none;" title="Cancel current polygon drawing">✕ Cancel</button>
+              <button id="btn-close-polygon" class="btn btn-secondary btn-sm" style="display:none;" title="Close and finish the polygon (or click near first vertex)">✓ Close polygon</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button id="btn-save-polygon" class="btn btn-sm" style="background:rgba(0,200,83,0.25);border:1px solid rgba(0,200,83,0.5);color:#00e676;" disabled title="Save polygon to user_polygon.json">💾 Save JSON</button>
+              <label id="btn-load-polygon-lbl" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:0.72rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;">
+                📂 Load File<input type="file" id="polygon-file-input" accept=".json,.dxf" style="display:none;">
+              </label>
+              <button id="btn-clear-polygon" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear and delete the current polygon">🗑 Clear</button>
+            </div>
+            <!-- Snap, Labels, and Constrain to Deed toggles -->
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;">
+                  <input type="checkbox" id="chk-polygon-snap" checked style="accent-color:var(--accent-cyan);">
+                  Snap vertices
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;" title="Show or hide segment distance labels on the field canvas">
+                  <input type="checkbox" id="chk-show-seg-labels-sidebar" style="accent-color:var(--accent-cyan);">
+                  Labels
+                </label>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px;border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain polygon vertices to move only within the Pen Buffer Radius of Deed DXF vertices">
+                <input type="checkbox" id="chk-constrain-deed-vertices" checked style="accent-color:var(--accent-cyan);">
+                🔒 Constrain to Deed Vertices
+              </label>
+              <span id="deed-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
             </div>
 
             <!-- Per-segment inputs container -->
@@ -5640,6 +5630,7 @@ EOF`;
     }
 
     function updateAlgoComparePanel() {
+      if (!algoCompareList) return;
       const n=state.anchors.length;
       if (n<2) { algoCompareList.innerHTML=`<p class="compare-note">Add ≥ 2 anchor pairs to compare algorithms.</p>`; return; }
       const scores=ALGORITHMS.map(algo => {
