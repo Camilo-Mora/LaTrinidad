@@ -799,6 +799,59 @@
 
       <!-- Sidebar: Anchors & Transformation Analytics -->
       <aside class="sidebar" id="sidebar">
+        <!-- Layer Opacity & Overlays (PowerPoint Mode) Card -->
+        <section class="panel-card" id="panel-overlays-opacity">
+          <div class="panel-header">
+            <h3>🎨 Overlays & Opacity (PowerPoint Mode)</h3>
+            <span class="geotiff-status" id="geotiff-status">No image loaded</span>
+          </div>
+          <div class="geotiff-panel">
+            <div class="opacity-row">
+              <label style="min-width:85px;">🛸 Drone TIF</label>
+              <input type="range" class="opacity-slider" id="geotiff-opacity" min="0" max="100" value="70">
+              <span class="opacity-val" id="geotiff-opacity-val">70%</span>
+            </div>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="Warped Deed PDF Map Image on Field">📜 Deed Map</label>
+              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50">
+              <span class="opacity-val" id="warped-pdf-opacity-val">50%</span>
+            </div>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="Warped Deed DXF Boundary Polygon on Field">📐 Deed DXF</label>
+              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90">
+              <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
+            </div>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)">📍 Field DXF</label>
+              <input type="range" class="opacity-slider" id="true-dxf-opacity" min="0" max="100" value="85">
+              <span class="opacity-val" id="true-dxf-opacity-val">85%</span>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:0.72rem;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="chk-show-warped-pdf" checked> Show Deed Map on Field
+              </label>
+            </div>
+            <p class="geotiff-note">Adjust opacities to visually inspect deed alignment over the drone imagery, just like in PowerPoint.</p>
+
+            <!-- 🎨 Polygon Display Styles -->
+            <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:6px;">
+              <div style="font-size:0.74rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;display:flex;align-items:center;gap:5px;">
+                <span>🎨 Polygon Display Styles</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;font-size:0.75rem;flex-wrap:wrap;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                  <input type="checkbox" id="chk-polygon-snap" checked style="accent-color:var(--accent-cyan);">
+                  Snap vertices
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;" title="Show or hide segment distance labels on the field canvas">
+                  <input type="checkbox" id="chk-show-seg-labels-sidebar" style="accent-color:var(--accent-cyan);">
+                  Labels
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Transformation Accuracy & Analytics Card -->
         <section class="panel-card">
           <div class="panel-header">
@@ -806,17 +859,6 @@
             <span id="rmse-display" class="badge-rmse">RMSE: 0.00</span>
           </div>
           <p class="rmse-subtitle">Lower RMSE = higher geometric precision at control points.</p>
-        </section>
-
-        <!-- Algorithm Comparison Scoreboard -->
-        <section class="panel-card" id="algo-compare-card">
-          <div class="panel-header">
-            <h3>🏆 Algorithm Comparison</h3>
-          </div>
-          <div class="algo-compare-list" id="algo-compare-list">
-            <p class="compare-note">Add ≥ 2 anchor pairs to compare algorithms.</p>
-          </div>
-          <p class="compare-note">Click any row to switch to that algorithm.</p>
         </section>
 
         <!-- Anchor Pairs Manager -->
@@ -856,42 +898,6 @@
           </div>
         </section>
 
-        <!-- Layer Opacity & Overlays (PowerPoint Mode) Card -->
-        <section class="panel-card">
-          <div class="panel-header">
-            <h3>🎨 Overlays & Opacity (PowerPoint Mode)</h3>
-            <span class="geotiff-status" id="geotiff-status">No image loaded</span>
-          </div>
-          <div class="geotiff-panel">
-            <div class="opacity-row">
-              <label style="min-width:85px;">🛸 Drone TIF</label>
-              <input type="range" class="opacity-slider" id="geotiff-opacity" min="0" max="100" value="70">
-              <span class="opacity-val" id="geotiff-opacity-val">70%</span>
-            </div>
-            <div class="opacity-row">
-              <label style="min-width:85px;" title="Warped Deed PDF Map Image on Field">📜 Deed Map</label>
-              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50">
-              <span class="opacity-val" id="warped-pdf-opacity-val">50%</span>
-            </div>
-            <div class="opacity-row">
-              <label style="min-width:85px;" title="Warped Deed DXF Boundary Polygon on Field">📐 Deed DXF</label>
-              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90">
-              <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
-            </div>
-            <div class="opacity-row">
-              <label style="min-width:85px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)">📍 Field DXF</label>
-              <input type="range" class="opacity-slider" id="true-dxf-opacity" min="0" max="100" value="85">
-              <span class="opacity-val" id="true-dxf-opacity-val">85%</span>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:4px;font-size:0.72rem;">
-              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
-                <input type="checkbox" id="chk-show-warped-pdf" checked> Show Deed Map on Field
-              </label>
-            </div>
-            <p class="geotiff-note">Adjust opacities to visually inspect deed alignment over the drone imagery, just like in PowerPoint.</p>
-          </div>
-        </section>
-
         <!-- Instructions Card -->
         <section class="panel-card info-card">
           <h4>How to Georectify</h4>
@@ -923,19 +929,6 @@
                 📂 Load File<input type="file" id="polygon-file-input" accept=".json,.dxf" style="display:none;">
               </label>
               <button id="btn-clear-polygon" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear and delete the current polygon">🗑 Clear</button>
-            </div>
-            <!-- Snap, Labels, and Constrain to Deed toggles -->
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-              <div style="display:flex;align-items:center;gap:14px;">
-                <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;">
-                  <input type="checkbox" id="chk-polygon-snap" checked style="accent-color:var(--accent-cyan);">
-                  Snap vertices
-                </label>
-                <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;" title="Show or hide segment distance labels on the field canvas">
-                  <input type="checkbox" id="chk-show-seg-labels-sidebar" style="accent-color:var(--accent-cyan);">
-                  Labels
-                </label>
-              </div>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px;border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain polygon vertices to move only within the Pen Buffer Radius of Deed DXF vertices">
@@ -5076,6 +5069,7 @@ EOF`;
     }
 
     function updateAlgoComparePanel() {
+      if (!algoCompareList) return;
       const n=state.anchors.length;
       if (n<2) { algoCompareList.innerHTML=`<p class="compare-note">Add ≥ 2 anchor pairs to compare algorithms.</p>`; return; }
       const scores=ALGORITHMS.map(algo => {
