@@ -2,201 +2,4355 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Deed Vertex Constraint Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DXF Georectifier & Rubber-Sheeting App</title>
+  <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
   <style>
+    /* Core Design Tokens & Glassmorphic Dark Styling */
+    :root {
+      --bg-dark: #07090e;
+      --bg-panel: rgba(15, 20, 32, 0.92);
+      --bg-card: rgba(24, 32, 50, 0.7);
+      --border-color: rgba(255, 255, 255, 0.14);
+      --text-main: #f0f4f8;
+      --text-muted: #8a9bb0;
+
+      --accent-purple: #d500f9;
+      --accent-green: #00e676;
+      --accent-cyan: #00e5ff;
+      --accent-orange: #ff9100;
+      --accent-red: #ff1744;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+
+      --shadow-glow: 0 0 20px rgba(0, 229, 255, 0.25);
+      --transition-fast: all 0.15s ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: sans-serif;
-      margin: 20px;
-      background: #f4f4f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
     }
-    .controls {
-      margin-bottom: 15px;
+
+    .app-container {
       display: flex;
-      gap: 20px;
-      align-items: center;
-      background: #fff;
-      padding: 10px 15px;
-      border-radius: 6px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      flex-direction: column;
+      height: 100vh;
     }
-    canvas {
-      border: 1px solid #ccc;
-      background: #ffffff;
+
+    /* Header */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 100;
+      gap: 16px;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .logo-group h1 { font-size: 1.05rem; font-weight: 700; }
+    .logo-group .subtitle { font-size: 0.75rem; color: var(--text-muted); }
+
+    .header-inputs {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #hist-dxf-input, #true-dxf-input { display: none; }
+
+    .algorithm-selector-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 5px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .algorithm-selector-group label {
+      font-size: 0.78rem;
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .select-dropdown {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .select-dropdown option { background: #121824; color: #fff; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .btn-primary { background: linear-gradient(135deg, #2979ff, #1565c0); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.15); box-shadow: 0 0 10px rgba(41, 121, 255, 0.4); }
+
+    .btn-secondary { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: var(--text-main); }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.18); }
+
+    .btn-success { background: linear-gradient(135deg, #00c853, #00e676); color: #000; }
+    .btn-success:hover { filter: brightness(1.15); box-shadow: 0 0 10px rgba(0, 230, 118, 0.4); }
+
+    .btn-sm { padding: 3px 8px; font-size: 0.72rem; border-radius: 4px; }
+
+    /* Workspace Layout */
+    .app-workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .split-viewport-area {
+      flex: 1;
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: #040609;
+    }
+
+    .viewport-card {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .viewport-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: rgba(0, 0, 0, 0.4);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .view-title { font-size: 0.85rem; font-weight: 700; }
+    .historical-title { color: var(--accent-purple); }
+    .true-title { color: var(--accent-green); }
+
+    .view-badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(213, 0, 249, 0.15);
+      color: var(--accent-purple);
+      border: 1px solid rgba(213, 0, 249, 0.3);
+    }
+    .view-badge.green {
+      background: rgba(0, 230, 118, 0.15);
+      color: var(--accent-green);
+      border-color: rgba(0, 230, 118, 0.3);
+    }
+
+    .view-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .toggle-overlay { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #080b12;
+    }
+
+    .canvas-container canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
       cursor: crosshair;
     }
+
+    .viewport-hint {
+      padding: 6px 12px;
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .viewport-card.hidden {
+      display: none !important;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 380px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+      overflow-y: auto;
+      transition: width 0.2s ease, opacity 0.2s ease;
+    }
+
+    .sidebar.collapsed {
+      display: none !important;
+    }
+
+    /* Panel Layout Display Controls */
+    .panel-layout-group {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .layout-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .layout-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .layout-btn.active {
+      background: rgba(0, 229, 255, 0.18);
+      color: var(--accent-cyan);
+      border-color: rgba(0, 229, 255, 0.4);
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .panel-card.flex-grow { flex: 1; }
+
+    .panel-header { display: flex; align-items: center; justify-content: space-between; }
+    .panel-header h3 { font-size: 0.88rem; font-weight: 600; }
+
+    .badge-rmse {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.12);
+      padding: 3px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 229, 255, 0.3);
+    }
+
+    .rmse-subtitle { font-size: 0.72rem; color: var(--text-muted); }
+
+    /* Algorithm Comparison Panel */
+    .algo-compare-list { display: flex; flex-direction: column; gap: 7px; }
+
+    .algo-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: rgba(0,0,0,0.25);
+      transition: border-color 0.25s, background 0.25s;
+      cursor: pointer;
+    }
+    .algo-row:hover { background: rgba(255,255,255,0.04); }
+    .algo-row.algo-active {
+      border-color: rgba(0, 229, 255, 0.6);
+      background: rgba(0, 229, 255, 0.07);
+    }
+    .algo-row.algo-best {
+      border-color: rgba(0, 230, 118, 0.7);
+      background: rgba(0, 230, 118, 0.08);
+    }
+    .algo-row.algo-best.algo-active {
+      border-color: rgba(0, 230, 118, 0.9);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+    }
+
+    .algo-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .algo-name { font-size: 0.78rem; font-weight: 600; color: var(--text-main); }
+    .algo-badges { display: flex; align-items: center; gap: 5px; }
+
+    .badge-rank {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      color: var(--text-muted);
+    }
+    .badge-rank.rank-1 { background: rgba(0,230,118,0.25); color: #00e676; }
+    .badge-rank.rank-2 { background: rgba(255,214,0,0.2); color: #ffd600; }
+    .badge-rank.rank-3 { background: rgba(255,145,0,0.2); color: #ff9100; }
+    .badge-rank.rank-4 { background: rgba(255,23,68,0.2); color: #ff1744; }
+
+    .badge-best {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 8px;
+      background: rgba(0,230,118,0.3);
+      color: #00e676;
+      border: 1px solid rgba(0,230,118,0.5);
+      letter-spacing: 0.04em;
+    }
+    .badge-active-tag {
+      font-size: 0.65rem;
+      padding: 1px 6px;
+      border-radius: 8px;
+      background: rgba(0,229,255,0.2);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(0,229,255,0.4);
+    }
+
+    .algo-rmse-val { font-size: 0.78rem; font-weight: 700; color: var(--text-main); }
+
+    .algo-bar-track {
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.07);
+      overflow: hidden;
+    }
+    .algo-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .algo-mins-label { font-size: 0.68rem; color: var(--text-muted); }
+
+    .compare-note {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 4px 0 0;
+    }
+
+    /* Anchor Table */
+    .table-wrapper {
+      flex: 1;
+      max-height: 380px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+    }
+
+    .anchor-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+
+    .anchor-table th {
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--accent-cyan);
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .anchor-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .anchor-badge {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 18px;
+      font-weight: bold;
+      font-size: 0.7rem;
+      color: #000;
+    }
+
+    .btn-del-anchor {
+      background: rgba(255, 23, 68, 0.2);
+      border: 1px solid rgba(255, 23, 68, 0.4);
+      color: var(--accent-red);
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.7rem;
+    }
+    .btn-del-anchor:hover { background: var(--accent-red); color: #fff; }
+
+    /* Info Card */
+    .info-card h4 { font-size: 0.82rem; color: var(--accent-cyan); }
+    .info-card ol { padding-left: 16px; font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* GeoTIFF Controls */
+    .btn-tiff {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: var(--radius-sm);
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      background: rgba(0,229,255,0.12); color: var(--accent-cyan);
+      border: 1px solid rgba(0,229,255,0.3); transition: opacity 0.18s;
+    }
+    .btn-tiff:hover { opacity: 0.8; }
+    .geotiff-panel { display: flex; flex-direction: column; gap: 10px; }
+    .geotiff-row {
+      background: rgba(0,0,0,0.25); border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm); padding: 8px 10px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .geotiff-row-header { display: flex; align-items: center; justify-content: space-between; }
+    .geotiff-row-label { font-size: 0.75rem; font-weight: 600; }
+    .geotiff-status {
+      font-size: 0.66rem; padding: 1px 7px; border-radius: 8px;
+      background: rgba(255,255,255,0.08); color: var(--text-muted);
+      max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .geotiff-status.ok { background: rgba(0,230,118,0.18); color: #00e676; }
+    .opacity-row { display: flex; align-items: center; gap: 8px; }
+    .opacity-row label { font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0; }
+    .opacity-slider {
+      flex: 1; -webkit-appearance: none; height: 4px;
+      border-radius: 2px; background: rgba(255,255,255,0.12); outline: none;
+    }
+    .opacity-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 13px; height: 13px;
+      border-radius: 50%; background: var(--accent-cyan); cursor: pointer;
+    }
+    .opacity-val { font-size: 0.68rem; color: var(--accent-cyan); font-family: monospace; min-width: 32px; text-align: right; }
+    .geotiff-note { font-size: 0.67rem; color: var(--text-muted); line-height: 1.4; }
+
+    /* Tool Mode Bar & Fit Buttons */
+    .tool-mode-group {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+    }
+    .mode-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .mode-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .mode-btn.active {
+      background: rgba(0, 229, 255, 0.18);
+      color: var(--accent-cyan);
+      border-color: rgba(0, 229, 255, 0.4);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+    }
+    .btn-fit-view {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-fit-view:hover {
+      background: rgba(0, 229, 255, 0.2);
+      color: var(--accent-cyan);
+      border-color: rgba(0, 229, 255, 0.4);
+    }
+
+    /* Footer Status Bar */
+    .app-footer {
+      height: 30px;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      z-index: 100;
+    }
+    .status-bar { color: var(--accent-cyan); }
   </style>
 </head>
 <body>
+  <div class="app-container">
+    <!-- Header Controls -->
+    <header class="app-header">
+      <div class="logo-group">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div>
+          <h1>DXF Georectifier</h1>
+          <p class="subtitle">Rubber-Sheeting & Vector Georectification</p>
+        </div>
+      </div>
 
-  <div class="controls">
-    <label>
-      <input type="checkbox" id="chk-constrain-deed-vertices">
-      🔒 Constrain to Deed Vertices
-    </label>
-    <label>
-      <input type="checkbox" id="chk-polygon-snap" checked>
-      Snap Vertices
-    </label>
+      <!-- File Loaders -->
+      <div class="header-inputs">
+        <label for="geotiff-input" class="btn-tiff" title="Load Shared GeoTIFF Background for Both Canvases">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          🗺️ Drone GeoTIFF
+        </label>
+        <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff">
+
+        <label for="hist-pdf-input" class="btn btn-secondary" title="Load Historical Deed PDF Map">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Deed PDF
+        </label>
+        <input type="file" id="hist-pdf-input" accept=".pdf">
+
+        <label for="hist-dxf-input" class="btn btn-secondary" title="Load Historical Deformed DXF">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Deed DXF
+        </label>
+        <input type="file" id="hist-dxf-input" accept=".dxf">
+
+        <label for="true-dxf-input" class="btn btn-primary" title="Load True Ground-Truth Field Survey DXF">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Field DXF
+        </label>
+        <input type="file" id="true-dxf-input" accept=".dxf">
+      </div>
+
+      <!-- Tool Mode Selector (Pan vs Anchor) -->
+      <div class="tool-mode-group">
+        <button class="mode-btn active" id="btn-mode-pan" title="Move & Pan Map Display [Hotkey: P]">
+          🖐️ Pan Mode
+        </button>
+        <button class="mode-btn" id="btn-mode-anchor" title="Place Anchor Control Points [Hotkey: A]">
+          🎯 Anchor Mode
+        </button>
+      </div>
+
+      <!-- Algorithm Selector Dropdown -->
+      <div class="algorithm-selector-group">
+        <label for="algorithm-select">Algorithm:</label>
+        <select id="algorithm-select" class="select-dropdown">
+          <option value="SIMILARITY" selected>Helmert Similarity (PowerPoint Rotate+Scale)</option>
+          <option value="AFFINE">Affine Transformation (6-Param)</option>
+          <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
+          <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+        </select>
+      </div>
+
+      <!-- Panel Display / Layout Options -->
+      <div class="panel-layout-group" title="Window & Panel Display Options">
+        <button class="layout-btn" id="btn-layout-left" title="Show Left Panel Only (Historical Deed)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
+            <line x1="9" y1="3" x2="9" y2="21"/>
+            <rect x="3" y="3" width="6" height="18" rx="2" fill="currentColor" opacity="0.3"/>
+          </svg>
+          <span>Left</span>
+        </button>
+        <button class="layout-btn active" id="btn-layout-split" title="Split View: Both Panels Side by Side">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
+            <line x1="12" y1="3" x2="12" y2="21"/>
+          </svg>
+          <span>Split</span>
+        </button>
+        <button class="layout-btn" id="btn-layout-right" title="Show Right Panel Only (Field Survey & Drone)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
+            <line x1="15" y1="3" x2="15" y2="21"/>
+            <rect x="15" y="3" width="6" height="18" rx="2" fill="currentColor" opacity="0.3"/>
+          </svg>
+          <span>Right</span>
+        </button>
+        <button class="layout-btn active" id="btn-toggle-sidebar" title="Toggle Sidebar (Expand/Collapse)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
+            <line x1="16" y1="3" x2="16" y2="21"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Export Action -->
+      <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
+        <button id="btn-export-dxf" class="btn btn-success">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export Rectified DXF
+        </button>
+        <button id="btn-export-polygon-dxf" class="btn btn-success" disabled style="opacity:0.45;" title="Export the hand-crafted polygon as a DXF file (user_polygon.dxf)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          Export Polygon DXF
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-workspace">
+      <!-- Split Canvases Area -->
+      <div class="split-viewport-area">
+        <!-- Left Window: Historical Deed (PDF + DXF) -->
+        <div class="viewport-card" id="hist-card">
+          <div class="viewport-header">
+            <span class="view-title historical-title">📜 Historical Deed (PDF + DXF)</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="btn-fit-view" id="btn-fit-hist" title="Fit & Center Display">🎯 Center View</button>
+              <button id="btn-save-deed-dxf" class="btn btn-secondary btn-sm" title="Save & download modified Deed DXF with its original filename">💾 Save Deed DXF</button>
+              <span id="hist-status" class="view-badge">Loading…</span>
+            </div>
+          </div>
+          <div class="canvas-container" id="hist-container">
+            <canvas id="hist-canvas"></canvas>
+          </div>
+          <div class="viewport-hint" id="hist-hint">🖐️ Left click and drag to pan deed map. Click '🎯 Anchor Mode' to drop points.</div>
+        </div>
+
+        <!-- Right Window: True Field Survey DXF + Live Transformed Overlay -->
+        <div class="viewport-card" id="true-card">
+          <div class="viewport-header">
+            <span class="view-title true-title">📍 True Field Survey & Live Rectification (Target)</span>
+            <div class="view-controls">
+              <button class="btn-fit-view" id="btn-fit-true" title="Fit & Center Display">🎯 Center View</button>
+              <label class="toggle-overlay" style="color:var(--accent-orange);font-weight:600;" title="Enable dragging deed vertices directly on the field canvas to fine-tune alignment within print range"><input type="checkbox" id="chk-edit-deed-nodes"> ✏️ Edit Deed Nodes</label>
+              <label class="toggle-overlay" title="Show or hide polygon segment length labels"><input type="checkbox" id="chk-show-seg-labels" checked> Labels</label>
+              <label class="toggle-overlay"><input type="checkbox" id="chk-show-overlay" checked> Live Warped Overlay</label>
+              <span id="true-status" class="view-badge">Loading…</span>
+            </div>
+          </div>
+          <div class="canvas-container" id="true-container">
+            <canvas id="true-canvas"></canvas>
+          </div>
+          <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to pan field survey. Click '🎯 Anchor Mode' to drop points.</div>
+        </div>
+      </div>
+
+      <!-- Sidebar: Anchors & Transformation Analytics -->
+      <aside class="sidebar" id="sidebar">
+        <!-- Transformation Accuracy & Analytics Card -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>Alignment Accuracy</h3>
+            <span id="rmse-display" class="badge-rmse">RMSE: 0.00</span>
+          </div>
+          <p class="rmse-subtitle">Lower RMSE = higher geometric precision at control points.</p>
+        </section>
+
+        <!-- Algorithm Comparison Scoreboard -->
+        <section class="panel-card" id="algo-compare-card">
+          <div class="panel-header">
+            <h3>🏆 Algorithm Comparison</h3>
+          </div>
+          <div class="algo-compare-list" id="algo-compare-list">
+            <p class="compare-note">Add ≥ 2 anchor pairs to compare algorithms.</p>
+          </div>
+          <p class="compare-note">Click any row to switch to that algorithm.</p>
+        </section>
+
+        <!-- Anchor Pairs Manager -->
+        <section class="panel-card flex-grow">
+          <div class="panel-header">
+            <h3>Control Point Pairs (Anchors)</h3>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <button id="btn-save-anchors" class="btn-sm btn-success" title="Download & save anchors to anchors_georectifier.json">💾 Save</button>
+              <label for="anchor-file-input" class="btn-sm btn-secondary" style="cursor:pointer;margin:0;" title="Load custom anchors JSON file">📂 Load</label>
+              <input type="file" id="anchor-file-input" accept=".json" style="display:none;">
+              <button id="btn-clear-anchors" class="btn-sm btn-secondary" title="Clear all anchor points">Clear All</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging within the Pen Buffer Radius of Field.dxf vertices">
+              <input type="checkbox" id="chk-constrain-anchors" style="accent-color:var(--accent-cyan);">
+              🔒 Constrain to Field Vertices
+            </label>
+            <span id="anchor-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="anchor-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Source (Hist X, Y)</th>
+                  <th>Target (True X, Y)</th>
+                  <th>Error</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="anchor-table-body">
+                <!-- Anchor rows dynamically added here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Layer Opacity & Overlays (PowerPoint Mode) Card -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>🎨 Overlays & Opacity (PowerPoint Mode)</h3>
+            <span class="geotiff-status" id="geotiff-status">No image loaded</span>
+          </div>
+          <div class="geotiff-panel">
+            <div class="opacity-row">
+              <label style="min-width:85px;">🛸 Drone TIF</label>
+              <input type="range" class="opacity-slider" id="geotiff-opacity" min="0" max="100" value="70">
+              <span class="opacity-val" id="geotiff-opacity-val">70%</span>
+            </div>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="Warped Deed PDF Map Image on Field">📜 Deed Map</label>
+              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50">
+              <span class="opacity-val" id="warped-pdf-opacity-val">50%</span>
+            </div>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="Warped Deed DXF Boundary Polygon on Field">📐 Deed DXF</label>
+              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90">
+              <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
+            </div>
+            <div class="opacity-row">
+              <label style="min-width:85px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)">📍 Field DXF</label>
+              <input type="range" class="opacity-slider" id="true-dxf-opacity" min="0" max="100" value="85">
+              <span class="opacity-val" id="true-dxf-opacity-val">85%</span>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:0.72rem;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="chk-show-warped-pdf" checked> Show Deed Map on Field
+              </label>
+            </div>
+            <p class="geotiff-note">Adjust opacities to visually inspect deed alignment over the drone imagery, just like in PowerPoint.</p>
+          </div>
+        </section>
+
+        <!-- Instructions Card -->
+        <section class="panel-card info-card">
+          <h4>How to Georectify</h4>
+          <ol>
+            <li>Click <strong>🗺️ Load GeoTIFF Background</strong> to display your satellite/aerial image.</li>
+            <li>Load your <strong>Historical DXF</strong> (left) and <strong>True Field DXF</strong> (right) vectors.</li>
+            <li><strong>Click a landmark</strong> on the Historical Map to place a Source Anchor.</li>
+            <li><strong>Click the matching point</strong> on the True Survey Map to complete the pair.</li>
+            <li>Add 3+ pairs to activate real-time rubber-sheeting!</li>
+            <li>Click <strong>Export Rectified DXF</strong> when satisfied!</li>
+          </ol>
+        </section>
+
+        <!-- ===== DISTANCE & AREA PANEL ===== -->
+        <section class="panel-card" id="panel-distance-area">
+          <div class="panel-header">
+            <h3>📏 Distance &amp; Area</h3>
+          </div>
+          <div id="body-distance-area" style="display:flex;flex-direction:column;gap:8px;">
+            <!-- Action buttons -->
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button id="btn-create-polygon" class="btn btn-primary btn-sm" title="Start drawing a new polygon on the field canvas">+ Create new polygon</button>
+              <button id="btn-cancel-polygon" class="btn btn-secondary btn-sm" style="display:none;" title="Cancel current polygon drawing">✕ Cancel</button>
+              <button id="btn-close-polygon" class="btn btn-secondary btn-sm" style="display:none;" title="Close and finish the polygon (or click near first vertex)">✓ Close polygon</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button id="btn-save-polygon" class="btn btn-sm" style="background:rgba(0,200,83,0.25);border:1px solid rgba(0,200,83,0.5);color:#00e676;" disabled title="Save polygon to user_polygon.json">💾 Save JSON</button>
+              <label id="btn-load-polygon-lbl" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:0.72rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;">
+                📂 Load File<input type="file" id="polygon-file-input" accept=".json,.dxf" style="display:none;">
+              </label>
+              <button id="btn-clear-polygon" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear and delete the current polygon">🗑 Clear</button>
+            </div>
+            <!-- Snap, Labels, and Constrain to Deed toggles -->
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;">
+                  <input type="checkbox" id="chk-polygon-snap" checked style="accent-color:var(--accent-cyan);">
+                  Snap vertices
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;" title="Show or hide segment distance labels on the field canvas">
+                  <input type="checkbox" id="chk-show-seg-labels-sidebar" checked style="accent-color:var(--accent-cyan);">
+                  Labels
+                </label>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px;border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain polygon vertices to move only within the Pen Buffer Radius of Deed DXF vertices">
+                <input type="checkbox" id="chk-constrain-deed-vertices" style="accent-color:var(--accent-cyan);">
+                🔒 Constrain to Deed Vertices
+              </label>
+              <span id="deed-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
+            </div>
+            <!-- Per-segment inputs container -->
+            <div id="polygon-segments-container" style="display:none;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px;background:rgba(0,0,0,0.2);">
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">Segment deed distances (m) &amp; Error %:</div>
+              <div id="polygon-seg-inputs"></div>
+              <!-- Segment Error Color Legend -->
+              <div id="segment-error-legend" style="display:flex;align-items:center;justify-content:space-between;font-size:0.67rem;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:4px;border:1px solid rgba(255,255,255,0.08);margin-top:6px;color:var(--text-muted);">
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#00e676;"></span>&lt;2%</span>
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#aeea00;"></span>2–5%</span>
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#ffd600;"></span>5–10%</span>
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#ff9100;"></span>10–20%</span>
+                <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#ff1744;"></span>&gt;20%</span>
+              </div>
+            </div>
+            <!-- Boundary Optimization Panel -->
+            <div id="boundary-optimization-panel" style="display:none;flex-direction:column;gap:8px;padding:8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.25);border-radius:6px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.75rem;font-weight:700;color:var(--accent-cyan);display:flex;align-items:center;gap:4px;">
+                  ⚡ Boundary Optimization
+                </span>
+                <span id="opt-status-badge" style="font-size:0.65rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-muted);">Ready</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);">
+                  <span>Pen Buffer Radius (R):</span>
+                  <strong id="opt-buffer-val" style="color:var(--accent-cyan);font-family:monospace;">±3.0 m</strong>
+                </div>
+                <input type="range" id="opt-buffer-slider" min="0.5" max="8.0" step="0.1" value="3.0" class="opacity-slider" style="height:4px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-muted);">
+                  <span>0.5m (strict)</span>
+                  <span>1973 ink blot (~3m)</span>
+                  <span>8.0m (wide)</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);">
+                  <span>Priority Balance:</span>
+                  <span id="opt-balance-val" style="color:var(--accent-cyan);font-family:monospace;font-size:0.67rem;">Balanced (50/50)</span>
+                </div>
+                <input type="range" id="opt-balance-slider" min="0" max="100" value="50" class="opacity-slider" style="height:4px;">
+                <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-muted);">
+                  <span>Distance</span>
+                  <span>Balanced</span>
+                  <span>Area 296</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;" title="Draw translucent buffer disks and shift arrows on canvas">
+                  <input type="checkbox" id="chk-show-buffer-disks" checked style="accent-color:var(--accent-cyan);">
+                  Show Buffer Halos &amp; Vectors
+                </label>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button id="btn-run-optimization" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;" title="Automatically relax boundary vertices inside their pen buffers to match deed lengths &amp; area">
+                  ⚡ Auto-Optimize
+                </button>
+                <button id="btn-reset-optimization" class="btn btn-secondary btn-sm" title="Reset dynamic vertices back to unadjusted deed centers">
+                  ↺ Reset
+                </button>
+              </div>
+            </div>
+            <!-- Metrics -->
+            <div id="polygon-metrics" style="display:none;font-size:0.78rem;line-height:1.7;background:rgba(0,0,0,0.25);border-radius:6px;padding:8px;border:1px solid rgba(0,229,255,0.25);">
+              <div>Vertices: <strong id="poly-vertex-count">—</strong></div>
+              <div>Field Area: <strong id="poly-area" style="color:#00e5ff;">—</strong> m² (<strong id="poly-area-plazas" style="color:#00e5ff;">—</strong> plazas)</div>
+              <div>Deed 296 Area: <strong>162,156.00 m²</strong> (25.34 plazas)</div>
+              <div>Area Error: <strong id="poly-area-error" style="color:#ffd600;">—</strong> m² (<strong id="poly-area-error-pct" style="color:#ffd600;">—</strong> %)</div>
+              <hr style="border-color:rgba(255,255,255,0.1);margin:4px 0;">
+              <div>Segments with deed dist: <strong id="poly-seg-with-dist">—</strong></div>
+              <div>Avg segment error: <strong id="avg-seg-error" style="color:var(--accent-cyan);">—</strong> %</div>
+              <div>Overall error: <strong id="overall-error" style="color:#00e676;font-size:0.85rem;">—</strong> %</div>
+            </div>
+            <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);">Click "+ Create new polygon" then click on the field canvas to place vertices. Click near the first vertex to close.</p>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <!-- Footer Status Bar -->
+    <footer class="app-footer">
+      <div id="status-bar" class="status-bar">Ready • Click a point on the Historical Map to begin pairing anchors.</div>
+      <div id="coords-bar" class="coords-bar">Hist: (0, 0) • True: (0, 0)</div>
+    </footer>
   </div>
 
-  <canvas id="canvas" width="800" height="600"></canvas>
-
   <script>
-    // Application state
-    const state = {
-      constrainPolyToDeed: false,
-      optBufferRadius: 50,
-      deedVertices: [
-        { x: 200, y: 150 },
-        { x: 600, y: 150 },
-        { x: 500, y: 450 },
-        { x: 250, y: 400 }
-      ],
-      polygon: [
-        { x: 200, y: 150, deedPt: { x: 200, y: 150 } },
-        { x: 600, y: 150, deedPt: { x: 600, y: 150 } },
-        { x: 500, y: 450, deedPt: { x: 500, y: 450 } },
-        { x: 250, y: 400, deedPt: { x: 250, y: 400 } }
-      ]
-    };
+    /* ==========================================================================
+       1. ROBUST ASCII DXF PARSER & SERIALIZER
+       ========================================================================== */
+    class DXFParser {
+      static parse(dxfText) {
+        if (!dxfText) return [];
+        const lines = dxfText.split(/\r?\n/);
+        const entities = [];
+        
+        let currentEntity = null;
 
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    const chkConstrainDeed = document.getElementById("chk-constrain-deed-vertices");
-    const chkPolygonSnap = document.getElementById("chk-polygon-snap");
+        let i = 0;
+        while (i < lines.length - 1) {
+          const code = parseInt(lines[i].trim(), 10);
+          const val = lines[i + 1].trim();
+          i += 2;
 
-    let draggingVert = null;
+          if (isNaN(code)) continue;
 
-    // Helper: Mock GIS warper function
-    function warper(deedPt) {
-      return deedPt;
+          if (code === 0) {
+            const uVal = val.toUpperCase();
+
+            // Handle VERTEX coordinates inside the active POLYLINE
+            if (uVal === "VERTEX") {
+              let vx = 0, vy = 0;
+              while (i < lines.length - 1) {
+                const vCode = parseInt(lines[i].trim(), 10);
+                const vVal = lines[i + 1].trim();
+                if (vCode === 0) break;
+                i += 2;
+                if (vCode === 10) vx = parseFloat(vVal);
+                if (vCode === 20) vy = parseFloat(vVal);
+              }
+              if (currentEntity && (currentEntity.type === "POLYLINE" || currentEntity.type === "LWPOLYLINE")) {
+                currentEntity.points.push({ x: vx, y: vy });
+              }
+              continue;
+            }
+
+            // Handle end of vertex sequence
+            if (uVal === "SEQEND") {
+              if (currentEntity) {
+                DXFParser.finalizeEntity(currentEntity);
+                if (currentEntity.points.length >= 1) {
+                  entities.push(currentEntity);
+                }
+                currentEntity = null;
+              }
+              continue;
+            }
+
+            // Finalize previous entity if any other code 0 token is read
+            if (currentEntity) {
+              DXFParser.finalizeEntity(currentEntity);
+              if (currentEntity.points.length >= 1) {
+                entities.push(currentEntity);
+              }
+              currentEntity = null;
+            }
+
+            if (uVal === "POLYLINE" || uVal === "LWPOLYLINE" || uVal === "LINE" || uVal === "ARC" || uVal === "CIRCLE") {
+              currentEntity = {
+                type: uVal,
+                layer: "0",
+                closed: uVal === "CIRCLE",
+                points: [],
+                cx: 0,
+                cy: 0,
+                r: 0,
+                startAngle: 0,
+                endAngle: 360
+              };
+            }
+            continue;
+          }
+
+          if (!currentEntity) continue;
+
+          // Entity Layer Name
+          if (code === 8) {
+            currentEntity.layer = val;
+          }
+
+          // Closed Flag for Polyline (70 bitmask, 1 = closed)
+          if (code === 70) {
+            const flag = parseInt(val, 10);
+            currentEntity.closed = (flag & 1) !== 0;
+          }
+
+          // LWPOLYLINE Coordinates / Center X of Circle/Arc
+          if (code === 10) {
+            const x = parseFloat(val);
+            let y = 0;
+            if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 20) {
+              y = parseFloat(lines[i + 1].trim());
+              i += 2;
+            }
+            if (currentEntity.type === "ARC" || currentEntity.type === "CIRCLE") {
+              currentEntity.cx = x;
+              currentEntity.cy = y;
+            } else {
+              currentEntity.points.push({ x, y });
+            }
+          }
+
+          // LINE Coordinates (11,21 = end)
+          if (code === 11) {
+            const x = parseFloat(val);
+            let y = 0;
+            if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 21) {
+              y = parseFloat(lines[i + 1].trim());
+              i += 2;
+            }
+            currentEntity.points.push({ x, y });
+          }
+
+          // Radius for Arc / Circle
+          if (code === 40) {
+            currentEntity.r = parseFloat(val);
+          }
+
+          // Start Angle for Arc
+          if (code === 50) {
+            currentEntity.startAngle = parseFloat(val);
+          }
+
+          // End Angle for Arc
+          if (code === 51) {
+            currentEntity.endAngle = parseFloat(val);
+          }
+        }
+
+        if (currentEntity) {
+          DXFParser.finalizeEntity(currentEntity);
+          if (currentEntity.points.length >= 1) {
+            entities.push(currentEntity);
+          }
+        }
+
+        return entities;
+      }
+
+      static finalizeEntity(entity) {
+        if (entity.type === "CIRCLE") {
+          const cx = entity.cx;
+          const cy = entity.cy;
+          const r = entity.r;
+          const numSegments = 36;
+          for (let j = 0; j < numSegments; j++) {
+            const theta = (j / numSegments) * Math.PI * 2;
+            entity.points.push({
+              x: cx + r * Math.cos(theta),
+              y: cy + r * Math.sin(theta)
+            });
+          }
+        } else if (entity.type === "ARC") {
+          const cx = entity.cx;
+          const cy = entity.cy;
+          const r = entity.r;
+          let startRad = entity.startAngle * Math.PI / 180;
+          let endRad = entity.endAngle * Math.PI / 180;
+          if (endRad < startRad) endRad += Math.PI * 2;
+          const numSegments = 18;
+          for (let j = 0; j <= numSegments; j++) {
+            const theta = startRad + (j / numSegments) * (endRad - startRad);
+            entity.points.push({
+              x: cx + r * Math.cos(theta),
+              y: cy + r * Math.sin(theta)
+            });
+          }
+        }
+      }
+
+      static serialize(entities) {
+        let dxf = "0\nSECTION\n2\nENTITIES\n";
+        entities.forEach((ent) => {
+          if (!ent.points || ent.points.length < 2) return;
+
+          const layer = (ent.layer || "RECTIFIED").replace(/[^a-zA-Z0-9_-]/g, "_");
+          const isClosed = ent.closed ? 1 : 0;
+
+          dxf += `0\nPOLYLINE\n8\n${layer}\n66\n1\n70\n${isClosed}\n`;
+          ent.points.forEach((pt) => {
+            dxf += `0\nVERTEX\n8\n${layer}\n10\n${pt.x.toFixed(4)}\n20\n${pt.y.toFixed(4)}\n30\n0.0\n`;
+          });
+          dxf += "0\nSEQEND\n";
+        });
+        dxf += "0\nENDSEC\n0\nEOF\n";
+        return dxf;
+      }
     }
 
-    // Helper: Clamps point within buffer radius R of centerPt
-    function constrainPointToBuffer(candidatePt, centerPt, bufferRadius) {
-      if (!centerPt || !bufferRadius || bufferRadius <= 0) {
-        return { x: candidatePt.x, y: candidatePt.y };
+    /* ==========================================================================
+       2. TRANSFORMATION MATHEMATICAL ENGINE (TPS, AFFINE, HELMERT, PROJECTIVE)
+       ========================================================================== */
+    class TransformMath {
+      static tpsKernel(r) {
+        if (r <= 1e-9) return 0;
+        return r * r * Math.log(r);
       }
 
-      const dx = candidatePt.x - centerPt.x;
-      const dy = candidatePt.y - centerPt.y;
-      const dist = Math.hypot(dx, dy);
+      static solveLinearSystem(A, b) {
+        const n = A.length;
+        const M = A.map((row, i) => [...row, b[i]]);
 
-      // Allow free movement inside disk
-      if (dist <= bufferRadius) {
-        return { x: candidatePt.x, y: candidatePt.y };
+        for (let i = 0; i < n; i++) {
+          let maxRow = i;
+          for (let k = i + 1; k < n; k++) {
+            if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) maxRow = k;
+          }
+          const temp = M[i]; M[i] = M[maxRow]; M[maxRow] = temp;
+
+          if (Math.abs(M[i][i]) < 1e-12) {
+            throw new Error("Matrix is singular.");
+          }
+
+          for (let k = i + 1; k < n; k++) {
+            const factor = M[k][i] / M[i][i];
+            for (let j = i; j <= n; j++) {
+              M[k][j] -= factor * M[i][j];
+            }
+          }
+        }
+
+        const x = new Array(n).fill(0);
+        for (let i = n - 1; i >= 0; i--) {
+          let sum = M[i][n];
+          for (let j = i + 1; j < n; j++) {
+            sum -= M[i][j] * x[j];
+          }
+          x[i] = sum / M[i][i];
+        }
+        return x;
       }
 
-      // Clamp onto buffer perimeter boundary
+      static buildTPSWarper(anchors) {
+        const N = anchors.length;
+        if (N < 3) throw new Error("TPS requires >= 3 anchor pairs.");
+
+        const sysSize = N + 3;
+        const K = Array.from({ length: sysSize }, () => new Array(sysSize).fill(0));
+        const bx = new Array(sysSize).fill(0);
+        const by = new Array(sysSize).fill(0);
+
+        for (let i = 0; i < N; i++) {
+          bx[i] = anchors[i].dst.x;
+          by[i] = anchors[i].dst.y;
+
+          for (let j = 0; j < N; j++) {
+            if (i !== j) {
+              const dx = anchors[i].src.x - anchors[j].src.x;
+              const dy = anchors[i].src.y - anchors[j].src.y;
+              K[i][j] = TransformMath.tpsKernel(Math.hypot(dx, dy));
+            }
+          }
+
+          K[i][N] = 1; K[i][N + 1] = anchors[i].src.x; K[i][N + 2] = anchors[i].src.y;
+          K[N][i] = 1; K[N + 1][i] = anchors[i].src.x; K[N + 2][i] = anchors[i].src.y;
+        }
+
+        const solX = TransformMath.solveLinearSystem(K, bx);
+        const solY = TransformMath.solveLinearSystem(K, by);
+
+        return (pt) => {
+          let xWarp = solX[N] + solX[N + 1] * pt.x + solX[N + 2] * pt.y;
+          let yWarp = solY[N] + solY[N + 1] * pt.x + solY[N + 2] * pt.y;
+
+          for (let i = 0; i < N; i++) {
+            const dx = pt.x - anchors[i].src.x;
+            const dy = pt.y - anchors[i].src.y;
+            const U = TransformMath.tpsKernel(Math.hypot(dx, dy));
+            xWarp += solX[i] * U;
+            yWarp += solY[i] * U;
+          }
+          return { x: xWarp, y: yWarp };
+        };
+      }
+
+      static buildAffineWarper(anchors) {
+        const AtA = Array.from({ length: 3 }, () => new Array(3).fill(0));
+        const AtBx = new Array(3).fill(0);
+        const AtBy = new Array(3).fill(0);
+
+        anchors.forEach(a => {
+          const row = [a.src.x, a.src.y, 1];
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) AtA[i][j] += row[i] * row[j];
+            AtBx[i] += row[i] * a.dst.x;
+            AtBy[i] += row[i] * a.dst.y;
+          }
+        });
+
+        const cX = TransformMath.solveLinearSystem(AtA, AtBx);
+        const cY = TransformMath.solveLinearSystem(AtA, AtBy);
+
+        return (pt) => ({
+          x: cX[0] * pt.x + cX[1] * pt.y + cX[2],
+          y: cY[0] * pt.x + cY[1] * pt.y + cY[2]
+        });
+      }
+
+      static buildSimilarityWarper(anchors) {
+        if (!anchors || anchors.length < 2) return (pt) => ({ ...pt });
+
+        // Helper to solve 4-param similarity system
+        function fit(isReflected) {
+          const A = Array.from({ length: 4 }, () => new Array(4).fill(0));
+          const B = new Array(4).fill(0);
+
+          anchors.forEach(anc => {
+            const x = anc.src.x, y = anc.src.y;
+            const x_ = anc.dst.x, y_ = anc.dst.y;
+            // When isReflected is true: x' = a*x + b*y + c, y' = b*x - a*y + d.
+            // This inverts Y (essential because deed space is Y-down, but GIS UTM is Y-up).
+            // On screen, this results in a true rigid rotation with NO sideways mirroring.
+            // When isReflected is false: x' = a*x - b*y + c, y' = b*x + a*y + d.
+            const rows = isReflected
+              ? [[x, y, 1, 0], [-y, x, 0, 1]]
+              : [[x, -y, 1, 0], [y, x, 0, 1]];
+            const targets = [x_, y_];
+
+            for (let r = 0; r < 2; r++) {
+              for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) A[i][j] += rows[r][i] * rows[r][j];
+                B[i] += rows[r][i] * targets[r];
+              }
+            }
+          });
+
+          const c = TransformMath.solveLinearSystem(A, B);
+          if (isReflected) {
+            return (pt) => ({
+              x: c[0] * pt.x + c[1] * pt.y + c[2],
+              y: c[1] * pt.x - c[0] * pt.y + c[3]
+            });
+          } else {
+            return (pt) => ({
+              x: c[0] * pt.x - c[1] * pt.y + c[2],
+              y: c[1] * pt.x + c[0] * pt.y + c[3]
+            });
+          }
+        }
+
+        // For 2 anchors, always use the reflected model: since deed space has Y growing
+        // downwards (PDF coordinates) while GIS UTM has Y growing upwards (North),
+        // reflecting Y produces a pure physical rotation on screen with zero sideways reversal.
+        // For >= 3 anchors, automatically pick the orientation that produces lower RMSE.
+        if (anchors.length === 2) {
+          return fit(true);
+        }
+
+        const warperReflected = fit(true);
+        const warperDirect = fit(false);
+        const rmseReflected = TransformMath.computeRMSE(warperReflected, anchors).totalRMSE;
+        const rmseDirect = TransformMath.computeRMSE(warperDirect, anchors).totalRMSE;
+
+        return rmseReflected <= rmseDirect ? warperReflected : warperDirect;
+      }
+
+      static buildProjectiveWarper(anchors) {
+        const A = Array.from({ length: 8 }, () => new Array(8).fill(0));
+        const B = new Array(8).fill(0);
+
+        anchors.forEach(anc => {
+          const x = anc.src.x, y = anc.src.y;
+          const x_ = anc.dst.x, y_ = anc.dst.y;
+          const rows = [
+            [x, y, 1, 0, 0, 0, -x * x_, -y * x_],
+            [0, 0, 0, x, y, 1, -x * y_, -y * y_]
+          ];
+          const targets = [x_, y_];
+
+          for (let r = 0; r < 2; r++) {
+            for (let i = 0; i < 8; i++) {
+              for (let j = 0; j < 8; j++) A[i][j] += rows[r][i] * rows[r][j];
+              B[i] += rows[r][i] * targets[r];
+            }
+          }
+        });
+
+        const h = TransformMath.solveLinearSystem(A, B);
+
+        return (pt) => {
+          const denom = h[6] * pt.x + h[7] * pt.y + 1;
+          return {
+            x: (h[0] * pt.x + h[1] * pt.y + h[2]) / denom,
+            y: (h[3] * pt.x + h[4] * pt.y + h[5]) / denom
+          };
+        };
+      }
+
+      static createWarper(algorithm, anchors) {
+        if (!anchors || anchors.length === 0) return (pt) => ({ ...pt });
+
+        switch (algorithm) {
+          case "TPS":
+            return anchors.length >= 3 ? TransformMath.buildTPSWarper(anchors) : TransformMath.buildSimilarityWarper(anchors);
+          case "AFFINE":
+            return anchors.length >= 3 ? TransformMath.buildAffineWarper(anchors) : TransformMath.buildSimilarityWarper(anchors);
+          case "PROJECTIVE":
+            return anchors.length >= 4 ? TransformMath.buildProjectiveWarper(anchors) : (anchors.length >= 3 ? TransformMath.buildAffineWarper(anchors) : TransformMath.buildSimilarityWarper(anchors));
+          case "SIMILARITY":
+          default:
+            return TransformMath.buildSimilarityWarper(anchors);
+        }
+      }
+
+      /** Construct inverse warper mapping Field GIS coordinates back to Historical Deed coordinates */
+      static createInverseWarper(algorithm, anchors) {
+        if (!anchors || anchors.length < 2) return null;
+        const invAnchors = anchors.map(a => ({
+          id: a.id,
+          color: a.color,
+          src: { x: a.dst.x, y: a.dst.y },
+          dst: { x: a.src.x, y: a.src.y }
+        }));
+        return TransformMath.createWarper(algorithm, invAnchors);
+      }
+
+      static computeRMSE(warper, anchors) {
+        if (!anchors || anchors.length === 0) return { totalRMSE: 0, residuals: [] };
+        let sumSqErr = 0;
+        const residuals = anchors.map((anc) => {
+          const warped = warper(anc.src);
+          const err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y);
+          sumSqErr += err * err;
+          return err;
+        });
+        return { totalRMSE: Math.sqrt(sumSqErr / anchors.length), residuals };
+      }
+    }
+
+    /* ==========================================================================
+       3. SAMPLE DEFAULT DXF STRINGS FOR INSTANT PRELOAD
+       ========================================================================== */
+    const HISTORICAL_DXF_SAMPLE = `0
+SECTION
+2
+ENTITIES
+0
+POLYLINE
+8
+HISTORICAL_FARM_BOUNDARY
+66
+1
+70
+1
+0
+VERTEX
+8
+HISTORICAL_FARM_BOUNDARY
+10
+105.0
+20
+110.0
+0
+VERTEX
+8
+HISTORICAL_FARM_BOUNDARY
+10
+295.0
+20
+125.0
+0
+VERTEX
+8
+HISTORICAL_FARM_BOUNDARY
+10
+310.0
+20
+285.0
+0
+VERTEX
+8
+HISTORICAL_FARM_BOUNDARY
+10
+245.0
+20
+340.0
+0
+VERTEX
+8
+HISTORICAL_FARM_BOUNDARY
+10
+115.0
+20
+320.0
+0
+SEQEND
+0
+POLYLINE
+8
+HISTORICAL_INTERNAL_ROAD
+66
+1
+70
+0
+0
+VERTEX
+8
+HISTORICAL_INTERNAL_ROAD
+10
+105.0
+20
+110.0
+0
+VERTEX
+8
+HISTORICAL_INTERNAL_ROAD
+10
+210.0
+20
+220.0
+0
+VERTEX
+8
+HISTORICAL_INTERNAL_ROAD
+10
+245.0
+20
+340.0
+0
+SEQEND
+0
+ENDSEC
+0
+EOF`;
+
+    const TRUE_FIELD_DXF_SAMPLE = `0
+SECTION
+2
+ENTITIES
+0
+POLYLINE
+8
+TRUE_SURVEY_BOUNDARY
+66
+1
+70
+1
+0
+VERTEX
+8
+TRUE_SURVEY_BOUNDARY
+10
+500.0
+20
+500.0
+0
+VERTEX
+8
+TRUE_SURVEY_BOUNDARY
+10
+900.0
+20
+520.0
+0
+VERTEX
+8
+TRUE_SURVEY_BOUNDARY
+10
+950.0
+20
+850.0
+0
+VERTEX
+8
+TRUE_SURVEY_BOUNDARY
+10
+800.0
+20
+980.0
+0
+VERTEX
+8
+TRUE_SURVEY_BOUNDARY
+10
+520.0
+20
+920.0
+0
+SEQEND
+0
+ENDSEC
+0
+EOF`;
+
+    /* ==========================================================================
+       3.5. BOUNDARY OPTIMIZATION ENGINE (Constrained Relaxation: Spring & Area Model)
+       ========================================================================== */
+    class BoundaryOptimizer {
+      /**
+       * Optimize dynamic vertices of userPolygon within buffer radius R.
+       * @param {Object} options
+       *   - vertices: Array<{ x, y, deedPt, origX?, origY? }>
+       *   - segmentLengths: Array<number|null>
+       *   - bufferRadius: number (meters, e.g. 3.0)
+       *   - balance: number (0 = distance focus, 50 = balanced, 100 = area focus)
+       *   - targetArea: number (default 162156.0 m²)
+       *   - iterations: number (default 220)
+       * @returns {{ success: boolean, vertices: Array, maxDisplacement: number, initialLoss: number, finalLoss: number, reason?: string }}
+       */
+      static optimize(options) {
+        const {
+          vertices,
+          segmentLengths,
+          bufferRadius = 3.0,
+          balance = 50,
+          targetArea = 162156.0,
+          iterations = 220
+        } = options;
+
+        if (!vertices || vertices.length < 3) {
+          return { success: false, reason: "Polygon requires ≥ 3 vertices." };
+        }
+
+        const N = vertices.length;
+
+        // Clone vertices and ensure baseline nominal coordinates (origX, origY)
+        const pts = vertices.map(v => ({
+          x: v.x,
+          y: v.y,
+          deedPt: v.deedPt ? { ...v.deedPt } : null,
+          origX: (v.origX !== undefined && v.origX !== null) ? v.origX : v.x,
+          origY: (v.origY !== undefined && v.origY !== null) ? v.origY : v.y,
+        }));
+
+        // Identify dynamic vertex indices (only deed-anchored vertices are optimized)
+        const dynamicIndices = [];
+        for (let i = 0; i < N; i++) {
+          if (pts[i].deedPt !== null) {
+            dynamicIndices.push(i);
+          }
+        }
+
+        if (dynamicIndices.length === 0) {
+          return { success: false, reason: "No dynamic deed vertices found to optimize." };
+        }
+
+        // Count segments with deed distances
+        let countSegs = 0;
+        for (let i = 0; i < N; i++) {
+          const dl = segmentLengths[i];
+          if (dl !== null && dl !== undefined && dl > 0) countSegs++;
+        }
+
+        // Weighting from balance slider (0..100)
+        const b = Math.max(0, Math.min(100, balance));
+        const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
+        const wArea = b >= 50 ? 1.0 : b / 50;
+
+        // Loss and analytical gradients
+        function evaluate(currentPts) {
+          let distLoss = 0;
+          const gradDist = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+
+          // 1. Distance loss & gradients
+          for (let i = 0; i < N; i++) {
+            const deedLen = segmentLengths[i];
+            if (deedLen !== null && deedLen !== undefined && deedLen > 0) {
+              const a = currentPts[i];
+              const nextIdx = (i + 1) % N;
+              const nextPt = currentPts[nextIdx];
+
+              const dx = nextPt.x - a.x;
+              const dy = nextPt.y - a.y;
+              const currLen = Math.hypot(dx, dy);
+
+              if (currLen > 1e-6) {
+                const diff = currLen - deedLen;
+                const relErr = diff / deedLen;
+                distLoss += relErr * relErr;
+
+                // Gradient of ( (currLen - deedLen) / deedLen )^2
+                const factor = (2 * diff) / (deedLen * deedLen * currLen);
+                const gbx = factor * dx;
+                const gby = factor * dy;
+
+                gradDist[nextIdx].x += gbx;
+                gradDist[nextIdx].y += gby;
+                gradDist[i].x -= gbx;
+                gradDist[i].y -= gby;
+              }
+            }
+          }
+
+          // 2. Shoelace Area loss & gradients
+          let signedArea = 0;
+          for (let i = 0; i < N; i++) {
+            const j = (i + 1) % N;
+            signedArea += currentPts[i].x * currentPts[j].y - currentPts[j].x * currentPts[i].y;
+          }
+          signedArea /= 2;
+          const currArea = Math.abs(signedArea);
+          const areaSign = signedArea >= 0 ? 1 : -1;
+
+          const areaDiff = currArea - targetArea;
+          const relAreaErr = areaDiff / targetArea;
+          const areaLoss = relAreaErr * relAreaErr;
+
+          const gradArea = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+          const aFactor = (2 * areaDiff) / (targetArea * targetArea);
+
+          for (let i = 0; i < N; i++) {
+            const prev = (i - 1 + N) % N;
+            const next = (i + 1) % N;
+            const dAdx = areaSign * 0.5 * (currentPts[next].y - currentPts[prev].y);
+            const dAdy = areaSign * 0.5 * (currentPts[prev].x - currentPts[next].x);
+
+            gradArea[i].x = aFactor * dAdx;
+            gradArea[i].y = aFactor * dAdy;
+          }
+
+          // Normalized composite loss
+          const normDistLoss = countSegs > 0 ? (distLoss / countSegs) : 0;
+          const totalLoss = wDist * normDistLoss + wArea * areaLoss;
+
+          // Composite gradient for dynamic vertices only
+          const grad = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+          const distScale = countSegs > 0 ? (1 / countSegs) : 1;
+          for (const idx of dynamicIndices) {
+            grad[idx].x = wDist * distScale * gradDist[idx].x + wArea * gradArea[idx].x;
+            grad[idx].y = wDist * distScale * gradDist[idx].y + wArea * gradArea[idx].y;
+          }
+
+          return { totalLoss, grad, normDistLoss, areaLoss, currArea };
+        }
+
+        // Adam Optimizer state
+        const m = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+        const v = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
+        const beta1 = 0.9;
+        const beta2 = 0.999;
+        const eps = 1e-8;
+        const baseLr = 0.14;
+
+        const initialEval = evaluate(pts);
+        let bestLoss = initialEval.totalLoss;
+        let bestPts = pts.map(p => ({ ...p }));
+
+        for (let t = 1; t <= iterations; t++) {
+          const { totalLoss, grad } = evaluate(pts);
+
+          if (totalLoss < bestLoss) {
+            bestLoss = totalLoss;
+            bestPts = pts.map(p => ({ ...p }));
+          }
+
+          // Learning rate decay for fine convergence
+          const lr = baseLr * (1.0 - 0.45 * (t / iterations));
+
+          for (const i of dynamicIndices) {
+            // Update biased 1st moment estimate
+            m[i].x = beta1 * m[i].x + (1 - beta1) * grad[i].x;
+            m[i].y = beta1 * m[i].y + (1 - beta1) * grad[i].y;
+
+            // Update biased 2nd raw moment estimate
+            v[i].x = beta2 * v[i].x + (1 - beta2) * (grad[i].x * grad[i].x);
+            v[i].y = beta2 * v[i].y + (1 - beta2) * (grad[i].y * grad[i].y);
+
+            // Compute bias-corrected estimates
+            const mHatX = m[i].x / (1 - Math.pow(beta1, t));
+            const mHatY = m[i].y / (1 - Math.pow(beta1, t));
+            const vHatX = v[i].x / (1 - Math.pow(beta2, t));
+            const vHatY = v[i].y / (1 - Math.pow(beta2, t));
+
+            // Position step
+            pts[i].x -= lr * mHatX / (Math.sqrt(vHatX) + eps);
+            pts[i].y -= lr * mHatY / (Math.sqrt(vHatY) + eps);
+
+            // Strict Radial Projection (Clamp to buffer disk radius R from origX, origY)
+            const ox = pts[i].origX;
+            const oy = pts[i].origY;
+            const dx = pts[i].x - ox;
+            const dy = pts[i].y - oy;
+            const distFromOrig = Math.hypot(dx, dy);
+
+            if (distFromOrig > bufferRadius) {
+              const scale = bufferRadius / distFromOrig;
+              pts[i].x = ox + dx * scale;
+              pts[i].y = oy + dy * scale;
+            }
+          }
+        }
+
+        const finalEval = evaluate(bestPts);
+        let maxDisplacement = 0;
+        for (const i of dynamicIndices) {
+          const d = Math.hypot(bestPts[i].x - bestPts[i].origX, bestPts[i].y - bestPts[i].origY);
+          if (d > maxDisplacement) maxDisplacement = d;
+        }
+
+        return {
+          success: true,
+          vertices: bestPts,
+          maxDisplacement,
+          initialLoss: initialEval.totalLoss,
+          finalLoss: finalEval.totalLoss,
+          initialArea: initialEval.currArea,
+          finalArea: finalEval.currArea
+        };
+      }
+    }
+
+    /* ==========================================================================
+       4. APPLICATION LOGIC & DUAL-CANVAS RENDERING ENGINE
+       ========================================================================== */
+    const state = {
+      histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
+      trueEntities: [],      // DXF from Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf (GIS UTM coord space)
+      anchors: [],
+      pendingSource: null,
+      algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
+      toolMode: "pan",
+      showOverlay: true,
+      showWarpedPdf: true,
+      histViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+      trueViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+      geoTiff: null,
+      geoTiffOpacity: 0.7,
+      warpedPdfOpacity: 0.5,   // deed PDF image drawn on true field canvas
+      warpedDxfOpacity: 0.9,   // deed DXF drawn on true field canvas
+      trueDxfOpacity: 0.85,    // true field survey DXF opacity
+      histPdfCanvas: null,     // offscreen canvas: rendered Mapa1073_FerminSuarez.pdf
+      histPdfW: 0,             // PDF width in PDF-space pts
+      histPdfH: 0,
+      // Hand-crafted user polygon (Distance & Area panel)
+      userPolygon: {
+        vertices: [],          // [{x, y, deedPt, origX, origY}] in GIS world space
+        segmentLengths: [],    // parallel array: deed length (m) or null
+        closed: false,
+        drawMode: false,
+        show: true,
+      },
+      draggingUserPolyNode: null,
+      currentSnapTarget: null,
+      showSegmentLabels: true,
+      layoutMode: "split",     // "split" | "left" | "right"
+      sidebarVisible: true,
+      // Boundary Optimization
+      optBufferRadius: 3.0,    // pen buffer radius in meters
+      optBalance: 50,          // 0 = dist, 50 = balanced, 100 = area
+      showBufferDisks: true,   // render buffer halos and displacement vectors
+      // Anchor field vertex constraint
+      constrainAnchorsToField: false,
+      // Polygon deed vertex constraint
+      constrainPolyToDeed: false,
+      // Deed DXF vertex editing on field panel & historical panel
+      histFileName: "Polygon_Escritura1073_FerminSuarez.dxf",
+      editDeedNodes: false,
+      draggingDeedNode: null,      // { entIdx, ptIdx, origDeedPt: {x,y}, origFieldPt: {x,y} }
+      hoverDeedNode: null,         // { entIdx, ptIdx, deedPt: {x,y}, warpedPt: {x,y} }
+      draggingDeedNodeHist: null,  // { entIdx, ptIdx, origDeedPt: {x,y} }
+    };
+
+    const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
+
+    const histCanvas = document.getElementById("hist-canvas");
+    const histCtx    = histCanvas.getContext("2d");
+    const trueCanvas = document.getElementById("true-canvas");
+    const trueCtx    = trueCanvas.getContext("2d");
+
+    const histInput       = document.getElementById("hist-dxf-input");
+    const trueInput       = document.getElementById("true-dxf-input");
+    const algorithmSelect = document.getElementById("algorithm-select");
+    const btnExportDxf    = document.getElementById("btn-export-dxf");
+    const btnClearAnchors = document.getElementById("btn-clear-anchors");
+    const histStatus      = document.getElementById("hist-status");
+    const trueStatus      = document.getElementById("true-status");
+    const rmseDisplay     = document.getElementById("rmse-display");
+    const anchorTableBody = document.getElementById("anchor-table-body");
+    const chkShowOverlay  = document.getElementById("chk-show-overlay");
+    const statusBar       = document.getElementById("status-bar");
+    const coordsBar       = document.getElementById("coords-bar");
+
+    // ── Bounding box & viewport helpers ───────────────────────────────
+    function computeBoundingBox(entities) {
+      const allPoints = [];
+      entities.forEach(ent => ent.points.forEach(pt => allPoints.push(pt)));
+      if (allPoints.length === 0) return { minX:0, minY:0, maxX:100, maxY:100, width:100, height:100 };
+      const nonZero = allPoints.filter(p => Math.abs(p.x) > 1e-4 || Math.abs(p.y) > 1e-4);
+      const pts = (nonZero.length > 0 && nonZero.length < allPoints.length) ? nonZero : allPoints;
+      const xs = pts.map(p => p.x).sort((a,b) => a-b);
+      const ys = pts.map(p => p.y).sort((a,b) => a-b);
+      const mid = n => Math.floor(n/2);
+      const q1X = xs[Math.floor(xs.length*0.25)], q3X = xs[Math.floor(xs.length*0.75)];
+      const q1Y = ys[Math.floor(ys.length*0.25)], q3Y = ys[Math.floor(ys.length*0.75)];
+      const iqrX = Math.max(q3X-q1X,1), iqrY = Math.max(q3Y-q1Y,1);
+      const mX = xs[mid(xs.length)], mY = ys[mid(ys.length)];
+      const clean = pts.filter(p => Math.abs(p.x-mX) <= 4.5*iqrX && Math.abs(p.y-mY) <= 4.5*iqrY);
+      const final = clean.length > 0 ? clean : pts;
+      let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+      final.forEach(p => { if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; });
+      if (minX===Infinity||minX===maxX) return {minX:0,minY:0,maxX:100,maxY:100,width:100,height:100};
+      return { minX, minY, maxX, maxY, width:maxX-minX, height:maxY-minY };
+    }
+
+    function fitViewport(canvas, bbox) {
+      const pad = 40, w = canvas.width-pad*2, h = canvas.height-pad*2;
+      const scale = Math.min(w/(bbox.width||1), h/(bbox.height||1));
       return {
-        x: centerPt.x + (dx / dist) * bufferRadius,
-        y: centerPt.y + (dy / dist) * bufferRadius
+        scale,
+        offsetX: pad + (w - bbox.width*scale)/2 - bbox.minX*scale,
+        offsetY: pad + (h - bbox.height*scale)/2 - bbox.minY*scale,
+        bbox
       };
     }
 
-    // Toggle event listener: Auto-untick 'Snap vertices'
-    chkConstrainDeed.addEventListener("change", (e) => {
-      const isChecked = e.target.checked;
-      state.constrainPolyToDeed = isChecked;
+    // Historical panel: PDF/deed-space coords (Y grows downward in canvas, no flip)
+    // Historical panel: PDF/deed-space coords (Y grows downward in canvas, no flip)
+    function worldToScreen(pt, vp, canvasH) {
+      return { x: pt.x * vp.scale + vp.offsetX, y: pt.y * vp.scale + vp.offsetY };
+    }
+    function screenToWorld(sx, sy, vp, canvasH) {
+      return { x: Math.round((sx - vp.offsetX) / vp.scale * 100) / 100, y: Math.round((sy - vp.offsetY) / vp.scale * 100) / 100 };
+    }
 
-      if (isChecked && chkPolygonSnap && chkPolygonSnap.checked) {
-        chkPolygonSnap.checked = false;
+    // True-field panel: GIS/UTM-space coords (Y increases northward, so we flip)
+    function worldToScreenGIS(pt, vp, canvasH) {
+      return { x: pt.x * vp.scale + vp.offsetX, y: canvasH - (pt.y * vp.scale + vp.offsetY) };
+    }
+    function screenToWorldGIS(sx, sy, vp, canvasH) {
+      return { x: Math.round((sx - vp.offsetX) / vp.scale * 100) / 100, y: Math.round((canvasH - sy - vp.offsetY) / vp.scale * 100) / 100 };
+    }
+
+    // ── Canvas resize ─────────────────────────────────────────────────
+    function resizeCanvases() {
+      const hc = document.getElementById("hist-container");
+      const tc = document.getElementById("true-container");
+      const histCard = document.getElementById("hist-card");
+      const trueCard = document.getElementById("true-card");
+
+      if (histCard && !histCard.classList.contains("hidden") && hc && hc.clientWidth > 0 && hc.clientHeight > 0) {
+        histCanvas.width  = hc.clientWidth;
+        histCanvas.height = hc.clientHeight;
+      }
+      if (trueCard && !trueCard.classList.contains("hidden") && tc && tc.clientWidth > 0 && tc.clientHeight > 0) {
+        trueCanvas.width  = tc.clientWidth;
+        trueCanvas.height = tc.clientHeight;
       }
 
+      if (!state.histViewport.bbox) {
+        if (state.histEntities.length > 0)
+          state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+        else if (state.histPdfCanvas)
+          state.histViewport = fitViewport(histCanvas, {minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH});
+      }
+      if (!state.trueViewport.bbox) {
+        if (state.trueEntities.length > 0)
+          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+        else if (state.geoTiff)
+          state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
+      }
       redrawAll();
-    });
+    }
+    window.addEventListener("resize", resizeCanvases);
 
-    // Canvas Interactions
-    canvas.addEventListener("mousedown", (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const mousePt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-
-      for (let v of state.polygon) {
-        if (Math.hypot(v.x - mousePt.x, v.y - mousePt.y) < 12) {
-          draggingVert = v;
-          break;
-        }
-      }
-    });
-
-    canvas.addEventListener("mousemove", (e) => {
-      if (!draggingVert) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const mouseWorldPt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-
-      if (state.constrainPolyToDeed) {
-        const deedCenter = draggingVert.deedPt ? warper(draggingVert.deedPt) : null;
-        
-        if (deedCenter) {
-          const constrainedPos = constrainPointToBuffer(mouseWorldPt, deedCenter, state.optBufferRadius);
-          draggingVert.x = constrainedPos.x;
-          draggingVert.y = constrainedPos.y;
-        } else {
-          draggingVert.x = mouseWorldPt.x;
-          draggingVert.y = mouseWorldPt.y;
-        }
-      } else {
-        draggingVert.x = mouseWorldPt.x;
-        draggingVert.y = mouseWorldPt.y;
-      }
-
-      redrawAll();
-    });
-
-    window.addEventListener("mouseup", () => {
-      draggingVert = null;
-    });
-
-    // Render Function
+    // ── Redraw ────────────────────────────────────────────────────────
     function redrawAll() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const histCard = document.getElementById("hist-card");
+      const trueCard = document.getElementById("true-card");
+      if (!histCard || !histCard.classList.contains("hidden")) {
+        redrawHistoricalCanvas();
+      }
+      if (!trueCard || !trueCard.classList.contains("hidden")) {
+        redrawTrueCanvas();
+      }
+      updateAnalyticsUI();
+    }
 
-      // Render Deed Centers & Buffer Boundaries
-      state.deedVertices.forEach((dv) => {
-        ctx.beginPath();
-        ctx.arc(dv.x, dv.y, state.optBufferRadius, 0, Math.PI * 2);
-        ctx.fillStyle = state.constrainPolyToDeed ? "rgba(76, 175, 80, 0.12)" : "rgba(200, 200, 200, 0.08)";
-        ctx.fill();
-        ctx.strokeStyle = state.constrainPolyToDeed ? "#4CAF50" : "#bbb";
-        ctx.setLineDash([4, 4]);
-        ctx.stroke();
-        ctx.setLineDash([]);
+    function drawGrid(ctx, w, h) {
+      ctx.strokeStyle = "rgba(255,255,255,0.04)";
+      ctx.lineWidth = 1;
+      for (let x=0;x<w;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke(); }
+      for (let y=0;y<h;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke(); }
+    }
 
+    // Draw a GeoTIFF background using GIS (Y-flip) coordinates
+    function drawGeoTiff(ctx, tiff, vp, canvasH, opacity) {
+      if (!tiff||!tiff.offscreen||!tiff.bbox) return;
+      const tl = worldToScreenGIS({x:tiff.bbox.minX, y:tiff.bbox.maxY}, vp, canvasH);
+      const br = worldToScreenGIS({x:tiff.bbox.maxX, y:tiff.bbox.minY}, vp, canvasH);
+      const x=Math.min(tl.x,br.x), y=Math.min(tl.y,br.y);
+      const sw=Math.abs(br.x-tl.x), sh=Math.abs(br.y-tl.y);
+      if (sw<=0||sh<=0) return;
+      ctx.save(); ctx.globalAlpha=opacity; ctx.drawImage(tiff.offscreen,x,y,sw,sh); ctx.restore();
+    }
+
+    // Draw entities in deed-space (historical panel)
+    function drawEntities(ctx, entities, vp, canvasH, color, opacity) {
+      if (!entities.length) return;
+      ctx.save(); ctx.globalAlpha = opacity;
+      entities.forEach(ent => {
+        if (ent.points.length < 2) return;
         ctx.beginPath();
-        ctx.arc(dv.x, dv.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = "#e53935";
-        ctx.fill();
+        const s = worldToScreen(ent.points[0], vp, canvasH);
+        ctx.moveTo(s.x, s.y);
+        for (let i=1;i<ent.points.length;i++) { const p=worldToScreen(ent.points[i],vp,canvasH); ctx.lineTo(p.x,p.y); }
+        if (ent.closed) ctx.closePath();
+        ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
       });
 
-      // Render Polygon Fill & Edges
-      if (state.polygon.length > 0) {
-        ctx.beginPath();
-        ctx.moveTo(state.polygon[0].x, state.polygon[0].y);
-        for (let i = 1; i < state.polygon.length; i++) {
-          ctx.lineTo(state.polygon[i].x, state.polygon[i].y);
-        }
-        ctx.closePath();
-        ctx.fillStyle = "rgba(33, 150, 243, 0.2)";
-        ctx.fill();
-        ctx.strokeStyle = "#1e88e5";
-        ctx.lineWidth = 2;
-        ctx.stroke();
+      // If Edit Deed Nodes is active, render interactive vertex handles on historical canvas
+      if (state.editDeedNodes) {
+        entities.forEach((ent, entIdx) => {
+          (ent.points || []).forEach((pt, ptIdx) => {
+            const p = worldToScreen(pt, vp, canvasH);
+            const isHover = state.hoverDeedNode && state.hoverDeedNode.entIdx === entIdx && state.hoverDeedNode.ptIdx === ptIdx;
+            const isDrag = (state.draggingDeedNode && state.draggingDeedNode.entIdx === entIdx && state.draggingDeedNode.ptIdx === ptIdx) ||
+                           (state.draggingDeedNodeHist && state.draggingDeedNodeHist.entIdx === entIdx && state.draggingDeedNodeHist.ptIdx === ptIdx);
 
-        // Render Polygon Vertices
-        state.polygon.forEach((v) => {
-          ctx.beginPath();
-          ctx.arc(v.x, v.y, 6, 0, Math.PI * 2);
-          ctx.fillStyle = "#1e88e5";
-          ctx.fill();
-          ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = 2;
-          ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, isDrag ? 8.5 : (isHover ? 7 : 5), 0, Math.PI * 2);
+            ctx.fillStyle = isDrag ? "#ffd600" : (isHover ? "#ff9100" : "#ff1744");
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = isDrag || isHover ? 2 : 1.2;
+            ctx.stroke();
+          });
         });
+      }
+      ctx.restore();
+    }
+
+    // Draw entities in GIS-space (true-field panel, unwarped)
+    function drawEntitiesGIS(ctx, entities, vp, canvasH, color, opacity) {
+      if (!entities.length) return;
+      ctx.save(); ctx.globalAlpha = opacity;
+      entities.forEach(ent => {
+        if (ent.points.length < 2) return;
+        ctx.beginPath();
+        const s = worldToScreenGIS(ent.points[0], vp, canvasH);
+        ctx.moveTo(s.x, s.y);
+        for (let i=1;i<ent.points.length;i++) { const p=worldToScreenGIS(ent.points[i],vp,canvasH); ctx.lineTo(p.x,p.y); }
+        if (ent.closed) ctx.closePath();
+        ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    // Draw deed DXF warped into GIS space on the true-field panel
+    function drawWarpedEntitiesGIS(ctx, entities, warper, vp, canvasH, color, opacity) {
+      if (!entities.length || !warper) return;
+      ctx.save(); ctx.globalAlpha = opacity;
+      entities.forEach(ent => {
+        if (ent.points.length < 2) return;
+        ctx.beginPath();
+        const ws = warper(ent.points[0]);
+        const s  = worldToScreenGIS(ws, vp, canvasH);
+        ctx.moveTo(s.x, s.y);
+        for (let i=1;i<ent.points.length;i++) {
+          const wpt = warper(ent.points[i]);
+          const p   = worldToScreenGIS(wpt, vp, canvasH);
+          ctx.lineTo(p.x, p.y);
+        }
+        if (ent.closed) ctx.closePath();
+        ctx.strokeStyle=color; ctx.lineWidth=3; ctx.stroke();
+      });
+
+      // If Edit Deed Nodes is active, render interactive vertex handles and drift feedback
+      if (state.editDeedNodes) {
+        entities.forEach((ent, entIdx) => {
+          (ent.points || []).forEach((pt, ptIdx) => {
+            const wpt = warper(pt);
+            const p = worldToScreenGIS(wpt, vp, canvasH);
+            const isHover = state.hoverDeedNode && state.hoverDeedNode.entIdx === entIdx && state.hoverDeedNode.ptIdx === ptIdx;
+            const isDrag = state.draggingDeedNode && state.draggingDeedNode.entIdx === entIdx && state.draggingDeedNode.ptIdx === ptIdx;
+
+            // Vertex handle dot
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, isDrag ? 8.5 : (isHover ? 7 : 5), 0, Math.PI * 2);
+            ctx.fillStyle = isDrag ? "#ffd600" : (isHover ? "#ff9100" : "#ff1744");
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = isDrag || isHover ? 2 : 1.2;
+            ctx.stroke();
+
+            // If actively dragging, draw drift line & tolerance label from original position
+            if (isDrag && state.draggingDeedNode.origFieldPt) {
+              const origScr = worldToScreenGIS(state.draggingDeedNode.origFieldPt, vp, canvasH);
+              const driftM = Math.hypot(wpt.x - state.draggingDeedNode.origFieldPt.x, wpt.y - state.draggingDeedNode.origFieldPt.y);
+
+              // Original anchor spot
+              ctx.beginPath();
+              ctx.arc(origScr.x, origScr.y, 4, 0, Math.PI * 2);
+              ctx.fillStyle = "rgba(255, 23, 68, 0.6)";
+              ctx.fill();
+
+              // Vector drift line
+              ctx.beginPath();
+              ctx.moveTo(origScr.x, origScr.y);
+              ctx.lineTo(p.x, p.y);
+              ctx.strokeStyle = "#ffd600";
+              ctx.lineWidth = 1.5;
+              ctx.setLineDash([3, 3]);
+              ctx.stroke();
+              ctx.setLineDash([]);
+
+              // Drift badge
+              const tag = `Δ ${driftM.toFixed(2)}m (print drift)`;
+              ctx.font = "bold 10px monospace";
+              const tw = ctx.measureText(tag).width;
+              ctx.fillStyle = "rgba(6, 9, 15, 0.88)";
+              ctx.fillRect(p.x + 10, p.y - 8, tw + 8, 14);
+              ctx.strokeStyle = "#ffd600";
+              ctx.lineWidth = 1;
+              ctx.strokeRect(p.x + 10, p.y - 8, tw + 8, 14);
+              ctx.fillStyle = "#ffd600";
+              ctx.textAlign = "left";
+              ctx.fillText(tag, p.x + 14, p.y + 3);
+            }
+          });
+        });
+      }
+
+      ctx.restore();
+    }
+
+    // ── Historical Canvas ──────────────────────────────────────────────
+    function redrawHistoricalCanvas() {
+      const w = histCanvas.width, h = histCanvas.height;
+      histCtx.clearRect(0,0,w,h);
+      drawGrid(histCtx,w,h);
+      const vp = state.histViewport;
+
+      // Layer 1: Deed PDF background
+      if (state.histPdfCanvas && state.histPdfW > 0) {
+        const tl = worldToScreen({ x: 0, y: 0 }, vp, h);
+        const br = worldToScreen({ x: state.histPdfW, y: state.histPdfH }, vp, h);
+        const sw = br.x - tl.x, sh = br.y - tl.y;
+        if (sw > 0 && sh > 0) {
+          histCtx.save();
+          histCtx.globalAlpha = 0.85;
+          histCtx.drawImage(state.histPdfCanvas, tl.x, tl.y, sw, sh);
+          histCtx.restore();
+        }
+      }
+
+      // Layer 2: Deed DXF boundary polygon
+      drawEntities(histCtx, state.histEntities, vp, h, "#ff1744", 1.0);
+
+      // Layer 3: Pending source anchor
+      if (state.pendingSource) {
+        const sp = worldToScreen(state.pendingSource, vp, h);
+        histCtx.beginPath(); histCtx.arc(sp.x,sp.y,10,0,Math.PI*2);
+        histCtx.strokeStyle="#00e5ff"; histCtx.lineWidth=2.5;
+        histCtx.setLineDash([4,4]); histCtx.stroke(); histCtx.setLineDash([]);
+        histCtx.beginPath(); histCtx.arc(sp.x,sp.y,4,0,Math.PI*2);
+        histCtx.fillStyle="#00e5ff"; histCtx.fill();
+      }
+
+      // Layer 4: Source anchor pins
+      state.anchors.forEach(anc => {
+        const sp = worldToScreen(anc.src, vp, h);
+        histCtx.beginPath(); histCtx.arc(sp.x,sp.y,7,0,Math.PI*2);
+        histCtx.fillStyle=anc.color; histCtx.fill();
+        histCtx.strokeStyle="#fff"; histCtx.lineWidth=2; histCtx.stroke();
+        histCtx.fillStyle="#fff"; histCtx.font="bold 11px sans-serif";
+        histCtx.fillText(`#${anc.id}`,sp.x+10,sp.y-6);
+      });
+    }
+
+    // ── True Field Canvas ──────────────────────────────────────────────
+    /** Update all deed-anchored polygon vertices using the current transformation warper */
+    function updateUserPolygonWarp() {
+      const poly = state.userPolygon;
+      if (!poly || !poly.vertices || poly.vertices.length === 0) return;
+      if (!state.anchors || state.anchors.length < 2) return;
+
+      try {
+        const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+        let changed = false;
+        poly.vertices.forEach(v => {
+          if (v.deedPt) {
+            const w = warper(v.deedPt);
+            v.origX = w.x;
+            v.origY = w.y;
+            v.x = w.x;
+            v.y = w.y;
+            changed = true;
+          }
+        });
+        if (changed) {
+          recomputeUserPolygonMetrics();
+        }
+      } catch (e) {
+        console.warn("Polygon warp error:", e);
       }
     }
 
-    redrawAll();
+    function redrawTrueCanvas() {
+      const w = trueCanvas.width, h = trueCanvas.height;
+      trueCtx.clearRect(0,0,w,h);
+      drawGrid(trueCtx,w,h);
+      const vp = state.trueViewport;
+
+      // Layer 1: Drone GeoTIFF background
+      drawGeoTiff(trueCtx, state.geoTiff, vp, h, state.geoTiffOpacity);
+
+      // Build warper from anchors (deed-space → GIS-space)
+      let warper = null;
+      if (state.showOverlay && state.anchors.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, state.anchors); }
+        catch(e) { console.warn("Warper error:", e); }
+      }
+
+      // Live update any polygon vertices anchored to deed DXF space
+      updateUserPolygonWarp();
+
+      // Layer 2: Warped deed PDF image (the PowerPoint transparent overlay)
+      if (state.showWarpedPdf && warper && state.histPdfCanvas && state.histPdfW > 0) {
+        drawWarpedPdfImage(trueCtx, warper, vp, w, h);
+      }
+
+      // Layer 3: Warped deed DXF boundary
+      if (warper) {
+        drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper, vp, h, "#ff1744", state.warpedDxfOpacity);
+      }
+
+      // Layer 4: True Field Survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf) — green
+      drawEntitiesGIS(trueCtx, state.trueEntities, vp, h, "#00e676", state.trueDxfOpacity);
+
+      // Layer 5: Target anchor pins + residual lines
+      state.anchors.forEach(anc => {
+        const tp = worldToScreenGIS(anc.dst, vp, h);
+        if (warper) {
+          const wp = worldToScreenGIS(warper(anc.src), vp, h);
+          trueCtx.beginPath(); trueCtx.moveTo(wp.x,wp.y); trueCtx.lineTo(tp.x,tp.y);
+          trueCtx.strokeStyle="#ff1744"; trueCtx.lineWidth=1.5;
+          trueCtx.setLineDash([3,3]); trueCtx.stroke(); trueCtx.setLineDash([]);
+          trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y,4,0,Math.PI*2);
+          trueCtx.fillStyle="#ff1744"; trueCtx.fill();
+        }
+        // If Constrain mode is on, render the pen buffer disk around the locked/nearest Field vertex
+        if (state.constrainAnchorsToField && state.optBufferRadius > 0) {
+          const nearestField = findNearestFieldVertex(anc.dst);
+          if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
+            const sCenter = worldToScreenGIS(nearestField, vp, h);
+            const rPx = state.optBufferRadius * vp.scale;
+            trueCtx.save();
+            trueCtx.beginPath();
+            trueCtx.arc(sCenter.x, sCenter.y, rPx, 0, Math.PI * 2);
+            trueCtx.fillStyle = "rgba(0, 229, 255, 0.08)";
+            trueCtx.fill();
+            trueCtx.strokeStyle = "rgba(0, 229, 255, 0.55)";
+            trueCtx.lineWidth = 1.5;
+            trueCtx.setLineDash([4, 4]);
+            trueCtx.stroke();
+            trueCtx.setLineDash([]);
+
+            // Center crosshair marker on the Field.dxf vertex
+            trueCtx.beginPath();
+            trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
+            trueCtx.fillStyle = "#00e5ff";
+            trueCtx.fill();
+            trueCtx.strokeStyle = "#ffffff";
+            trueCtx.lineWidth = 1;
+            trueCtx.stroke();
+            trueCtx.restore();
+          }
+        }
+
+        trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
+        trueCtx.fillStyle=anc.color; trueCtx.fill();
+        trueCtx.strokeStyle="#fff"; trueCtx.lineWidth=2; trueCtx.stroke();
+        trueCtx.fillStyle="#fff"; trueCtx.font="bold 11px sans-serif";
+        trueCtx.fillText(`#${anc.id}`,tp.x+10,tp.y-6);
+      });
+
+      // Layer 6: Hand-crafted user polygon
+      drawUserPolygon(trueCtx, vp, h);
+
+      // Layer 7: Snap target ring indicator
+      if (state.currentSnapTarget) {
+        drawSnapTargetOnCanvas(trueCtx, state.currentSnapTarget.screenPt);
+      }
+    }
+
+    /* -----------------------------------------------------------------------
+       Draw the deed PDF image warped into GIS space on the true-field canvas.
+       For Helmert/Affine this is an exact hardware-accelerated affine transform.
+       For TPS we fall back to sampling a grid of corner points.
+    ----------------------------------------------------------------------- */
+    function drawWarpedPdfImage(ctx, warper, vp, canvasW, canvasH) {
+      if (!state.histPdfCanvas || state.histPdfW <= 0) return;
+      const pdfW = state.histPdfW, pdfH = state.histPdfH;
+
+      // Map the four PDF corners through the warper → GIS → screen
+      const corners = [
+        {px:0,     py:0     },
+        {px:pdfW,  py:0     },
+        {px:pdfW,  py:pdfH  },
+        {px:0,     py:pdfH  },
+      ].map(c => {
+        const gis = warper({x:c.px, y:c.py});
+        const scr = worldToScreenGIS(gis, vp, canvasH);
+        return scr;
+      });
+
+      // Check if the transform is a valid affine (3 unique corners produce a non-degenerate triangle)
+      const [s0,s1,s2,s3] = corners;
+
+      ctx.save();
+      ctx.globalAlpha = state.warpedPdfOpacity;
+
+      // Use canvas setTransform with the affine computed from the corner mapping.
+      // The affine that maps (0,0)→s0, (pdfW,0)→s1, (0,pdfH)→s3:
+      //   | a  c  e |   pdfW·[a,c,e] = s1-s0
+      //   | b  d  f |   pdfH·[b,d,f] = s3-s0
+      const a  = (s1.x - s0.x) / pdfW;
+      const b  = (s1.y - s0.y) / pdfW;
+      const c_ = (s3.x - s0.x) / pdfH;
+      const d_ = (s3.y - s0.y) / pdfH;
+      const e  = s0.x;
+      const f  = s0.y;
+
+      ctx.setTransform(a, b, c_, d_, e, f);
+      // Clip to canvas bounds to avoid drawing far outside
+      ctx.drawImage(state.histPdfCanvas, 0, 0, pdfW, pdfH);
+      ctx.restore();
+    }
+
+    // ── Pan / Zoom / Anchor interactions ──────────────────────────────
+    let spacePressed=false, isPanning=false;
+    let panStart={x:0,y:0}, vpStart={offsetX:0,offsetY:0}, activePanViewport=null, clickStart={x:0,y:0};
+
+    const btnModePan    = document.getElementById("btn-mode-pan");
+    const btnModeAnchor = document.getElementById("btn-mode-anchor");
+
+    /* ==========================================================================
+       USER POLYGON — Distance & Area Feature (node drag, delete, snap ring)
+       ========================================================================== */
+    const POLY_SNAP_RADIUS = 15; // screen pixels – matches index.html snap radius
+
+    /** Find nearest vertex from Field.dxf (state.trueEntities) to a given world point (in meters) */
+    function findNearestFieldVertex(worldPt) {
+      if (!state.trueEntities || state.trueEntities.length === 0 || !worldPt) return null;
+      let closest = null;
+      let minDist = Infinity;
+      for (let entIdx = 0; entIdx < state.trueEntities.length; entIdx++) {
+        const ent = state.trueEntities[entIdx];
+        if (!ent || !ent.points) continue;
+        for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+          const pt = ent.points[ptIdx];
+          if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+          const d = Math.hypot(pt.x - worldPt.x, pt.y - worldPt.y);
+          if (d < minDist) {
+            minDist = d;
+            closest = { x: pt.x, y: pt.y, dist: d };
+          }
+        }
+      }
+      return closest;
+    }
+
+    /** Find nearest vertex from warped Deed DXF (state.histEntities warped to GIS space) */
+    function findNearestWarpedDeedVertex(worldPt) {
+      if (!state.histEntities || state.histEntities.length === 0 || !worldPt) return null;
+      let warper = null;
+      if (state.anchors && state.anchors.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+      }
+      let closest = null;
+      let minDist = Infinity;
+      for (let entIdx = 0; entIdx < state.histEntities.length; entIdx++) {
+        const ent = state.histEntities[entIdx];
+        if (!ent || !ent.points) continue;
+        for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+          const rawPt = ent.points[ptIdx];
+          if (!rawPt || typeof rawPt.x !== "number" || typeof rawPt.y !== "number") continue;
+          const warpedPt = warper ? warper(rawPt) : { x: rawPt.x, y: rawPt.y };
+          const d = Math.hypot(warpedPt.x - worldPt.x, warpedPt.y - worldPt.y);
+          if (d < minDist) {
+            minDist = d;
+            closest = {
+              x: warpedPt.x,
+              y: warpedPt.y,
+              deedPt: { x: rawPt.x, y: rawPt.y },
+              dist: d
+            };
+          }
+        }
+      }
+      return closest;
+    }
+
+    /** Draw yellow snap target indicator on canvas (matches index.html) */
+    function drawSnapTargetOnCanvas(ctx, screenPt) {
+      if (!screenPt) return;
+      const { x: sx, y: sy } = screenPt;
+      ctx.save();
+      ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2);
+      ctx.strokeStyle = "#ffd600"; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#00e5ff"; ctx.fill();
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(sx - 16, sy); ctx.lineTo(sx + 16, sy);
+      ctx.moveTo(sx, sy - 16); ctx.lineTo(sx, sy + 16);
+      ctx.strokeStyle = "rgba(255, 214, 0, 0.85)"; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.restore();
+    }
+
+    /** Find nearest DXF vertex or other polygon vertex to snap to (matches index.html getFieldSnapTarget) */
+    function getPolygonSnapTarget(mouseX, mouseY, vp, canvasH, ignorePtIdx = null) {
+      const chk = document.getElementById("chk-polygon-snap");
+      if (chk && !chk.checked) return null;
+
+      let minDistance = POLY_SNAP_RADIUS;
+      let closestTarget = null;
+
+      const checkPoint = (pt, sourceType, deedPt = null, isPolyPt = false, ptIdx = null) => {
+        if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number" || isNaN(pt.x) || isNaN(pt.y)) return;
+        if (isPolyPt && ignorePtIdx !== null && ptIdx === ignorePtIdx) return;
+        const sp = worldToScreenGIS(pt, vp, canvasH);
+        const dist = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+        if (dist <= minDistance) {
+          minDistance = dist;
+          closestTarget = {
+            worldPt: { x: pt.x, y: pt.y },
+            screenPt: { x: sp.x, y: sp.y },
+            sourceType,
+            deedPt: deedPt ? { x: deedPt.x, y: deedPt.y } : null,
+            dist
+          };
+        }
+      };
+
+      // 1. Warped deed DXF vertices (Historical Deed) -> store original deedPt!
+      if (state.anchors.length >= 2) {
+        try {
+          const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+          (state.histEntities || []).forEach(ent => {
+            (ent.points || []).forEach(dPt => {
+              const wPt = warper(dPt);
+              checkPoint(wPt, "deed", dPt);
+            });
+          });
+        } catch (_) {}
+      } else {
+        (state.histEntities || []).forEach(ent => {
+          (ent.points || []).forEach(dPt => {
+            checkPoint(dPt, "deed", dPt);
+          });
+        });
+      }
+
+      // 2. True field DXF vertices (GIS ground truth)
+      (state.trueEntities || []).forEach(ent => {
+        (ent.points || []).forEach(pt => checkPoint(pt, "field", null));
+      });
+
+      // 3. User polygon's other vertices
+      (state.userPolygon.vertices || []).forEach((pt, i) => {
+        checkPoint(pt, "polygon", pt.deedPt || null, true, i);
+      });
+
+      return closestTarget;
+    }
+
+    /** Hit test deed DXF vertices on histCanvas */
+    function findDeedNodeOnHistCanvas(mouseX, mouseY, vp, canvasH) {
+      if (!state.histEntities || state.histEntities.length === 0) return null;
+      const HIT_RADIUS = 14; // pixels
+      for (let entIdx = 0; entIdx < state.histEntities.length; entIdx++) {
+        const ent = state.histEntities[entIdx];
+        if (!ent.points) continue;
+        for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+          const dPt = ent.points[ptIdx];
+          const sp = worldToScreen(dPt, vp, canvasH);
+          if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) {
+            return { entIdx, ptIdx, deedPt: dPt, screenPt: sp };
+          }
+        }
+      }
+      return null;
+    }
+
+    /** Hit test deed DXF vertices on trueCanvas (warped to GIS space) */
+    function findDeedNodeOnTrueCanvas(mouseX, mouseY, vp, canvasH) {
+      if (!state.anchors || state.anchors.length < 2 || !state.histEntities || state.histEntities.length === 0) return null;
+      try {
+        const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+        const HIT_RADIUS = 14; // pixels
+        for (let entIdx = 0; entIdx < state.histEntities.length; entIdx++) {
+          const ent = state.histEntities[entIdx];
+          if (!ent.points) continue;
+          for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+            const dPt = ent.points[ptIdx];
+            const wPt = warper(dPt);
+            const sp = worldToScreenGIS(wPt, vp, canvasH);
+            if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) {
+              return { entIdx, ptIdx, deedPt: dPt, warpedPt: wPt, screenPt: sp };
+            }
+          }
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    /** Hit test user polygon nodes (matches index.html findMeasureMarkerAt) */
+    function findUserPolyNodeAt(mouseX, mouseY, vp, canvasH) {
+      const poly = state.userPolygon;
+      if (!poly || !poly.vertices) return -1;
+      const HIT_RADIUS = 12; // screen pixels
+      for (let i = 0; i < poly.vertices.length; i++) {
+        const sp = worldToScreenGIS(poly.vertices[i], vp, canvasH);
+        if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) return i;
+      }
+      return -1;
+    }
+
+    /**
+     * Get error percentage and display color for a segment based on percent error
+     * Color scale:
+     *   < 2%   : Bright Green (#00e676) - Excellent match
+     *   2 - 5% : Lime Green   (#aeea00) - Good match
+     *   5 - 10%: Yellow       (#ffd600) - Moderate discrepancy
+     *   10-20% : Orange       (#ff9100) - High error
+     *   > 20%  : Red          (#ff1744) - Severe error
+     *   No deed: Cyan         (#00e5ff) - Neutral unmeasured
+     */
+    function getSegmentErrorMeta(measLen, deedLen) {
+      if (deedLen == null || isNaN(deedLen) || deedLen <= 0) {
+        return { errPct: null, color: "#00e5ff", badgeColor: "rgba(0,229,255,0.18)" };
+      }
+      const errPct = Math.abs(measLen - deedLen) / deedLen * 100;
+      let color, badgeColor;
+      if (errPct < 2.0) {
+        color = "#00e676"; // <2%
+        badgeColor = "rgba(0,230,118,0.22)";
+      } else if (errPct < 5.0) {
+        color = "#aeea00"; // 2-5%
+        badgeColor = "rgba(174,234,0,0.22)";
+      } else if (errPct < 10.0) {
+        color = "#ffd600"; // 5-10%
+        badgeColor = "rgba(255,214,0,0.22)";
+      } else if (errPct < 20.0) {
+        color = "#ff9100"; // 10-20%
+        badgeColor = "rgba(255,145,0,0.22)";
+      } else {
+        color = "#ff1744"; // >20%
+        badgeColor = "rgba(255,23,68,0.25)";
+      }
+      return { errPct, color, badgeColor };
+    }
+
+    /** Draw the user polygon on the true-field canvas */
+    function drawUserPolygon(ctx, vp, canvasH) {
+      const poly = state.userPolygon;
+      if (!poly.show) return;
+      const verts = poly.vertices;
+      if (verts.length === 0) return;
+
+      ctx.save();
+      ctx.globalAlpha = 1;
+
+      // 1. Polygon interior fill (when closed)
+      if (poly.closed && verts.length >= 3) {
+        ctx.beginPath();
+        const s0 = worldToScreenGIS(verts[0], vp, canvasH);
+        ctx.moveTo(s0.x, s0.y);
+        for (let i = 1; i < verts.length; i++) {
+          const s = worldToScreenGIS(verts[i], vp, canvasH);
+          ctx.lineTo(s.x, s.y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = "rgba(0,229,255,0.08)";
+        ctx.fill();
+      }
+
+      // 2. Individual segment strokes color-coded by percent error
+      const nSegs = poly.closed ? verts.length : verts.length - 1;
+      for (let i = 0; i < nSegs; i++) {
+        const a = verts[i], b = verts[(i + 1) % verts.length];
+        const measLen = Math.hypot(b.x - a.x, b.y - a.y);
+        const deedLen = poly.segmentLengths[i];
+        const meta = getSegmentErrorMeta(measLen, deedLen);
+
+        const sa = worldToScreenGIS(a, vp, canvasH);
+        const sb = worldToScreenGIS(b, vp, canvasH);
+
+        ctx.beginPath();
+        ctx.moveTo(sa.x, sa.y);
+        ctx.lineTo(sb.x, sb.y);
+        ctx.strokeStyle = meta.color;
+        ctx.lineWidth = meta.errPct != null ? 3.5 : 2.5;
+        ctx.lineCap = "round";
+        ctx.stroke();
+      }
+
+      // 2.5. Pen buffer halos and displacement vectors (Boundary Optimization visualization or Constrain to Deed mode)
+      if ((state.showBufferDisks !== false || state.constrainPolyToDeed) && state.optBufferRadius > 0) {
+        ctx.save();
+        let warper = null;
+        if (state.anchors && state.anchors.length >= 2) {
+          try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+        }
+        const rPx = state.optBufferRadius * vp.scale;
+        verts.forEach((v) => {
+          if (!v.deedPt) {
+            // If Constrain to Deed is on, also check if this vertex is close to a warped deed vertex
+            if (state.constrainPolyToDeed) {
+              const nearest = findNearestWarpedDeedVertex(v);
+              if (nearest && nearest.dist <= (state.optBufferRadius * 1.5)) {
+                const sDeed = worldToScreenGIS(nearest, vp, canvasH);
+                ctx.beginPath();
+                ctx.arc(sDeed.x, sDeed.y, rPx, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+                ctx.fill();
+                ctx.strokeStyle = "rgba(0, 229, 255, 0.55)";
+                ctx.lineWidth = 1.4;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.beginPath();
+                ctx.arc(sDeed.x, sDeed.y, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(0, 229, 255, 0.85)";
+                ctx.fill();
+              }
+            }
+            return;
+          }
+          // Compute nominal deed center in GIS coordinates
+          const deedWarped = warper ? warper(v.deedPt) : { x: v.deedPt.x, y: v.deedPt.y };
+          const origX = v.origX != null ? v.origX : deedWarped.x;
+          const origY = v.origY != null ? v.origY : deedWarped.y;
+          const sOrig = worldToScreenGIS({ x: origX, y: origY }, vp, canvasH);
+
+          // Draw buffer halo circle
+          ctx.beginPath();
+          ctx.arc(sOrig.x, sOrig.y, rPx, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0, 229, 255, 0.55)";
+          ctx.lineWidth = 1.4;
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Nominal deed center marker
+          ctx.beginPath();
+          ctx.arc(sOrig.x, sOrig.y, 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(0, 229, 255, 0.75)";
+          ctx.fill();
+
+          // Displacement vector if shifted > 0.05m
+          const disp = Math.hypot(v.x - origX, v.y - origY);
+          if (disp > 0.05) {
+            const sCurr = worldToScreenGIS(v, vp, canvasH);
+            ctx.beginPath();
+            ctx.moveTo(sOrig.x, sOrig.y);
+            ctx.lineTo(sCurr.x, sCurr.y);
+            ctx.strokeStyle = "#ffd600";
+            ctx.lineWidth = 2.0;
+            ctx.stroke();
+
+            // Arrow head
+            const angle = Math.atan2(sCurr.y - sOrig.y, sCurr.x - sOrig.x);
+            const arrowSize = 6;
+            ctx.beginPath();
+            ctx.moveTo(sCurr.x, sCurr.y);
+            ctx.lineTo(sCurr.x - arrowSize * Math.cos(angle - Math.PI / 6), sCurr.y - arrowSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(sCurr.x - arrowSize * Math.cos(angle + Math.PI / 6), sCurr.y - arrowSize * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = "#ffd600";
+            ctx.fill();
+          }
+        });
+        ctx.restore();
+      }
+
+      // 3. Vertex dots (Orange = anchored to Deed DXF, Cyan = field/unanchored)
+      verts.forEach((v, i) => {
+        const sp = worldToScreenGIS(v, vp, canvasH);
+        const origX = v.origX != null ? v.origX : v.x;
+        const origY = v.origY != null ? v.origY : v.y;
+        const isShifted = v.deedPt && Math.hypot(v.x - origX, v.y - origY) > 0.05;
+
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, i === 0 ? 7.5 : (isShifted ? 6.5 : 5.5), 0, Math.PI * 2);
+        ctx.fillStyle = v.deedPt ? (isShifted ? "#ffd600" : "#ff9100") : "#00e5ff";
+        ctx.fill();
+        ctx.strokeStyle = i === 0 ? "#ffffff" : (isShifted ? "#ffffff" : (v.deedPt ? "#ffffff" : "#000000"));
+        ctx.lineWidth = (i === 0 || isShifted) ? 2 : 1.5;
+        ctx.stroke();
+      });
+
+      // 4. Segment length labels with error percentage (when Labels checkbox is active)
+      if (state.showSegmentLabels !== false) {
+        for (let i = 0; i < nSegs; i++) {
+          const a = verts[i], b = verts[(i + 1) % verts.length];
+          const mid = worldToScreenGIS({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, vp, canvasH);
+          const len = Math.hypot(b.x - a.x, b.y - a.y);
+          const deedLen = poly.segmentLengths[i];
+          const meta = getSegmentErrorMeta(len, deedLen);
+
+          const label = meta.errPct != null
+            ? `Seg ${i + 1}: ${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m (${meta.errPct.toFixed(1)}%)`
+            : `Seg ${i + 1}: ${len.toFixed(1)}m`;
+
+          ctx.font = "bold 10px sans-serif";
+          ctx.textAlign = "center";
+          const tw = ctx.measureText(label).width;
+          const bw = tw + 10, bh = 15;
+
+          // Box background & border colored by error
+          ctx.fillStyle = "rgba(6, 9, 15, 0.9)";
+          ctx.fillRect(mid.x - bw / 2, mid.y - 10, bw, bh);
+          ctx.strokeStyle = meta.color;
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(mid.x - bw / 2, mid.y - 10, bw, bh);
+
+          ctx.fillStyle = meta.color;
+          ctx.fillText(label, mid.x, mid.y + 2);
+        }
+      }
+
+      // Center area callout box (when polygon is closed)
+      if (poly.closed && verts.length >= 3) {
+        let cx = 0, cy = 0, areaM2 = 0;
+        for (let i = 0; i < verts.length; i++) {
+          cx += verts[i].x; cy += verts[i].y;
+          const j = (i + 1) % verts.length;
+          areaM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
+        }
+        cx /= verts.length; cy /= verts.length;
+        areaM2 = Math.abs(areaM2) / 2;
+        const plazas = areaM2 / 6400;
+
+        const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
+        const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
+        const txt2 = `${plazas.toFixed(2)} plazas`;
+
+        const bw = 110, bh = 32;
+        ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(txt1, sc.x, sc.y - 3);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "9px sans-serif";
+        ctx.fillText(txt2, sc.x, sc.y + 9);
+      }
+
+      ctx.textAlign = "left";
+      ctx.restore();
+    }
+
+    /** Rebuild the per-segment <input> rows in the sidebar */
+    function rebuildSegmentInputs() {
+      const poly = state.userPolygon;
+      const container = document.getElementById("polygon-segments-container");
+      const inp = document.getElementById("polygon-seg-inputs");
+      inp.innerHTML = "";
+      const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
+      if (nSegs === 0) { container.style.display = "none"; return; }
+      container.style.display = "flex";
+      for (let i = 0; i < nSegs; i++) {
+        const a = poly.vertices[i], b = poly.vertices[(i + 1) % poly.vertices.length];
+        const calcLen = Math.hypot(b.x - a.x, b.y - a.y);
+        const deedLen = poly.segmentLengths[i];
+        const meta = getSegmentErrorMeta(calcLen, deedLen);
+
+        const wrap = document.createElement("div");
+        wrap.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);";
+
+        const lbl = document.createElement("span");
+        lbl.style.cssText = "font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:5px;flex:1;";
+
+        const dot = document.createElement("span");
+        dot.style.cssText = `width:7px;height:7px;border-radius:50%;background:${meta.color};box-shadow:0 0 5px ${meta.color};flex-shrink:0;`;
+
+        const segTitle = document.createElement("strong");
+        segTitle.style.cssText = `color:${meta.color};`;
+        segTitle.textContent = `Seg ${i + 1}`;
+
+        const lenText = document.createElement("span");
+        lenText.textContent = `(${calcLen.toFixed(1)}m):`;
+
+        lbl.appendChild(dot);
+        lbl.appendChild(segTitle);
+        lbl.appendChild(lenText);
+
+        const rightGroup = document.createElement("div");
+        rightGroup.style.cssText = "display:flex;align-items:center;gap:4px;";
+
+        const field = document.createElement("input");
+        field.type = "number";
+        field.step = "0.1";
+        field.min = "0";
+        field.placeholder = "deed m";
+        field.style.cssText = "width:62px;padding:2px 5px;font-size:0.72rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;";
+        if (poly.segmentLengths[i] != null) field.value = poly.segmentLengths[i];
+        field.dataset.segIdx = i;
+
+        const errBadge = document.createElement("span");
+        errBadge.style.cssText = `font-size:0.67rem;font-weight:700;padding:2px 5px;border-radius:3px;min-width:44px;text-align:center;background:${meta.badgeColor};color:${meta.color};border:1px solid ${meta.color}40;`;
+        errBadge.textContent = meta.errPct != null ? `${meta.errPct.toFixed(1)}%` : "—";
+
+        field.addEventListener("input", () => {
+          const v = parseFloat(field.value);
+          state.userPolygon.segmentLengths[i] = isNaN(v) ? null : v;
+          const updatedMeta = getSegmentErrorMeta(calcLen, state.userPolygon.segmentLengths[i]);
+          errBadge.textContent = updatedMeta.errPct != null ? `${updatedMeta.errPct.toFixed(1)}%` : "—";
+          errBadge.style.background = updatedMeta.badgeColor;
+          errBadge.style.color = updatedMeta.color;
+          errBadge.style.borderColor = updatedMeta.color + "40";
+          dot.style.background = updatedMeta.color;
+          dot.style.boxShadow = `0 0 5px ${updatedMeta.color}`;
+          segTitle.style.color = updatedMeta.color;
+          recomputeUserPolygonMetrics();
+          redrawTrueCanvas();
+        });
+
+        rightGroup.appendChild(field);
+        rightGroup.appendChild(errBadge);
+        wrap.appendChild(lbl);
+        wrap.appendChild(rightGroup);
+        inp.appendChild(wrap);
+      }
+
+      // Update visibility of boundary optimization sub-panel
+      const optPanel = document.getElementById("boundary-optimization-panel");
+      if (optPanel) {
+        const hasDeedPoints = poly.vertices && poly.vertices.some(v => v.deedPt !== null);
+        const hasDeedLengths = poly.segmentLengths && poly.segmentLengths.some(l => l !== null && l > 0);
+        optPanel.style.display = (hasDeedPoints && hasDeedLengths) ? "flex" : "none";
+      }
+    }
+
+    /** Compute and display polygon metrics in the sub-panel */
+    function recomputeUserPolygonMetrics() {
+      const poly = state.userPolygon;
+      const metricsDiv = document.getElementById("polygon-metrics");
+      if (!metricsDiv) return;
+      if (poly.vertices.length < 2) { metricsDiv.style.display = "none"; return; }
+      metricsDiv.style.display = "block";
+
+      document.getElementById("poly-vertex-count").textContent = poly.vertices.length;
+
+      const REF_DEED_AREA_M2 = 162156; // 25 plazas + 2,156 m² = 162,156.00 m² (25.34 plazas)
+
+      // Shoelace area (only meaningful when closed)
+      let areaM2 = 0;
+      if (poly.closed && poly.vertices.length >= 3) {
+        const V = poly.vertices;
+        for (let i = 0; i < V.length; i++) {
+          const j = (i + 1) % V.length;
+          areaM2 += V[i].x * V[j].y - V[j].x * V[i].y;
+        }
+        areaM2 = Math.abs(areaM2) / 2;
+      }
+
+      if (areaM2 > 0) {
+        const plazas = areaM2 / 6400;
+        document.getElementById("poly-area").textContent = areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById("poly-area-plazas").textContent = plazas.toFixed(2);
+
+        const areaErrM2 = Math.abs(areaM2 - REF_DEED_AREA_M2);
+        const areaErrPct = (areaErrM2 / REF_DEED_AREA_M2) * 100;
+
+        document.getElementById("poly-area-error").textContent = areaErrM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById("poly-area-error-pct").textContent = areaErrPct.toFixed(2);
+      } else {
+        document.getElementById("poly-area").textContent = "—";
+        document.getElementById("poly-area-plazas").textContent = "—";
+        document.getElementById("poly-area-error").textContent = "—";
+        document.getElementById("poly-area-error-pct").textContent = "—";
+      }
+
+      // Segment errors
+      const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
+      const errors = [];
+      for (let i = 0; i < nSegs; i++) {
+        const a = poly.vertices[i], b = poly.vertices[(i + 1) % poly.vertices.length];
+        const measLen = Math.hypot(b.x - a.x, b.y - a.y);
+        const deedLen = poly.segmentLengths[i];
+        if (deedLen != null && deedLen > 0) {
+          errors.push(Math.abs(measLen - deedLen) / deedLen * 100);
+        }
+      }
+      document.getElementById("poly-seg-with-dist").textContent = `${errors.length} / ${nSegs}`;
+      const avgSegErr = errors.length ? errors.reduce((s, v) => s + v, 0) / errors.length : null;
+      document.getElementById("avg-seg-error").textContent = avgSegErr != null ? avgSegErr.toFixed(2) : "—";
+
+      // Overall error combining segment error % and area error %
+      let overallErr = null;
+      if (areaM2 > 0) {
+        const areaErrPct = (Math.abs(areaM2 - REF_DEED_AREA_M2) / REF_DEED_AREA_M2) * 100;
+        if (avgSegErr != null) {
+          overallErr = (avgSegErr + areaErrPct) / 2;
+        } else {
+          overallErr = areaErrPct;
+        }
+      } else if (avgSegErr != null) {
+        overallErr = avgSegErr;
+      }
+
+      document.getElementById("overall-error").textContent = overallErr != null ? overallErr.toFixed(2) : "—";
+    }
+
+    /** Update Save / Export button states */
+    function updatePolygonButtonStates() {
+      const poly = state.userPolygon;
+      const hasPoly = poly.vertices.length >= 2;
+      document.getElementById("btn-save-polygon").disabled = !hasPoly;
+      const expBtn = document.getElementById("btn-export-polygon-dxf");
+      expBtn.disabled = !poly.closed;
+      expBtn.style.opacity = poly.closed ? "1" : "0.45";
+    }
+
+    /** Reset the polygon to a clean state */
+    function resetUserPolygon() {
+      state.userPolygon = { vertices: [], segmentLengths: [], closed: false, drawMode: false, show: true };
+      document.getElementById("polygon-seg-inputs").innerHTML = "";
+      document.getElementById("polygon-segments-container").style.display = "none";
+      const optPanel = document.getElementById("boundary-optimization-panel");
+      if (optPanel) optPanel.style.display = "none";
+      document.getElementById("polygon-metrics").style.display = "none";
+      document.getElementById("btn-cancel-polygon").style.display = "none";
+      document.getElementById("btn-close-polygon").style.display = "none";
+      document.getElementById("poly-status-hint").textContent = "Click \"+ Create new polygon\" then click on the field canvas to place vertices. Click near the first vertex to close.";
+      if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+      updatePolygonButtonStates();
+      updateStatus("Polygon cleared.");
+      redrawTrueCanvas();
+    }
+
+    // ── Polygon button handlers ──────────────────────────────────────────
+    document.getElementById("btn-create-polygon").addEventListener("click", () => {
+      setToolMode("pan");
+      resetUserPolygon();
+      state.userPolygon.drawMode = true;
+      if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = "crosshair";
+      document.getElementById("btn-cancel-polygon").style.display = "";
+      document.getElementById("poly-status-hint").textContent = "Click on the field canvas to place vertices. Click near the first vertex (blue dot) to close the polygon.";
+      updateStatus("📐 Polygon draw mode — click on field canvas to add vertices.");
+    });
+
+    document.getElementById("btn-cancel-polygon").addEventListener("click", resetUserPolygon);
+
+    document.getElementById("btn-close-polygon").addEventListener("click", () => {
+      const poly = state.userPolygon;
+      if (poly.vertices.length >= 3 && !poly.closed) {
+        poly.closed = true;
+        poly.drawMode = false;
+        document.getElementById("btn-cancel-polygon").style.display = "none";
+        document.getElementById("btn-close-polygon").style.display = "none";
+        rebuildSegmentInputs();
+        recomputeUserPolygonMetrics();
+        updatePolygonButtonStates();
+        updateStatus("Polygon closed. Enter deed segment distances (optional) to compute errors.");
+        redrawTrueCanvas();
+      }
+    });
+
+    document.getElementById("btn-clear-polygon").addEventListener("click", resetUserPolygon);
+
+    // Save polygon to JSON
+    document.getElementById("btn-save-polygon").addEventListener("click", () => {
+      const data = JSON.stringify(state.userPolygon, null, 2);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "user_polygon.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      updateStatus("💾 Saved polygon to user_polygon.json.");
+    });
+
+    // Helper to load polygon from DXF text
+    function loadUserPolygonFromDXF(dxfText, filename) {
+      const entities = DXFParser.parse(dxfText);
+      if (!entities || entities.length === 0) throw new Error("No polyline entities found in DXF.");
+      const polyEnt = entities.find(e => e.points && e.points.length >= 2) || entities[0];
+      if (!polyEnt || !polyEnt.points || polyEnt.points.length === 0) throw new Error("No points found in DXF entity.");
+      
+      state.userPolygon = {
+        vertices: polyEnt.points.map(p => ({ x: p.x, y: p.y })),
+        segmentLengths: polyEnt.points.map(() => null),
+        closed: !!polyEnt.closed,
+        drawMode: false,
+        show: true,
+      };
+      document.getElementById("btn-cancel-polygon").style.display = "none";
+      document.getElementById("btn-close-polygon").style.display = "none";
+      rebuildSegmentInputs();
+      recomputeUserPolygonMetrics();
+      updatePolygonButtonStates();
+      if (state.userPolygon.vertices.length > 0 && !state.trueViewport.bbox) {
+        const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
+        state.trueViewport = fitViewport(trueCanvas, bb);
+      }
+      redrawTrueCanvas();
+      updateStatus(`📂 Loaded polygon (${state.userPolygon.vertices.length} vertices) from ${filename || "DXF"}`);
+    }
+
+    // Load polygon from JSON or DXF file
+    document.getElementById("polygon-file-input").addEventListener("change", e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const content = ev.target.result;
+          if (file.name.toLowerCase().endsWith(".dxf")) {
+            loadUserPolygonFromDXF(content, file.name);
+          } else {
+            const obj = JSON.parse(content);
+            if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
+            state.userPolygon = {
+              vertices: (obj.vertices || []).map(v => ({
+                x: v.x,
+                y: v.y,
+                deedPt: v.deedPt || null,
+                origX: v.origX != null ? v.origX : v.x,
+                origY: v.origY != null ? v.origY : v.y
+              })),
+              segmentLengths: obj.segmentLengths || [],
+              closed: !!obj.closed,
+              drawMode: false,
+              show: true,
+            };
+            while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
+              state.userPolygon.segmentLengths.push(null);
+            }
+            document.getElementById("btn-cancel-polygon").style.display = "none";
+            document.getElementById("btn-close-polygon").style.display = "none";
+            rebuildSegmentInputs();
+            recomputeUserPolygonMetrics();
+            updatePolygonButtonStates();
+            if (state.userPolygon.vertices.length > 0 && !state.trueViewport.bbox) {
+              const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
+              state.trueViewport = fitViewport(trueCanvas, bb);
+            }
+            redrawTrueCanvas();
+            updateStatus(`📂 Loaded polygon with ${state.userPolygon.vertices.length} vertices from ${file.name}`);
+          }
+        } catch(err) {
+          alert("Failed to load polygon: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = ""; // reset so same file can be reloaded
+    });
+
+    // Export polygon as DXF
+    document.getElementById("btn-export-polygon-dxf").addEventListener("click", () => {
+      const poly = state.userPolygon;
+      if (!poly.closed || poly.vertices.length < 3) {
+        alert("Close the polygon first before exporting to DXF.");
+        return;
+      }
+      const entity = {
+        type: "POLYLINE",
+        layer: "USER_POLYGON",
+        closed: true,
+        points: poly.vertices.map(v => ({ x: v.x, y: v.y }))
+      };
+      const dxfStr = DXFParser.serialize([entity]);
+      const blob = new Blob([dxfStr], { type: "application/dxf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "user_polygon.dxf";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      updateStatus("📐 Exported polygon to user_polygon.dxf.");
+    });
+
+    // ── Boundary Optimization Handlers ──────────────────────────────────
+    const optBufferSlider = document.getElementById("opt-buffer-slider");
+    const optBufferVal = document.getElementById("opt-buffer-val");
+    const optBalanceSlider = document.getElementById("opt-balance-slider");
+    const optBalanceVal = document.getElementById("opt-balance-val");
+    const chkShowBufferDisks = document.getElementById("chk-show-buffer-disks");
+    const btnRunOpt = document.getElementById("btn-run-optimization");
+    const btnResetOpt = document.getElementById("btn-reset-optimization");
+    const optStatusBadge = document.getElementById("opt-status-badge");
+
+    if (optBufferSlider) {
+      optBufferSlider.addEventListener("input", e => {
+        const val = parseFloat(e.target.value) || 3.0;
+        state.optBufferRadius = val;
+        if (optBufferVal) optBufferVal.textContent = `±${val.toFixed(1)} m`;
+        const constrainHint = document.getElementById("anchor-constrain-hint");
+        if (constrainHint) constrainHint.textContent = `(±${val.toFixed(1)}m)`;
+        const deedHint = document.getElementById("deed-constrain-hint");
+        if (deedHint) deedHint.textContent = `(±${val.toFixed(1)}m)`;
+        redrawTrueCanvas();
+      });
+    }
+
+    if (optBalanceSlider) {
+      optBalanceSlider.addEventListener("input", e => {
+        const val = parseInt(e.target.value, 10);
+        state.optBalance = val;
+        if (optBalanceVal) {
+          if (val === 50) optBalanceVal.textContent = "Balanced (50/50)";
+          else if (val < 50) optBalanceVal.textContent = `Dist Focus (${100 - val}% / ${val}%)`;
+          else optBalanceVal.textContent = `Area Focus (${100 - val}% / ${val}%)`;
+        }
+      });
+    }
+
+    if (chkShowBufferDisks) {
+      chkShowBufferDisks.addEventListener("change", e => {
+        state.showBufferDisks = e.target.checked;
+        redrawTrueCanvas();
+      });
+    }
+
+    if (btnRunOpt) {
+      btnRunOpt.addEventListener("click", () => {
+        const poly = state.userPolygon;
+        if (!poly || !poly.vertices || poly.vertices.length < 3) {
+          alert("Polygon requires ≥ 3 vertices to optimize.");
+          return;
+        }
+
+        // Ensure each vertex has baseline origX, origY
+        poly.vertices.forEach(v => {
+          if (v.origX === undefined || v.origX === null) v.origX = v.x;
+          if (v.origY === undefined || v.origY === null) v.origY = v.y;
+        });
+
+        if (optStatusBadge) {
+          optStatusBadge.textContent = "Optimizing…";
+          optStatusBadge.style.color = "var(--accent-cyan)";
+        }
+
+        setTimeout(() => {
+          const result = BoundaryOptimizer.optimize({
+            vertices: poly.vertices,
+            segmentLengths: poly.segmentLengths,
+            bufferRadius: state.optBufferRadius,
+            balance: state.optBalance,
+            targetArea: 162156.0,
+            iterations: 240
+          });
+
+          if (!result.success) {
+            if (optStatusBadge) {
+              optStatusBadge.textContent = "Notice";
+              optStatusBadge.style.color = "var(--accent-orange)";
+            }
+            alert(`Optimization notice: ${result.reason || "Unable to optimize."}`);
+            return;
+          }
+
+          // Apply optimized vertices
+          poly.vertices = result.vertices;
+          recomputeUserPolygonMetrics();
+          rebuildSegmentInputs();
+          redrawTrueCanvas();
+
+          if (optStatusBadge) {
+            optStatusBadge.textContent = `✓ Fitted (Max: ${result.maxDisplacement.toFixed(2)}m)`;
+            optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
+            optStatusBadge.style.color = "#00e676";
+          }
+
+          updateStatus(`⚡ Boundary optimized: max vertex shift = ${result.maxDisplacement.toFixed(2)}m within ±${state.optBufferRadius.toFixed(1)}m pen buffer.`);
+        }, 15);
+      });
+    }
+
+    if (btnResetOpt) {
+      btnResetOpt.addEventListener("click", () => {
+        const poly = state.userPolygon;
+        if (!poly || !poly.vertices) return;
+        let count = 0;
+        poly.vertices.forEach(v => {
+          if (v.deedPt && v.origX !== undefined && v.origX !== null) {
+            v.x = v.origX;
+            v.y = v.origY;
+            count++;
+          }
+        });
+        recomputeUserPolygonMetrics();
+        rebuildSegmentInputs();
+        redrawTrueCanvas();
+
+        if (optStatusBadge) {
+          optStatusBadge.textContent = "Reset to deed";
+          optStatusBadge.style.background = "rgba(255, 255, 255, 0.08)";
+          optStatusBadge.style.color = "var(--text-muted)";
+        }
+        updateStatus(`↺ Reset ${count} dynamic vertices back to unadjusted deed centers.`);
+      });
+    }
+
+    // Context menu handler on trueCanvas (prevents context menu when clicking nodes or drawing)
+    trueCanvas.addEventListener("contextmenu", e => {
+      // In Anchor Mode: block ALL polygon context menu interactions — anchors have exclusive control
+      if (state.toolMode === "anchor") return;
+      const rect = trueCanvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const hitNode = findUserPolyNodeAt(sx, sy, state.trueViewport, trueCanvas.height);
+      if ((state.userPolygon && state.userPolygon.drawMode) || hitNode >= 0) {
+        e.preventDefault();
+      }
+    });
+
+    // Capture-phase mouse listener for trueCanvas (user polygon creation, node drag & right-click node delete)
+    trueCanvas.addEventListener("mousedown", function(e) {
+      // In Anchor Mode: block ALL polygon interactions — move, create, delete — anchors have exclusive control
+      if (state.toolMode === "anchor") {
+        return;
+      }
+
+      const rect = trueCanvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const vp = state.trueViewport, h = trueCanvas.height;
+      const poly = state.userPolygon;
+
+      // Edit Deed Nodes mode: priority drag of deed vertices
+      if (state.editDeedNodes && e.button === 0 && !spacePressed) {
+        const deedHit = findDeedNodeOnTrueCanvas(sx, sy, vp, h);
+        if (deedHit) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          state.draggingDeedNode = {
+            entIdx: deedHit.entIdx,
+            ptIdx: deedHit.ptIdx,
+            origDeedPt: { x: deedHit.deedPt.x, y: deedHit.deedPt.y },
+            origFieldPt: { x: deedHit.warpedPt.x, y: deedHit.warpedPt.y }
+          };
+          trueCanvas.style.cursor = "move";
+          updateStatus(`✏️ Dragging Deed Vertex #${deedHit.ptIdx + 1} — move on field survey to fine-tune.`);
+          redrawTrueCanvas();
+          return;
+        }
+      }
+
+      const hitNode = findUserPolyNodeAt(sx, sy, vp, h);
+
+      // Right-click (button === 2): Delete node if hit!
+      if (e.button === 2) {
+        if (hitNode >= 0) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          poly.vertices.splice(hitNode, 1);
+          poly.segmentLengths.splice(hitNode, 1);
+          if (poly.vertices.length < 3) poly.closed = false;
+          rebuildSegmentInputs();
+          recomputeUserPolygonMetrics();
+          updatePolygonButtonStates();
+          redrawTrueCanvas();
+          updateStatus(`🗑 Deleted polygon vertex #${hitNode + 1}. Remaining: ${poly.vertices.length}`);
+          return;
+        }
+        return;
+      }
+
+      // Left-click (button === 0):
+      if (e.button === 0 && !spacePressed) {
+        // If clicking an existing node -> start dragging it!
+        if (hitNode >= 0) {
+          e.stopImmediatePropagation();
+          state.draggingUserPolyNode = hitNode;
+          trueCanvas.style.cursor = "move";
+          return;
+        }
+
+        // If in polygon draw mode -> add a node or close
+        if (poly && poly.drawMode) {
+          e.stopImmediatePropagation();
+          // Check if clicking near first vertex -> close polygon
+          if (poly.vertices.length >= 3) {
+            const first = worldToScreenGIS(poly.vertices[0], vp, h);
+            if (Math.hypot(first.x - sx, first.y - sy) <= POLY_SNAP_RADIUS + 4) {
+              poly.closed = true;
+              poly.drawMode = false;
+              document.getElementById("btn-cancel-polygon").style.display = "none";
+              document.getElementById("btn-close-polygon").style.display = "none";
+              trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+              rebuildSegmentInputs();
+              recomputeUserPolygonMetrics();
+              updatePolygonButtonStates();
+              updateStatus("Polygon closed ✓ Enter deed segment distances to compute errors.");
+              redrawTrueCanvas();
+              return;
+            }
+          }
+
+          // Snapped vertex or raw GIS click
+          const snap = state.currentSnapTarget || getPolygonSnapTarget(sx, sy, vp, h);
+          const rawPt = screenToWorldGIS(sx, sy, vp, h);
+          const worldPt = snap ? {
+            x: snap.worldPt.x,
+            y: snap.worldPt.y,
+            deedPt: snap.deedPt ? { x: snap.deedPt.x, y: snap.deedPt.y } : null
+          } : {
+            x: rawPt.x,
+            y: rawPt.y,
+            deedPt: null
+          };
+
+          poly.vertices.push(worldPt);
+          while (poly.segmentLengths.length < poly.vertices.length) poly.segmentLengths.push(null);
+
+          const n = poly.vertices.length;
+          if (n >= 2) {
+            rebuildSegmentInputs();
+            document.getElementById("btn-close-polygon").style.display = n >= 3 ? "" : "none";
+          }
+          recomputeUserPolygonMetrics();
+          updatePolygonButtonStates();
+          updateStatus(`Polygon vertex ${n} placed${snap ? (snap.deedPt ? " (anchored to Deed DXF)" : " (snapped)") : ""}. ${n >= 3 ? "Click near first vertex or '✓ Close polygon' to close." : "Continue adding vertices."}`);
+          redrawTrueCanvas();
+        }
+      }
+    }, true);
+
+    // Tool mode switcher
+    function setToolMode(mode) {
+      state.toolMode = mode;
+      btnModePan.classList.toggle("active", mode==="pan");
+      btnModeAnchor.classList.toggle("active", mode==="anchor");
+      if (mode === "anchor") {
+        state.draggingUserPolyNode = null;
+        state.currentSnapTarget = null;
+        if (state.userPolygon && state.userPolygon.drawMode) {
+          state.userPolygon.drawMode = false;
+          const btnCancel = document.getElementById("btn-cancel-polygon");
+          if (btnCancel) btnCancel.style.display = "none";
+          const btnClose = document.getElementById("btn-close-polygon");
+          if (btnClose) btnClose.style.display = "none";
+        }
+        redrawTrueCanvas();
+      }
+      const cursor = (mode==="anchor") ? "crosshair" : ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : "grab");
+      histCanvas.style.cursor = mode==="pan" ? "grab" : "crosshair";
+      trueCanvas.style.cursor = cursor;
+      updateStatus(mode==="pan"
+        ? "🖐️ Pan Mode — drag to move. Scroll to zoom. Polygon nodes can be created, moved, or deleted."
+        : "🎯 Anchor Mode — only anchors are active. Click/drag anchor pairs. Polygon vertices cannot be moved or altered.");
+    }
+
+    btnModePan.addEventListener("click",    () => setToolMode("pan"));
+    btnModeAnchor.addEventListener("click", () => setToolMode("anchor"));
+
+    // ── Panel Layout Switcher & Labels Toggle ────────────────────────────
+    const histCard = document.getElementById("hist-card");
+    const trueCard = document.getElementById("true-card");
+    const sidebarEl = document.getElementById("sidebar");
+    const btnLayoutLeft = document.getElementById("btn-layout-left");
+    const btnLayoutSplit = document.getElementById("btn-layout-split");
+    const btnLayoutRight = document.getElementById("btn-layout-right");
+    const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+
+    function setPanelLayout(mode) {
+      state.layoutMode = mode;
+      if (btnLayoutLeft) btnLayoutLeft.classList.toggle("active", mode === "left");
+      if (btnLayoutSplit) btnLayoutSplit.classList.toggle("active", mode === "split");
+      if (btnLayoutRight) btnLayoutRight.classList.toggle("active", mode === "right");
+
+      if (mode === "left") {
+        if (histCard) histCard.classList.remove("hidden");
+        if (trueCard) trueCard.classList.add("hidden");
+        updateStatus("Display: Left panel only (Historical Deed map).");
+      } else if (mode === "right") {
+        if (histCard) histCard.classList.add("hidden");
+        if (trueCard) trueCard.classList.remove("hidden");
+        updateStatus("Display: Right panel only (Field survey & drone map).");
+      } else {
+        // split view
+        if (histCard) histCard.classList.remove("hidden");
+        if (trueCard) trueCard.classList.remove("hidden");
+        updateStatus("Display: Split view (both Deed & Field panels).");
+      }
+
+      requestAnimationFrame(() => {
+        resizeCanvases();
+      });
+    }
+
+    if (btnLayoutLeft) btnLayoutLeft.addEventListener("click", () => setPanelLayout("left"));
+    if (btnLayoutSplit) btnLayoutSplit.addEventListener("click", () => setPanelLayout("split"));
+    if (btnLayoutRight) btnLayoutRight.addEventListener("click", () => setPanelLayout("right"));
+
+    if (btnToggleSidebar) {
+      btnToggleSidebar.addEventListener("click", () => {
+        state.sidebarVisible = !state.sidebarVisible;
+        if (sidebarEl) sidebarEl.classList.toggle("collapsed", !state.sidebarVisible);
+        btnToggleSidebar.classList.toggle("active", state.sidebarVisible);
+        updateStatus(state.sidebarVisible ? "Sidebar expanded." : "Sidebar collapsed to maximize map area.");
+        requestAnimationFrame(() => {
+          resizeCanvases();
+        });
+      });
+    }
+
+    // Segment Labels toggle handlers (synchronized across header and sidebar)
+    const chkShowSegLabels = document.getElementById("chk-show-seg-labels");
+    const chkShowSegLabelsSidebar = document.getElementById("chk-show-seg-labels-sidebar");
+
+    function setSegmentLabelsVisible(visible) {
+      state.showSegmentLabels = visible;
+      if (chkShowSegLabels) chkShowSegLabels.checked = visible;
+      if (chkShowSegLabelsSidebar) chkShowSegLabelsSidebar.checked = visible;
+      redrawTrueCanvas();
+      updateStatus(visible ? "Segment labels enabled on field canvas." : "Segment labels hidden.");
+    }
+
+    if (chkShowSegLabels) {
+      chkShowSegLabels.addEventListener("change", e => setSegmentLabelsVisible(e.target.checked));
+    }
+    if (chkShowSegLabelsSidebar) {
+      chkShowSegLabelsSidebar.addEventListener("change", e => setSegmentLabelsVisible(e.target.checked));
+    }
+
+    // Edit Deed Nodes toggle handler
+    const chkEditDeedNodes = document.getElementById("chk-edit-deed-nodes");
+    if (chkEditDeedNodes) {
+      chkEditDeedNodes.addEventListener("change", e => {
+        state.editDeedNodes = e.target.checked;
+        if (state.editDeedNodes) {
+          updateStatus("✏️ Edit Deed Nodes active — click and drag deed vertices on field canvas (or deed map) to adjust alignment.");
+        } else {
+          state.hoverDeedNode = null;
+          state.draggingDeedNode = null;
+          state.draggingDeedNodeHist = null;
+          updateStatus("Edit Deed Nodes disabled.");
+        }
+        redrawAll();
+      });
+    }
+
+    // Save Deed DXF button handler
+    const btnSaveDeedDxf = document.getElementById("btn-save-deed-dxf");
+    if (btnSaveDeedDxf) {
+      btnSaveDeedDxf.addEventListener("click", () => {
+        if (!state.histEntities || state.histEntities.length === 0) {
+          alert("No deed DXF loaded to save.");
+          return;
+        }
+        const txt = DXFParser.serialize(state.histEntities);
+        const blob = new Blob([txt], { type: "application/dxf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = state.histFileName || "Polygon_Escritura1073_FerminSuarez.dxf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateStatus(`💾 Saved modified Deed DXF to '${a.download}'.`);
+      });
+    }
+
+    window.addEventListener("keydown", e => {
+      if (e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
+      if (e.code==="KeyP") setToolMode("pan");
+      if (e.code==="KeyA") setToolMode("anchor");
+      if (e.code==="Space") { spacePressed=true; e.preventDefault(); }
+    });
+    window.addEventListener("keyup", e => { if(e.code==="Space") spacePressed=false; });
+
+    function hitTestAnchor(sx, sy, isHist) {
+      const radius = 14;
+      const vp = isHist ? state.histViewport : state.trueViewport;
+      const h = isHist ? histCanvas.height : trueCanvas.height;
+      for (const anc of state.anchors) {
+        const pt = isHist ? worldToScreen(anc.src, vp, h) : worldToScreenGIS(anc.dst, vp, h);
+        if (Math.hypot(pt.x - sx, pt.y - sy) <= radius) {
+          return anc;
+        }
+      }
+      return null;
+    }
+
+    let draggingAnchor = null; // { anc, isHist }
+
+    function handleMouseDown(e, canvas, viewport, isHist) {
+      clickStart.x = e.clientX;
+      clickStart.y = e.clientY;
+
+      // Edit Deed Nodes mode: priority drag of deed vertices on historical canvas
+      if (isHist && state.editDeedNodes && e.button === 0 && !spacePressed && state.toolMode === "pan") {
+        const rect = histCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const deedHit = findDeedNodeOnHistCanvas(sx, sy, state.histViewport, histCanvas.height);
+        if (deedHit) {
+          e.preventDefault();
+          state.draggingDeedNodeHist = {
+            entIdx: deedHit.entIdx,
+            ptIdx: deedHit.ptIdx,
+            origDeedPt: { x: deedHit.deedPt.x, y: deedHit.deedPt.y }
+          };
+          histCanvas.style.cursor = "move";
+          updateStatus(`✏️ Dragging Deed Vertex #${deedHit.ptIdx + 1} on deed map.`);
+          redrawAll();
+          return;
+        }
+      }
+
+      const isPolyDrawOnTrue = (!isHist && state.userPolygon && state.userPolygon.drawMode && state.toolMode === "pan");
+      const shouldPan = (state.toolMode === "pan" && !isPolyDrawOnTrue) || e.button === 2 || e.button === 1 || spacePressed;
+
+      if (shouldPan) {
+        isPanning = true;
+        panStart.x = e.clientX;
+        panStart.y = e.clientY;
+        vpStart.offsetX = viewport.offsetX;
+        vpStart.offsetY = viewport.offsetY;
+        activePanViewport = viewport;
+        canvas.style.cursor = "grabbing";
+        return;
+      }
+
+      if (state.toolMode === "anchor" && e.button === 0) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const hit = hitTestAnchor(sx, sy, isHist);
+        if (hit) {
+          draggingAnchor = { anc: hit, isHist };
+          canvas.style.cursor = "move";
+        }
+      }
+    }
+
+    function handleMouseUp(e, canvas, viewport, isHist) {
+      if (isPanning) {
+        isPanning = false;
+        activePanViewport = null;
+        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
+      }
+
+      if (draggingAnchor) {
+        updateStatus(`Updated Anchor #${draggingAnchor.anc.id} position.`);
+        draggingAnchor = null;
+        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
+        redrawAll();
+        return;
+      }
+
+      if (state.toolMode === "pan" && (!state.userPolygon || !state.userPolygon.drawMode || isHist)) return;
+      if (Math.abs(e.clientX - clickStart.x) > 6 || Math.abs(e.clientY - clickStart.y) > 6) return;
+      if (e.button !== 0) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+
+      if (isHist) {
+        const worldPt = screenToWorld(sx, sy, viewport, canvas.height);
+        state.pendingSource = worldPt;
+        redrawAll();
+        updateStatus(`Source Anchor #${state.anchors.length + 1} at deed (${worldPt.x.toFixed(1)}, ${worldPt.y.toFixed(1)}). Now click matching location on drone survey.`);
+      } else {
+        if (!state.pendingSource) {
+          updateStatus("Click a landmark on the deed map (left) first.");
+          return;
+        }
+        const worldPt = screenToWorldGIS(sx, sy, viewport, canvas.height);
+        const nextId = state.anchors.length + 1;
+        const color = anchorColors[(nextId - 1) % anchorColors.length];
+        state.anchors.push({
+          id: nextId,
+          color: color,
+          src: { ...state.pendingSource },
+          dst: worldPt
+        });
+        state.pendingSource = null;
+        redrawAll();
+        updateStatus(`Anchor Pair #${nextId} created! Transformation updating live.`);
+      }
+    }
+
+    window.addEventListener("mousemove", e => {
+      if (isPanning && activePanViewport) {
+        const dx = e.clientX - panStart.x;
+        const dy = e.clientY - panStart.y;
+        activePanViewport.offsetX = vpStart.offsetX + dx;
+        if (activePanViewport === state.trueViewport) {
+          activePanViewport.offsetY = vpStart.offsetY - dy; // GIS flips Y
+        } else {
+          activePanViewport.offsetY = vpStart.offsetY + dy; // Historical doesn't flip Y
+        }
+        redrawAll();
+        return;
+      }
+
+      if (draggingAnchor) {
+        const canvas = draggingAnchor.isHist ? histCanvas : trueCanvas;
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        if (draggingAnchor.isHist) {
+          draggingAnchor.anc.src = screenToWorld(sx, sy, state.histViewport, histCanvas.height);
+        } else {
+          let targetPt = screenToWorldGIS(sx, sy, state.trueViewport, trueCanvas.height);
+
+          // If Constrain checkbox is checked: clamp anchor movement inside Pen Buffer of nearest Field.dxf vertex
+          if (state.constrainAnchorsToField && state.optBufferRadius > 0) {
+            const nearestField = findNearestFieldVertex(targetPt);
+            if (nearestField) {
+              const R = state.optBufferRadius;
+              // If the cursor is within or approaching the vertex buffer (within 2*R detection zone):
+              if (nearestField.dist <= R * 2.0) {
+                if (nearestField.dist > R) {
+                  // Cursor is outside the circle: clamp anchor position to the circle boundary (perimeter)
+                  const angle = Math.atan2(targetPt.y - nearestField.y, targetPt.x - nearestField.x);
+                  targetPt = {
+                    x: nearestField.x + R * Math.cos(angle),
+                    y: nearestField.y + R * Math.sin(angle)
+                  };
+                }
+                // When nearestField.dist <= R, targetPt remains free inside the circle!
+              }
+            }
+          }
+
+          draggingAnchor.anc.dst = targetPt;
+        }
+        redrawAll();
+        return;
+      }
+
+      // Dragging deed node on historical canvas
+      if (state.draggingDeedNodeHist) {
+        const vp = state.histViewport;
+        const h = histCanvas.height;
+        const rect = histCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+        const deedPt = screenToWorld(mouseX, mouseY, vp, h);
+        const ent = state.histEntities[state.draggingDeedNodeHist.entIdx];
+        if (ent && ent.points && ent.points[state.draggingDeedNodeHist.ptIdx]) {
+          const origDeed = state.draggingDeedNodeHist.origDeedPt;
+          ent.points[state.draggingDeedNodeHist.ptIdx].x = deedPt.x;
+          ent.points[state.draggingDeedNodeHist.ptIdx].y = deedPt.y;
+
+          // Synchronize any user polygon vertex linked to this deed point
+          if (state.userPolygon && state.userPolygon.vertices) {
+            let warper = null;
+            if (state.anchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+            }
+            state.userPolygon.vertices.forEach(v => {
+              if (v.deedPt && Math.hypot(v.deedPt.x - origDeed.x, v.deedPt.y - origDeed.y) < 0.05) {
+                v.deedPt.x = deedPt.x;
+                v.deedPt.y = deedPt.y;
+                if (warper) {
+                  const w = warper(deedPt);
+                  v.x = w.x;
+                  v.y = w.y;
+                }
+              }
+            });
+            recomputeUserPolygonMetrics();
+          }
+          redrawAll();
+        }
+        return;
+      }
+
+      // Dragging deed node with live reverse-transform (backtracking)
+      if (state.draggingDeedNode) {
+        const vp = state.trueViewport;
+        const h = trueCanvas.height;
+        const rect = trueCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+        const fieldPt = screenToWorldGIS(mouseX, mouseY, vp, h);
+
+        const invWarper = TransformMath.createInverseWarper(state.algorithm, state.anchors);
+        if (invWarper) {
+          const newDeedPt = invWarper(fieldPt);
+          const ent = state.histEntities[state.draggingDeedNode.entIdx];
+          if (ent && ent.points && ent.points[state.draggingDeedNode.ptIdx]) {
+            const origDeed = state.draggingDeedNode.origDeedPt;
+            ent.points[state.draggingDeedNode.ptIdx].x = newDeedPt.x;
+            ent.points[state.draggingDeedNode.ptIdx].y = newDeedPt.y;
+
+            // Synchronize any user polygon vertex linked to this deed point
+            if (state.userPolygon && state.userPolygon.vertices) {
+              state.userPolygon.vertices.forEach(v => {
+                if (v.deedPt && Math.hypot(v.deedPt.x - origDeed.x, v.deedPt.y - origDeed.y) < 0.05) {
+                  v.deedPt.x = newDeedPt.x;
+                  v.deedPt.y = newDeedPt.y;
+                  v.x = fieldPt.x;
+                  v.y = fieldPt.y;
+                }
+              });
+              recomputeUserPolygonMetrics();
+            }
+            redrawAll();
+          }
+        }
+        return;
+      }
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (state.draggingDeedNodeHist) {
+        const ptIdx = state.draggingDeedNodeHist.ptIdx;
+        state.draggingDeedNodeHist = null;
+        updateStatus(`✏️ Deed vertex #${ptIdx + 1} updated. Click '💾 Save Deed DXF' to download '${state.histFileName || "deed DXF"}'.`);
+        redrawAll();
+      }
+      if (state.draggingDeedNode) {
+        const ptIdx = state.draggingDeedNode.ptIdx;
+        state.draggingDeedNode = null;
+        updateStatus(`✏️ Deed vertex #${ptIdx + 1} updated. Click '💾 Save Deed DXF' to download '${state.histFileName || "deed DXF"}'.`);
+        redrawAll();
+      }
+      if (state.draggingUserPolyNode !== null) {
+        state.draggingUserPolyNode = null;
+        state.currentSnapTarget = null;
+        rebuildSegmentInputs();
+        recomputeUserPolygonMetrics();
+        updatePolygonButtonStates();
+        redrawTrueCanvas();
+      }
+      if (isPanning) {
+        isPanning = false;
+        activePanViewport = null;
+        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
+      }
+      if (draggingAnchor) {
+        draggingAnchor = null;
+        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
+        redrawAll();
+      }
+    });
+
+    // Coordinate display on mousemove
+    histCanvas.addEventListener("mousemove", e => {
+      const r = histCanvas.getBoundingClientRect();
+      const p = screenToWorld(e.clientX - r.left, e.clientY - r.top, state.histViewport, histCanvas.height);
+      coordsBar.textContent = `Deed: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+      if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
+        const hit = hitTestAnchor(e.clientX - r.left, e.clientY - r.top, true);
+        histCanvas.style.cursor = hit ? "move" : "crosshair";
+      } else if (state.editDeedNodes && !isPanning && !state.draggingDeedNodeHist) {
+        const deedHit = findDeedNodeOnHistCanvas(e.clientX - r.left, e.clientY - r.top, state.histViewport, histCanvas.height);
+        const prevHover = state.hoverDeedNode;
+        state.hoverDeedNode = deedHit;
+        if (deedHit) {
+          histCanvas.style.cursor = "move";
+          coordsBar.textContent = `Deed Node #${deedHit.ptIdx + 1}: (${deedHit.deedPt.x.toFixed(1)}, ${deedHit.deedPt.y.toFixed(1)})`;
+          redrawHistoricalCanvas();
+          return;
+        } else if (prevHover !== null) {
+          histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+          redrawHistoricalCanvas();
+        }
+      }
+    });
+    trueCanvas.addEventListener("mousemove", e => {
+      const r = trueCanvas.getBoundingClientRect();
+      const mouseX = e.clientX - r.left, mouseY = e.clientY - r.top;
+      const vp = state.trueViewport, h = trueCanvas.height;
+      const p = screenToWorldGIS(mouseX, mouseY, vp, h);
+      coordsBar.textContent = `Field UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+
+      // 0. Edit Deed Nodes mode: hover detection over deed vertices on field canvas
+      if (state.editDeedNodes && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && !state.draggingDeedNode) {
+        const deedHit = findDeedNodeOnTrueCanvas(mouseX, mouseY, vp, h);
+        const prevHover = state.hoverDeedNode;
+        state.hoverDeedNode = deedHit;
+        if (deedHit) {
+          trueCanvas.style.cursor = "move";
+          coordsBar.textContent = `Deed Node #${deedHit.ptIdx + 1}: Deed (${deedHit.deedPt.x.toFixed(1)}, ${deedHit.deedPt.y.toFixed(1)}) → Field (${deedHit.warpedPt.x.toFixed(2)}, ${deedHit.warpedPt.y.toFixed(2)})`;
+          redrawTrueCanvas();
+          return;
+        } else if (prevHover !== null) {
+          redrawTrueCanvas();
+        }
+      }
+
+      // 1. Node dragging active
+      if (state.draggingUserPolyNode !== null) {
+        const snap = getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode);
+        state.currentSnapTarget = snap;
+        let targetPt = snap ? {
+          x: snap.worldPt.x,
+          y: snap.worldPt.y,
+          deedPt: snap.deedPt ? { x: snap.deedPt.x, y: snap.deedPt.y } : null
+        } : {
+          x: p.x,
+          y: p.y,
+          deedPt: null
+        };
+
+        // If Constrain to Deed Vertices is checked: clamp polygon node inside Pen Buffer of nearest Deed vertex
+        if (state.constrainPolyToDeed && state.optBufferRadius > 0) {
+          const nearestDeed = findNearestWarpedDeedVertex(targetPt);
+          if (nearestDeed) {
+            const R = state.optBufferRadius;
+            // Active within 2*R detection zone:
+            if (nearestDeed.dist <= R * 2.0) {
+              if (nearestDeed.dist > R) {
+                // Dragged outside the buffer circle: clamp to perimeter
+                const angle = Math.atan2(targetPt.y - nearestDeed.y, targetPt.x - nearestDeed.x);
+                targetPt = {
+                  x: nearestDeed.x + R * Math.cos(angle),
+                  y: nearestDeed.y + R * Math.sin(angle),
+                  deedPt: nearestDeed.deedPt ? { x: nearestDeed.deedPt.x, y: nearestDeed.deedPt.y } : null
+                };
+              } else {
+                // Inside the circle: assign deedPt association
+                targetPt.deedPt = nearestDeed.deedPt ? { x: nearestDeed.deedPt.x, y: nearestDeed.deedPt.y } : null;
+              }
+            }
+          }
+        }
+
+        state.userPolygon.vertices[state.draggingUserPolyNode] = targetPt;
+        recomputeUserPolygonMetrics();
+        redrawTrueCanvas();
+        return;
+      }
+
+      // 2. Anchor Mode active: prioritize anchor pin hovering and ignore polygon node interactions completely
+      if (state.toolMode === "anchor") {
+        if (!isPanning && !draggingAnchor) {
+          const hit = hitTestAnchor(mouseX, mouseY, false);
+          trueCanvas.style.cursor = hit ? "move" : "crosshair";
+        }
+        if (state.currentSnapTarget !== null) {
+          state.currentSnapTarget = null;
+          redrawTrueCanvas();
+        }
+        return;
+      }
+
+      // 3. Pan Mode: Hovering/drawing user polygon (creating, snapping, and dragging nodes)
+      if (state.userPolygon && (state.userPolygon.drawMode || state.userPolygon.vertices.length > 0)) {
+        const snap = getPolygonSnapTarget(mouseX, mouseY, vp, h);
+        state.currentSnapTarget = snap;
+        const hitNode = findUserPolyNodeAt(mouseX, mouseY, vp, h);
+        if (!isPanning) {
+          trueCanvas.style.cursor = hitNode >= 0 ? "move" : (state.userPolygon.drawMode ? "crosshair" : "grab");
+        }
+        redrawTrueCanvas();
+      }
+    });
+
+    histCanvas.addEventListener("wheel", e => {
+      e.preventDefault();
+      const r = histCanvas.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
+      const vp = state.histViewport;
+      const wx = (mx - vp.offsetX) / vp.scale;
+      const wy = (my - vp.offsetY) / vp.scale;
+      const factor = e.deltaY < 0 ? 1.15 : 0.85;
+      vp.scale = Math.min(Math.max(vp.scale * factor, 0.001), 500);
+      vp.offsetX = mx - wx * vp.scale;
+      vp.offsetY = my - wy * vp.scale;
+      redrawAll();
+    }, { passive: false });
+
+    trueCanvas.addEventListener("wheel", e => {
+      e.preventDefault();
+      const r = trueCanvas.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
+      const vp = state.trueViewport;
+      const wx = (mx - vp.offsetX) / vp.scale;
+      const wy = (trueCanvas.height - my - vp.offsetY) / vp.scale;
+      const factor = e.deltaY < 0 ? 1.15 : 0.85;
+      vp.scale = Math.min(Math.max(vp.scale * factor, 0.001), 500);
+      vp.offsetX = mx - wx * vp.scale;
+      vp.offsetY = (trueCanvas.height - my) - wy * vp.scale;
+      redrawAll();
+    }, { passive: false });
+
+    histCanvas.addEventListener("mousedown", e => handleMouseDown(e, histCanvas, state.histViewport, true));
+    histCanvas.addEventListener("mouseup",   e => handleMouseUp(e, histCanvas, state.histViewport, true));
+    histCanvas.addEventListener("contextmenu", e => e.preventDefault());
+    trueCanvas.addEventListener("mousedown", e => handleMouseDown(e, trueCanvas, state.trueViewport, false));
+    trueCanvas.addEventListener("mouseup",   e => handleMouseUp(e, trueCanvas, state.trueViewport, false));
+    trueCanvas.addEventListener("contextmenu", e => e.preventDefault());
+
+    // Fit/center buttons
+    document.getElementById("btn-fit-hist").addEventListener("click", () => {
+      if (state.histPdfW > 0)
+        state.histViewport = fitViewport(histCanvas, { minX: 0, minY: 0, maxX: state.histPdfW, maxY: state.histPdfH, width: state.histPdfW, height: state.histPdfH });
+      else if (state.histEntities.length > 0)
+        state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+      redrawAll(); updateStatus("Centered deed map view.");
+    });
+    document.getElementById("btn-fit-true").addEventListener("click", () => {
+      if (state.trueEntities.length > 0)
+        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+      else if (state.geoTiff)
+        state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
+      redrawAll(); updateStatus("Centered field survey view.");
+    });
+
+    // Algorithm & overlay controls
+    algorithmSelect.value = state.algorithm;
+    algorithmSelect.addEventListener("change", e => {
+      state.algorithm=e.target.value; redrawAll();
+      updateStatus(`Switched to: ${e.target.options[e.target.selectedIndex].text}`);
+    });
+    chkShowOverlay.addEventListener("change", e => { state.showOverlay=e.target.checked; redrawAll(); });
+    document.getElementById("chk-show-warped-pdf").addEventListener("change", e => { state.showWarpedPdf=e.target.checked; redrawAll(); });
+
+    // Anchor management: Save, Load, Clear, Delete
+    const btnSaveAnchors = document.getElementById("btn-save-anchors");
+    if (btnSaveAnchors) {
+      btnSaveAnchors.addEventListener("click", () => {
+        if (!state.anchors || state.anchors.length === 0) {
+          updateStatus("⚠️ No anchors to save. Place anchor pairs first using 🎯 Anchor Mode.");
+          return;
+        }
+        const jsonStr = JSON.stringify(state.anchors, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "anchors_georectifier.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateStatus(`💾 Saved ${state.anchors.length} anchors to anchors_georectifier.json.`);
+      });
+    }
+
+    const anchorFileInput = document.getElementById("anchor-file-input");
+    if (anchorFileInput) {
+      anchorFileInput.addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
+            if (list.length > 0) {
+              state.anchors = list.map((a, i) => ({
+                id: a.id || i + 1,
+                color: a.color || anchorColors[i % anchorColors.length],
+                src: { x: a.src.x, y: a.src.y },
+                dst: { x: a.dst.x, y: a.dst.y }
+              }));
+              state.pendingSource = null;
+              redrawAll();
+              updateStatus(`✅ Loaded ${state.anchors.length} anchors from ${file.name}`);
+            } else {
+              updateStatus("⚠️ No valid anchor pairs found in file.");
+            }
+          } catch (err) {
+            updateStatus(`❌ Failed to parse anchor file: ${err.message}`);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    btnClearAnchors.addEventListener("click", () => {
+      state.anchors = [];
+      state.pendingSource = null;
+      redrawAll();
+      updateStatus("Cleared all anchors.");
+    });
+
+    const chkConstrainAnchors = document.getElementById("chk-constrain-anchors");
+    if (chkConstrainAnchors) {
+      chkConstrainAnchors.addEventListener("change", e => {
+        state.constrainAnchorsToField = e.target.checked;
+        if (state.constrainAnchorsToField) {
+          updateStatus(`🔒 Anchor constraint active: anchors clamped within ±${state.optBufferRadius.toFixed(1)}m of Field.dxf vertices.`);
+        } else {
+          updateStatus("🔓 Anchor constraint disabled: anchors movable anywhere on map.");
+        }
+        redrawTrueCanvas();
+      });
+    }
+
+    const chkConstrainDeedVertices = document.getElementById("chk-constrain-deed-vertices");
+    if (chkConstrainDeedVertices) {
+      chkConstrainDeedVertices.addEventListener("change", e => {
+        state.constrainPolyToDeed = e.target.checked;
+        if (state.constrainPolyToDeed) {
+          updateStatus(`🔒 Polygon constrained: vertices clamped within ±${state.optBufferRadius.toFixed(1)}m of Deed DXF vertices.`);
+        } else {
+          updateStatus("🔓 Polygon constraint disabled: vertices movable freely on map.");
+        }
+        redrawTrueCanvas();
+      });
+    }
+
+    window.deleteAnchor = function(id) {
+      state.anchors = state.anchors.filter(a => a.id !== id);
+      redrawAll();
+      updateStatus(`Deleted Anchor #${id}. Total remaining: ${state.anchors.length}`);
+    };
+
+    // ── Opacity sliders ───────────────────────────────────────────────
+    function bindOpacity(id, valId, stateKey) {
+      const el = document.getElementById(id);
+      const vl = document.getElementById(valId);
+      if (!el) return;
+      el.addEventListener("input", e => {
+        state[stateKey] = parseInt(e.target.value,10)/100;
+        vl.textContent = e.target.value+"%";
+        redrawAll();
+      });
+    }
+    bindOpacity("geotiff-opacity",    "geotiff-opacity-val",    "geoTiffOpacity");
+    bindOpacity("warped-pdf-opacity", "warped-pdf-opacity-val", "warpedPdfOpacity");
+    bindOpacity("warped-dxf-opacity", "warped-dxf-opacity-val", "warpedDxfOpacity");
+    bindOpacity("true-dxf-opacity",   "true-dxf-opacity-val",   "trueDxfOpacity");
+
+    // ── Analytics / RMSE panel ────────────────────────────────────────
+    const algoCompareList = document.getElementById("algo-compare-list");
+    const ALGORITHMS = [
+      { key:"SIMILARITY", label:"Helmert (PowerPoint)", minAnchors:2 },
+      { key:"AFFINE",     label:"Affine (6-Param)",     minAnchors:3 },
+      { key:"TPS",        label:"Thin Plate Spline",    minAnchors:3 },
+      { key:"PROJECTIVE", label:"Projective/Homography",minAnchors:4 },
+    ];
+    const RANK_COLORS = [
+      "linear-gradient(90deg,#00e676,#00c853)",
+      "linear-gradient(90deg,#ffd600,#ff9100)",
+      "linear-gradient(90deg,#ff9100,#ff6d00)",
+      "linear-gradient(90deg,#ff1744,#d50000)",
+    ];
+
+    function updateAnalyticsUI() {
+      anchorTableBody.innerHTML="";
+      let warper=null, rmseInfo={totalRMSE:0,residuals:[]};
+      if (state.anchors.length>0) {
+        try { warper=TransformMath.createWarper(state.algorithm,state.anchors); rmseInfo=TransformMath.computeRMSE(warper,state.anchors); } catch(_){}
+      }
+      rmseDisplay.textContent=`RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
+      state.anchors.forEach((anc,idx) => {
+        const err=(rmseInfo.residuals[idx]||0).toFixed(2);
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td><span class="anchor-badge" style="background:${anc.color}">#${anc.id}</span></td>
+          <td>(${anc.src.x.toFixed(1)},${anc.src.y.toFixed(1)})</td>
+          <td>(${anc.dst.x.toFixed(1)},${anc.dst.y.toFixed(1)})</td>
+          <td style="color:${parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)'}">${err}</td>
+          <td><button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})">✕</button></td>`;
+        anchorTableBody.appendChild(tr);
+      });
+      updateAlgoComparePanel();
+    }
+
+    function updateAlgoComparePanel() {
+      const n=state.anchors.length;
+      if (n<2) { algoCompareList.innerHTML=`<p class="compare-note">Add ≥ 2 anchor pairs to compare algorithms.</p>`; return; }
+      const scores=ALGORITHMS.map(algo => {
+        if (n<algo.minAnchors) return {...algo,rmse:null,note:`needs ≥${algo.minAnchors}`};
+        try { const w=TransformMath.createWarper(algo.key,state.anchors); return {...algo,rmse:TransformMath.computeRMSE(w,state.anchors).totalRMSE,note:null}; }
+        catch(e) { return {...algo,rmse:null,note:"error"}; }
+      });
+      const ranked=[...scores].sort((a,b) => a.rmse===null?1:b.rmse===null?-1:a.rmse-b.rmse);
+      const rankMap={};ranked.forEach((r,i)=>{rankMap[r.key]=i+1;});
+      const maxRmse=Math.max(...scores.filter(s=>s.rmse!==null).map(s=>s.rmse),1);
+      const bestKey=ranked[0].rmse!==null?ranked[0].key:null;
+      algoCompareList.innerHTML="";
+      scores.forEach(algo => {
+        const rank=rankMap[algo.key], isActive=algo.key===state.algorithm, isBest=algo.key===bestKey;
+        const barPct=algo.rmse!==null?Math.round((algo.rmse/maxRmse)*100):100;
+        const rmseText=algo.rmse!==null?algo.rmse.toFixed(3):(algo.note||"—");
+        const row=document.createElement("div");
+        row.className=`algo-row${isActive?" algo-active":""}${isBest?" algo-best":""}`;
+        row.title=`Click to switch to ${algo.label}`;
+        row.innerHTML=`<div class="algo-row-header">
+          <span class="algo-name">${algo.label}</span>
+          <div class="algo-badges">
+            ${isBest&&algo.rmse!==null?`<span class="badge-best">✦ BEST</span>`:""}
+            ${isActive?`<span class="badge-active-tag">Active</span>`:""}
+            <span class="badge-rank rank-${Math.min(rank,4)}">#${rank}</span>
+            <span class="algo-rmse-val">${rmseText}</span>
+          </div></div>
+          <div class="algo-bar-track"><div class="algo-bar-fill" style="width:${barPct}%;background:${RANK_COLORS[Math.min(rank-1,3)]}"></div></div>`;
+        row.addEventListener("click",()=>{
+          state.algorithm=algo.key; algorithmSelect.value=algo.key; redrawAll();
+          updateStatus(`Switched to ${algo.label} (RMSE: ${rmseText})`);
+        });
+        algoCompareList.appendChild(row);
+      });
+    }
+
+    window.deleteAnchor = id => { state.anchors=state.anchors.filter(a=>a.id!==id); redrawAll(); updateStatus(`Deleted Anchor #${id}.`); };
+    function updateStatus(msg) { statusBar.textContent=msg; }
+
+    // ── Manual file-input listeners ───────────────────────────────────
+    histInput.addEventListener("change", e => {
+      const f=e.target.files[0]; if (!f) return;
+      state.histFileName = f.name;
+      const r=new FileReader();
+      r.onload=function(){
+        state.histEntities=DXFParser.parse(this.result);
+        histStatus.textContent=`Deed DXF: ${state.histEntities.length} entities`;
+        state.anchors=[]; state.pendingSource=null;
+        state.histViewport={scale:1,offsetX:0,offsetY:0,bbox:null};
+        resizeCanvases();
+        updateStatus(`Loaded deed DXF (${f.name}): ${state.histEntities.length} entities.`);
+      };
+      r.readAsText(f);
+    });
+
+    trueInput.addEventListener("change", e => {
+      const f=e.target.files[0]; if (!f) return;
+      const r=new FileReader();
+      r.onload=function(){
+        state.trueEntities=DXFParser.parse(this.result);
+        trueStatus.textContent=`Field DXF: ${state.trueEntities.length} entities`;
+        state.trueViewport={scale:1,offsetX:0,offsetY:0,bbox:null};
+        resizeCanvases();
+        updateStatus(`Loaded field survey DXF: ${state.trueEntities.length} entities.`);
+      };
+      r.readAsText(f);
+    });
+
+    document.getElementById("hist-pdf-input").addEventListener("change", e => {
+      const f=e.target.files[0]; if (!f) return;
+      loadPdfFromBlob(f);
+    });
+
+    // ── Export DXF ────────────────────────────────────────────────────
+    btnExportDxf.addEventListener("click", () => {
+      if (!state.histEntities.length) { alert("No deed DXF loaded."); return; }
+      if (!state.anchors.length) { alert("Add at least 2 anchor pairs before exporting."); return; }
+      const warper=TransformMath.createWarper(state.algorithm,state.anchors);
+      const rectified=state.histEntities.map(ent=>({...ent,layer:`${ent.layer}_RECTIFIED`,points:ent.points.map(pt=>warper(pt))}));
+      const txt=DXFParser.serialize(rectified);
+      const blob=new Blob([txt],{type:"application/dxf"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a"); a.href=url; a.download="rectified_escritura1073.dxf";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      updateStatus("Exported rectified DXF.");
+    });
+
+    /* ======================================================
+       GEOTIFF LOADING
+    ====================================================== */
+    const MAX_DISPLAY_DIM = 2048;
+
+    async function parseGeoTiff(fileOrBlob) {
+      const statusEl = document.getElementById("geotiff-status");
+      if (statusEl) { statusEl.textContent="⏳ Reading…"; statusEl.className="geotiff-status"; }
+      const sizeMB=fileOrBlob&&fileOrBlob.size?`${(fileOrBlob.size/1024/1024).toFixed(1)} MB`:"file";
+      updateStatus(`Loading GeoTIFF (${sizeMB}) — please wait…`);
+      await new Promise(r=>setTimeout(r,50));
+      try {
+        const tiff=await GeoTIFF.fromBlob(fileOrBlob);
+        const fullImg=await tiff.getImage(0);
+        const fullW=fullImg.getWidth(), fullH=fullImg.getHeight();
+        let bbox, hasGeoRef=false;
+        try {
+          const origin=fullImg.getOrigin(), res=fullImg.getResolution();
+          if (origin&&res&&origin.length>=2&&Math.abs(res[0])>0) {
+            bbox={minX:origin[0],maxY:origin[1],maxX:origin[0]+fullW*Math.abs(res[0]),minY:origin[1]-fullH*Math.abs(res[1])};
+            hasGeoRef=true;
+          }
+        } catch(_){}
+        if (!bbox) bbox={minX:0,minY:0,maxX:fullW,maxY:fullH};
+        bbox.width=Math.abs(bbox.maxX-bbox.minX); bbox.height=Math.abs(bbox.maxY-bbox.minY);
+
+        const imageCount=await tiff.getImageCount();
+        let readImg=fullImg;
+        for (let l=1;l<imageCount;l++) {
+          const img=await tiff.getImage(l); readImg=img;
+          if (Math.max(img.getWidth(),img.getHeight())<=MAX_DISPLAY_DIM) break;
+        }
+        const readW=readImg.getWidth(), readH=readImg.getHeight();
+        const sc=Math.min(1,MAX_DISPLAY_DIM/Math.max(readW,readH));
+        const tW=Math.max(1,Math.round(readW*sc)), tH=Math.max(1,Math.round(readH*sc));
+        if (statusEl) statusEl.textContent=`⏳ Decoding ${tW}×${tH}…`;
+        updateStatus(`Decoding ${tW}×${tH} from ${fullW}×${fullH}…`);
+        await new Promise(r=>setTimeout(r,20));
+
+        const rasters=await readImg.readRasters({width:tW,height:tH,interleave:true});
+        const spp=readImg.getSamplesPerPixel();
+        const off=document.createElement("canvas"); off.width=tW; off.height=tH;
+        const oc=off.getContext("2d"), id=oc.createImageData(tW,tH), d=id.data;
+        const clamp=v=>{if(v==null)return 0;if(v>=0&&v<=255&&Number.isInteger(v))return v;if(v>255)return Math.min(255,Math.round(v/256));if(v<=1&&v>=0)return Math.round(v*255);return Math.min(255,Math.max(0,Math.round(v)));};
+        let mn=Infinity,mx=-Infinity;
+        if (spp===1){for(let k=0;k<rasters.length;k++){if(rasters[k]<mn)mn=rasters[k];if(rasters[k]>mx)mx=rasters[k];}}
+        for (let i=0;i<tW*tH;i++){
+          let r=0,g=0,b=0,a=255;
+          if(spp===1){const n=mx===mn?0.5:(rasters[i]-mn)/(mx-mn);r=g=b=Math.round(n*255);}
+          else if(spp===3){r=clamp(rasters[i*3]);g=clamp(rasters[i*3+1]);b=clamp(rasters[i*3+2]);}
+          else if(spp>=4){r=clamp(rasters[i*4]);g=clamp(rasters[i*4+1]);b=clamp(rasters[i*4+2]);a=clamp(rasters[i*4+3]);}
+          d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=a;
+        }
+        oc.putImageData(id,0,0);
+        state.geoTiff={offscreen:off,bbox,hasGeoRef};
+        state.trueViewport=fitViewport(trueCanvas,bbox);
+        if (statusEl) { statusEl.textContent=`${tW}×${tH} · ${hasGeoRef?"Georef ✓":"No georef"}`; statusEl.className="geotiff-status ok"; }
+        updateStatus(`Drone GeoTIFF loaded (${tW}×${tH}). ${hasGeoRef?"Georeferenced.":""}`);
+        redrawAll();
+      } catch(err) {
+        console.error("GeoTIFF error:",err);
+        if (statusEl) { statusEl.textContent="Error"; statusEl.className="geotiff-status"; }
+        updateStatus(`GeoTIFF failed: ${err.message}`);
+      }
+    }
+
+    /* ======================================================
+       PDF LOADING (Mapa1073_FerminSuarez.pdf)
+    ====================================================== */
+    async function loadPdfFromBlob(fileOrBlob) {
+      if (!window.pdfjsLib) { console.warn("PDF.js not available"); return; }
+      updateStatus("⏳ Loading deed PDF…");
+      try {
+        const arrayBuffer = await fileOrBlob.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+        const page = await pdf.getPage(1);
+        const vp = page.getViewport({scale: 2.0}); // render at 2× for clarity
+        const origVp = page.getViewport({scale: 1.0});
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width  = vp.width;
+        offCanvas.height = vp.height;
+        const offCtx = offCanvas.getContext("2d");
+        await page.render({canvasContext: offCtx, viewport: vp}).promise;
+        state.histPdfCanvas = offCanvas;
+        state.histPdfW = origVp.width;
+        state.histPdfH = origVp.height;
+        histStatus.textContent = `PDF: ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts`;
+        // Fit historical viewport to PDF bounds if DXF not yet loaded
+        if (!state.histViewport.bbox) {
+          const pdfBbox={minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH};
+          state.histViewport = fitViewport(histCanvas, pdfBbox);
+        }
+        updateStatus(`Deed PDF loaded — ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts. Drop anchors to align.`);
+        redrawAll();
+      } catch(err) {
+        console.error("PDF error:", err);
+        updateStatus(`PDF failed: ${err.message}`);
+      }
+    }
+
+    /* ======================================================
+       AUTO-LOADERS — fetch defaults when served via HTTP
+    ====================================================== */
+    async function fetchBlob(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.blob();
+    }
+    async function fetchText(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.text();
+    }
+
+    async function autoLoadAll() {
+      // 1. Drone GeoTIFF
+      try {
+        updateStatus("⏳ Loading drone GeoTIFF…");
+        const blob = await fetchBlob("Trinidad_Dron_Resized.tif");
+        await parseGeoTiff(blob);
+      } catch(e) {
+        console.warn("Auto GeoTIFF:", e.message);
+        updateStatus("Drone GeoTIFF not auto-loaded (CORS). Use 🛸 Drone GeoTIFF button.");
+      }
+
+      // 2. Deed PDF
+      try {
+        const blob = await fetchBlob("Mapa1073_FerminSuarez.pdf");
+        await loadPdfFromBlob(blob);
+      } catch(e) {
+        console.warn("Auto PDF:", e.message);
+        histStatus.textContent = "Use 'Deed PDF' button";
+      }
+
+      // 3. Deed DXF (Escritura 1073)
+      try {
+        const text = await fetchText("Polygon_Escritura1073_FerminSuarez.dxf");
+        state.histEntities = DXFParser.parse(text);
+        histStatus.textContent = `DXF+PDF ready (${state.histEntities.length} ents)`;
+        updateStatus(`Deed DXF loaded: ${state.histEntities.length} entities.`);
+        redrawAll();
+      } catch(e) {
+        console.warn("Auto Deed DXF:", e.message);
+        if (state.histEntities.length === 0 && typeof HISTORICAL_DXF_SAMPLE !== "undefined") {
+          state.histEntities = DXFParser.parse(HISTORICAL_DXF_SAMPLE);
+          histStatus.textContent = `Sample DXF ready (${state.histEntities.length} ents)`;
+          if (!state.histViewport.bbox) {
+            state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+          }
+          redrawAll();
+        }
+      }
+
+      // 4. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)
+      try {
+        let text;
+        try {
+          text = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf");
+        } catch(_) {
+          text = await fetchText(encodeURIComponent("Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf"));
+        }
+        state.trueEntities = DXFParser.parse(text);
+        trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
+        if (!state.trueViewport.bbox && state.trueEntities.length > 0) {
+          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+        }
+        updateStatus(`Field survey DXF loaded: ${state.trueEntities.length} entities.`);
+        redrawAll();
+      } catch(e) {
+        console.warn("Auto Field DXF:", e.message);
+        if (state.trueEntities.length === 0 && typeof TRUE_FIELD_DXF_SAMPLE !== "undefined") {
+          state.trueEntities = DXFParser.parse(TRUE_FIELD_DXF_SAMPLE);
+          trueStatus.textContent = `Sample Field DXF (${state.trueEntities.length} ents)`;
+          if (!state.trueViewport.bbox) {
+            state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+          }
+          redrawAll();
+        }
+      }
+
+      // 5. Dedicated anchors for this app (anchors_georectifier.json)
+      try {
+        const text = await fetchText("anchors_georectifier.json");
+        const data = JSON.parse(text);
+        const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
+        if (list.length > 0) {
+          state.anchors = list.map((a, i) => ({
+            id: a.id || i + 1,
+            color: a.color || anchorColors[i % anchorColors.length],
+            src: { x: a.src.x, y: a.src.y },
+            dst: { x: a.dst.x, y: a.dst.y },
+          }));
+          updateStatus(`Loaded ${state.anchors.length} anchors from anchors_georectifier.json.`);
+          redrawAll();
+        }
+      } catch(e) {
+        console.warn("anchors_georectifier.json:", e.message);
+      }
+
+      // 6. User polygon preload (user_polygon.json or user_polygon.dxf)
+      let loadedPoly = false;
+      try {
+        const text = await fetchText("user_polygon.json");
+        const obj = JSON.parse(text);
+        if (Array.isArray(obj.vertices) && obj.vertices.length > 0) {
+          state.userPolygon = {
+            vertices: (obj.vertices || []).map(v => ({
+              x: v.x,
+              y: v.y,
+              deedPt: v.deedPt || null,
+              origX: v.origX != null ? v.origX : v.x,
+              origY: v.origY != null ? v.origY : v.y
+            })),
+            segmentLengths: obj.segmentLengths || [],
+            closed: !!obj.closed,
+            drawMode: false,
+            show: true,
+          };
+          while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
+            state.userPolygon.segmentLengths.push(null);
+          }
+          rebuildSegmentInputs();
+          recomputeUserPolygonMetrics();
+          updatePolygonButtonStates();
+          redrawTrueCanvas();
+          updateStatus(`Preloaded polygon (${state.userPolygon.vertices.length} vertices) from user_polygon.json.`);
+          loadedPoly = true;
+        }
+      } catch(e) {
+        console.warn("user_polygon.json preload:", e.message);
+      }
+
+      if (!loadedPoly) {
+        try {
+          const dxfText = await fetchText("user_polygon.dxf");
+          loadUserPolygonFromDXF(dxfText, "user_polygon.dxf");
+          updateStatus(`Preloaded polygon from user_polygon.dxf.`);
+        } catch(e) {
+          console.warn("user_polygon.dxf preload:", e.message);
+        }
+      }
+    }
+
+    // File input listeners for manual override
+    document.getElementById("geotiff-input").addEventListener("change", e => { const f=e.target.files[0]; if(f) parseGeoTiff(f); });
+
+    // ── Startup ───────────────────────────────────────────────────────
+    state.histEntities = [];
+    state.trueEntities = [];
+    state.anchors = [];
+    algorithmSelect.value = state.algorithm;
+    setToolMode("pan");
+    updateStatus("⏳ Initialising — loading deed PDF, DXF files and drone imagery…");
+
+    setTimeout(() => {
+      resizeCanvases();
+      autoLoadAll();
+    }, 150);
   </script>
 </body>
 </html>
