@@ -2861,16 +2861,30 @@ EOF`;
         document.getElementById("poly-area").textContent = areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById("poly-area-plazas").textContent = plazas.toFixed(2);
 
-        const areaErrM2 = Math.abs(areaM2 - REF_DEED_AREA_M2);
-        const areaErrPct = (areaErrM2 / REF_DEED_AREA_M2) * 100;
+        const areaDiffM2 = areaM2 - REF_DEED_AREA_M2;
+        const areaDiffPct = (areaDiffM2 / REF_DEED_AREA_M2) * 100;
+        const sign = areaDiffM2 > 0 ? "+" : (areaDiffM2 < 0 ? "-" : "");
+        const formattedM2 = `${sign}${Math.abs(areaDiffM2).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const formattedPct = `${sign}${Math.abs(areaDiffPct).toFixed(2)}`;
+        const errColor = areaDiffM2 < 0 ? "#ff1744" : "#29b6f6";
 
-        document.getElementById("poly-area-error").textContent = areaErrM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById("poly-area-error-pct").textContent = areaErrPct.toFixed(2);
+        const elAreaErr = document.getElementById("poly-area-error");
+        const elAreaErrPct = document.getElementById("poly-area-error-pct");
+        if (elAreaErr) {
+          elAreaErr.textContent = formattedM2;
+          elAreaErr.style.color = errColor;
+        }
+        if (elAreaErrPct) {
+          elAreaErrPct.textContent = formattedPct;
+          elAreaErrPct.style.color = errColor;
+        }
       } else {
         document.getElementById("poly-area").textContent = "—";
         document.getElementById("poly-area-plazas").textContent = "—";
-        document.getElementById("poly-area-error").textContent = "—";
-        document.getElementById("poly-area-error-pct").textContent = "—";
+        const elAreaErr = document.getElementById("poly-area-error");
+        const elAreaErrPct = document.getElementById("poly-area-error-pct");
+        if (elAreaErr) { elAreaErr.textContent = "—"; elAreaErr.style.color = "var(--text-muted)"; }
+        if (elAreaErrPct) { elAreaErrPct.textContent = "—"; elAreaErrPct.style.color = "var(--text-muted)"; }
       }
 
       // Segment errors
