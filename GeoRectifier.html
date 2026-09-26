@@ -980,12 +980,18 @@
                   <input type="checkbox" id="chk-auto-min-buffer" style="accent-color:var(--accent-cyan);">
                   ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
                 </label>
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);margin-top:2px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);margin-top:2px;">
                   <span style="font-size:0.70rem;color:var(--text-muted);">Auto-Tune Search:</span>
-                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.70rem;margin:0;" title="Checkbox marcado = Todas las combinaciones (búsqueda exhaustiva en grilla de posiciones). Desmarcado = Algoritmo Genético (Evolución Diferencial).">
-                    <input type="checkbox" id="chk-opt-all-combinations" style="accent-color:var(--accent-cyan);">
-                    <span id="lbl-opt-algo-mode" style="color:var(--accent-cyan);font-weight:600;">🧬 Genetic Algo</span>
-                  </label>
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.70rem;margin:0;" title="All: Búsqueda exhaustiva de todas las combinaciones en grilla de posiciones">
+                      <input type="checkbox" id="chk-opt-all" style="accent-color:#ffb300;">
+                      <span id="lbl-opt-all" style="color:var(--text-muted);font-weight:600;">All</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.70rem;margin:0;" title="Genetic: Algoritmo Genético (Evolución Diferencial con mutación y cruce)">
+                      <input type="checkbox" id="chk-opt-genetic" checked style="accent-color:var(--accent-cyan);">
+                      <span id="lbl-opt-genetic" style="color:var(--accent-cyan);font-weight:600;">Genetic</span>
+                    </label>
+                  </div>
                 </div>
               </div>
               <div style="display:flex;flex-direction:column;gap:6px;">
@@ -3343,22 +3349,24 @@ EOF`;
       });
     }
 
-    const chkOptAllCombos = document.getElementById("chk-opt-all-combinations");
-    const lblOptAlgoMode = document.getElementById("lbl-opt-algo-mode");
-    if (chkOptAllCombos && lblOptAlgoMode) {
-      chkOptAllCombos.addEventListener("change", e => {
-        if (e.target.checked) {
-          lblOptAlgoMode.textContent = "🔄 All Combos";
-          lblOptAlgoMode.style.color = "#ffb300";
-          chkOptAllCombos.style.accentColor = "#ffb300";
-          updateStatus("Auto-Tune mode set to: All Combinations (exhaustive grid search).");
-        } else {
-          lblOptAlgoMode.textContent = "🧬 Genetic Algo";
-          lblOptAlgoMode.style.color = "var(--accent-cyan)";
-          chkOptAllCombos.style.accentColor = "var(--accent-cyan)";
-          updateStatus("Auto-Tune mode set to: Genetic Algorithm (Differential Evolution).");
-        }
-      });
+    const chkOptAll = document.getElementById("chk-opt-all");
+    const chkOptGenetic = document.getElementById("chk-opt-genetic");
+    const lblOptAll = document.getElementById("lbl-opt-all");
+    const lblOptGenetic = document.getElementById("lbl-opt-genetic");
+
+    function setSearchStrategy(isAll) {
+      if (chkOptAll) chkOptAll.checked = isAll;
+      if (chkOptGenetic) chkOptGenetic.checked = !isAll;
+      if (lblOptAll) lblOptAll.style.color = isAll ? "#ffb300" : "var(--text-muted)";
+      if (lblOptGenetic) lblOptGenetic.style.color = isAll ? "var(--text-muted)" : "var(--accent-cyan)";
+      updateStatus(`Auto-Tune search set to: ${isAll ? "All Combinations (exhaustive grid search)" : "Genetic Algorithm (Differential Evolution)"}.`);
+    }
+
+    if (chkOptAll) {
+      chkOptAll.addEventListener("change", e => setSearchStrategy(e.target.checked));
+    }
+    if (chkOptGenetic) {
+      chkOptGenetic.addEventListener("change", e => setSearchStrategy(!e.target.checked));
     }
 
     if (btnRunOpt) {
@@ -3506,8 +3514,8 @@ EOF`;
         return { u: rad * Math.cos(theta), v: rad * Math.sin(theta) };
       }
 
-      const chkAllCombos = document.getElementById("chk-opt-all-combinations");
-      const useAllCombos = chkAllCombos ? chkAllCombos.checked : false;
+      const chkOptAll = document.getElementById("chk-opt-all");
+      const useAllCombos = chkOptAll ? chkOptAll.checked : false;
 
       function cartesianProduct(sets) {
         let result = [[]];
@@ -3525,12 +3533,20 @@ EOF`;
 
       function getGridOffsetsForM(numAnchors) {
         if (numAnchors <= 2) {
-          return [
-            { u: 0, v: 0 },
-            { u: 0.85, v: 0 }, { u: -0.85, v: 0 }, { u: 0, v: 0.85 }, { u: 0, v: -0.85 },
-            { u: 0.60, v: 0.60 }, { u: -0.60, v: 0.60 }, { u: 0.60, v: -0.60 }, { u: -0.60, v: -0.60 },
-            { u: 0.45, v: 0 }, { u: -0.45, v: 0 }, { u: 0, v: 0.45 }, { u: 0, v: -0.45 }
-          ];
+          // 17 ordered points: Center (0,0), then inner ring r=0.50 (8 pts), then outer ring r=0.92 (8 pts)
+          // Sequential circular sweep through 0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°
+          const pts = [{ u: 0, v: 0 }];
+          const r1 = 0.50;
+          const r2 = 0.92;
+          for (let k = 0; k < 8; k++) {
+            const th = (k * Math.PI) / 4;
+            pts.push({ u: +(r1 * Math.cos(th)).toFixed(4), v: +(r1 * Math.sin(th)).toFixed(4) });
+          }
+          for (let k = 0; k < 8; k++) {
+            const th = (k * Math.PI) / 4;
+            pts.push({ u: +(r2 * Math.cos(th)).toFixed(4), v: +(r2 * Math.sin(th)).toFixed(4) });
+          }
+          return pts;
         } else if (numAnchors === 3) {
           return [
             { u: 0, v: 0 },
@@ -3598,7 +3614,7 @@ EOF`;
               bufferRadius: currentR,
               balance: state.optBalance,
               targetArea: 162156.0,
-              iterations: 50
+              iterations: 120
             });
 
             if (!optRes.success) {
@@ -3650,22 +3666,16 @@ EOF`;
         let globalBest = null;
 
         if (useAllCombos) {
-          // ── STRATEGY A: ALL COMBINATIONS (GRID SEARCH) ──────────────────────
+          // ── STRATEGY A: ALL COMBINATIONS (ORDERED GRID SEARCH) ──────────────
           const baseGrid = getGridOffsetsForM(M);
-          const pointSets = anchorCenters.map((_, k) => {
-            const list = [...baseGrid];
-            const cur = currentOffsets[k];
-            if (cur && (Math.abs(cur.u) > 0.08 || Math.abs(cur.v) > 0.08)) {
-              list.push({ u: cur.u, v: cur.v });
-            }
-            return list;
-          });
+          const pointSets = anchorCenters.map(() => [...baseGrid]);
 
           const allCombos = cartesianProduct(pointSets);
           globalBest = evaluateCandidate(currentOffsets);
 
           const totalCombos = allCombos.length;
-          const yieldInterval = Math.max(1, Math.floor(totalCombos / 14));
+          // Step interval for animation updates so the scanning motion across buffers is smooth and responsive
+          const yieldInterval = isAutoMin ? Math.max(1, Math.floor(totalCombos / 28)) : Math.max(1, Math.floor(totalCombos / 48));
 
           for (let cIdx = 0; cIdx < totalCombos; cIdx++) {
             if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
@@ -3673,43 +3683,42 @@ EOF`;
             const trialOffsets = allCombos[cIdx];
             const trialEval = evaluateCandidate(trialOffsets);
 
-            if (trialEval.loss < globalBest.loss) {
+            const isNewBest = trialEval.loss < globalBest.loss;
+            if (isNewBest) {
               globalBest = trialEval;
-
-              // Live screen animation update when finding better combinations
-              if (globalBest.candAnchors && globalBest.optRes) {
-                for (let k = 0; k < M; k++) {
-                  state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
-                  state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
-                }
-                poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
-                recomputeUserPolygonMetrics();
-                redrawTrueCanvas();
-
-                if (optStatusBadge) {
-                  const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Combos`;
-                  optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (${globalBest.loss.toFixed(2)}%)`;
-                  optStatusBadge.style.color = "#ffb300";
-                  optStatusBadge.style.background = "rgba(255, 179, 0, 0.15)";
-                }
-              }
             }
 
-            if (cIdx % yieldInterval === 0 || cIdx === totalCombos - 1) {
+            // Animate orderly movement across buffer disks so the user sees the sequential sweep
+            if (cIdx % yieldInterval === 0 || cIdx === totalCombos - 1 || isNewBest) {
+              for (let k = 0; k < M; k++) {
+                state.anchors[k].dst.x = trialEval.candAnchors[k].dst.x;
+                state.anchors[k].dst.y = trialEval.candAnchors[k].dst.y;
+              }
+              if (trialEval.optRes) {
+                poly.vertices = trialEval.optRes.vertices.map(v => ({ ...v }));
+                recomputeUserPolygonMetrics();
+              }
+              redrawTrueCanvas();
+
               if (optStatusBadge) {
                 const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Combos`;
-                optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (${globalBest.loss.toFixed(2)}%)`;
+                optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (Best: ${globalBest.loss.toFixed(2)}%)`;
                 optStatusBadge.style.color = "#ffb300";
                 optStatusBadge.style.background = "rgba(255, 179, 0, 0.15)";
               }
-              await new Promise(resolve => setTimeout(resolve, isAutoMin ? 8 : 14));
+              await new Promise(resolve => setTimeout(resolve, isAutoMin ? 3 : 8));
             }
+          }
 
-            const curOverall = (trialEval.overallErr != null) ? trialEval.overallErr : trialEval.loss;
-            if (curOverall < 0.005) {
-              globalBest = trialEval;
-              break;
+          // At the end of combinations for this radius, snap display to the winning combo found
+          if (globalBest.candAnchors && globalBest.optRes) {
+            for (let k = 0; k < M; k++) {
+              state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
+              state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
             }
+            poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
+            recomputeUserPolygonMetrics();
+            redrawTrueCanvas();
           }
         } else {
           // ── STRATEGY B: GENETIC ALGORITHM (DIFFERENTIAL EVOLUTION) ───────────
