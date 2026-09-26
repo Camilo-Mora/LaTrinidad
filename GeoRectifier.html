@@ -2587,19 +2587,17 @@ EOF`;
           if (!vertexHasDeedLength(poly, idx)) return;
 
           let deedCenter = null;
-          if (v.deedPt) {
+          const nearest = findNearestWarpedDeedVertex(v);
+          if (nearest && nearest.dist <= 35.0) {
+            v.deedPt = nearest.deedPt;
+            v.origX = nearest.x;
+            v.origY = nearest.y;
+            deedCenter = { x: nearest.x, y: nearest.y, deedPt: nearest.deedPt };
+          } else if (v.deedPt) {
             const w = warper ? warper(v.deedPt) : { x: v.deedPt.x, y: v.deedPt.y };
             deedCenter = { x: w.x, y: w.y, deedPt: v.deedPt };
             v.origX = w.x;
             v.origY = w.y;
-          } else {
-            const nearest = findNearestWarpedDeedVertex(v);
-            if (nearest && nearest.dist <= 35.0) {
-              v.deedPt = nearest.deedPt;
-              v.origX = nearest.x;
-              v.origY = nearest.y;
-              deedCenter = { x: nearest.x, y: nearest.y, deedPt: nearest.deedPt };
-            }
           }
 
           // If no deed vertex is associated with this polygon vertex, DO NOT draw buffer around polygon vertex!
@@ -2816,7 +2814,7 @@ EOF`;
       // Auto-associate vertices that have deed lengths with deed DXF points
       if (poly && poly.vertices) {
         poly.vertices.forEach((v, idx) => {
-          if (vertexHasDeedLength(poly, idx) && !v.deedPt) {
+          if (vertexHasDeedLength(poly, idx)) {
             const nearest = findNearestWarpedDeedVertex(v);
             if (nearest && nearest.dist <= 35.0) {
               v.deedPt = nearest.deedPt;
@@ -3296,19 +3294,17 @@ EOF`;
             if (state.anchors && state.anchors.length >= 2) {
               try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
             }
-            if (curVertex.deedPt) {
+            const nearest = findNearestWarpedDeedVertex(curVertex);
+            if (nearest && nearest.dist <= 35.0) {
+              curVertex.deedPt = nearest.deedPt;
+              curVertex.origX = nearest.x;
+              curVertex.origY = nearest.y;
+              deedAnchor = { x: nearest.x, y: nearest.y, deedPt: nearest.deedPt };
+            } else if (curVertex.deedPt) {
               const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
               deedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
               curVertex.origX = w.x;
               curVertex.origY = w.y;
-            } else {
-              const nearest = findNearestWarpedDeedVertex(curVertex);
-              if (nearest && nearest.dist <= 35.0) {
-                curVertex.deedPt = nearest.deedPt;
-                curVertex.origX = nearest.x;
-                curVertex.origY = nearest.y;
-                deedAnchor = { x: nearest.x, y: nearest.y, deedPt: nearest.deedPt };
-              }
             }
             state.dragDeedAnchor = deedAnchor;
           } else {
@@ -3896,21 +3892,19 @@ EOF`;
             if (state.anchors && state.anchors.length >= 2) {
               try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
             }
-            if (curVertex && curVertex.deedPt) {
+            const nearest = findNearestWarpedDeedVertex(curVertex || targetPt);
+            if (nearest && nearest.dist <= 35.0) {
+              deedAnchor = { x: nearest.x, y: nearest.y, deedPt: nearest.deedPt };
+              if (curVertex) {
+                curVertex.deedPt = nearest.deedPt;
+                curVertex.origX = nearest.x;
+                curVertex.origY = nearest.y;
+              }
+            } else if (curVertex && curVertex.deedPt) {
               const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
               deedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
               curVertex.origX = w.x;
               curVertex.origY = w.y;
-            } else {
-              const nearest = findNearestWarpedDeedVertex(curVertex || targetPt);
-              if (nearest && nearest.dist <= 35.0) {
-                deedAnchor = { x: nearest.x, y: nearest.y, deedPt: nearest.deedPt };
-                if (curVertex) {
-                  curVertex.deedPt = nearest.deedPt;
-                  curVertex.origX = nearest.x;
-                  curVertex.origY = nearest.y;
-                }
-              }
             }
             state.dragDeedAnchor = deedAnchor;
           }
@@ -4146,14 +4140,12 @@ EOF`;
             }
             state.userPolygon.vertices.forEach((v, idx) => {
               if (vertexHasDeedLength(state.userPolygon, idx)) {
-                if (!v.deedPt) {
-                  const nearest = findNearestWarpedDeedVertex(v);
-                  if (nearest && nearest.dist <= 35.0) {
-                    v.deedPt = nearest.deedPt;
-                    v.origX = nearest.x;
-                    v.origY = nearest.y;
-                  }
-                } else if (warper) {
+                const nearest = findNearestWarpedDeedVertex(v);
+                if (nearest && nearest.dist <= 35.0) {
+                  v.deedPt = nearest.deedPt;
+                  v.origX = nearest.x;
+                  v.origY = nearest.y;
+                } else if (v.deedPt && warper) {
                   const w = warper(v.deedPt);
                   v.origX = w.x;
                   v.origY = w.y;
