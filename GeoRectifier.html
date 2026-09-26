@@ -253,43 +253,42 @@
       display: none !important;
     }
 
-    /* Panel Layout Display Controls */
+    /* Panel Layout Display Controls (Tickboxes) */
     .panel-layout-group {
       display: flex;
       align-items: center;
       background: rgba(0, 0, 0, 0.45);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
-      padding: 3px;
-      gap: 3px;
+      padding: 5px 12px;
+      gap: 12px;
     }
 
-    .layout-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-muted);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.74rem;
-      font-weight: 600;
-      cursor: pointer;
+    .panel-tick-item {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      transition: all 0.15s ease;
+      gap: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
       user-select: none;
+      transition: color 0.15s ease;
     }
 
-    .layout-btn:hover {
+    .panel-tick-item:hover {
       color: var(--text-main);
-      background: rgba(255, 255, 255, 0.08);
     }
 
-    .layout-btn.active {
-      background: rgba(0, 229, 255, 0.18);
-      color: var(--accent-cyan);
-      border-color: rgba(0, 229, 255, 0.4);
-      box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+    .panel-tick-item input[type="checkbox"] {
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+      width: 14px;
+      height: 14px;
+    }
+
+    .panel-tick-item:has(input:checked) {
+      color: var(--text-main);
     }
 
     .panel-card {
@@ -699,37 +698,21 @@
         </select>
       </div>
 
-      <!-- Panel Display / Layout Options -->
-      <div class="panel-layout-group" title="Window & Panel Display Options">
-        <button class="layout-btn" id="btn-layout-left" title="Show Left Panel Only (Historical Deed)">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
-            <line x1="9" y1="3" x2="9" y2="21"/>
-            <rect x="3" y="3" width="6" height="18" rx="2" fill="currentColor" opacity="0.3"/>
-          </svg>
-          <span>Left</span>
-        </button>
-        <button class="layout-btn active" id="btn-layout-split" title="Split View: Both Panels Side by Side">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
-            <line x1="12" y1="3" x2="12" y2="21"/>
-          </svg>
-          <span>Split</span>
-        </button>
-        <button class="layout-btn" id="btn-layout-right" title="Show Right Panel Only (Field Survey & Drone)">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
-            <line x1="15" y1="3" x2="15" y2="21"/>
-            <rect x="15" y="3" width="6" height="18" rx="2" fill="currentColor" opacity="0.3"/>
-          </svg>
-          <span>Right</span>
-        </button>
-        <button class="layout-btn active" id="btn-toggle-sidebar" title="Toggle Sidebar (Expand/Collapse)">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
-            <line x1="16" y1="3" x2="16" y2="21"/>
-          </svg>
-        </button>
+      <!-- Panel Display / Layout Options: Three Tickboxes -->
+      <div class="panel-layout-group" title="Toggle visible workspace panels">
+        <span style="font-size:0.67rem;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.5px;margin-right:2px;">Panels:</span>
+        <label class="panel-tick-item" title="Show or hide Historical Deed (Deep) Map Panel">
+          <input type="checkbox" id="chk-show-deed">
+          <span>📜 Deed</span>
+        </label>
+        <label class="panel-tick-item" title="Show or hide True Field Survey &amp; Drone Map Panel">
+          <input type="checkbox" id="chk-show-field" checked>
+          <span>📍 Field</span>
+        </label>
+        <label class="panel-tick-item" title="Show or hide Control Panel Sidebar">
+          <input type="checkbox" id="chk-show-control-panel" checked>
+          <span>⚡ Control Panel</span>
+        </label>
       </div>
 
       <!-- Export Action -->
@@ -750,7 +733,7 @@
       <!-- Split Canvases Area -->
       <div class="split-viewport-area">
         <!-- Left Window: Historical Deed (PDF + DXF) -->
-        <div class="viewport-card" id="hist-card">
+        <div class="viewport-card hidden" id="hist-card">
           <div class="viewport-header">
             <span class="view-title historical-title">📜 Historical Deed (PDF + DXF)</span>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -950,18 +933,27 @@
                 <span style="font-size:0.75rem;font-weight:700;color:var(--accent-cyan);display:flex;align-items:center;gap:4px;">
                   ⚡ Boundary Optimization
                 </span>
-                <span id="opt-status-badge" style="font-size:0.65rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-muted);">Ready</span>
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <button id="btn-opt-legal-help" style="background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.4);color:var(--accent-cyan);width:19px;height:19px;border-radius:50%;font-size:0.70rem;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;" title="Fundamento Jurídico y Técnico del Buffer (Res. 388/2020 &amp; Res. 1101/2020)">?</button>
+                  <span id="opt-status-badge" style="font-size:0.65rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-muted);">Ready</span>
+                </div>
               </div>
               <div style="display:flex;flex-direction:column;gap:2px;">
                 <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);">
                   <span>Pen Buffer Radius (R):</span>
                   <strong id="opt-buffer-val" style="color:var(--accent-cyan);font-family:monospace;">±3.0 m</strong>
                 </div>
-                <input type="range" id="opt-buffer-slider" min="0.5" max="8.0" step="0.1" value="3.0" class="opacity-slider" style="height:4px;">
+                <div style="position:relative;margin:3px 0 1px 0;">
+                  <input type="range" id="opt-buffer-slider" min="0.5" max="8.0" step="0.1" value="3.0" class="opacity-slider" style="height:4px;width:100%;">
+                  <!-- Vertical reference line at 3.0m (33.33% of 0.5..8.0m range) -->
+                  <div style="position:absolute;left:33.33%;top:-4px;bottom:-4px;width:2px;background:#00e5ff;box-shadow:0 0 6px #00e5ff;pointer-events:none;border-radius:1px;" title="Límite técnico de plumilla / Res. 388 (3.0m)"></div>
+                </div>
                 <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--text-muted);">
-                  <span>0.5m (strict)</span>
-                  <span>1973 ink blot (~3m)</span>
-                  <span>8.0m (wide)</span>
+                  <span>0.5m (estricto)</span>
+                  <span style="color:var(--accent-cyan);font-weight:600;display:flex;align-items:center;gap:2px;">
+                    <span style="display:inline-block;width:2px;height:7px;background:#00e5ff;margin-right:2px;"></span>Límite Res. 388 (1:2000 ~3.0m)
+                  </span>
+                  <span>8.0m (amplio)</span>
                 </div>
               </div>
               <div style="display:flex;flex-direction:column;gap:2px;">
@@ -976,10 +968,14 @@
                   <span>Area 296</span>
                 </div>
               </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;">
+              <div style="display:flex;flex-direction:column;gap:5px;font-size:0.72rem;">
                 <label style="display:flex;align-items:center;gap:5px;cursor:pointer;" title="Draw translucent buffer disks and shift arrows on canvas">
                   <input type="checkbox" id="chk-show-buffer-disks" style="accent-color:var(--accent-cyan);">
                   Show Buffer Halos &amp; Vectors
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:#00e5ff;font-weight:600;" title="Ejecuta auto-tune barriendo el radio desde 0.1m hasta 3.0m y se detiene automáticamente en el menor radio que converge">
+                  <input type="checkbox" id="chk-auto-min-buffer" style="accent-color:var(--accent-cyan);">
+                  ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
                 </label>
               </div>
               <div style="display:flex;flex-direction:column;gap:6px;">
@@ -1024,6 +1020,11 @@
               <div>Segments with deed dist: <strong id="poly-seg-with-dist">—</strong></div>
               <div>Avg segment error: <strong id="avg-seg-error" style="color:var(--accent-cyan);">—</strong> %</div>
               <div>Overall error: <strong id="overall-error" style="color:#00e676;font-size:0.85rem;">—</strong> %</div>
+              <hr style="border-color:rgba(255,255,255,0.1);margin:4px 0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span>Scale Factor (s):</span>
+                <strong id="poly-scale-factor" style="color:var(--accent-cyan);font-family:monospace;">—</strong>
+              </div>
             </div>
             <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);">Click "+ Create new polygon" then click on the field canvas to place vertices. Click near the first vertex to close.</p>
           </div>
@@ -1036,6 +1037,50 @@
       <div id="status-bar" class="status-bar">Ready • Click a point on the Historical Map to begin pairing anchors.</div>
       <div id="coords-bar" class="coords-bar">Hist: (0, 0) • True: (0, 0)</div>
     </footer>
+  </div>
+
+  <!-- Modal: Sustentación Jurídica y Técnica del Buffer (Res. 388/2020) -->
+  <div id="modal-legal-help" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.80);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#0c1220;border:1px solid rgba(0,229,255,0.45);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,0.85),0 0 20px rgba(0,229,255,0.15);width:100%;max-width:580px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(0,229,255,0.06);">
+        <span style="font-size:0.86rem;font-weight:700;color:var(--accent-cyan);display:flex;align-items:center;gap:6px;">
+          ⚖️ Sustentación Jurídica y Técnica del Buffer y Tolerancia
+        </span>
+        <button id="btn-close-legal-help" style="background:transparent;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:2px 6px;">✕</button>
+      </div>
+      <div style="padding:16px 18px;overflow-y:auto;font-size:0.77rem;line-height:1.6;color:#cbd5e1;display:flex;flex-direction:column;gap:12px;">
+        <div style="background:rgba(0,0,0,0.3);border-left:3px solid var(--accent-cyan);padding:8px 12px;border-radius:0 4px 4px 0;">
+          <strong style="color:var(--text-main);">Marco Normativo:</strong> Catastro Multipropósito de Colombia — Instituto Geográfico Agustín Codazzi (IGAC) y Superintendencia de Notariado y Registro (SNR).
+        </div>
+
+        <div>
+          <h4 style="color:#00e5ff;font-size:0.82rem;margin-bottom:4px;">1. Cartografía Histórica y Escala 1:2.000 (Escritura 1073 de 1973)</h4>
+          <p>El plano oficial anexo a la Escritura Pública 1073 de 1973 (Agrimensor Fermín Suárez) fue elaborado a <strong>escala 1:2.000</strong> mediante dibujo analógico con plumilla sobre soporte físico (papel/mylar). A dicha escala:</p>
+          <ul style="margin:4px 0 0 18px;">
+            <li>El trazo físico de plumilla (0.3 mm a 0.5 mm) representa en terreno una indeterminación directa de <strong>±0.6 m a ±1.0 m</strong>.</li>
+            <li>Sumando la contracción higrométrica del papel y el error de cierre angular poligonal de la época, la incertidumbre cartográfica histórica acumulada se sitúa típicamente entre <strong>±2.0 m y ±3.0 m</strong>.</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="color:#00e5ff;font-size:0.82rem;margin-bottom:4px;">2. Exactitud Posicional — Resolución 388 de 2020 (IGAC)</h4>
+          <p>La Resolución 388 de 2020 establece las especificaciones técnicas mínimas para la formación y actualización catastral multipropósito. Define que los <em>Puntos Lindero</em> se rigen por un <strong>Error Circular al 95% de confianza (CE95)</strong>, equivalente a un margen de significancia estadística del <strong>5%</strong> (α = 0.05).</p>
+          <p style="margin-top:4px;">La relajación controlada de vértices dentro de un buffer de <strong>±2.5 m a ±3.0 m</strong> alrededor de los centros nominales no constituye alteración material de los linderos ni despojo a colindantes, sino la <strong>armonización técnica</strong> de coordenadas al sistema geodésico oficial <strong>MAGNA-SIRGAS (Origen Nacional CTM12)</strong> dentro del margen de error metodológico permisible.</p>
+        </div>
+
+        <div>
+          <h4 style="color:#00e5ff;font-size:0.82rem;margin-bottom:4px;">3. Tolerancia de Cabida / Área — Resolución Conjunta 1101 de 2020 (IGAC - SNR)</h4>
+          <p>El <strong>Artículo 15 (Rangos de Tolerancia)</strong> de la Resolución Conjunta 1101 de 2020 regula la rectificación de área por imprecisa determinación:</p>
+          <ul style="margin:4px 0 0 18px;">
+            <li>Para predios rurales de 10 ha a 50 ha, como el predio La Trinidad (con cabida registral de <strong>16.21 ha = 162,156 m² / 25.34 plazas</strong>), el rango legal de tolerancia admisible es del <strong>4.00%</strong>.</li>
+            <li>Si el área física se ubica dentro de este margen, se considera plenamente equivalente a la cabida del título para todos los efectos catastrales y registrales sin requerir deslinde judicial.</li>
+          </ul>
+        </div>
+      </div>
+      <div style="padding:10px 18px;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);display:flex;justify-content:flex-end;">
+        <button id="btn-ok-legal-help" class="btn btn-primary btn-sm" style="padding:5px 16px;">Entendido</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1876,8 +1921,9 @@ EOF`;
       draggingUserPolyNode: null,
       currentSnapTarget: null,
       showSegmentLabels: true,
-      layoutMode: "split",     // "split" | "left" | "right"
-      sidebarVisible: true,
+      showDeedPanel: false,     // Deed map panel (hidden by default)
+      showFieldPanel: true,     // Field map panel (active by default)
+      sidebarVisible: true,     // Control Panel sidebar (active by default)
       // Boundary Optimization
       optBufferRadius: 3.0,    // pen buffer radius in meters
       optBalance: 50,          // 0 = dist, 50 = balanced, 100 = area
@@ -1982,13 +2028,13 @@ EOF`;
         trueCanvas.height = tc.clientHeight;
       }
 
-      if (!state.histViewport.bbox) {
+      if ((!state.histViewport.bbox || state.histViewport.scale <= 0) && histCanvas.width > 0) {
         if (state.histEntities.length > 0)
           state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
         else if (state.histPdfCanvas)
           state.histViewport = fitViewport(histCanvas, {minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH});
       }
-      if (!state.trueViewport.bbox) {
+      if ((!state.trueViewport.bbox || state.trueViewport.scale <= 0) && trueCanvas.width > 0) {
         if (state.trueEntities.length > 0)
           state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
         else if (state.geoTiff)
@@ -3006,6 +3052,37 @@ EOF`;
       }
 
       document.getElementById("overall-error").textContent = overallErr != null ? overallErr.toFixed(2) : "—";
+
+      // Scale Factor computation for the current transformation warper
+      let scaleFactor = null;
+      let scaleDefPpm = null;
+      if (state.anchors && state.anchors.length >= 2) {
+        try {
+          const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+          let cx = 0, cy = 0;
+          state.anchors.forEach(a => { cx += a.src.x; cy += a.src.y; });
+          cx /= state.anchors.length;
+          cy /= state.anchors.length;
+
+          const p0 = warper({ x: cx, y: cy });
+          const px = warper({ x: cx + 100, y: cy });
+          const py = warper({ x: cx, y: cy + 100 });
+          const sx = Math.hypot(px.x - p0.x, px.y - p0.y) / 100;
+          const sy = Math.hypot(py.x - p0.x, py.y - p0.y) / 100;
+          scaleFactor = (sx + sy) / 2;
+          scaleDefPpm = Math.round((scaleFactor - 1) * 1e6);
+        } catch (_) {}
+      }
+      const elScale = document.getElementById("poly-scale-factor");
+      if (elScale) {
+        if (scaleFactor !== null && !isNaN(scaleFactor) && scaleFactor > 0) {
+          const sign = scaleFactor >= 1 ? "+" : "";
+          const pct = ((scaleFactor - 1) * 100).toFixed(2);
+          elScale.textContent = `${scaleFactor.toFixed(4)} (${sign}${pct}% · ${scaleDefPpm > 0 ? "+" : ""}${scaleDefPpm} ppm)`;
+        } else {
+          elScale.textContent = "—";
+        }
+      }
     }
 
     /** Update Save / Export button states */
@@ -3325,103 +3402,25 @@ EOF`;
         return;
       }
 
-      const R = state.optBufferRadius > 0 ? state.optBufferRadius : 3.0;
       const M = state.anchors.length;
+      const chkAutoMin = document.getElementById("chk-auto-min-buffer");
+      const isAutoMin = chkAutoMin ? chkAutoMin.checked : false;
 
-      // Identify buffer centers for each anchor
+      // If Auto-Detect Min Buffer is ticked, sweep from 0.1m up to 3.0m in steps of 0.2m / 0.3m.
+      // Otherwise, use current slider buffer radius (default 3.0m).
+      const rSweepList = isAutoMin
+        ? [0.1, 0.3, 0.5, 0.8, 1.1, 1.4, 1.7, 2.0, 2.3, 2.5, 2.8, 3.0]
+        : [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0];
+
+      // Identify buffer centers for each anchor based on maximum possible search radius (3.0m)
+      const baseR = 3.0;
       const anchorCenters = state.anchors.map(anc => {
         const nearestField = findNearestFieldVertex(anc.dst);
-        if (nearestField && nearestField.dist <= R * 2.5) {
+        if (nearestField && nearestField.dist <= baseR * 2.5) {
           return { x: nearestField.x, y: nearestField.y };
         }
         return { x: anc.dst.x, y: anc.dst.y };
       });
-
-      // Current normalized offsets inside unit disk
-      const currentOffsets = state.anchors.map((anc, idx) => {
-        const center = anchorCenters[idx];
-        let du = (anc.dst.x - center.x) / R;
-        let dv = (anc.dst.y - center.y) / R;
-        const d = Math.hypot(du, dv);
-        if (d > 1) { du /= d; dv /= d; }
-        return { u: du, v: dv };
-      });
-
-      // Candidate fitness evaluation function
-      function evaluateCandidate(offsets) {
-        try {
-          const candAnchors = state.anchors.map((anc, idx) => ({
-            ...anc,
-            dst: {
-              x: anchorCenters[idx].x + offsets[idx].u * R,
-              y: anchorCenters[idx].y + offsets[idx].v * R
-            }
-          }));
-
-          const candWarper = TransformMath.createWarper(state.algorithm, candAnchors);
-
-          // Warped deed vertices
-          const candVertices = poly.vertices.map(v => {
-            if (v.deedPt) {
-              const w = candWarper(v.deedPt);
-              return { x: w.x, y: w.y, deedPt: v.deedPt, origX: w.x, origY: w.y };
-            }
-            return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
-          });
-
-          // Fast boundary relaxation (55 iterations)
-          const optRes = BoundaryOptimizer.optimize({
-            vertices: candVertices,
-            segmentLengths: poly.segmentLengths,
-            bufferRadius: R,
-            balance: state.optBalance,
-            targetArea: 162156.0,
-            iterations: 55
-          });
-
-          if (!optRes.success) {
-            return { loss: 999999, optRes: null, candAnchors, offsets, areaDiffPct: 999, avgSegErr: 999 };
-          }
-
-          const V = optRes.vertices;
-          let areaM2 = 0;
-          for (let i = 0; i < V.length; i++) {
-            const j = (i + 1) % V.length;
-            areaM2 += V[i].x * V[j].y - V[j].x * V[i].y;
-          }
-          areaM2 = Math.abs(areaM2) / 2;
-          const areaDiffPct = (Math.abs(areaM2 - 162156.0) / 162156.0) * 100;
-
-          const nSegs = V.length;
-          let segErrSum = 0, countSegs = 0;
-          for (let i = 0; i < nSegs; i++) {
-            const dLen = poly.segmentLengths[i];
-            if (dLen != null && dLen > 0) {
-              const mLen = Math.hypot(V[(i + 1) % nSegs].x - V[i].x, V[(i + 1) % nSegs].y - V[i].y);
-              segErrSum += (Math.abs(mLen - dLen) / dLen) * 100;
-              countSegs++;
-            }
-          }
-          const avgSegErr = countSegs > 0 ? (segErrSum / countSegs) : 0;
-
-          // Composite balance loss
-          const b = Math.max(0, Math.min(100, state.optBalance));
-          const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
-          const wArea = b >= 50 ? 1.0 : b / 50;
-          const compositeLoss = (wDist * avgSegErr + wArea * areaDiffPct) / (wDist + wArea);
-
-          return {
-            loss: compositeLoss,
-            optRes,
-            candAnchors,
-            areaDiffPct,
-            avgSegErr,
-            offsets: offsets.map(o => ({ ...o }))
-          };
-        } catch (e) {
-          return { loss: 999999, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999 };
-        }
-      }
 
       // UI state setup
       state.tuningAnchorsActive = true;
@@ -3435,9 +3434,8 @@ EOF`;
       if (btnRunOpt) btnRunOpt.disabled = true;
       if (btnResetOpt) btnResetOpt.disabled = true;
 
-      // Initialize population
       const POP_SIZE = 16;
-      const MAX_GEN = 22;
+      const MAX_GEN = isAutoMin ? 12 : 22;
 
       function sampleDisk() {
         const theta = Math.random() * 2 * Math.PI;
@@ -3445,109 +3443,223 @@ EOF`;
         return { u: rad * Math.cos(theta), v: rad * Math.sin(theta) };
       }
 
-      const population = [];
+      let globalOverallBest = null;
+      let winningR = rSweepList[0];
+      let prevStepLoss = Infinity;
 
-      // 1. Current anchor positions
-      population.push(evaluateCandidate(currentOffsets));
-
-      // 2. Buffer centers (0, 0)
-      population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
-
-      // 3. Cardinal directional shifts
-      const cardinals = [
-        { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
-        { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
-        { u: 0.55, v: 0.55 }, { u: -0.55, v: 0.55 },
-        { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
-      ];
-      for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
-        const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i] }));
-        population.push(evaluateCandidate(offsetArr));
-      }
-
-      // 4. Fill rest with random samples
-      while (population.length < POP_SIZE) {
-        const offsetArr = Array.from({ length: M }, () => sampleDisk());
-        population.push(evaluateCandidate(offsetArr));
-      }
-
-      let globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
-
-      // Iterative evolution loop with live canvas animation
-      for (let gen = 1; gen <= MAX_GEN; gen++) {
+      for (let rIdx = 0; rIdx < rSweepList.length; rIdx++) {
         if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
 
-        for (let i = 0; i < POP_SIZE; i++) {
+        const currentR = rSweepList[rIdx];
+        winningR = currentR;
+        state.optBufferRadius = currentR;
+
+        // Update slider and label visually
+        if (optBufferSlider) optBufferSlider.value = currentR;
+        if (optBufferVal) optBufferVal.textContent = `±${currentR.toFixed(1)} m`;
+
+        // Current normalized offsets inside unit disk for this currentR
+        const currentOffsets = state.anchors.map((anc, idx) => {
+          const center = anchorCenters[idx];
+          let du = (anc.dst.x - center.x) / currentR;
+          let dv = (anc.dst.y - center.y) / currentR;
+          const d = Math.hypot(du, dv);
+          if (d > 1) { du /= d; dv /= d; }
+          return { u: du, v: dv };
+        });
+
+        // Candidate fitness evaluation function for currentR
+        function evaluateCandidate(offsets) {
+          try {
+            const candAnchors = state.anchors.map((anc, idx) => ({
+              ...anc,
+              dst: {
+                x: anchorCenters[idx].x + offsets[idx].u * currentR,
+                y: anchorCenters[idx].y + offsets[idx].v * currentR
+              }
+            }));
+
+            const candWarper = TransformMath.createWarper(state.algorithm, candAnchors);
+
+            const candVertices = poly.vertices.map(v => {
+              if (v.deedPt) {
+                const w = candWarper(v.deedPt);
+                return { x: w.x, y: w.y, deedPt: v.deedPt, origX: w.x, origY: w.y };
+              }
+              return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
+            });
+
+            const optRes = BoundaryOptimizer.optimize({
+              vertices: candVertices,
+              segmentLengths: poly.segmentLengths,
+              bufferRadius: currentR,
+              balance: state.optBalance,
+              targetArea: 162156.0,
+              iterations: 50
+            });
+
+            if (!optRes.success) {
+              return { loss: 999999, optRes: null, candAnchors, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
+            }
+
+            const V = optRes.vertices;
+            let areaM2 = 0;
+            for (let i = 0; i < V.length; i++) {
+              const j = (i + 1) % V.length;
+              areaM2 += V[i].x * V[j].y - V[j].x * V[i].y;
+            }
+            areaM2 = Math.abs(areaM2) / 2;
+            const areaDiffPct = (Math.abs(areaM2 - 162156.0) / 162156.0) * 100;
+
+            const nSegs = V.length;
+            let segErrSum = 0, countSegs = 0;
+            for (let i = 0; i < nSegs; i++) {
+              const dLen = poly.segmentLengths[i];
+              if (dLen != null && dLen > 0) {
+                const mLen = Math.hypot(V[(i + 1) % nSegs].x - V[i].x, V[(i + 1) % nSegs].y - V[i].y);
+                segErrSum += (Math.abs(mLen - dLen) / dLen) * 100;
+                countSegs++;
+              }
+            }
+            const avgSegErr = countSegs > 0 ? (segErrSum / countSegs) : 0;
+
+            const b = Math.max(0, Math.min(100, state.optBalance));
+            const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
+            const wArea = b >= 50 ? 1.0 : b / 50;
+            const compositeLoss = (wDist * avgSegErr + wArea * areaDiffPct) / (wDist + wArea);
+
+            return {
+              loss: compositeLoss,
+              optRes,
+              candAnchors,
+              areaDiffPct,
+              avgSegErr,
+              radius: currentR,
+              offsets: offsets.map(o => ({ ...o }))
+            };
+          } catch (e) {
+            return { loss: 999999, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
+          }
+        }
+
+        // Initialize population for this radius
+        const population = [];
+        population.push(evaluateCandidate(currentOffsets));
+        population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
+
+        const cardinals = [
+          { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
+          { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
+          { u: 0.55, v: 0.55 }, { u: -0.55, v: 0.55 },
+          { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
+        ];
+        for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
+          const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i] }));
+          population.push(evaluateCandidate(offsetArr));
+        }
+
+        while (population.length < POP_SIZE) {
+          const offsetArr = Array.from({ length: M }, () => sampleDisk());
+          population.push(evaluateCandidate(offsetArr));
+        }
+
+        let globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
+
+        // Evolutionary generations loop for this radius
+        for (let gen = 1; gen <= MAX_GEN; gen++) {
           if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
 
-          let r1, r2, r3;
-          do { r1 = Math.floor(Math.random() * POP_SIZE); } while (r1 === i);
-          do { r2 = Math.floor(Math.random() * POP_SIZE); } while (r2 === i || r2 === r1);
-          do { r3 = Math.floor(Math.random() * POP_SIZE); } while (r3 === i || r3 === r1 || r3 === r2);
+          for (let i = 0; i < POP_SIZE; i++) {
+            if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
 
-          const F = 0.65;
-          const CR = 0.85;
-          const trialOffsets = [];
+            let r1, r2, r3;
+            do { r1 = Math.floor(Math.random() * POP_SIZE); } while (r1 === i);
+            do { r2 = Math.floor(Math.random() * POP_SIZE); } while (r2 === i || r2 === r1);
+            do { r3 = Math.floor(Math.random() * POP_SIZE); } while (r3 === i || r3 === r1 || r3 === r2);
 
-          for (let k = 0; k < M; k++) {
-            let u, v;
-            if (Math.random() < CR || k === 0) {
-              u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
-                  + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
-              v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
-                  + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
-              if (Math.random() < 0.12) {
-                u += (Math.random() - 0.5) * 0.18;
-                v += (Math.random() - 0.5) * 0.18;
+            const F = 0.65;
+            const CR = 0.85;
+            const trialOffsets = [];
+
+            for (let k = 0; k < M; k++) {
+              let u, v;
+              if (Math.random() < CR || k === 0) {
+                u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
+                    + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
+                v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
+                    + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
+                if (Math.random() < 0.12) {
+                  u += (Math.random() - 0.5) * 0.18;
+                  v += (Math.random() - 0.5) * 0.18;
+                }
+              } else {
+                u = population[i].offsets[k].u;
+                v = population[i].offsets[k].v;
               }
-            } else {
-              u = population[i].offsets[k].u;
-              v = population[i].offsets[k].v;
+
+              const dist = Math.hypot(u, v);
+              if (dist > 1.0) {
+                u /= dist;
+                v /= dist;
+              }
+              trialOffsets.push({ u, v });
             }
 
-            const dist = Math.hypot(u, v);
-            if (dist > 1.0) {
-              u /= dist;
-              v /= dist;
+            const trialEval = evaluateCandidate(trialOffsets);
+            if (trialEval.loss < population[i].loss) {
+              population[i] = trialEval;
             }
-            trialOffsets.push({ u, v });
+            if (population[i].loss < globalBest.loss) {
+              globalBest = population[i];
+            }
           }
 
-          const trialEval = evaluateCandidate(trialOffsets);
-          if (trialEval.loss < population[i].loss) {
-            population[i] = trialEval;
+          // Live screen animation update
+          if (globalBest.candAnchors && globalBest.optRes) {
+            for (let k = 0; k < M; k++) {
+              state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
+              state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+            }
+            poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
+            recomputeUserPolygonMetrics();
+            redrawTrueCanvas();
+
+            if (optStatusBadge) {
+              const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`;
+              optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
+              optStatusBadge.style.color = "var(--accent-cyan)";
+              optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
+            }
           }
-          if (population[i].loss < globalBest.loss) {
-            globalBest = population[i];
-          }
+
+          await new Promise(resolve => setTimeout(resolve, isAutoMin ? 25 : 40));
         }
 
-        // Live screen animation update: anchor pins, warped deed & relaxed polygon move
-        if (globalBest.candAnchors && globalBest.optRes) {
-          for (let k = 0; k < M; k++) {
-            state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
-            state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
-          }
-          poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
-          recomputeUserPolygonMetrics();
-          redrawTrueCanvas();
-
-          if (optStatusBadge) {
-            optStatusBadge.textContent = `Tune ${gen}/${MAX_GEN} (${globalBest.loss.toFixed(2)}%)`;
-            optStatusBadge.style.color = "var(--accent-cyan)";
-            optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
-          }
+        if (!globalOverallBest || globalBest.loss < globalOverallBest.loss) {
+          globalOverallBest = globalBest;
+          winningR = currentR;
         }
 
-        // Yield to browser frame
-        await new Promise(resolve => setTimeout(resolve, 40));
+        // Convergence check: stops when error hits ~0 or stops improving
+        if (isAutoMin) {
+          const currentLoss = globalBest.loss;
+          if (currentLoss <= 0.05 || (rIdx > 0 && Math.abs(prevStepLoss - currentLoss) < 0.005 && currentLoss < 0.15)) {
+            updateStatus(`⚡ Auto-Detect: Solución convergida en radio mínimo de ±${currentR.toFixed(1)}m con error = ${currentLoss.toFixed(2)}%.`);
+            break;
+          }
+          prevStepLoss = currentLoss;
+        }
       }
 
-      // Final thorough relaxation (240 iterations) on winning anchors
-      if (globalBest && globalBest.candAnchors) {
+      // Final thorough relaxation (240 iterations) on winning anchors & winning radius
+      if (globalOverallBest && globalOverallBest.candAnchors) {
+        state.optBufferRadius = winningR;
+        if (optBufferSlider) optBufferSlider.value = winningR;
+        if (optBufferVal) optBufferVal.textContent = `±${winningR.toFixed(1)} m`;
+
         for (let k = 0; k < M; k++) {
-          state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
-          state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+          state.anchors[k].dst.x = globalOverallBest.candAnchors[k].dst.x;
+          state.anchors[k].dst.y = globalOverallBest.candAnchors[k].dst.y;
         }
 
         const finalWarper = TransformMath.createWarper(state.algorithm, state.anchors);
@@ -3562,7 +3674,7 @@ EOF`;
         const finalOpt = BoundaryOptimizer.optimize({
           vertices: finalNominal,
           segmentLengths: poly.segmentLengths,
-          bufferRadius: R,
+          bufferRadius: winningR,
           balance: state.optBalance,
           targetArea: 162156.0,
           iterations: 240
@@ -3577,13 +3689,14 @@ EOF`;
         rebuildSegmentInputs();
         redrawAll();
 
-        const finalOverall = document.getElementById("overall-error")?.textContent || globalBest.loss.toFixed(2);
+        const finalOverall = document.getElementById("overall-error")?.textContent || globalOverallBest.loss.toFixed(2);
         if (optStatusBadge) {
-          optStatusBadge.textContent = `✓ Auto-Tuned (${finalOverall}%)`;
+          const badgeText = isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`;
+          optStatusBadge.textContent = badgeText;
           optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
           optStatusBadge.style.color = "#00e676";
         }
-        updateStatus(`⚡ Auto-Tune finished! Best anchor placement found with overall error = ${finalOverall}% within ±${R.toFixed(1)}m buffers.`);
+        updateStatus(`⚡ Auto-Tune finalizado: solución óptima con radio ±${winningR.toFixed(1)}m y error = ${finalOverall}%.`);
       }
 
       // Cleanup state & UI
@@ -3608,6 +3721,33 @@ EOF`;
         runAutoTuneAnchors();
       });
     }
+
+    // ── Legal Help Modal Event Handlers ──
+    const btnOptLegalHelp = document.getElementById("btn-opt-legal-help");
+    const modalLegalHelp = document.getElementById("modal-legal-help");
+    const btnCloseLegalHelp = document.getElementById("btn-close-legal-help");
+    const btnOkLegalHelp = document.getElementById("btn-ok-legal-help");
+
+    function openLegalHelpModal() {
+      if (modalLegalHelp) modalLegalHelp.style.display = "flex";
+    }
+    function closeLegalHelpModal() {
+      if (modalLegalHelp) modalLegalHelp.style.display = "none";
+    }
+
+    if (btnOptLegalHelp) btnOptLegalHelp.addEventListener("click", openLegalHelpModal);
+    if (btnCloseLegalHelp) btnCloseLegalHelp.addEventListener("click", closeLegalHelpModal);
+    if (btnOkLegalHelp) btnOkLegalHelp.addEventListener("click", closeLegalHelpModal);
+    if (modalLegalHelp) {
+      modalLegalHelp.addEventListener("click", e => {
+        if (e.target === modalLegalHelp) closeLegalHelpModal();
+      });
+    }
+    window.addEventListener("keydown", e => {
+      if (e.key === "Escape" && modalLegalHelp && modalLegalHelp.style.display === "flex") {
+        closeLegalHelpModal();
+      }
+    });
 
     // Context menu handler on trueCanvas (prevents context menu when clicking nodes or drawing)
     trueCanvas.addEventListener("contextmenu", e => {
@@ -3840,54 +3980,66 @@ EOF`;
     btnModePan.addEventListener("click",    () => setToolMode("pan"));
     btnModeAnchor.addEventListener("click", () => setToolMode("anchor"));
 
-    // ── Panel Layout Switcher & Labels Toggle ────────────────────────────
+    // ── Panel Display Options (Three Tickboxes: Deed, Field, Control Panel) ──
     const histCard = document.getElementById("hist-card");
     const trueCard = document.getElementById("true-card");
     const sidebarEl = document.getElementById("sidebar");
-    const btnLayoutLeft = document.getElementById("btn-layout-left");
-    const btnLayoutSplit = document.getElementById("btn-layout-split");
-    const btnLayoutRight = document.getElementById("btn-layout-right");
-    const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+    const chkShowDeed = document.getElementById("chk-show-deed");
+    const chkShowField = document.getElementById("chk-show-field");
+    const chkShowControlPanel = document.getElementById("chk-show-control-panel");
 
-    function setPanelLayout(mode) {
-      state.layoutMode = mode;
-      if (btnLayoutLeft) btnLayoutLeft.classList.toggle("active", mode === "left");
-      if (btnLayoutSplit) btnLayoutSplit.classList.toggle("active", mode === "split");
-      if (btnLayoutRight) btnLayoutRight.classList.toggle("active", mode === "right");
+    function applyPanelVisibility() {
+      const showDeed = chkShowDeed ? chkShowDeed.checked : false;
+      const showField = chkShowField ? chkShowField.checked : true;
+      const showControl = chkShowControlPanel ? chkShowControlPanel.checked : true;
 
-      if (mode === "left") {
-        if (histCard) histCard.classList.remove("hidden");
-        if (trueCard) trueCard.classList.add("hidden");
-        updateStatus("Display: Left panel only (Historical Deed map).");
-      } else if (mode === "right") {
-        if (histCard) histCard.classList.add("hidden");
-        if (trueCard) trueCard.classList.remove("hidden");
-        updateStatus("Display: Right panel only (Field survey & drone map).");
-      } else {
-        // split view
-        if (histCard) histCard.classList.remove("hidden");
-        if (trueCard) trueCard.classList.remove("hidden");
-        updateStatus("Display: Split view (both Deed & Field panels).");
-      }
+      state.showDeedPanel = showDeed;
+      state.showFieldPanel = showField;
+      state.sidebarVisible = showControl;
+
+      if (histCard) histCard.classList.toggle("hidden", !showDeed);
+      if (trueCard) trueCard.classList.toggle("hidden", !showField);
+      if (sidebarEl) sidebarEl.classList.toggle("collapsed", !showControl);
+
+      const activeList = [];
+      if (showDeed) activeList.push("Deed");
+      if (showField) activeList.push("Field");
+      if (showControl) activeList.push("Control Panel");
+      updateStatus(`Panels active: ${activeList.join(" + ")}.`);
 
       requestAnimationFrame(() => {
         resizeCanvases();
+        redrawAll();
       });
     }
 
-    if (btnLayoutLeft) btnLayoutLeft.addEventListener("click", () => setPanelLayout("left"));
-    if (btnLayoutSplit) btnLayoutSplit.addEventListener("click", () => setPanelLayout("split"));
-    if (btnLayoutRight) btnLayoutRight.addEventListener("click", () => setPanelLayout("right"));
+    if (chkShowDeed) {
+      chkShowDeed.addEventListener("change", () => {
+        // Enforce at least one map panel is open
+        if (!chkShowDeed.checked && (!chkShowField || !chkShowField.checked)) {
+          chkShowDeed.checked = true;
+          updateStatus("At least one map panel (Deed or Field) must remain active.");
+          return;
+        }
+        applyPanelVisibility();
+      });
+    }
 
-    if (btnToggleSidebar) {
-      btnToggleSidebar.addEventListener("click", () => {
-        state.sidebarVisible = !state.sidebarVisible;
-        if (sidebarEl) sidebarEl.classList.toggle("collapsed", !state.sidebarVisible);
-        btnToggleSidebar.classList.toggle("active", state.sidebarVisible);
-        updateStatus(state.sidebarVisible ? "Sidebar expanded." : "Sidebar collapsed to maximize map area.");
-        requestAnimationFrame(() => {
-          resizeCanvases();
-        });
+    if (chkShowField) {
+      chkShowField.addEventListener("change", () => {
+        // Enforce at least one map panel is open
+        if (!chkShowField.checked && (!chkShowDeed || !chkShowDeed.checked)) {
+          chkShowField.checked = true;
+          updateStatus("At least one map panel (Deed or Field) must remain active.");
+          return;
+        }
+        applyPanelVisibility();
+      });
+    }
+
+    if (chkShowControlPanel) {
+      chkShowControlPanel.addEventListener("change", () => {
+        applyPanelVisibility();
       });
     }
 
@@ -4886,7 +5038,7 @@ EOF`;
         if (state.histEntities.length === 0 && typeof HISTORICAL_DXF_SAMPLE !== "undefined") {
           state.histEntities = DXFParser.parse(HISTORICAL_DXF_SAMPLE);
           histStatus.textContent = `Sample DXF ready (${state.histEntities.length} ents)`;
-          if (!state.histViewport.bbox) {
+          if (!state.histViewport.bbox && histCanvas.width > 0) {
             state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
           }
           redrawAll();
