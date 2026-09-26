@@ -752,6 +752,13 @@
               <button id="btn-clear-anchors" class="btn-sm btn-secondary" title="Clear all anchor points">Clear All</button>
             </div>
           </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging within the Pen Buffer Radius of Field.dxf vertices">
+              <input type="checkbox" id="chk-constrain-anchors" style="accent-color:var(--accent-cyan);">
+              🔒 Constrain to Field Vertices
+            </label>
+            <span id="anchor-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
+          </div>
 
           <div class="table-wrapper">
             <table class="anchor-table">
@@ -1778,6 +1785,8 @@ EOF`;
       optBufferRadius: 3.0,    // pen buffer radius in meters
       optBalance: 50,          // 0 = dist, 50 = balanced, 100 = area
       showBufferDisks: true,   // render buffer halos and displacement vectors
+      // Anchor field vertex constraint
+      constrainAnchorsToField: false,
       // Deed DXF vertex editing on field panel & historical panel
       histFileName: "Polygon_Escritura1073_FerminSuarez.dxf",
       editDeedNodes: false,
@@ -2164,6 +2173,35 @@ EOF`;
           trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y,4,0,Math.PI*2);
           trueCtx.fillStyle="#ff1744"; trueCtx.fill();
         }
+        // If Constrain mode is on, render the pen buffer disk around the locked/nearest Field vertex
+        if (state.constrainAnchorsToField && state.optBufferRadius > 0) {
+          const nearestField = findNearestFieldVertex(anc.dst);
+          if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
+            const sCenter = worldToScreenGIS(nearestField, vp, h);
+            const rPx = state.optBufferRadius * vp.scale;
+            trueCtx.save();
+            trueCtx.beginPath();
+            trueCtx.arc(sCenter.x, sCenter.y, rPx, 0, Math.PI * 2);
+            trueCtx.fillStyle = "rgba(0, 229, 255, 0.08)";
+            trueCtx.fill();
+            trueCtx.strokeStyle = "rgba(0, 229, 255, 0.55)";
+            trueCtx.lineWidth = 1.5;
+            trueCtx.setLineDash([4, 4]);
+            trueCtx.stroke();
+            trueCtx.setLineDash([]);
+
+            // Center crosshair marker on the Field.dxf vertex
+            trueCtx.beginPath();
+            trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
+            trueCtx.fillStyle = "#00e5ff";
+            trueCtx.fill();
+            trueCtx.strokeStyle = "#ffffff";
+            trueCtx.lineWidth = 1;
+            trueCtx.stroke();
+            trueCtx.restore();
+          }
+        }
+
         trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
         trueCtx.fillStyle=anc.color; trueCtx.fill();
         trueCtx.strokeStyle="#fff"; trueCtx.lineWidth=2; trueCtx.stroke();
@@ -2235,6 +2273,27 @@ EOF`;
        USER POLYGON — Distance & Area Feature (node drag, delete, snap ring)
        ========================================================================== */
     const POLY_SNAP_RADIUS = 15; // screen pixels – matches index.html snap radius
+
+    /** Find nearest vertex from Field.dxf (state.trueEntities) to a given world point (in meters) */
+    function findNearestFieldVertex(worldPt) {
+      if (!state.trueEntities || state.trueEntities.length === 0 || !worldPt) return null;
+      let closest = null;
+      let minDist = Infinity;
+      for (let entIdx = 0; entIdx < state.trueEntities.length; entIdx++) {
+        const ent = state.trueEntities[entIdx];
+        if (!ent || !ent.points) continue;
+        for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+          const pt = ent.points[ptIdx];
+          if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+          const d = Math.hypot(pt.x - worldPt.x, pt.y - worldPt.y);
+          if (d < minDist) {
+            minDist = d;
+            closest = { x: pt.x, y: pt.y, dist: d };
+          }
+        }
+      }
+      return closest;
+    }
 
     /** Draw yellow snap target indicator on canvas (matches index.html) */
     function drawSnapTargetOnCanvas(ctx, screenPt) {
@@ -2911,6 +2970,8 @@ EOF`;
         const val = parseFloat(e.target.value) || 3.0;
         state.optBufferRadius = val;
         if (optBufferVal) optBufferVal.textContent = `±${val.toFixed(1)} m`;
+        const constrainHint = document.getElementById("anchor-constrain-hint");
+        if (constrainHint) constrainHint.textContent = `(±${val.toFixed(1)}m)`;
         redrawTrueCanvas();
       });
     }
@@ -3417,7 +3478,29 @@ EOF`;
         if (draggingAnchor.isHist) {
           draggingAnchor.anc.src = screenToWorld(sx, sy, state.histViewport, histCanvas.height);
         } else {
-          draggingAnchor.anc.dst = screenToWorldGIS(sx, sy, state.trueViewport, trueCanvas.height);
+          let targetPt = screenToWorldGIS(sx, sy, state.trueViewport, trueCanvas.height);
+
+          // If Constrain checkbox is checked: clamp anchor movement inside Pen Buffer of nearest Field.dxf vertex
+          if (state.constrainAnchorsToField && state.optBufferRadius > 0) {
+            const nearestField = findNearestFieldVertex(targetPt);
+            if (nearestField) {
+              const R = state.optBufferRadius;
+              // If the cursor is within or approaching the vertex buffer (within 2*R detection zone):
+              if (nearestField.dist <= R * 2.0) {
+                if (nearestField.dist > R) {
+                  // Cursor is outside the circle: clamp anchor position to the circle boundary (perimeter)
+                  const angle = Math.atan2(targetPt.y - nearestField.y, targetPt.x - nearestField.x);
+                  targetPt = {
+                    x: nearestField.x + R * Math.cos(angle),
+                    y: nearestField.y + R * Math.sin(angle)
+                  };
+                }
+                // When nearestField.dist <= R, targetPt remains free inside the circle!
+              }
+            }
+          }
+
+          draggingAnchor.anc.dst = targetPt;
         }
         redrawAll();
         return;
@@ -3740,6 +3823,19 @@ EOF`;
       redrawAll();
       updateStatus("Cleared all anchors.");
     });
+
+    const chkConstrainAnchors = document.getElementById("chk-constrain-anchors");
+    if (chkConstrainAnchors) {
+      chkConstrainAnchors.addEventListener("change", e => {
+        state.constrainAnchorsToField = e.target.checked;
+        if (state.constrainAnchorsToField) {
+          updateStatus(`🔒 Anchor constraint active: anchors clamped within ±${state.optBufferRadius.toFixed(1)}m of Field.dxf vertices.`);
+        } else {
+          updateStatus("🔓 Anchor constraint disabled: anchors movable anywhere on map.");
+        }
+        redrawTrueCanvas();
+      });
+    }
 
     window.deleteAnchor = function(id) {
       state.anchors = state.anchors.filter(a => a.id !== id);
