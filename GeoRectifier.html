@@ -980,6 +980,13 @@
                   <input type="checkbox" id="chk-auto-min-buffer" style="accent-color:var(--accent-cyan);">
                   ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
                 </label>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);margin-top:2px;">
+                  <span style="font-size:0.70rem;color:var(--text-muted);">Auto-Tune Search:</span>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.70rem;margin:0;" title="Checkbox marcado = Todas las combinaciones (búsqueda exhaustiva en grilla de posiciones). Desmarcado = Algoritmo Genético (Evolución Diferencial).">
+                    <input type="checkbox" id="chk-opt-all-combinations" style="accent-color:var(--accent-cyan);">
+                    <span id="lbl-opt-algo-mode" style="color:var(--accent-cyan);font-weight:600;">🧬 Genetic Algo</span>
+                  </label>
+                </div>
               </div>
               <div style="display:flex;flex-direction:column;gap:6px;">
                 <div style="display:flex;gap:6px;">
@@ -1006,9 +1013,9 @@
                   <button id="btn-autotune-anchors" class="btn btn-sm" style="width:100%;justify-content:center;background:linear-gradient(135deg, #00b0ff, #7c4dff);color:#fff;border:none;font-weight:600;box-shadow:0 2px 8px rgba(0,176,255,0.25);">
                     ⚡ Auto-Tune Anchors
                   </button>
-                  <div class="opt-hover-card" style="width:270px;">
+                  <div class="opt-hover-card" style="width:280px;">
                     <div class="opt-hover-title">⚡ Auto-Tune Anchors (Global Search)</div>
-                    <div class="opt-hover-body">Iterates through combinations of anchor positions within their Field buffers using continuous heuristic search, testing boundary fits to find the anchor alignment with the least overall error. Live-animates the polygon during iteration.</div>
+                    <div class="opt-hover-body">Explores anchor positions within their Field buffers using either <strong>Genetic Algorithm (Differential Evolution)</strong> or <strong>All Combinations (exhaustive grid)</strong> to find the anchor alignment that minimizes overall boundary and area error. Live-animates the polygon during execution.</div>
                   </div>
                 </div>
               </div>
@@ -3336,6 +3343,24 @@ EOF`;
       });
     }
 
+    const chkOptAllCombos = document.getElementById("chk-opt-all-combinations");
+    const lblOptAlgoMode = document.getElementById("lbl-opt-algo-mode");
+    if (chkOptAllCombos && lblOptAlgoMode) {
+      chkOptAllCombos.addEventListener("change", e => {
+        if (e.target.checked) {
+          lblOptAlgoMode.textContent = "🔄 All Combos";
+          lblOptAlgoMode.style.color = "#ffb300";
+          chkOptAllCombos.style.accentColor = "#ffb300";
+          updateStatus("Auto-Tune mode set to: All Combinations (exhaustive grid search).");
+        } else {
+          lblOptAlgoMode.textContent = "🧬 Genetic Algo";
+          lblOptAlgoMode.style.color = "var(--accent-cyan)";
+          chkOptAllCombos.style.accentColor = "var(--accent-cyan)";
+          updateStatus("Auto-Tune mode set to: Genetic Algorithm (Differential Evolution).");
+        }
+      });
+    }
+
     if (btnRunOpt) {
       btnRunOpt.addEventListener("click", () => {
         if (state.tuningAnchorsActive) {
@@ -3481,6 +3506,47 @@ EOF`;
         return { u: rad * Math.cos(theta), v: rad * Math.sin(theta) };
       }
 
+      const chkAllCombos = document.getElementById("chk-opt-all-combinations");
+      const useAllCombos = chkAllCombos ? chkAllCombos.checked : false;
+
+      function cartesianProduct(sets) {
+        let result = [[]];
+        for (const set of sets) {
+          const temp = [];
+          for (const prefix of result) {
+            for (const item of set) {
+              temp.push([...prefix, item]);
+            }
+          }
+          result = temp;
+        }
+        return result;
+      }
+
+      function getGridOffsetsForM(numAnchors) {
+        if (numAnchors <= 2) {
+          return [
+            { u: 0, v: 0 },
+            { u: 0.85, v: 0 }, { u: -0.85, v: 0 }, { u: 0, v: 0.85 }, { u: 0, v: -0.85 },
+            { u: 0.60, v: 0.60 }, { u: -0.60, v: 0.60 }, { u: 0.60, v: -0.60 }, { u: -0.60, v: -0.60 },
+            { u: 0.45, v: 0 }, { u: -0.45, v: 0 }, { u: 0, v: 0.45 }, { u: 0, v: -0.45 }
+          ];
+        } else if (numAnchors === 3) {
+          return [
+            { u: 0, v: 0 },
+            { u: 0.80, v: 0 }, { u: -0.80, v: 0 },
+            { u: 0.40, v: 0.69 }, { u: -0.40, v: 0.69 },
+            { u: 0.40, v: -0.69 }, { u: -0.40, v: -0.69 }
+          ];
+        } else {
+          return [
+            { u: 0, v: 0 },
+            { u: 0.80, v: 0 }, { u: -0.80, v: 0 },
+            { u: 0, v: 0.80 }, { u: 0, v: -0.80 }
+          ];
+        }
+      }
+
       let globalOverallBest = null;
       let winningR = rSweepList[0];
       let prevStepLoss = Infinity;
@@ -3581,97 +3647,163 @@ EOF`;
           }
         }
 
-        // Initialize population for this radius
-        const population = [];
-        population.push(evaluateCandidate(currentOffsets));
-        population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
+        let globalBest = null;
 
-        const cardinals = [
-          { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
-          { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
-          { u: 0.55, v: 0.55 }, { u: -0.55, v: 0.55 },
-          { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
-        ];
-        for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
-          const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i] }));
-          population.push(evaluateCandidate(offsetArr));
-        }
+        if (useAllCombos) {
+          // ── STRATEGY A: ALL COMBINATIONS (GRID SEARCH) ──────────────────────
+          const baseGrid = getGridOffsetsForM(M);
+          const pointSets = anchorCenters.map((_, k) => {
+            const list = [...baseGrid];
+            const cur = currentOffsets[k];
+            if (cur && (Math.abs(cur.u) > 0.08 || Math.abs(cur.v) > 0.08)) {
+              list.push({ u: cur.u, v: cur.v });
+            }
+            return list;
+          });
 
-        while (population.length < POP_SIZE) {
-          const offsetArr = Array.from({ length: M }, () => sampleDisk());
-          population.push(evaluateCandidate(offsetArr));
-        }
+          const allCombos = cartesianProduct(pointSets);
+          globalBest = evaluateCandidate(currentOffsets);
 
-        let globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
+          const totalCombos = allCombos.length;
+          const yieldInterval = Math.max(1, Math.floor(totalCombos / 14));
 
-        // Evolutionary generations loop for this radius
-        for (let gen = 1; gen <= MAX_GEN; gen++) {
-          if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
-
-          for (let i = 0; i < POP_SIZE; i++) {
+          for (let cIdx = 0; cIdx < totalCombos; cIdx++) {
             if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
 
-            let r1, r2, r3;
-            do { r1 = Math.floor(Math.random() * POP_SIZE); } while (r1 === i);
-            do { r2 = Math.floor(Math.random() * POP_SIZE); } while (r2 === i || r2 === r1);
-            do { r3 = Math.floor(Math.random() * POP_SIZE); } while (r3 === i || r3 === r1 || r3 === r2);
-
-            const F = 0.65;
-            const CR = 0.85;
-            const trialOffsets = [];
-
-            for (let k = 0; k < M; k++) {
-              let u, v;
-              if (Math.random() < CR || k === 0) {
-                u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
-                    + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
-                v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
-                    + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
-                if (Math.random() < 0.12) {
-                  u += (Math.random() - 0.5) * 0.18;
-                  v += (Math.random() - 0.5) * 0.18;
-                }
-              } else {
-                u = population[i].offsets[k].u;
-                v = population[i].offsets[k].v;
-              }
-
-              const dist = Math.hypot(u, v);
-              if (dist > 1.0) {
-                u /= dist;
-                v /= dist;
-              }
-              trialOffsets.push({ u, v });
-            }
-
+            const trialOffsets = allCombos[cIdx];
             const trialEval = evaluateCandidate(trialOffsets);
-            if (trialEval.loss < population[i].loss) {
-              population[i] = trialEval;
+
+            if (trialEval.loss < globalBest.loss) {
+              globalBest = trialEval;
+
+              // Live screen animation update when finding better combinations
+              if (globalBest.candAnchors && globalBest.optRes) {
+                for (let k = 0; k < M; k++) {
+                  state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
+                  state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+                }
+                poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
+                recomputeUserPolygonMetrics();
+                redrawTrueCanvas();
+
+                if (optStatusBadge) {
+                  const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Combos`;
+                  optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (${globalBest.loss.toFixed(2)}%)`;
+                  optStatusBadge.style.color = "#ffb300";
+                  optStatusBadge.style.background = "rgba(255, 179, 0, 0.15)";
+                }
+              }
             }
-            if (population[i].loss < globalBest.loss) {
-              globalBest = population[i];
+
+            if (cIdx % yieldInterval === 0 || cIdx === totalCombos - 1) {
+              if (optStatusBadge) {
+                const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Combos`;
+                optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (${globalBest.loss.toFixed(2)}%)`;
+                optStatusBadge.style.color = "#ffb300";
+                optStatusBadge.style.background = "rgba(255, 179, 0, 0.15)";
+              }
+              await new Promise(resolve => setTimeout(resolve, isAutoMin ? 8 : 14));
+            }
+
+            const curOverall = (trialEval.overallErr != null) ? trialEval.overallErr : trialEval.loss;
+            if (curOverall < 0.005) {
+              globalBest = trialEval;
+              break;
             }
           }
+        } else {
+          // ── STRATEGY B: GENETIC ALGORITHM (DIFFERENTIAL EVOLUTION) ───────────
+          const population = [];
+          population.push(evaluateCandidate(currentOffsets));
+          population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
 
-          // Live screen animation update
-          if (globalBest.candAnchors && globalBest.optRes) {
-            for (let k = 0; k < M; k++) {
-              state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
-              state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
-            }
-            poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
-            recomputeUserPolygonMetrics();
-            redrawTrueCanvas();
-
-            if (optStatusBadge) {
-              const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`;
-              optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
-              optStatusBadge.style.color = "var(--accent-cyan)";
-              optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
-            }
+          const cardinals = [
+            { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
+            { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
+            { u: 0.55, v: 0.55 }, { u: -0.55, v: 0.55 },
+            { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
+          ];
+          for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
+            const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i] }));
+            population.push(evaluateCandidate(offsetArr));
           }
 
-          await new Promise(resolve => setTimeout(resolve, isAutoMin ? 15 : 40));
+          while (population.length < POP_SIZE) {
+            const offsetArr = Array.from({ length: M }, () => sampleDisk());
+            population.push(evaluateCandidate(offsetArr));
+          }
+
+          globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
+
+          // Evolutionary generations loop for this radius
+          for (let gen = 1; gen <= MAX_GEN; gen++) {
+            if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
+
+            for (let i = 0; i < POP_SIZE; i++) {
+              if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
+
+              let r1, r2, r3;
+              do { r1 = Math.floor(Math.random() * POP_SIZE); } while (r1 === i);
+              do { r2 = Math.floor(Math.random() * POP_SIZE); } while (r2 === i || r2 === r1);
+              do { r3 = Math.floor(Math.random() * POP_SIZE); } while (r3 === i || r3 === r1 || r3 === r2);
+
+              const F = 0.65;
+              const CR = 0.85;
+              const trialOffsets = [];
+
+              for (let k = 0; k < M; k++) {
+                let u, v;
+                if (Math.random() < CR || k === 0) {
+                  u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
+                      + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
+                  v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
+                      + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
+                  if (Math.random() < 0.12) {
+                    u += (Math.random() - 0.5) * 0.18;
+                    v += (Math.random() - 0.5) * 0.18;
+                  }
+                } else {
+                  u = population[i].offsets[k].u;
+                  v = population[i].offsets[k].v;
+                }
+
+                const dist = Math.hypot(u, v);
+                if (dist > 1.0) {
+                  u /= dist;
+                  v /= dist;
+                }
+                trialOffsets.push({ u, v });
+              }
+
+              const trialEval = evaluateCandidate(trialOffsets);
+              if (trialEval.loss < population[i].loss) {
+                population[i] = trialEval;
+              }
+              if (population[i].loss < globalBest.loss) {
+                globalBest = population[i];
+              }
+            }
+
+            // Live screen animation update
+            if (globalBest.candAnchors && globalBest.optRes) {
+              for (let k = 0; k < M; k++) {
+                state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
+                state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+              }
+              poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
+              recomputeUserPolygonMetrics();
+              redrawTrueCanvas();
+
+              if (optStatusBadge) {
+                const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`;
+                optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
+                optStatusBadge.style.color = "var(--accent-cyan)";
+                optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
+              }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, isAutoMin ? 15 : 40));
+          }
         }
 
         const currentOverallErr = (globalBest.overallErr != null)
