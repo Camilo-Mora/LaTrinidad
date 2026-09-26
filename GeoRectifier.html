@@ -913,7 +913,7 @@
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;">
                 <label style="display:flex;align-items:center;gap:5px;cursor:pointer;" title="Draw translucent buffer disks and shift arrows on canvas">
-                  <input type="checkbox" id="chk-show-buffer-disks" checked style="accent-color:var(--accent-cyan);">
+                  <input type="checkbox" id="chk-show-buffer-disks" style="accent-color:var(--accent-cyan);">
                   Show Buffer Halos &amp; Vectors
                 </label>
               </div>
@@ -1793,7 +1793,7 @@ EOF`;
       // Boundary Optimization
       optBufferRadius: 3.0,    // pen buffer radius in meters
       optBalance: 50,          // 0 = dist, 50 = balanced, 100 = area
-      showBufferDisks: true,   // render buffer halos and displacement vectors
+      showBufferDisks: false,  // render buffer halos and displacement vectors
       // Anchor field vertex constraint
       constrainAnchorsToField: false,
       // Polygon deed vertex constraint
@@ -2354,6 +2354,22 @@ EOF`;
       ctx.restore();
     }
 
+    /** Determine whether polygon vertex i has an associated deed length on either adjacent segment */
+    function vertexHasDeedLength(poly, i) {
+      if (!poly || !poly.vertices || !poly.segmentLengths) return false;
+      const N = poly.vertices.length;
+      if (N === 0 || i < 0 || i >= N) return false;
+      const lenNext = poly.segmentLengths[i];
+      let lenPrev = null;
+      if (poly.closed) {
+        lenPrev = poly.segmentLengths[(i - 1 + N) % N];
+      } else if (i > 0) {
+        lenPrev = poly.segmentLengths[i - 1];
+      }
+      return (lenNext !== null && lenNext !== undefined && lenNext > 0) ||
+             (lenPrev !== null && lenPrev !== undefined && lenPrev > 0);
+    }
+
     /** Find nearest DXF vertex or other polygon vertex to snap to (matches index.html getFieldSnapTarget) */
     function getPolygonSnapTarget(mouseX, mouseY, vp, canvasH, ignorePtIdx = null) {
       const chk = document.getElementById("chk-polygon-snap");
@@ -2542,84 +2558,57 @@ EOF`;
         ctx.stroke();
       }
 
-      // 2.4. When Constrain to Deed Vertices is active: generate and render buffer disk around every deed vertex
-      if (state.constrainPolyToDeed && state.optBufferRadius > 0 && state.histEntities && state.histEntities.length > 0) {
+      // 2.5. Buffer halos and displacement vectors ONLY around deed vertices for which there is deed length!
+      if ((state.constrainPolyToDeed || state.showBufferDisks) && state.optBufferRadius > 0 && poly && poly.vertices) {
         ctx.save();
         let warper = null;
         if (state.anchors && state.anchors.length >= 2) {
           try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
         }
         const rPx = state.optBufferRadius * vp.scale;
-        state.histEntities.forEach(ent => {
-          if (!ent || !ent.points) return;
-          ent.points.forEach(rawPt => {
-            if (!rawPt || typeof rawPt.x !== "number" || typeof rawPt.y !== "number") return;
-            const wPt = warper ? warper(rawPt) : rawPt;
-            const sPt = worldToScreenGIS(wPt, vp, canvasH);
+        verts.forEach((v, idx) => {
+          // Create the buffer ONLY around the deed vertices for which there is deed length!
+          if (!vertexHasDeedLength(poly, idx)) return;
 
-            // Buffer halo disk
-            ctx.beginPath();
-            ctx.arc(sPt.x, sPt.y, rPx, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
-            ctx.fill();
-            ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
-            ctx.lineWidth = 1.4;
-            ctx.setLineDash([4, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Center deed vertex marker
-            ctx.beginPath();
-            ctx.arc(sPt.x, sPt.y, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(0, 229, 255, 0.9)";
-            ctx.fill();
-          });
-        });
-        ctx.restore();
-      }
-
-      // 2.5. Buffer halos and displacement vectors for user polygon vertices
-      if ((state.showBufferDisks !== false || state.constrainPolyToDeed) && state.optBufferRadius > 0) {
-        ctx.save();
-        let warper = null;
-        if (state.anchors && state.anchors.length >= 2) {
-          try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
-        }
-        const rPx = state.optBufferRadius * vp.scale;
-        verts.forEach((v) => {
           let origX = v.origX, origY = v.origY;
           if (v.deedPt) {
             const deedWarped = warper ? warper(v.deedPt) : { x: v.deedPt.x, y: v.deedPt.y };
-            if (origX == null) origX = deedWarped.x;
-            if (origY == null) origY = deedWarped.y;
-          } else {
+            origX = deedWarped.x;
+            origY = deedWarped.y;
+            v.origX = origX;
+            v.origY = origY;
+          } else if (origX == null || origY == null || (origX === v.x && origY === v.y)) {
             const nearest = findNearestWarpedDeedVertex(v);
-            if (nearest && nearest.dist <= (state.optBufferRadius * 2.0)) {
+            if (nearest && nearest.dist <= (state.optBufferRadius * 2.5)) {
               origX = nearest.x;
               origY = nearest.y;
+              v.origX = origX;
+              v.origY = origY;
+              v.deedPt = nearest.deedPt;
             }
           }
-          if (origX == null || origY == null) return;
+          if (origX == null || origY == null) {
+            origX = v.x;
+            origY = v.y;
+          }
           const sOrig = worldToScreenGIS({ x: origX, y: origY }, vp, canvasH);
 
-          // Draw buffer halo circle if not already drawn in 2.4
-          if (!state.constrainPolyToDeed) {
-            ctx.beginPath();
-            ctx.arc(sOrig.x, sOrig.y, rPx, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
-            ctx.fill();
-            ctx.strokeStyle = "rgba(0, 229, 255, 0.55)";
-            ctx.lineWidth = 1.4;
-            ctx.setLineDash([4, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
+          // Buffer halo circle around the deed vertex
+          ctx.beginPath();
+          ctx.arc(sOrig.x, sOrig.y, rPx, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
+          ctx.lineWidth = 1.4;
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
 
-            // Nominal deed center marker
-            ctx.beginPath();
-            ctx.arc(sOrig.x, sOrig.y, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(0, 229, 255, 0.75)";
-            ctx.fill();
-          }
+          // Nominal deed center marker
+          ctx.beginPath();
+          ctx.arc(sOrig.x, sOrig.y, 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(0, 229, 255, 0.9)";
+          ctx.fill();
 
           // Displacement vector if shifted > 0.05m
           const disp = Math.hypot(v.x - origX, v.y - origY);
@@ -2884,6 +2873,10 @@ EOF`;
 
     /** Update Save / Export button states */
     function updatePolygonButtonStates() {
+      if (state.toolMode === "anchor") {
+        updateDistanceAreaPanelState("anchor");
+        return;
+      }
       const poly = state.userPolygon;
       const hasPoly = poly.vertices.length >= 2;
       document.getElementById("btn-save-polygon").disabled = !hasPoly;
@@ -3241,8 +3234,22 @@ EOF`;
           e.stopImmediatePropagation();
           state.draggingUserPolyNode = hitNode;
           const curVertex = poly.vertices[hitNode];
-          if (state.constrainPolyToDeed && state.optBufferRadius > 0) {
-            state.dragDeedAnchor = findNearestWarpedDeedVertex(curVertex);
+          const hasDeedLen = vertexHasDeedLength(poly, hitNode);
+          if (state.constrainPolyToDeed && state.optBufferRadius > 0 && hasDeedLen) {
+            let deedAnchor = null;
+            let warper = null;
+            if (state.anchors && state.anchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+            }
+            if (curVertex.deedPt) {
+              const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
+              deedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
+            } else if (curVertex.origX != null && curVertex.origY != null && (curVertex.origX !== curVertex.x || curVertex.origY !== curVertex.y)) {
+              deedAnchor = { x: curVertex.origX, y: curVertex.origY, deedPt: curVertex.deedPt || null };
+            } else {
+              deedAnchor = findNearestWarpedDeedVertex(curVertex);
+            }
+            state.dragDeedAnchor = deedAnchor;
           } else {
             state.dragDeedAnchor = null;
           }
@@ -3803,6 +3810,7 @@ EOF`;
       // 1. Node dragging active
       if (state.draggingUserPolyNode !== null) {
         const curVertex = state.userPolygon.vertices[state.draggingUserPolyNode];
+        const hasDeedLen = vertexHasDeedLength(state.userPolygon, state.draggingUserPolyNode);
         const snap = (!state.constrainPolyToDeed) ? getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode) : null;
         state.currentSnapTarget = snap;
         let targetPt = snap ? {
@@ -3819,11 +3827,22 @@ EOF`;
           origY: curVertex ? curVertex.origY : undefined
         };
 
-        // If Constrain to Deed Vertices is checked: clamp polygon node inside Pen Buffer of deed vertex
-        if (state.constrainPolyToDeed && state.optBufferRadius > 0) {
+        // If Constrain to Deed Vertices is checked: clamp polygon node inside Pen Buffer of deed vertex ONLY if vertex has deed length
+        if (state.constrainPolyToDeed && state.optBufferRadius > 0 && hasDeedLen) {
           let deedAnchor = state.dragDeedAnchor;
           if (!deedAnchor) {
-            deedAnchor = findNearestWarpedDeedVertex(curVertex || targetPt);
+            let warper = null;
+            if (state.anchors && state.anchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+            }
+            if (curVertex && curVertex.deedPt) {
+              const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
+              deedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
+            } else if (curVertex && curVertex.origX != null && curVertex.origY != null && (curVertex.origX !== curVertex.x || curVertex.origY !== curVertex.y)) {
+              deedAnchor = { x: curVertex.origX, y: curVertex.origY, deedPt: curVertex.deedPt || null };
+            } else {
+              deedAnchor = findNearestWarpedDeedVertex(curVertex || targetPt);
+            }
             state.dragDeedAnchor = deedAnchor;
           }
 
@@ -3836,7 +3855,7 @@ EOF`;
               targetPt = {
                 x: deedAnchor.x + R * Math.cos(angle),
                 y: deedAnchor.y + R * Math.sin(angle),
-                deedPt: deedAnchor.deedPt ? { x: deedAnchor.deedPt.x, y: deedAnchor.deedPt.y } : null,
+                deedPt: deedAnchor.deedPt ? { x: deedAnchor.deedPt.x, y: deedAnchor.deedPt.y } : (curVertex ? curVertex.deedPt : null),
                 origX: deedAnchor.x,
                 origY: deedAnchor.y
               };
@@ -3845,7 +3864,7 @@ EOF`;
               targetPt = {
                 x: p.x,
                 y: p.y,
-                deedPt: deedAnchor.deedPt ? { x: deedAnchor.deedPt.x, y: deedAnchor.deedPt.y } : null,
+                deedPt: deedAnchor.deedPt ? { x: deedAnchor.deedPt.x, y: deedAnchor.deedPt.y } : (curVertex ? curVertex.deedPt : null),
                 origX: deedAnchor.x,
                 origY: deedAnchor.y
               };
@@ -3854,7 +3873,7 @@ EOF`;
         }
 
         state.userPolygon.vertices[state.draggingUserPolyNode] = targetPt;
-        if (state.constrainPolyToDeed && targetPt.origX != null) {
+        if (state.constrainPolyToDeed && hasDeedLen && targetPt.origX != null) {
           const shift = Math.hypot(targetPt.x - targetPt.origX, targetPt.y - targetPt.origY);
           coordsBar.textContent = `Polygon Node #${state.draggingUserPolyNode + 1}: (${targetPt.x.toFixed(2)}, ${targetPt.y.toFixed(2)}) | Deed offset: ${shift.toFixed(2)}m (max ±${state.optBufferRadius.toFixed(1)}m)`;
         }
@@ -4033,13 +4052,23 @@ EOF`;
           }
           state.currentSnapTarget = null;
           if (state.userPolygon && state.userPolygon.vertices) {
-            state.userPolygon.vertices.forEach(v => {
-              if (!v.deedPt) {
-                const nearest = findNearestWarpedDeedVertex(v);
-                if (nearest && nearest.dist <= state.optBufferRadius * 2.5) {
-                  v.deedPt = nearest.deedPt;
-                  v.origX = nearest.x;
-                  v.origY = nearest.y;
+            let warper = null;
+            if (state.anchors && state.anchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+            }
+            state.userPolygon.vertices.forEach((v, idx) => {
+              if (vertexHasDeedLength(state.userPolygon, idx)) {
+                if (!v.deedPt) {
+                  const nearest = findNearestWarpedDeedVertex(v);
+                  if (nearest && nearest.dist <= state.optBufferRadius * 2.5) {
+                    v.deedPt = nearest.deedPt;
+                    v.origX = nearest.x;
+                    v.origY = nearest.y;
+                  }
+                } else {
+                  const w = warper ? warper(v.deedPt) : { x: v.deedPt.x, y: v.deedPt.y };
+                  v.origX = w.x;
+                  v.origY = w.y;
                 }
               }
             });
