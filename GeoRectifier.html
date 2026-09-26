@@ -1863,6 +1863,20 @@ EOF`;
         const eps = 1e-8;
         const baseLr = 0.14;
 
+        // Radial projection before initial evaluation: ensure all vertices start strictly within the target bufferRadius
+        for (const i of dynamicIndices) {
+          const ox = pts[i].origX;
+          const oy = pts[i].origY;
+          const dx = pts[i].x - ox;
+          const dy = pts[i].y - oy;
+          const distFromOrig = Math.hypot(dx, dy);
+          if (distFromOrig > bufferRadius) {
+            const scale = bufferRadius / distFromOrig;
+            pts[i].x = ox + dx * scale;
+            pts[i].y = oy + dy * scale;
+          }
+        }
+
         const initialEval = evaluate(pts);
         let bestLoss = initialEval.totalLoss;
         let bestPts = pts.map(p => ({ ...p }));
