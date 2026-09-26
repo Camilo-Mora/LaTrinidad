@@ -2357,7 +2357,7 @@ EOF`;
     /** Find nearest DXF vertex or other polygon vertex to snap to (matches index.html getFieldSnapTarget) */
     function getPolygonSnapTarget(mouseX, mouseY, vp, canvasH, ignorePtIdx = null) {
       const chk = document.getElementById("chk-polygon-snap");
-      if (chk && !chk.checked) return null;
+      if ((chk && !chk.checked) || state.constrainPolyToDeed) return null;
 
       let minDistance = POLY_SNAP_RADIUS;
       let closestTarget = null;
@@ -3736,42 +3736,73 @@ EOF`;
 
       // 1. Node dragging active
       if (state.draggingUserPolyNode !== null) {
-        const snap = getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode);
+        const curVertex = state.userPolygon.vertices[state.draggingUserPolyNode];
+        const snap = (!state.constrainPolyToDeed) ? getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode) : null;
         state.currentSnapTarget = snap;
         let targetPt = snap ? {
           x: snap.worldPt.x,
           y: snap.worldPt.y,
-          deedPt: snap.deedPt ? { x: snap.deedPt.x, y: snap.deedPt.y } : null
+          deedPt: snap.deedPt ? { x: snap.deedPt.x, y: snap.deedPt.y } : (curVertex ? curVertex.deedPt : null),
+          origX: curVertex ? curVertex.origX : undefined,
+          origY: curVertex ? curVertex.origY : undefined
         } : {
           x: p.x,
           y: p.y,
-          deedPt: null
+          deedPt: curVertex ? curVertex.deedPt : null,
+          origX: curVertex ? curVertex.origX : undefined,
+          origY: curVertex ? curVertex.origY : undefined
         };
 
         // If Constrain to Deed Vertices is checked: clamp polygon node inside Pen Buffer of nearest Deed vertex
         if (state.constrainPolyToDeed && state.optBufferRadius > 0) {
-          const nearestDeed = findNearestWarpedDeedVertex(targetPt);
+          let warper = null;
+          if (state.anchors && state.anchors.length >= 2) {
+            try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+          }
+          let nearestDeed = null;
+          if (curVertex && curVertex.deedPt) {
+            const wPt = warper ? warper(curVertex.deedPt) : curVertex.deedPt;
+            const origX = curVertex.origX != null ? curVertex.origX : wPt.x;
+            const origY = curVertex.origY != null ? curVertex.origY : wPt.y;
+            nearestDeed = {
+              x: origX,
+              y: origY,
+              deedPt: curVertex.deedPt,
+              dist: Math.hypot(origX - targetPt.x, origY - targetPt.y)
+            };
+          } else {
+            nearestDeed = findNearestWarpedDeedVertex(targetPt);
+          }
+
           if (nearestDeed) {
             const R = state.optBufferRadius;
-            // Active within 2*R detection zone:
-            if (nearestDeed.dist <= R * 2.0) {
+            const isPaired = !!(curVertex && curVertex.deedPt);
+            if (isPaired || nearestDeed.dist <= R * 2.0) {
               if (nearestDeed.dist > R) {
                 // Dragged outside the buffer circle: clamp to perimeter
                 const angle = Math.atan2(targetPt.y - nearestDeed.y, targetPt.x - nearestDeed.x);
                 targetPt = {
                   x: nearestDeed.x + R * Math.cos(angle),
                   y: nearestDeed.y + R * Math.sin(angle),
-                  deedPt: nearestDeed.deedPt ? { x: nearestDeed.deedPt.x, y: nearestDeed.deedPt.y } : null
+                  deedPt: nearestDeed.deedPt ? { x: nearestDeed.deedPt.x, y: nearestDeed.deedPt.y } : null,
+                  origX: nearestDeed.x,
+                  origY: nearestDeed.y
                 };
               } else {
-                // Inside the circle: assign deedPt association
+                // Inside the circle: targetPt remains free inside the circle!
                 targetPt.deedPt = nearestDeed.deedPt ? { x: nearestDeed.deedPt.x, y: nearestDeed.deedPt.y } : null;
+                targetPt.origX = nearestDeed.x;
+                targetPt.origY = nearestDeed.y;
               }
             }
           }
         }
 
         state.userPolygon.vertices[state.draggingUserPolyNode] = targetPt;
+        if (state.constrainPolyToDeed && targetPt.origX != null) {
+          const shift = Math.hypot(targetPt.x - targetPt.origX, targetPt.y - targetPt.origY);
+          coordsBar.textContent = `Polygon Node #${state.draggingUserPolyNode + 1}: (${targetPt.x.toFixed(2)}, ${targetPt.y.toFixed(2)}) | Deed offset: ${shift.toFixed(2)}m (max ±${state.optBufferRadius.toFixed(1)}m)`;
+        }
         recomputeUserPolygonMetrics();
         redrawTrueCanvas();
         return;
@@ -3936,15 +3967,32 @@ EOF`;
     }
 
     const chkConstrainDeedVertices = document.getElementById("chk-constrain-deed-vertices");
+    const chkPolygonSnap = document.getElementById("chk-polygon-snap");
+
     if (chkConstrainDeedVertices) {
       chkConstrainDeedVertices.addEventListener("change", e => {
         state.constrainPolyToDeed = e.target.checked;
         if (state.constrainPolyToDeed) {
+          if (chkPolygonSnap && chkPolygonSnap.checked) {
+            chkPolygonSnap.checked = false;
+          }
+          state.currentSnapTarget = null;
           updateStatus(`🔒 Polygon constrained: vertices clamped within ±${state.optBufferRadius.toFixed(1)}m of Deed DXF vertices.`);
         } else {
           updateStatus("🔓 Polygon constraint disabled: vertices movable freely on map.");
         }
         redrawTrueCanvas();
+      });
+    }
+
+    if (chkPolygonSnap) {
+      chkPolygonSnap.addEventListener("change", e => {
+        if (e.target.checked && state.constrainPolyToDeed) {
+          state.constrainPolyToDeed = false;
+          if (chkConstrainDeedVertices) chkConstrainDeedVertices.checked = false;
+          updateStatus("🔓 Polygon constraint disabled: vertex snapping active.");
+          redrawTrueCanvas();
+        }
       });
     }
 
