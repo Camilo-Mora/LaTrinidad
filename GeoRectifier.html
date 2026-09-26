@@ -1006,16 +1006,6 @@
                   <input type="checkbox" id="chk-show-buffer-disks" style="accent-color:var(--accent-cyan);">
                   Show Buffer Halos &amp; Vectors
                 </label>
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 0;">
-                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia gráfica pura a escala 1:2.000 (EH = 1.04 m)">
-                    <input type="checkbox" id="chk-corridor-104" style="accent-color:var(--accent-cyan);">
-                    Corredor IGAC ±1.04m (Papel)
-                  </label>
-                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#00e676;font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia rural con cobertura de bosque (EH = 5.20 m)">
-                    <input type="checkbox" id="chk-corridor-520" style="accent-color:#00e676;">
-                    Corredor IGAC ±5.20m (Bosque)
-                  </label>
-                </div>
                 <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:#00e5ff;font-weight:600;" title="Ejecuta auto-tune barriendo el radio desde 0.1m hasta 3.0m y se detiene automáticamente en el menor radio que converge">
                   <input type="checkbox" id="chk-auto-min-buffer" style="accent-color:var(--accent-cyan);">
                   ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
@@ -1080,13 +1070,30 @@
                 <strong id="poly-scale-factor" style="color:var(--accent-cyan);font-family:monospace;">—</strong>
               </div>
               <hr style="border-color:rgba(255,255,255,0.1);margin:4px 0;">
-              <div id="poly-conclusion-container" style="display:flex;flex-direction:column;gap:4px;background:rgba(0,0,0,0.35);border-left:3px solid var(--accent-cyan);padding:8px 10px;border-radius:0 4px 4px 0;margin-top:2px;">
+              <div id="poly-conclusion-container" style="display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,0.35);border-left:3px solid var(--accent-cyan);padding:8px 10px;border-radius:0 4px 4px 0;margin-top:2px;">
                 <strong style="color:var(--accent-cyan);font-size:0.75rem;display:flex;align-items:center;gap:4px;">
                   📋 Conclusion:
                 </strong>
                 <p id="poly-conclusion-text" style="font-size:0.71rem;line-height:1.55;color:#cbd5e1;margin:0;">
                   —
                 </p>
+                <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:2px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia gráfica pura a escala 1:2.000 (EH = 1.04 m)">
+                      <input type="checkbox" id="chk-corridor-104" style="accent-color:var(--accent-cyan);">
+                      Corredor IGAC ±1.04m (Papel)
+                    </label>
+                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#00e676;font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia rural con cobertura de bosque (EH = 5.20 m)">
+                      <input type="checkbox" id="chk-corridor-520" style="accent-color:#00e676;">
+                      Corredor IGAC ±5.20m (Bosque)
+                    </label>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.68rem;color:var(--text-muted);">
+                    <span style="white-space:nowrap;" title="Ajusta el nivel de transparencia/opacidad de los dos corredores IGAC en el mapa de campo">Transparency:</span>
+                    <input type="range" id="corridor-opacity-slider" min="0" max="100" value="50" class="opacity-slider" style="height:4px;flex:1;cursor:pointer;">
+                    <span id="corridor-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;color:var(--accent-cyan);">50%</span>
+                  </div>
+                </div>
               </div>
             </div>
             <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);">Click "+ Create new polygon" then click on the field canvas to place vertices. Click near the first vertex to close.</p>
@@ -2042,6 +2049,7 @@ EOF`;
       showBufferDisks: false,  // render buffer halos and displacement vectors
       showCorridor104: false,  // render ±1.04m IGAC paper tolerance corridor
       showCorridor520: false,  // render ±5.20m IGAC rural forest tolerance corridor
+      corridorOpacity: 0.5,    // opacity of IGAC corridor ribbons (0.0 .. 1.0)
       tuningAnchorsActive: false,
       tuningCancelRequested: false,
       // Anchor field vertex constraint
@@ -2825,6 +2833,7 @@ EOF`;
       // 2.3. IGAC Corridor Ribbons (Thickness Buffers around raw deed segments with distance data)
       if ((state.showCorridor104 || state.showCorridor520) && poly && poly.segmentLengths) {
         ctx.save();
+        ctx.globalAlpha = (state.corridorOpacity !== undefined ? state.corridorOpacity : 0.5);
         const drawCorridorRibbon = (radiusM, fillColor, strokeColor, dash) => {
           const rPx = radiusM * vp.scale;
           if (rPx < 0.5) return;
@@ -2883,10 +2892,10 @@ EOF`;
         };
 
         if (state.showCorridor520) {
-          drawCorridorRibbon(5.20, "rgba(0, 230, 118, 0.08)", "rgba(0, 230, 118, 0.45)", [3, 4]);
+          drawCorridorRibbon(5.20, "rgba(0, 230, 118, 0.22)", "rgba(0, 230, 118, 0.90)", [3, 4]);
         }
         if (state.showCorridor104) {
-          drawCorridorRibbon(1.04, "rgba(0, 229, 255, 0.16)", "rgba(0, 229, 255, 0.70)", [5, 4]);
+          drawCorridorRibbon(1.04, "rgba(0, 229, 255, 0.35)", "rgba(0, 229, 255, 0.95)", [5, 4]);
         }
         ctx.restore();
       }
@@ -3583,6 +3592,18 @@ EOF`;
         state.showCorridor520 = e.target.checked;
         redrawTrueCanvas();
         updateStatus(e.target.checked ? "Mostrando corredor IGAC ±5.20m (tolerancia rural con bosque)." : "Corredor IGAC ±5.20m oculto.");
+      });
+    }
+
+    const corridorOpacitySlider = document.getElementById("corridor-opacity-slider");
+    const corridorOpacityVal = document.getElementById("corridor-opacity-val");
+
+    if (corridorOpacitySlider) {
+      corridorOpacitySlider.addEventListener("input", e => {
+        const val = parseInt(e.target.value, 10);
+        state.corridorOpacity = Math.max(0, Math.min(100, val)) / 100;
+        if (corridorOpacityVal) corridorOpacityVal.textContent = `${val}%`;
+        redrawTrueCanvas();
       });
     }
 
