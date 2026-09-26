@@ -500,6 +500,58 @@
     .opacity-val { font-size: 0.68rem; color: var(--accent-cyan); font-family: monospace; min-width: 32px; text-align: right; }
     .geotiff-note { font-size: 0.67rem; color: var(--text-muted); line-height: 1.4; }
 
+    /* Vector Layer Styling Controls */
+    .color-picker-swatch {
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      box-sizing: border-box;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+    .color-picker-swatch::-webkit-color-swatch-wrapper { padding: 1px; }
+    .color-picker-swatch::-webkit-color-swatch { border: none; border-radius: 2px; }
+    .style-select {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      color: #e2e8f0;
+      font-size: 0.69rem;
+      padding: 2px 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    .style-select option { background: #0f172a; color: #fff; }
+    .style-select.width-select { width: 52px; }
+    .chk-nodes-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .chk-nodes-label:hover { color: var(--text-main); }
+    .style-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding-left: 8px;
+      margin-top: 1px;
+    }
+    .layer-control-block {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
     /* Tool Mode Bar & Fit Buttons */
     .tool-mode-group {
       display: flex;
@@ -873,15 +925,60 @@
               <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50">
               <span class="opacity-val" id="warped-pdf-opacity-val">50%</span>
             </div>
-            <div class="opacity-row">
-              <label style="min-width:85px;" title="Warped Deed DXF Boundary Polygon on Field">📐 Deed DXF</label>
-              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90">
-              <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
+            <div class="layer-control-block">
+              <div class="opacity-row">
+                <label style="min-width:85px;" title="Warped Deed DXF Boundary Polygon on Field">📐 Deed DXF</label>
+                <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90">
+                <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
+              </div>
+              <div class="style-row">
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <input type="color" id="style-deed-dxf-color" value="#ff1744" class="color-picker-swatch" title="Deed DXF line color">
+                  <select id="style-deed-dxf-dash" class="style-select" title="Line style">
+                    <option value="solid" selected>Solid ──</option>
+                    <option value="dashed">Dashed ─ ─</option>
+                    <option value="dotted">Dotted · · ·</option>
+                  </select>
+                  <select id="style-deed-dxf-width" class="style-select width-select" title="Line thickness">
+                    <option value="1">1px</option>
+                    <option value="2">2px</option>
+                    <option value="3" selected>3px</option>
+                    <option value="4">4px</option>
+                    <option value="6">6px</option>
+                  </select>
+                </div>
+                <label class="chk-nodes-label" title="Show or hide Deed DXF vertex nodes on canvas">
+                  <input type="checkbox" id="style-deed-dxf-nodes" style="accent-color:var(--accent-cyan);"> Nodes
+                </label>
+              </div>
             </div>
-            <div class="opacity-row">
-              <label style="min-width:85px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)">📍 Field DXF</label>
-              <input type="range" class="opacity-slider" id="true-dxf-opacity" min="0" max="100" value="85">
-              <span class="opacity-val" id="true-dxf-opacity-val">85%</span>
+
+            <div class="layer-control-block">
+              <div class="opacity-row">
+                <label style="min-width:85px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)">📍 Field DXF</label>
+                <input type="range" class="opacity-slider" id="true-dxf-opacity" min="0" max="100" value="85">
+                <span class="opacity-val" id="true-dxf-opacity-val">85%</span>
+              </div>
+              <div class="style-row">
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <input type="color" id="style-true-dxf-color" value="#00e676" class="color-picker-swatch" title="Field DXF line color">
+                  <select id="style-true-dxf-dash" class="style-select" title="Line style">
+                    <option value="solid" selected>Solid ──</option>
+                    <option value="dashed">Dashed ─ ─</option>
+                    <option value="dotted">Dotted · · ·</option>
+                  </select>
+                  <select id="style-true-dxf-width" class="style-select width-select" title="Line thickness">
+                    <option value="1">1px</option>
+                    <option value="2" selected>2px</option>
+                    <option value="3">3px</option>
+                    <option value="4">4px</option>
+                    <option value="6">6px</option>
+                  </select>
+                </div>
+                <label class="chk-nodes-label" title="Show or hide Field DXF vertex nodes on canvas">
+                  <input type="checkbox" id="style-true-dxf-nodes" style="accent-color:#00e676;"> Nodes
+                </label>
+              </div>
             </div>
             <div style="display:flex;gap:12px;margin-top:4px;font-size:0.72rem;">
               <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
@@ -944,6 +1041,65 @@
               </label>
               <span id="deed-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
             </div>
+            <!-- Polygon Dynamic Styling Controls -->
+            <div id="poly-styling-container" style="display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;">
+              <div style="font-size:0.71rem;font-weight:700;color:var(--text-main);display:flex;align-items:center;justify-content:space-between;">
+                <span>🎨 Polygon Display Styles</span>
+              </div>
+              
+              <!-- Sub-style 1: Segments WITH Deed Length -->
+              <div style="display:flex;flex-direction:column;gap:3px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.69rem;color:var(--accent-cyan);font-weight:600;">
+                  <span>📐 With Deed Lengths:</span>
+                  <label class="chk-nodes-label" title="Show or hide vertex nodes for segments with deed distance">
+                    <input type="checkbox" id="style-poly-deed-nodes" checked style="accent-color:var(--accent-cyan);"> Nodes
+                  </label>
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                  <input type="color" id="style-poly-deed-color" value="#00e5ff" class="color-picker-swatch" title="Line color for deed segments">
+                  <select id="style-poly-deed-dash" class="style-select" title="Line style for deed segments">
+                    <option value="solid" selected>Solid ──</option>
+                    <option value="dashed">Dashed ─ ─</option>
+                    <option value="dotted">Dotted · · ·</option>
+                  </select>
+                  <select id="style-poly-deed-width" class="style-select width-select" title="Line thickness">
+                    <option value="1">1px</option>
+                    <option value="2">2px</option>
+                    <option value="3">3px</option>
+                    <option value="3.5" selected>3.5px</option>
+                    <option value="5">5px</option>
+                  </select>
+                  <label style="font-size:0.65rem;color:var(--text-muted);display:flex;align-items:center;gap:3px;cursor:pointer;" title="Color segments by error percentage (<2%, 5%, 10%...)">
+                    <input type="checkbox" id="style-poly-deed-error-colors" checked style="accent-color:var(--accent-cyan);"> Error %
+                  </label>
+                </div>
+              </div>
+
+              <!-- Sub-style 2: Segments WITHOUT Deed Length -->
+              <div style="display:flex;flex-direction:column;gap:3px;padding:3px 0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.69rem;color:#94a3b8;font-weight:600;">
+                  <span>📍 No Deed Lengths (Field):</span>
+                  <label class="chk-nodes-label" title="Show or hide vertex nodes for field segments without deed distance">
+                    <input type="checkbox" id="style-poly-nodeed-nodes" style="accent-color:var(--accent-cyan);"> Nodes
+                  </label>
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                  <input type="color" id="style-poly-nodeed-color" value="#00e5ff" class="color-picker-swatch" title="Line color for non-deed segments">
+                  <select id="style-poly-nodeed-dash" class="style-select" title="Line style for non-deed segments">
+                    <option value="solid" selected>Solid ──</option>
+                    <option value="dashed">Dashed ─ ─</option>
+                    <option value="dotted">Dotted · · ·</option>
+                  </select>
+                  <select id="style-poly-nodeed-width" class="style-select width-select" title="Line thickness">
+                    <option value="1">1px</option>
+                    <option value="2" selected>2px</option>
+                    <option value="3">3px</option>
+                    <option value="4">4px</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <!-- Per-segment inputs container -->
             <div id="polygon-segments-container" style="display:none;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px;background:rgba(0,0,0,0.2);">
               <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px;">Segment deed distances (m) &amp; Error %:</div>
@@ -2062,6 +2218,32 @@ EOF`;
       draggingDeedNode: null,      // { entIdx, ptIdx, origDeedPt: {x,y}, origFieldPt: {x,y} }
       hoverDeedNode: null,         // { entIdx, ptIdx, deedPt: {x,y}, warpedPt: {x,y} }
       draggingDeedNodeHist: null,  // { entIdx, ptIdx, origDeedPt: {x,y} }
+      // Layer & Polygon Visual Styles
+      styleDeedDxf: {
+        color: "#ff1744",
+        dash: "solid",
+        width: 3.0,
+        showNodes: false,
+      },
+      styleTrueDxf: {
+        color: "#00e676",
+        dash: "solid",
+        width: 2.0,
+        showNodes: false,
+      },
+      stylePolyDeed: {
+        color: "#00e5ff",
+        dash: "solid",
+        width: 3.5,
+        showNodes: true,
+        useErrorColors: true,
+      },
+      stylePolyNoDeed: {
+        color: "#00e5ff",
+        dash: "solid",
+        width: 2.0,
+        showNodes: false, // Default: nodes hidden on non-deed segments
+      },
     };
 
     const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
@@ -2200,7 +2382,17 @@ EOF`;
     // Draw entities in deed-space (historical panel)
     function drawEntities(ctx, entities, vp, canvasH, color, opacity) {
       if (!entities.length) return;
-      ctx.save(); ctx.globalAlpha = opacity;
+      const style = state.styleDeedDxf;
+      const strokeCol = (style && style.color) ? style.color : color;
+      const lineW = (style && style.width) ? style.width : 2.5;
+      const dash = (style && style.dash === "dashed") ? [6, 4] : ((style && style.dash === "dotted") ? [2, 3] : []);
+
+      ctx.save();
+      ctx.globalAlpha = opacity;
+      ctx.strokeStyle = strokeCol;
+      ctx.lineWidth = lineW;
+      ctx.setLineDash(dash);
+
       entities.forEach(ent => {
         if (ent.points.length < 2) return;
         ctx.beginPath();
@@ -2208,8 +2400,25 @@ EOF`;
         ctx.moveTo(s.x, s.y);
         for (let i=1;i<ent.points.length;i++) { const p=worldToScreen(ent.points[i],vp,canvasH); ctx.lineTo(p.x,p.y); }
         if (ent.closed) ctx.closePath();
-        ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
+        ctx.stroke();
       });
+      ctx.setLineDash([]);
+
+      // Draw vertex dots if showNodes is enabled on Deed DXF
+      if (style && style.showNodes) {
+        ctx.fillStyle = strokeCol;
+        entities.forEach(ent => {
+          (ent.points || []).forEach(pt => {
+            const p = worldToScreen(pt, vp, canvasH);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, Math.max(3.5, lineW + 1.5), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          });
+        });
+      }
 
       // If Edit Deed Nodes is active, render interactive vertex handles on historical canvas
       if (state.editDeedNodes) {
@@ -2236,7 +2445,17 @@ EOF`;
     // Draw entities in GIS-space (true-field panel, unwarped)
     function drawEntitiesGIS(ctx, entities, vp, canvasH, color, opacity) {
       if (!entities.length) return;
-      ctx.save(); ctx.globalAlpha = opacity;
+      const style = state.styleTrueDxf;
+      const strokeCol = (style && style.color) ? style.color : color;
+      const lineW = (style && style.width) ? style.width : 2;
+      const dash = (style && style.dash === "dashed") ? [6, 4] : ((style && style.dash === "dotted") ? [2, 3] : []);
+
+      ctx.save();
+      ctx.globalAlpha = opacity;
+      ctx.strokeStyle = strokeCol;
+      ctx.lineWidth = lineW;
+      ctx.setLineDash(dash);
+
       entities.forEach(ent => {
         if (ent.points.length < 2) return;
         ctx.beginPath();
@@ -2244,15 +2463,43 @@ EOF`;
         ctx.moveTo(s.x, s.y);
         for (let i=1;i<ent.points.length;i++) { const p=worldToScreenGIS(ent.points[i],vp,canvasH); ctx.lineTo(p.x,p.y); }
         if (ent.closed) ctx.closePath();
-        ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke();
+        ctx.stroke();
       });
+      ctx.setLineDash([]);
+
+      // Draw vertex dots if showNodes is enabled on Field DXF
+      if (style && style.showNodes) {
+        ctx.fillStyle = strokeCol;
+        entities.forEach(ent => {
+          (ent.points || []).forEach(pt => {
+            const p = worldToScreenGIS(pt, vp, canvasH);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, Math.max(3.5, lineW + 1.5), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          });
+        });
+      }
+
       ctx.restore();
     }
 
     // Draw deed DXF warped into GIS space on the true-field panel
     function drawWarpedEntitiesGIS(ctx, entities, warper, vp, canvasH, color, opacity) {
       if (!entities.length || !warper) return;
-      ctx.save(); ctx.globalAlpha = opacity;
+      const style = state.styleDeedDxf;
+      const strokeCol = (style && style.color) ? style.color : color;
+      const lineW = (style && style.width) ? style.width : 3;
+      const dash = (style && style.dash === "dashed") ? [6, 4] : ((style && style.dash === "dotted") ? [2, 3] : []);
+
+      ctx.save();
+      ctx.globalAlpha = opacity;
+      ctx.strokeStyle = strokeCol;
+      ctx.lineWidth = lineW;
+      ctx.setLineDash(dash);
+
       entities.forEach(ent => {
         if (ent.points.length < 2) return;
         ctx.beginPath();
@@ -2265,8 +2512,26 @@ EOF`;
           ctx.lineTo(p.x, p.y);
         }
         if (ent.closed) ctx.closePath();
-        ctx.strokeStyle=color; ctx.lineWidth=3; ctx.stroke();
+        ctx.stroke();
       });
+      ctx.setLineDash([]);
+
+      // Draw vertex dots if showNodes is enabled on Deed DXF
+      if (style && style.showNodes) {
+        ctx.fillStyle = strokeCol;
+        entities.forEach(ent => {
+          (ent.points || []).forEach(pt => {
+            const wpt = warper(pt);
+            const p = worldToScreenGIS(wpt, vp, canvasH);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, Math.max(3.5, lineW + 1.5), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          });
+        });
+      }
 
       // If Edit Deed Nodes is active, render interactive vertex handles and drift feedback
       if (state.editDeedNodes) {
@@ -2810,24 +3075,34 @@ EOF`;
         ctx.fill();
       }
 
-      // 2. Individual segment strokes color-coded by percent error
+      // 2. Individual segment strokes color-coded or styled by user preferences
       const nSegs = poly.closed ? verts.length : verts.length - 1;
       for (let i = 0; i < nSegs; i++) {
         const a = verts[i], b = verts[(i + 1) % verts.length];
         const measLen = Math.hypot(b.x - a.x, b.y - a.y);
         const deedLen = poly.segmentLengths[i];
+        const hasDeedLen = deedLen != null && deedLen > 0;
         const meta = getSegmentErrorMeta(measLen, deedLen);
+
+        const segStyle = hasDeedLen ? state.stylePolyDeed : state.stylePolyNoDeed;
+        const strokeCol = (hasDeedLen && state.stylePolyDeed.useErrorColors) ? meta.color : segStyle.color;
+        const lineW = segStyle.width;
+        const dash = segStyle.dash === "dashed" ? [6, 4] : (segStyle.dash === "dotted" ? [2, 3] : []);
 
         const sa = worldToScreenGIS(a, vp, canvasH);
         const sb = worldToScreenGIS(b, vp, canvasH);
 
+        ctx.save();
         ctx.beginPath();
         ctx.moveTo(sa.x, sa.y);
         ctx.lineTo(sb.x, sb.y);
-        ctx.strokeStyle = meta.color;
-        ctx.lineWidth = meta.errPct != null ? 3.5 : 2.5;
+        ctx.strokeStyle = strokeCol;
+        ctx.lineWidth = lineW;
         ctx.lineCap = "round";
+        if (dash.length > 0) ctx.setLineDash(dash);
+        else ctx.setLineDash([]);
         ctx.stroke();
+        ctx.restore();
       }
 
       // 2.3. IGAC Corridor Ribbons (Thickness Buffers around raw deed segments with distance data)
@@ -2984,16 +3259,23 @@ EOF`;
         ctx.restore();
       }
 
-      // 3. Vertex dots (Orange = anchored to Deed DXF, Cyan = field/unanchored)
+      // 3. Vertex dots (dynamically filtered by style visibility for deed vs field nodes)
       verts.forEach((v, i) => {
+        const isDeedNode = vertexHasDeedLength(poly, i);
+        if (isDeedNode && !state.stylePolyDeed.showNodes) return;
+        if (!isDeedNode && !state.stylePolyNoDeed.showNodes) return;
+
         const sp = worldToScreenGIS(v, vp, canvasH);
         const origX = v.origX != null ? v.origX : v.x;
         const origY = v.origY != null ? v.origY : v.y;
         const isShifted = v.deedPt && Math.hypot(v.x - origX, v.y - origY) > 0.05;
 
+        const baseR = isDeedNode ? (state.stylePolyDeed.width + 2) : (state.stylePolyNoDeed.width + 2);
         ctx.beginPath();
-        ctx.arc(sp.x, sp.y, i === 0 ? 7.5 : (isShifted ? 6.5 : 5.5), 0, Math.PI * 2);
-        ctx.fillStyle = v.deedPt ? (isShifted ? "#ffd600" : "#ff9100") : "#00e5ff";
+        ctx.arc(sp.x, sp.y, i === 0 ? (baseR + 2) : (isShifted ? (baseR + 1) : baseR), 0, Math.PI * 2);
+        ctx.fillStyle = isDeedNode
+          ? (v.deedPt ? (isShifted ? "#ffd600" : "#ff9100") : state.stylePolyDeed.color)
+          : state.stylePolyNoDeed.color;
         ctx.fill();
         ctx.strokeStyle = i === 0 ? "#ffffff" : (isShifted ? "#ffffff" : (v.deedPt ? "#ffffff" : "#000000"));
         ctx.lineWidth = (i === 0 || isShifted) ? 2 : 1.5;
@@ -3606,6 +3888,56 @@ EOF`;
         redrawTrueCanvas();
       });
     }
+
+    // ── Layer & Polygon Style Listeners ─────────────────────────────────
+    function initLayerStyleListeners() {
+      // 1. Deed DXF styling
+      const styleDeedColor = document.getElementById("style-deed-dxf-color");
+      const styleDeedDash  = document.getElementById("style-deed-dxf-dash");
+      const styleDeedWidth = document.getElementById("style-deed-dxf-width");
+      const styleDeedNodes = document.getElementById("style-deed-dxf-nodes");
+
+      if (styleDeedColor) styleDeedColor.addEventListener("input", e => { state.styleDeedDxf.color = e.target.value; redrawAll(); });
+      if (styleDeedDash)  styleDeedDash.addEventListener("change", e => { state.styleDeedDxf.dash = e.target.value; redrawAll(); });
+      if (styleDeedWidth) styleDeedWidth.addEventListener("change", e => { state.styleDeedDxf.width = parseFloat(e.target.value) || 3; redrawAll(); });
+      if (styleDeedNodes) styleDeedNodes.addEventListener("change", e => { state.styleDeedDxf.showNodes = e.target.checked; redrawAll(); });
+
+      // 2. Field DXF styling
+      const styleTrueColor = document.getElementById("style-true-dxf-color");
+      const styleTrueDash  = document.getElementById("style-true-dxf-dash");
+      const styleTrueWidth = document.getElementById("style-true-dxf-width");
+      const styleTrueNodes = document.getElementById("style-true-dxf-nodes");
+
+      if (styleTrueColor) styleTrueColor.addEventListener("input", e => { state.styleTrueDxf.color = e.target.value; redrawTrueCanvas(); });
+      if (styleTrueDash)  styleTrueDash.addEventListener("change", e => { state.styleTrueDxf.dash = e.target.value; redrawTrueCanvas(); });
+      if (styleTrueWidth) styleTrueWidth.addEventListener("change", e => { state.styleTrueDxf.width = parseFloat(e.target.value) || 2; redrawTrueCanvas(); });
+      if (styleTrueNodes) styleTrueNodes.addEventListener("change", e => { state.styleTrueDxf.showNodes = e.target.checked; redrawTrueCanvas(); });
+
+      // 3. User Polygon - Deed Segments (With Lengths)
+      const stylePolyDeedColor = document.getElementById("style-poly-deed-color");
+      const stylePolyDeedDash  = document.getElementById("style-poly-deed-dash");
+      const stylePolyDeedWidth = document.getElementById("style-poly-deed-width");
+      const stylePolyDeedNodes = document.getElementById("style-poly-deed-nodes");
+      const stylePolyDeedErr   = document.getElementById("style-poly-deed-error-colors");
+
+      if (stylePolyDeedColor) stylePolyDeedColor.addEventListener("input", e => { state.stylePolyDeed.color = e.target.value; redrawTrueCanvas(); });
+      if (stylePolyDeedDash)  stylePolyDeedDash.addEventListener("change", e => { state.stylePolyDeed.dash = e.target.value; redrawTrueCanvas(); });
+      if (stylePolyDeedWidth) stylePolyDeedWidth.addEventListener("change", e => { state.stylePolyDeed.width = parseFloat(e.target.value) || 3.5; redrawTrueCanvas(); });
+      if (stylePolyDeedNodes) stylePolyDeedNodes.addEventListener("change", e => { state.stylePolyDeed.showNodes = e.target.checked; redrawTrueCanvas(); });
+      if (stylePolyDeedErr)   stylePolyDeedErr.addEventListener("change", e => { state.stylePolyDeed.useErrorColors = e.target.checked; redrawTrueCanvas(); });
+
+      // 4. User Polygon - Non-Deed Segments (Field/No Lengths)
+      const stylePolyNoDeedColor = document.getElementById("style-poly-nodeed-color");
+      const stylePolyNoDeedDash  = document.getElementById("style-poly-nodeed-dash");
+      const stylePolyNoDeedWidth = document.getElementById("style-poly-nodeed-width");
+      const stylePolyNoDeedNodes = document.getElementById("style-poly-nodeed-nodes");
+
+      if (stylePolyNoDeedColor) stylePolyNoDeedColor.addEventListener("input", e => { state.stylePolyNoDeed.color = e.target.value; redrawTrueCanvas(); });
+      if (stylePolyNoDeedDash)  stylePolyNoDeedDash.addEventListener("change", e => { state.stylePolyNoDeed.dash = e.target.value; redrawTrueCanvas(); });
+      if (stylePolyNoDeedWidth) stylePolyNoDeedWidth.addEventListener("change", e => { state.stylePolyNoDeed.width = parseFloat(e.target.value) || 2; redrawTrueCanvas(); });
+      if (stylePolyNoDeedNodes) stylePolyNoDeedNodes.addEventListener("change", e => { state.stylePolyNoDeed.showNodes = e.target.checked; redrawTrueCanvas(); });
+    }
+    initLayerStyleListeners();
 
     const chkOptAll = document.getElementById("chk-opt-all");
     const chkOptGenetic = document.getElementById("chk-opt-genetic");
