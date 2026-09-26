@@ -1052,11 +1052,11 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.69rem;color:var(--accent-cyan);font-weight:600;">
                   <span>📐 With Deed Lengths:</span>
                   <label class="chk-nodes-label" title="Show or hide vertex nodes for segments with deed distance">
-                    <input type="checkbox" id="style-poly-deed-nodes" checked style="accent-color:var(--accent-cyan);"> Nodes
+                    <input type="checkbox" id="style-poly-deed-nodes" style="accent-color:var(--accent-cyan);"> Nodes
                   </label>
                 </div>
                 <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                  <input type="color" id="style-poly-deed-color" value="#00e5ff" class="color-picker-swatch" title="Line color for deed segments">
+                  <input type="color" id="style-poly-deed-color" value="#ff1744" class="color-picker-swatch" title="Line color for deed segments">
                   <select id="style-poly-deed-dash" class="style-select" title="Line style for deed segments">
                     <option value="solid" selected>Solid ──</option>
                     <option value="dashed">Dashed ─ ─</option>
@@ -1064,9 +1064,9 @@
                   </select>
                   <select id="style-poly-deed-width" class="style-select width-select" title="Line thickness">
                     <option value="1">1px</option>
-                    <option value="2" selected>2px</option>
+                    <option value="2">2px</option>
                     <option value="3">3px</option>
-                    <option value="3.5">3.5px</option>
+                    <option value="3.5" selected>3.5px</option>
                     <option value="5">5px</option>
                   </select>
                   <label style="font-size:0.65rem;color:var(--text-muted);display:flex;align-items:center;gap:3px;cursor:pointer;" title="Color segments by error percentage (<2%, 5%, 10%...) instead of chosen solid color">
@@ -2232,10 +2232,10 @@ EOF`;
         showNodes: false,
       },
       stylePolyDeed: {
-        color: "#00e5ff",
+        color: "#ff1744", // With Deed Lengths: red color
         dash: "solid",
-        width: 2.0,      // With Deed Lengths: solid line with 2px
-        showNodes: true,
+        width: 3.5,       // 3.5 px
+        showNodes: false, // do not display nodes
         useErrorColors: false,
       },
       stylePolyNoDeed: {
