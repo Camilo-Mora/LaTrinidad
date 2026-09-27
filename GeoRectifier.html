@@ -1345,6 +1345,7 @@
         const entities = [];
         
         let currentEntity = null;
+        let inEntities = !dxfText.includes("ENTITIES");
 
         let i = 0;
         while (i < lines.length - 1) {
@@ -1356,6 +1357,30 @@
 
           if (code === 0) {
             const uVal = val.toUpperCase();
+
+            // Track sections: only model-space entities inside SECTION ENTITIES belong to the drawing
+            if (uVal === "SECTION") {
+              if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 2) {
+                const secName = lines[i + 1].trim().toUpperCase();
+                i += 2;
+                inEntities = (secName === "ENTITIES");
+              }
+              continue;
+            }
+
+            if (uVal === "ENDSEC") {
+              if (inEntities && currentEntity) {
+                DXFParser.finalizeEntity(currentEntity);
+                if (currentEntity.points.length >= 1) {
+                  entities.push(currentEntity);
+                }
+                currentEntity = null;
+              }
+              inEntities = false;
+              continue;
+            }
+
+            if (!inEntities) continue;
 
             // Handle VERTEX coordinates inside the active POLYLINE
             if (uVal === "VERTEX") {
@@ -2261,17 +2286,21 @@ EOF`;
       const allPoints = [];
       entities.forEach(ent => ent.points.forEach(pt => allPoints.push(pt)));
       if (allPoints.length === 0) return { minX:0, minY:0, maxX:100, maxY:100, width:100, height:100 };
-      const nonZero = allPoints.filter(p => Math.abs(p.x) > 1e-4 || Math.abs(p.y) > 1e-4);
-      const pts = (nonZero.length > 0 && nonZero.length < allPoints.length) ? nonZero : allPoints;
-      const xs = pts.map(p => p.x).sort((a,b) => a-b);
-      const ys = pts.map(p => p.y).sort((a,b) => a-b);
+      
+      // If real GIS project coordinates (> 100,000m) exist, ignore all template origin/anchor points (0,0)
+      const gisPoints = allPoints.filter(p => Math.abs(p.x) > 100000 || Math.abs(p.y) > 100000);
+      const pts = gisPoints.length > 0 ? gisPoints : allPoints.filter(p => Math.abs(p.x) > 1e-4 || Math.abs(p.y) > 1e-4);
+      const working = pts.length > 0 ? pts : allPoints;
+
+      const xs = working.map(p => p.x).sort((a,b) => a-b);
+      const ys = working.map(p => p.y).sort((a,b) => a-b);
       const mid = n => Math.floor(n/2);
       const q1X = xs[Math.floor(xs.length*0.25)], q3X = xs[Math.floor(xs.length*0.75)];
       const q1Y = ys[Math.floor(ys.length*0.25)], q3Y = ys[Math.floor(ys.length*0.75)];
       const iqrX = Math.max(q3X-q1X,1), iqrY = Math.max(q3Y-q1Y,1);
       const mX = xs[mid(xs.length)], mY = ys[mid(ys.length)];
-      const clean = pts.filter(p => Math.abs(p.x-mX) <= 4.5*iqrX && Math.abs(p.y-mY) <= 4.5*iqrY);
-      const final = clean.length > 0 ? clean : pts;
+      const clean = working.filter(p => Math.abs(p.x-mX) <= 4.5*iqrX && Math.abs(p.y-mY) <= 4.5*iqrY);
+      const final = clean.length > 0 ? clean : working;
       let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
       final.forEach(p => { if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; });
       if (minX===Infinity||minX===maxX) return {minX:0,minY:0,maxX:100,maxY:100,width:100,height:100};
@@ -2697,7 +2726,7 @@ EOF`;
         drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper, vp, h, "#ff1744", state.warpedDxfOpacity);
       }
 
-      // Layer 4: True Field Survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf) — green
+      // Layer 4: True Field Survey DXF (linea.dxf) — green
       drawEntitiesGIS(trueCtx, state.trueEntities, vp, h, "#00e676", state.trueDxfOpacity);
 
       // Layer 5: Target anchor pins + residual lines
@@ -5692,9 +5721,12 @@ EOF`;
       r.onload=function(){
         state.trueEntities=DXFParser.parse(this.result);
         trueStatus.textContent=`Field DXF: ${state.trueEntities.length} entities`;
-        state.trueViewport={scale:1,offsetX:0,offsetY:0,bbox:null};
+        if (state.trueEntities.length > 0 && trueCanvas.width > 0) {
+          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+        }
         resizeCanvases();
-        updateStatus(`Loaded field survey DXF: ${state.trueEntities.length} entities.`);
+        redrawAll();
+        updateStatus(`Loaded field survey DXF (${f.name}): ${state.trueEntities.length} entities.`);
       };
       r.readAsText(f);
     });
@@ -5873,20 +5905,20 @@ EOF`;
         }
       }
 
-      // 4. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf)
+      // 4. Field survey DXF (linea.dxf)
       try {
         let text;
         try {
-          text = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf");
+          text = await fetchText("linea.dxf");
         } catch(_) {
-          text = await fetchText(encodeURIComponent("Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf"));
+          text = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf");
         }
         state.trueEntities = DXFParser.parse(text);
         trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
         if (!state.trueViewport.bbox && state.trueEntities.length > 0) {
           state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
         }
-        updateStatus(`Field survey DXF loaded: ${state.trueEntities.length} entities.`);
+        updateStatus(`Field survey DXF (linea.dxf) loaded: ${state.trueEntities.length} entities.`);
         redrawAll();
       } catch(e) {
         console.warn("Auto Field DXF:", e.message);
