@@ -898,7 +898,7 @@
 
             <div class="layer-control-block">
               <div class="opacity-row">
-                <label style="min-width:130px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)">📍 Cercos La Trinidad</label>
+                <label style="min-width:130px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf)">📍 Cercos La Trinidad</label>
                 <input type="range" class="opacity-slider" id="true-dxf-opacity" min="0" max="100" value="0">
                 <span class="opacity-val" id="true-dxf-opacity-val">0%</span>
               </div>
@@ -2158,7 +2158,7 @@ EOF`;
        ========================================================================== */
     const state = {
       histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
-      trueEntities: [],      // DXF from Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf (GIS UTM coord space)
+      trueEntities: [],      // DXF from Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf (GIS UTM coord space)
       anchors: [],
       pendingSource: null,
       algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
@@ -2697,7 +2697,7 @@ EOF`;
         drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper, vp, h, "#ff1744", state.warpedDxfOpacity);
       }
 
-      // Layer 4: True Field Survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf) — green
+      // Layer 4: True Field Survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf) — green
       drawEntitiesGIS(trueCtx, state.trueEntities, vp, h, "#00e676", state.trueDxfOpacity);
 
       // Layer 5: Target anchor pins + residual lines
@@ -5871,13 +5871,13 @@ EOF`;
         }
       }
 
-      // 4. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)
+      // 4. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf)
       try {
         let text;
         try {
-          text = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf");
+          text = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf");
         } catch(_) {
-          text = await fetchText(encodeURIComponent("Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf"));
+          text = await fetchText(encodeURIComponent("Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf"));
         }
         state.trueEntities = DXFParser.parse(text);
         trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
