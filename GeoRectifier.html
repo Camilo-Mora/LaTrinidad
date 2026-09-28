@@ -1210,9 +1210,9 @@
             </div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging within the Pen Buffer Radius of Field.dxf vertices">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging and simulation centers within the Pen Buffer Radius of Field vertices and Temporary Checkpoint Markers">
               <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
-              🔒 Constrain to Field Vertices
+              🔒 Constrain to Vertices / Markers
             </label>
             <span id="anchor-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
           </div>
@@ -3402,7 +3402,25 @@ EOF`;
       let closest = null;
       let minDist = Infinity;
 
-      // 1. Check Field survey DXF entities
+      // 1. Check temporary reference markers on field canvas first (highest priority for testing specific locations)
+      if (state.tempMarkers && state.tempMarkers.length > 0) {
+        for (let m = 0; m < state.tempMarkers.length; m++) {
+          const pt = state.tempMarkers[m];
+          if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+          const d = Math.hypot(pt.x - worldPt.x, pt.y - worldPt.y);
+          if (d < minDist) {
+            minDist = d;
+            closest = { x: pt.x, y: pt.y, dist: d, isMarker: true, label: pt.label };
+          }
+        }
+        // If a temporary marker is within the test buffer radius or detection zone, lock to it directly
+        const testRadius = Math.max((state.optBufferRadius || 3.0) * 1.5, 5.0);
+        if (closest && closest.dist <= testRadius) {
+          return closest;
+        }
+      }
+
+      // 2. Check Field survey DXF entities
       if (state.trueEntities && state.trueEntities.length > 0) {
         for (let entIdx = 0; entIdx < state.trueEntities.length; entIdx++) {
           const ent = state.trueEntities[entIdx];
@@ -3419,7 +3437,7 @@ EOF`;
         }
       }
 
-      // 2. Check added temporary Reference DXFs
+      // 3. Check added temporary Reference DXFs
       if (state.refDxfFiles && state.refDxfFiles.length > 0) {
         for (let r = 0; r < state.refDxfFiles.length; r++) {
           const ref = state.refDxfFiles[r];
@@ -3436,19 +3454,6 @@ EOF`;
                 closest = { x: pt.x, y: pt.y, dist: d };
               }
             }
-          }
-        }
-      }
-
-      // 3. Check temporary reference markers on field canvas
-      if (state.tempMarkers && state.tempMarkers.length > 0) {
-        for (let m = 0; m < state.tempMarkers.length; m++) {
-          const pt = state.tempMarkers[m];
-          if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
-          const d = Math.hypot(pt.x - worldPt.x, pt.y - worldPt.y);
-          if (d < minDist) {
-            minDist = d;
-            closest = { x: pt.x, y: pt.y, dist: d, isMarker: true, label: pt.label };
           }
         }
       }
@@ -4833,14 +4838,14 @@ EOF`;
         : [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0];
 
       // Identify buffer centers for each anchor:
-      // If "Constrain to Field Vertices" is ticked, start/center from the snapped vertex.
+      // If "Constrain to Vertices / Markers" is ticked, start/center from the snapped vertex or temporary marker.
       // If unticked, start/center from the exact point where the anchor is currently located.
-      const baseR = 3.0;
+      const baseR = Math.max(state.optBufferRadius > 0 ? state.optBufferRadius : 3.0, 3.0);
       const anchorCenters = state.anchors.map(anc => {
         if (state.constrainAnchorsToField) {
           const nearestField = findNearestFieldVertex(anc.dst);
           if (nearestField && nearestField.dist <= baseR * 2.5) {
-            return { x: nearestField.x, y: nearestField.y };
+            return { x: nearestField.x, y: nearestField.y, isMarker: !!nearestField.isMarker, label: nearestField.label };
           }
         }
         return { x: anc.dst.x, y: anc.dst.y };
@@ -6666,9 +6671,9 @@ EOF`;
       chkConstrainAnchors.addEventListener("change", e => {
         state.constrainAnchorsToField = e.target.checked;
         if (state.constrainAnchorsToField) {
-          updateStatus(`🔒 Anchor constraint active: anchors clamped within ±${state.optBufferRadius.toFixed(1)}m of Field.dxf vertices.`);
+          updateStatus(`🔒 Anchor constraint active: simulations & dragging clamped within ±${state.optBufferRadius.toFixed(1)}m of survey vertices or temporary markers.`);
         } else {
-          updateStatus("🔓 Anchor constraint disabled: anchors movable anywhere on map.");
+          updateStatus("🔓 Anchor constraint disabled: simulations & dragging start from custom anchor placement.");
         }
         redrawTrueCanvas();
       });
