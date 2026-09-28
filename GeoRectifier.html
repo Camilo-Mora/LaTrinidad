@@ -1118,6 +1118,21 @@
           </div>
           <div class="canvas-container" id="true-container">
             <canvas id="true-canvas"></canvas>
+            <!-- Floating Deed Aspect / Squeeze HUD Widget with prominent Reset button -->
+            <div id="deed-squeeze-hud" style="position:absolute;top:10px;left:10px;background:rgba(15,20,32,0.94);border:1.5px solid #d500f9;border-radius:8px;padding:6px 12px;font-size:0.75rem;color:var(--text-main);box-shadow:0 4px 18px rgba(213,0,249,0.35);backdrop-filter:blur(8px);z-index:35;display:flex;align-items:center;gap:10px;">
+              <span style="font-weight:700;color:#d500f9;display:flex;align-items:center;gap:4px;">
+                📐 DEED SQUEEZE:
+              </span>
+              <span id="deed-scale-display-hud" style="font-family:monospace;font-weight:700;color:#00e5ff;font-size:0.78rem;">
+                X: 100.0% | Y: 100.0%
+              </span>
+              <button id="btn-reset-deed-scale-hud" style="background:#d500f9;color:#ffffff;border:none;border-radius:4px;padding:3px 10px;font-size:0.72rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;box-shadow:0 0 10px rgba(213,0,249,0.4);" title="Reset Deed Aspect Ratio to 100% (1:1 original)">
+                ↺ Reset
+              </button>
+              <button id="btn-toggle-deed-handles-hud" style="background:rgba(255,255,255,0.08);color:#f0f4f8;border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:3px 8px;font-size:0.72rem;cursor:pointer;" title="Show or hide the drag handles on canvas">
+                🔲 Handles
+              </button>
+            </div>
             <!-- Floating Measurement HUD Overlay -->
             <div id="measure-hud" style="display:none;position:absolute;top:10px;right:10px;background:rgba(18,24,38,0.92);border:1px solid rgba(255,179,0,0.5);border-radius:6px;padding:7px 11px;font-size:0.75rem;color:var(--text-main);box-shadow:0 4px 16px rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:35;min-width:190px;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:3px;">
@@ -1218,6 +1233,17 @@
               </label>
             </div>
             <p class="geotiff-note">Adjust opacities to visually inspect deed alignment over the drone imagery, just like in PowerPoint.</p>
+
+            <!-- Deed Aspect Squeeze & Reset Controls -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(213,0,249,0.12);border:1.5px solid rgba(213,0,249,0.4);border-radius:6px;margin-top:6px;margin-bottom:6px;">
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <span style="font-size:0.75rem;font-weight:700;color:#d500f9;">📐 Deed Aspect Squeeze</span>
+                <span id="deed-scale-display-sidebar" style="font-size:0.72rem;color:#f0f4f8;font-family:monospace;font-weight:600;">X: 100.0% | Y: 100.0%</span>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <button id="btn-reset-deed-scale-sidebar" class="btn btn-sm" style="background:#d500f9;color:#ffffff;font-weight:bold;font-size:0.72rem;padding:3px 10px;cursor:pointer;box-shadow:0 0 10px rgba(213,0,249,0.4);" title="Reset Deed Aspect Ratio to 100% original (1:1)">↺ Reset</button>
+              </div>
+            </div>
 
             <!-- Reference DXFs Subpanel Container (Temporary Layers) -->
             <div id="ref-dxf-container" style="display:none;flex-direction:column;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.15);">
@@ -4422,6 +4448,7 @@ EOF`;
       deedScale: { x: 1.0, y: 1.0 },
       showDeedHandles: true,
       activeDeedHandle: null,
+      hoveredDeedHandle: null,
       deedDragStart: null,
       histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
       trueEntities: [],      // DXF from Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf (GIS UTM coord space)
@@ -5225,7 +5252,7 @@ EOF`;
       const gizmo = getDeedBoundingGizmo(vp, canvasH);
       if (!gizmo) return null;
 
-      const HIT_R = 14;
+      const HIT_R = 18;
       const { corners, midpoints } = gizmo;
 
       // Check corner handles first
@@ -5309,26 +5336,82 @@ EOF`;
         ctx.restore();
       }
 
-      // 2. Draw 4 Edge Handles
-      drawPill(midpoints.left.x, midpoints.left.y, angleHeight, state.activeDeedHandle === "left");
-      drawPill(midpoints.right.x, midpoints.right.y, angleHeight, state.activeDeedHandle === "right");
-      drawPill(midpoints.top.x, midpoints.top.y, angleWidth, state.activeDeedHandle === "top");
-      drawPill(midpoints.bottom.x, midpoints.bottom.y, angleWidth, state.activeDeedHandle === "bottom");
+      // 2. Draw 4 Edge Handles (highlighted if active or hovered)
+      drawPill(midpoints.left.x, midpoints.left.y, angleHeight, state.activeDeedHandle === "left" || state.hoveredDeedHandle === "left");
+      drawPill(midpoints.right.x, midpoints.right.y, angleHeight, state.activeDeedHandle === "right" || state.hoveredDeedHandle === "right");
+      drawPill(midpoints.top.x, midpoints.top.y, angleWidth, state.activeDeedHandle === "top" || state.hoveredDeedHandle === "top");
+      drawPill(midpoints.bottom.x, midpoints.bottom.y, angleWidth, state.activeDeedHandle === "bottom" || state.hoveredDeedHandle === "bottom");
 
-      // 3. Draw 4 Corner Handles
-      drawCorner(corners.tl.x, corners.tl.y, state.activeDeedHandle === "tl");
-      drawCorner(corners.tr.x, corners.tr.y, state.activeDeedHandle === "tr");
-      drawCorner(corners.br.x, corners.br.y, state.activeDeedHandle === "br");
-      drawCorner(corners.bl.x, corners.bl.y, state.activeDeedHandle === "bl");
+      // 3. Draw 4 Corner Handles (highlighted if active or hovered)
+      drawCorner(corners.tl.x, corners.tl.y, state.activeDeedHandle === "tl" || state.hoveredDeedHandle === "tl");
+      drawCorner(corners.tr.x, corners.tr.y, state.activeDeedHandle === "tr" || state.hoveredDeedHandle === "tr");
+      drawCorner(corners.br.x, corners.br.y, state.activeDeedHandle === "br" || state.hoveredDeedHandle === "br");
+      drawCorner(corners.bl.x, corners.bl.y, state.activeDeedHandle === "bl" || state.hoveredDeedHandle === "bl");
+
+      // 4. Live Tooltip badge next to active handle while dragging, or informative tooltip on hover
+      const targetHandle = state.activeDeedHandle || state.hoveredDeedHandle;
+      if (targetHandle && state.deedScale) {
+        const isDragging = !!state.activeDeedHandle;
+        let text = "";
+        if (isDragging) {
+          text = (targetHandle === "left" || targetHandle === "right")
+            ? `↔ Width: ${(state.deedScale.x * 100).toFixed(1)}%`
+            : (targetHandle === "top" || targetHandle === "bottom")
+            ? `↕ Height: ${(state.deedScale.y * 100).toFixed(1)}%`
+            : `↔ X: ${(state.deedScale.x * 100).toFixed(1)}% | ↕ Y: ${(state.deedScale.y * 100).toFixed(1)}%`;
+        } else {
+          text = (targetHandle === "left" || targetHandle === "right")
+            ? `↔ Squeeze Width (${(state.deedScale.x * 100).toFixed(1)}%)`
+            : (targetHandle === "top" || targetHandle === "bottom")
+            ? `↕ Squeeze Height (${(state.deedScale.y * 100).toFixed(1)}%)`
+            : `⤡ Resize Aspect (X:${(state.deedScale.x * 100).toFixed(1)}% Y:${(state.deedScale.y * 100).toFixed(1)}%)`;
+        }
+
+        let activePos = corners.br;
+        if (targetHandle in midpoints) activePos = midpoints[targetHandle];
+        else if (targetHandle in corners) activePos = corners[targetHandle];
+
+        ctx.save();
+        ctx.font = "bold 12px sans-serif";
+        const tm = ctx.measureText(text);
+        const pw = tm.width + 16, ph = 24;
+        const px = activePos.x + 16, py = activePos.y - 12;
+
+        ctx.fillStyle = "rgba(10, 14, 23, 0.94)";
+        ctx.strokeStyle = "#d500f9";
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 8;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(px, py - ph / 2, pw, ph, 4);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(px, py - ph / 2, pw, ph);
+          ctx.strokeRect(px, py - ph / 2, pw, ph);
+        }
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, px + 8, py);
+        ctx.restore();
+      }
 
       ctx.restore();
     }
 
     function updateDeedScaleDisplay() {
-      const el = document.getElementById("deed-scale-display");
-      if (el && state.deedScale) {
-        el.textContent = `X:${(state.deedScale.x * 100).toFixed(1)}% Y:${(state.deedScale.y * 100).toFixed(1)}%`;
-      }
+      if (!state.deedScale) return;
+      const xPct = (state.deedScale.x * 100).toFixed(1) + "%";
+      const yPct = (state.deedScale.y * 100).toFixed(1) + "%";
+      const str = `X: ${xPct} | Y: ${yPct}`;
+      const el1 = document.getElementById("deed-scale-display");
+      if (el1) el1.textContent = `X:${xPct} Y:${yPct}`;
+      const el2 = document.getElementById("deed-scale-display-hud");
+      if (el2) el2.textContent = str;
+      const el3 = document.getElementById("deed-scale-display-sidebar");
+      if (el3) el3.textContent = str;
     }
 
     function resetDeedScale() {
@@ -10023,6 +10106,7 @@ EOF`;
     let draggingAnchor = null; // { anc, isHist }
 
     function handleMouseDown(e, canvas, viewport, isHist) {
+      if (state.activeDeedHandle !== null) return;
       clickStart.x = e.clientX;
       clickStart.y = e.clientY;
 
@@ -10174,6 +10258,62 @@ EOF`;
     }
 
     window.addEventListener("mousemove", e => {
+      // 0. Smooth window-level drag for deed squeeze handles
+      if (state.activeDeedHandle !== null && state.deedDragStart) {
+        const r = trueCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - r.left, mouseY = e.clientY - r.top;
+        const start = state.deedDragStart;
+        const dx = mouseX - start.sx;
+        const dy = mouseY - start.sy;
+        const gizmo = start.gizmo;
+
+        if (gizmo) {
+          const h = state.activeDeedHandle;
+          const halfW = Math.max(10, gizmo.widthScreen / 2);
+          const halfH = Math.max(10, gizmo.heightScreen / 2);
+
+          if (h === "right") {
+            const proj = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + proj / halfW)));
+          } else if (h === "left") {
+            const proj = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + proj / halfW)));
+          } else if (h === "bottom") {
+            const proj = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + proj / halfH)));
+          } else if (h === "top") {
+            const proj = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + proj / halfH)));
+          } else if (h === "br") {
+            const projX = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
+            const projY = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / halfW)));
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / halfH)));
+          } else if (h === "tl") {
+            const projX = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
+            const projY = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / halfW)));
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / halfH)));
+          } else if (h === "tr") {
+            const projX = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
+            const projY = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / halfW)));
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / halfH)));
+          } else if (h === "bl") {
+            const projX = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
+            const projY = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / halfW)));
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / halfH)));
+          }
+        }
+
+        updateDeedScaleDisplay();
+        updateUserPolygonWarp();
+        updateCustomPolygonAnchors();
+        redrawTrueCanvas();
+        return;
+      }
+
       if (isPanning && activePanViewport) {
         const dx = e.clientX - panStart.x;
         const dy = e.clientY - panStart.y;
@@ -10347,6 +10487,20 @@ EOF`;
     });
 
     window.addEventListener("mouseup", () => {
+      // 0. Release Deed Handle Dragging & lock position
+      if (state.activeDeedHandle !== null) {
+        state.activeDeedHandle = null;
+        state.deedDragStart = null;
+        isPanning = false;
+        activePanViewport = null;
+        trueCanvas.style.cursor = (state.toolMode === "pan") ? "grab" : "default";
+        updateDeedScaleDisplay();
+        updateUserPolygonWarp();
+        updateCustomPolygonAnchors();
+        redrawAll();
+        updateStatus(`📐 Deed Squeeze adjusted: X ${(state.deedScale.x * 100).toFixed(1)}%, Y ${(state.deedScale.y * 100).toFixed(1)}%. Position locked.`);
+        return;
+      }
       if (state.draggingTempMarker) {
         const m = state.draggingTempMarker.marker;
         state.draggingTempMarker = null;
@@ -10433,67 +10587,28 @@ EOF`;
       const mouseX = e.clientX - r.left, mouseY = e.clientY - r.top;
       const vp = state.trueViewport, h = trueCanvas.height;
 
-      // Squeeze Deed Handle Dragging
-      if (state.activeDeedHandle !== null && state.deedDragStart) {
-        const start = state.deedDragStart;
-        const dx = mouseX - start.sx;
-        const dy = mouseY - start.sy;
-        const gizmo = start.gizmo;
-
-        if (gizmo) {
-          if (state.activeDeedHandle === "right") {
-            const proj = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
-            const factor = 1 + proj / (gizmo.widthScreen / 2);
-            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * factor));
-          } else if (state.activeDeedHandle === "left") {
-            const proj = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
-            const factor = 1 + proj / (gizmo.widthScreen / 2);
-            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * factor));
-          } else if (state.activeDeedHandle === "bottom") {
-            const proj = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
-            const factor = 1 + proj / (gizmo.heightScreen / 2);
-            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * factor));
-          } else if (state.activeDeedHandle === "top") {
-            const proj = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
-            const factor = 1 + proj / (gizmo.heightScreen / 2);
-            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * factor));
-          } else if (state.activeDeedHandle === "br") {
-            const projX = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
-            const projY = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
-            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / (gizmo.widthScreen / 2))));
-            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / (gizmo.heightScreen / 2))));
-          } else if (state.activeDeedHandle === "tl") {
-            const projX = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
-            const projY = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
-            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / (gizmo.widthScreen / 2))));
-            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / (gizmo.heightScreen / 2))));
-          } else if (state.activeDeedHandle === "tr") {
-            const projX = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
-            const projY = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
-            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / (gizmo.widthScreen / 2))));
-            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / (gizmo.heightScreen / 2))));
-          } else if (state.activeDeedHandle === "bl") {
-            const projX = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
-            const projY = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
-            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / (gizmo.widthScreen / 2))));
-            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / (gizmo.heightScreen / 2))));
-          }
-        }
-
-        updateDeedScaleDisplay();
-        updateUserPolygonWarp();
-        updateCustomPolygonAnchors();
-        redrawTrueCanvas();
+      // If actively dragging deed handle, window mousemove handles position
+      if (state.activeDeedHandle !== null) {
         return;
       }
 
       // Deed Handle Hover detection
       if (!isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && state.showOverlay && state.showDeedHandles !== false && state.toolMode === "pan") {
         const handleHit = findDeedHandleAt(mouseX, mouseY, vp, h);
+        const prevHover = state.hoveredDeedHandle;
+        state.hoveredDeedHandle = handleHit ? handleHit.handle : null;
+        if (state.hoveredDeedHandle !== prevHover) {
+          redrawTrueCanvas();
+        }
         if (handleHit) {
           trueCanvas.style.cursor = handleHit.cursor;
           coordsBar.textContent = `📐 Deed Squeeze [${handleHit.handle.toUpperCase()}]: Drag to adjust aspect ratio.`;
           return;
+        }
+      } else {
+        if (state.hoveredDeedHandle) {
+          state.hoveredDeedHandle = null;
+          redrawTrueCanvas();
         }
       }
       const p = screenToWorldGIS(mouseX, mouseY, vp, h);
@@ -10855,7 +10970,20 @@ EOF`;
     histCanvas.addEventListener("mouseup",   e => handleMouseUp(e, histCanvas, state.histViewport, true));
     histCanvas.addEventListener("contextmenu", e => e.preventDefault());
     trueCanvas.addEventListener("mousedown", e => handleMouseDown(e, trueCanvas, state.trueViewport, false));
-    trueCanvas.addEventListener("mouseup",   e => handleMouseUp(e, trueCanvas, state.trueViewport, false));
+    trueCanvas.addEventListener("mouseup", e => {
+      if (state.activeDeedHandle !== null) {
+        state.activeDeedHandle = null;
+        state.deedDragStart = null;
+        trueCanvas.style.cursor = "default";
+        updateDeedScaleDisplay();
+        updateUserPolygonWarp();
+        updateCustomPolygonAnchors();
+        redrawAll();
+        updateStatus(`📐 Deed Squeeze adjusted: X ${(state.deedScale.x * 100).toFixed(1)}%, Y ${(state.deedScale.y * 100).toFixed(1)}%. Position locked.`);
+        return;
+      }
+      handleMouseUp(e, trueCanvas, state.trueViewport, false);
+    });
     trueCanvas.addEventListener("contextmenu", e => {
       e.preventDefault();
       if (state.measureTool && state.measureTool.active) {
@@ -11760,65 +11888,126 @@ EOF`;
     /* ======================================================
        GEOTIFF LOADING
     ====================================================== */
-    const MAX_DISPLAY_DIM = 2048;
+    const MAX_DISPLAY_DIM = 4096;
 
     async function parseGeoTiff(fileOrBlob) {
       const statusEl = document.getElementById("geotiff-status");
-      if (statusEl) { statusEl.textContent="⏳ Reading…"; statusEl.className="geotiff-status"; }
-      const sizeMB=fileOrBlob&&fileOrBlob.size?`${(fileOrBlob.size/1024/1024).toFixed(1)} MB`:"file";
+      if (statusEl) { statusEl.textContent = "⏳ Reading…"; statusEl.className = "geotiff-status"; }
+      const sizeMB = fileOrBlob && fileOrBlob.size ? `${(fileOrBlob.size / 1024 / 1024).toFixed(1)} MB` : "file";
       updateStatus(`Loading GeoTIFF (${sizeMB}) — please wait…`);
-      await new Promise(r=>setTimeout(r,50));
+      await new Promise(r => setTimeout(r, 20));
       try {
-        const tiff=await GeoTIFF.fromBlob(fileOrBlob);
-        const fullImg=await tiff.getImage(0);
-        const fullW=fullImg.getWidth(), fullH=fullImg.getHeight();
-        let bbox, hasGeoRef=false;
+        const tiff = await GeoTIFF.fromBlob(fileOrBlob);
+        const fullImg = await tiff.getImage(0);
+        const fullW = fullImg.getWidth(), fullH = fullImg.getHeight();
+        let bbox, hasGeoRef = false;
         try {
-          const origin=fullImg.getOrigin(), res=fullImg.getResolution();
-          if (origin&&res&&origin.length>=2&&Math.abs(res[0])>0) {
-            bbox={minX:origin[0],maxY:origin[1],maxX:origin[0]+fullW*Math.abs(res[0]),minY:origin[1]-fullH*Math.abs(res[1])};
-            hasGeoRef=true;
+          const origin = fullImg.getOrigin(), res = fullImg.getResolution();
+          if (origin && res && origin.length >= 2 && Math.abs(res[0]) > 0) {
+            bbox = {
+              minX: origin[0],
+              maxY: origin[1],
+              maxX: origin[0] + fullW * Math.abs(res[0]),
+              minY: origin[1] - fullH * Math.abs(res[1])
+            };
+            hasGeoRef = true;
           }
-        } catch(_){}
-        if (!bbox) bbox={minX:0,minY:0,maxX:fullW,maxY:fullH};
-        bbox.width=Math.abs(bbox.maxX-bbox.minX); bbox.height=Math.abs(bbox.maxY-bbox.minY);
+        } catch (_) {}
+        if (!bbox) bbox = { minX: 0, minY: 0, maxX: fullW, maxY: fullH };
+        bbox.width = Math.abs(bbox.maxX - bbox.minX);
+        bbox.height = Math.abs(bbox.maxY - bbox.minY);
 
-        const imageCount=await tiff.getImageCount();
-        let readImg=fullImg;
-        for (let l=1;l<imageCount;l++) {
-          const img=await tiff.getImage(l); readImg=img;
-          if (Math.max(img.getWidth(),img.getHeight())<=MAX_DISPLAY_DIM) break;
+        const imageCount = await tiff.getImageCount();
+        let readImg = fullImg;
+        for (let l = 1; l < imageCount; l++) {
+          const img = await tiff.getImage(l);
+          readImg = img;
+          if (Math.max(img.getWidth(), img.getHeight()) <= MAX_DISPLAY_DIM) break;
         }
-        const readW=readImg.getWidth(), readH=readImg.getHeight();
-        const sc=Math.min(1,MAX_DISPLAY_DIM/Math.max(readW,readH));
-        const tW=Math.max(1,Math.round(readW*sc)), tH=Math.max(1,Math.round(readH*sc));
-        if (statusEl) statusEl.textContent=`⏳ Decoding ${tW}×${tH}…`;
-        updateStatus(`Decoding ${tW}×${tH} from ${fullW}×${fullH}…`);
-        await new Promise(r=>setTimeout(r,20));
+        const readW = readImg.getWidth(), readH = readImg.getHeight();
+        const sc = Math.min(1, MAX_DISPLAY_DIM / Math.max(readW, readH));
+        const tW = Math.max(1, Math.round(readW * sc)), tH = Math.max(1, Math.round(readH * sc));
+        if (statusEl) statusEl.textContent = `⏳ Decoding ${tW}×${tH}…`;
+        await new Promise(r => setTimeout(r, 10));
 
-        const rasters=await readImg.readRasters({width:tW,height:tH,interleave:true});
-        const spp=readImg.getSamplesPerPixel();
-        const off=document.createElement("canvas"); off.width=tW; off.height=tH;
-        const oc=off.getContext("2d"), id=oc.createImageData(tW,tH), d=id.data;
-        const clamp=v=>{if(v==null)return 0;if(v>=0&&v<=255&&Number.isInteger(v))return v;if(v>255)return Math.min(255,Math.round(v/256));if(v<=1&&v>=0)return Math.round(v*255);return Math.min(255,Math.max(0,Math.round(v)));};
-        let mn=Infinity,mx=-Infinity;
-        if (spp===1){for(let k=0;k<rasters.length;k++){if(rasters[k]<mn)mn=rasters[k];if(rasters[k]>mx)mx=rasters[k];}}
-        for (let i=0;i<tW*tH;i++){
-          let r=0,g=0,b=0,a=255;
-          if(spp===1){const n=mx===mn?0.5:(rasters[i]-mn)/(mx-mn);r=g=b=Math.round(n*255);}
-          else if(spp===3){r=clamp(rasters[i*3]);g=clamp(rasters[i*3+1]);b=clamp(rasters[i*3+2]);}
-          else if(spp>=4){r=clamp(rasters[i*4]);g=clamp(rasters[i*4+1]);b=clamp(rasters[i*4+2]);a=clamp(rasters[i*4+3]);}
-          d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=a;
+        const rasters = await readImg.readRasters({ width: tW, height: tH, interleave: true });
+        const spp = readImg.getSamplesPerPixel();
+        const off = document.createElement("canvas");
+        off.width = tW;
+        off.height = tH;
+        const oc = off.getContext("2d");
+        const id = oc.createImageData(tW, tH);
+        const d = id.data;
+
+        // Optimized fast transfer loop for standard 8-bit RGB GeoTIFFs (avoids millions of clamp calls)
+        if (spp === 3 && (rasters instanceof Uint8Array || rasters.buffer)) {
+          const rData = rasters;
+          for (let i = 0, j = 0; i < tW * tH * 4; i += 4, j += 3) {
+            d[i]     = rData[j];
+            d[i + 1] = rData[j + 1];
+            d[i + 2] = rData[j + 2];
+            d[i + 3] = 255;
+          }
+        } else if (spp >= 4 && (rasters instanceof Uint8Array || rasters.buffer)) {
+          const rData = rasters;
+          for (let i = 0, j = 0; i < tW * tH * 4; i += 4, j += spp) {
+            d[i]     = rData[j];
+            d[i + 1] = rData[j + 1];
+            d[i + 2] = rData[j + 2];
+            d[i + 3] = rData[j + 3];
+          }
+        } else {
+          const clamp = v => {
+            if (v == null) return 0;
+            if (v >= 0 && v <= 255 && Number.isInteger(v)) return v;
+            if (v > 255) return Math.min(255, Math.round(v / 256));
+            if (v <= 1 && v >= 0) return Math.round(v * 255);
+            return Math.min(255, Math.max(0, Math.round(v)));
+          };
+          let mn = Infinity, mx = -Infinity;
+          if (spp === 1) {
+            for (let k = 0; k < rasters.length; k++) {
+              if (rasters[k] < mn) mn = rasters[k];
+              if (rasters[k] > mx) mx = rasters[k];
+            }
+          }
+          for (let i = 0; i < tW * tH; i++) {
+            let r = 0, g = 0, b = 0, a = 255;
+            if (spp === 1) {
+              const n = mx === mn ? 0.5 : (rasters[i] - mn) / (mx - mn);
+              r = g = b = Math.round(n * 255);
+            } else if (spp === 3) {
+              r = clamp(rasters[i * 3]);
+              g = clamp(rasters[i * 3 + 1]);
+              b = clamp(rasters[i * 3 + 2]);
+            } else if (spp >= 4) {
+              r = clamp(rasters[i * 4]);
+              g = clamp(rasters[i * 4 + 1]);
+              b = clamp(rasters[i * 4 + 2]);
+              a = clamp(rasters[i * 4 + 3]);
+            }
+            d[i * 4]     = r;
+            d[i * 4 + 1] = g;
+            d[i * 4 + 2] = b;
+            d[i * 4 + 3] = a;
+          }
         }
-        oc.putImageData(id,0,0);
-        state.geoTiff={offscreen:off,bbox,hasGeoRef};
-        state.trueViewport=fitViewport(trueCanvas,bbox);
-        if (statusEl) { statusEl.textContent=`${tW}×${tH} · ${hasGeoRef?"Georef ✓":"No georef"}`; statusEl.className="geotiff-status ok"; }
-        updateStatus(`Drone GeoTIFF loaded (${tW}×${tH}). ${hasGeoRef?"Georeferenced.":""}`);
-        redrawAll();
-      } catch(err) {
-        console.error("GeoTIFF error:",err);
-        if (statusEl) { statusEl.textContent="Error"; statusEl.className="geotiff-status"; }
+
+        oc.putImageData(id, 0, 0);
+        state.geoTiff = { offscreen: off, bbox, hasGeoRef };
+        // Only override viewport if vector entities haven't set it yet
+        if (!state.trueViewport.bbox || state.trueEntities.length === 0) {
+          state.trueViewport = fitViewport(trueCanvas, bbox);
+        }
+        if (statusEl) {
+          statusEl.textContent = `${tW}×${tH} · ${hasGeoRef ? "Georef ✓" : "No georef"}`;
+          statusEl.className = "geotiff-status ok";
+        }
+        updateStatus(`Drone GeoTIFF ready (${tW}×${tH}). ${hasGeoRef ? "Georeferenced." : ""}`);
+        redrawTrueCanvas();
+      } catch (err) {
+        console.error("GeoTIFF error:", err);
+        if (statusEl) { statusEl.textContent = "Error"; statusEl.className = "geotiff-status"; }
         updateStatus(`GeoTIFF failed: ${err.message}`);
       }
     }
@@ -11873,26 +12062,70 @@ EOF`;
       return r.text();
     }
 
-    async function autoLoadAll() {
-      // 1. Drone GeoTIFF
+    
+    /* ======================================================
+       ASYNCHRONOUS BACKGROUND ASSET STREAMERS
+       (Non-blocking: vectors and boundaries load immediately)
+    ====================================================== */
+    async function autoLoadGeoTiffAsync() {
+      const statusEl = document.getElementById("geotiff-status");
       try {
-        updateStatus("⏳ Loading drone GeoTIFF…");
-        const blob = await fetchBlob("Trinidad_Dron_Resized.tif");
-        await parseGeoTiff(blob);
-      } catch(e) {
-        console.warn("Auto GeoTIFF:", e.message);
-      }
+        if (statusEl) { statusEl.textContent = "⏳ Requesting…"; statusEl.className = "geotiff-status"; }
+        const r = await fetch("Trinidad_Dron_Resized.tif?_t=" + Date.now());
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
 
-      // 2. Deed PDF
+        const contentLength = r.headers.get("Content-Length");
+        const totalBytes = contentLength ? parseInt(contentLength, 10) : 51557661;
+        let loadedBytes = 0;
+        let blob;
+
+        if (r.body && r.body.getReader) {
+          const reader = r.body.getReader();
+          const chunks = [];
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            loadedBytes += value.length;
+            const pct = Math.round((loadedBytes / totalBytes) * 100);
+            const loadedMB = (loadedBytes / (1024 * 1024)).toFixed(1);
+            const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
+            if (statusEl) statusEl.textContent = `⏳ GeoTIFF: ${loadedMB}/${totalMB} MB (${pct}%)`;
+          }
+          blob = new Blob(chunks);
+        } else {
+          blob = await r.blob();
+        }
+
+        await parseGeoTiff(blob);
+      } catch (err) {
+        console.warn("Auto GeoTIFF background stream:", err.message);
+        if (statusEl && !state.geoTiff) {
+          statusEl.textContent = "Use '🛸 Drone GeoTIFF'";
+          statusEl.className = "geotiff-status";
+        }
+      }
+    }
+
+    async function autoLoadDeedPdfAsync() {
       try {
         const blob = await fetchBlob("Mapa1073_FerminSuarez.pdf");
         await loadPdfFromBlob(blob);
-      } catch(e) {
-        console.warn("Auto PDF:", e.message);
-        histStatus.textContent = "Use 'Deed PDF' button";
+      } catch (err) {
+        console.warn("Auto PDF background load:", err.message);
+        if (histStatus && !state.histPdfCanvas) {
+          histStatus.textContent = `Deed DXF ready (${state.histEntities.length} ents)`;
+        }
       }
+    }
 
-      // 3. Deed DXF (Escritura 1073)
+    async function autoLoadAll() {
+      // =========================================================================
+      // PHASE 1: INSTANT VECTOR & BOUNDARY PRELOAD (< 15 ms)
+      // Loads Deed DXF, Field DXF, Anchors & Reconstructed Boundary IMMEDIATELY!
+      // =========================================================================
+
+      // 1. Deed DXF (Escritura 1073)
       try {
         const text = await fetchText("Polygon_Escritura1073_FerminSuarez.dxf");
         state.histEntities = DXFParser.parse(text);
@@ -11908,7 +12141,7 @@ EOF`;
         state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
       }
 
-      // 4. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf)
+      // 2. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf)
       try {
         const fieldName = "Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf";
         const text = await fetchText(fieldName);
@@ -11927,7 +12160,7 @@ EOF`;
         state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
       }
 
-      // 5. Dedicated anchors for this app (anchors_georectifier.json)
+      // 3. Dedicated anchors for this app (anchors_georectifier.json)
       let loadedAnchors = false;
       try {
         const text = await fetchText("anchors_georectifier.json");
@@ -11944,7 +12177,7 @@ EOF`;
         applyAnchors(EMBEDDED_ANCHORS);
       }
 
-      // 6. User polygon preload (user_polygon.json or user_polygon.dxf)
+      // 4. User polygon preload (user_polygon.json or user_polygon.dxf)
       let loadedPoly = false;
       try {
         const text = await fetchText("user_polygon.json");
@@ -11968,20 +12201,34 @@ EOF`;
         }
       }
 
-      // 7. Initialize constraints, subpanels, metrics and redraw
+      // 5. Initialize constraints, subpanels, metrics and redraw immediately
       initConstraintsAndBuffers();
       renderCustomPolyList();
       updateCustomPolyButtonStates();
       recomputeCustomPolygonMetrics();
+      updateDeedScaleDisplay();
       redrawAll();
 
       const activeAnc = getActiveAnchors().length;
       updateStatus(`⚡ Ready: Deed DXF (${state.histEntities.length} ents), Field DXF (${state.trueEntities.length} ents), Anchors (${activeAnc}) & Boundary (${state.userPolygon.vertices.length} pts) loaded.`);
+
+      // =========================================================================
+      // PHASE 2: NON-BLOCKING ASYNCHRONOUS BACKGROUND RASTERS
+      // Heavy 51MB GeoTIFF & 2MB PDF stream in the background without freezing UI
+      // =========================================================================
+      autoLoadDeedPdfAsync();
+      autoLoadGeoTiffAsync();
     }
 
     
     const btnResetDeedScale = document.getElementById("btn-reset-deed-scale");
     if (btnResetDeedScale) btnResetDeedScale.addEventListener("click", resetDeedScale);
+        const btnResetSidebar = document.getElementById("btn-reset-deed-scale-sidebar");
+    if (btnResetSidebar) btnResetSidebar.addEventListener("click", resetDeedScale);
+    const btnResetHud = document.getElementById("btn-reset-deed-scale-hud");
+    if (btnResetHud) btnResetHud.addEventListener("click", resetDeedScale);
+    const btnToggleHud = document.getElementById("btn-toggle-deed-handles-hud");
+    if (btnToggleHud) btnToggleHud.addEventListener("click", () => toggleDeedHandles());
     const btnToggleDeedHandles = document.getElementById("btn-toggle-deed-handles");
     if (btnToggleDeedHandles) btnToggleDeedHandles.addEventListener("click", () => toggleDeedHandles());
 
