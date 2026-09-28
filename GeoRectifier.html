@@ -193,6 +193,20 @@
       color: var(--accent-purple);
       border: 1px solid rgba(213, 0, 249, 0.3);
     }
+    .view-badge.loading {
+      background: rgba(255, 179, 0, 0.18);
+      color: #ffb300;
+      border: 1px solid rgba(255, 179, 0, 0.45);
+      animation: pulse-glow 1.5s infinite ease-in-out;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+    @keyframes spin-indicator {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     .view-badge.green {
       background: rgba(0, 230, 118, 0.15);
       color: var(--accent-green);
@@ -1113,11 +1127,16 @@
 
               <label class="toggle-overlay" title="Show or hide polygon segment length labels"><input type="checkbox" id="chk-show-seg-labels"> Labels</label>
               <label class="toggle-overlay"><input type="checkbox" id="chk-show-overlay" checked> Live Warped Overlay</label>
-              <span id="true-status" class="view-badge">Loading…</span>
+              <span id="true-status" class="view-badge loading">⏳ Loading Drone…</span>
             </div>
           </div>
           <div class="canvas-container" id="true-container">
             <canvas id="true-canvas"></canvas>
+            <!-- Floating Drone Imagery Loading Banner -->
+            <div id="field-drone-loading-hud" style="display:flex;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(15,20,32,0.94);border:1.5px solid #ffb300;border-radius:24px;padding:8px 20px;font-size:0.8rem;font-weight:600;color:#ffb300;box-shadow:0 4px 24px rgba(0,0,0,0.8), 0 0 14px rgba(255,179,0,0.3);backdrop-filter:blur(8px);z-index:40;align-items:center;gap:10px;pointer-events:none;">
+              <span style="display:inline-block;animation:spin-indicator 1.2s linear infinite;font-size:1rem;">⏳</span>
+              <span id="field-drone-loading-text">Loading Drone Imagery (51.5 MB)… please wait</span>
+            </div>
             <!-- Floating Deed Aspect / Squeeze HUD Widget with prominent Reset button -->
             <div id="deed-squeeze-hud" style="position:absolute;top:10px;left:10px;background:rgba(15,20,32,0.94);border:1.5px solid #d500f9;border-radius:8px;padding:6px 12px;font-size:0.75rem;color:var(--text-main);box-shadow:0 4px 18px rgba(213,0,249,0.35);backdrop-filter:blur(8px);z-index:35;display:flex;align-items:center;gap:10px;">
               <span style="font-weight:700;color:#d500f9;display:flex;align-items:center;gap:4px;">
@@ -11892,7 +11911,12 @@ EOF`;
 
     async function parseGeoTiff(fileOrBlob) {
       const statusEl = document.getElementById("geotiff-status");
+      const loadingHud = document.getElementById("field-drone-loading-hud");
+      const loadingText = document.getElementById("field-drone-loading-text");
       if (statusEl) { statusEl.textContent = "⏳ Reading…"; statusEl.className = "geotiff-status"; }
+      if (loadingHud) { loadingHud.style.display = "flex"; }
+      if (loadingText) { loadingText.textContent = "⚙️ Processing Drone GeoTIFF… please wait"; }
+      if (trueStatus) { trueStatus.textContent = "⚙️ Reading GeoTIFF…"; trueStatus.className = "view-badge loading"; }
       const sizeMB = fileOrBlob && fileOrBlob.size ? `${(fileOrBlob.size / 1024 / 1024).toFixed(1)} MB` : "file";
       updateStatus(`Loading GeoTIFF (${sizeMB}) — please wait…`);
       await new Promise(r => setTimeout(r, 20));
@@ -11928,6 +11952,8 @@ EOF`;
         const sc = Math.min(1, MAX_DISPLAY_DIM / Math.max(readW, readH));
         const tW = Math.max(1, Math.round(readW * sc)), tH = Math.max(1, Math.round(readH * sc));
         if (statusEl) statusEl.textContent = `⏳ Decoding ${tW}×${tH}…`;
+        if (loadingText) loadingText.textContent = `⚙️ Decoding Drone Image (${tW}×${tH})… please wait`;
+        if (trueStatus) { trueStatus.textContent = "⚙️ Decoding Drone…"; trueStatus.className = "view-badge loading"; }
         await new Promise(r => setTimeout(r, 10));
 
         const rasters = await readImg.readRasters({ width: tW, height: tH, interleave: true });
@@ -12003,11 +12029,21 @@ EOF`;
           statusEl.textContent = `${tW}×${tH} · ${hasGeoRef ? "Georef ✓" : "No georef"}`;
           statusEl.className = "geotiff-status ok";
         }
+        if (loadingHud) loadingHud.style.display = "none";
+        if (trueStatus) {
+          trueStatus.textContent = `Field & Drone Ready (${state.trueEntities.length} ents)`;
+          trueStatus.className = "view-badge green";
+        }
         updateStatus(`Drone GeoTIFF ready (${tW}×${tH}). ${hasGeoRef ? "Georeferenced." : ""}`);
         redrawTrueCanvas();
       } catch (err) {
         console.error("GeoTIFF error:", err);
         if (statusEl) { statusEl.textContent = "Error"; statusEl.className = "geotiff-status"; }
+        if (loadingHud) loadingHud.style.display = "none";
+        if (trueStatus) {
+          trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
+          trueStatus.className = "view-badge green";
+        }
         updateStatus(`GeoTIFF failed: ${err.message}`);
       }
     }
@@ -12069,8 +12105,13 @@ EOF`;
     ====================================================== */
     async function autoLoadGeoTiffAsync() {
       const statusEl = document.getElementById("geotiff-status");
+      const loadingHud = document.getElementById("field-drone-loading-hud");
+      const loadingText = document.getElementById("field-drone-loading-text");
       try {
         if (statusEl) { statusEl.textContent = "⏳ Requesting…"; statusEl.className = "geotiff-status"; }
+        if (loadingHud) { loadingHud.style.display = "flex"; }
+        if (trueStatus) { trueStatus.textContent = "⏳ Loading Drone…"; trueStatus.className = "view-badge loading"; }
+
         const r = await fetch("Trinidad_Dron_Resized.tif?_t=" + Date.now());
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
 
@@ -12091,6 +12132,8 @@ EOF`;
             const loadedMB = (loadedBytes / (1024 * 1024)).toFixed(1);
             const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
             if (statusEl) statusEl.textContent = `⏳ GeoTIFF: ${loadedMB}/${totalMB} MB (${pct}%)`;
+            if (loadingText) loadingText.textContent = `Loading Drone Imagery: ${loadedMB}/${totalMB} MB (${pct}%)… please wait`;
+            if (trueStatus) { trueStatus.textContent = `⏳ Drone: ${loadedMB}MB (${pct}%)`; trueStatus.className = "view-badge loading"; }
           }
           blob = new Blob(chunks);
         } else {
@@ -12103,6 +12146,11 @@ EOF`;
         if (statusEl && !state.geoTiff) {
           statusEl.textContent = "Use '🛸 Drone GeoTIFF'";
           statusEl.className = "geotiff-status";
+        }
+        if (loadingHud) loadingHud.style.display = "none";
+        if (trueStatus) {
+          trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
+          trueStatus.className = "view-badge green";
         }
       }
     }
@@ -12147,13 +12195,25 @@ EOF`;
         const text = await fetchText(fieldName);
         state.trueFileName = fieldName;
         state.trueEntities = DXFParser.parse(text);
-        trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
+        if (!state.geoTiff) {
+          trueStatus.textContent = "⏳ Loading Drone Imagery…";
+          trueStatus.className = "view-badge loading";
+        } else {
+          trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
+          trueStatus.className = "view-badge green";
+        }
       } catch(e) {
         console.warn("Auto Field DXF:", e.message);
         state.trueFileName = "Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf";
         if (typeof TRUE_FIELD_DXF_SAMPLE !== "undefined") {
           state.trueEntities = DXFParser.parse(TRUE_FIELD_DXF_SAMPLE);
-          trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
+          if (!state.geoTiff) {
+            trueStatus.textContent = "⏳ Loading Drone Imagery…";
+            trueStatus.className = "view-badge loading";
+          } else {
+            trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
+            trueStatus.className = "view-badge green";
+          }
         }
       }
       if (trueCanvas.width > 0 && state.trueEntities.length > 0) {
