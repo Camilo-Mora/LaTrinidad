@@ -616,6 +616,26 @@
       border-color: var(--accent-cyan);
       box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
     }
+    .btn-measure {
+      background: rgba(255, 179, 0, 0.12);
+      border: 1px solid rgba(255, 179, 0, 0.45);
+      color: #ffb300;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-measure:hover {
+      background: rgba(255, 179, 0, 0.26);
+      border-color: #ffb300;
+      box-shadow: 0 0 10px rgba(255, 179, 0, 0.35);
+    }
+    .btn-measure.active {
+      background: rgba(255, 179, 0, 0.35);
+      border-color: #ffd600;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(255, 179, 0, 0.55);
+    }
     .ref-dxf-subpanel {
       background: rgba(0, 0, 0, 0.35);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -873,6 +893,7 @@
               <button class="btn-fit-view" id="btn-fit-true" title="Fit & Center Display">🎯 Center View</button>
               <button class="btn-fit-view btn-add-ref" id="btn-add-ref-dxf" title="Load temporary reference DXF file (+)">➕ Ref DXF</button>
               <input type="file" id="ref-dxf-input" accept=".dxf" style="display:none;" multiple>
+              <button class="btn-fit-view btn-measure" id="btn-measure-tool" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">📏 Measure</button>
               <label class="toggle-overlay" style="color:var(--accent-orange);font-weight:600;" title="Enable dragging deed vertices directly on the field canvas to fine-tune alignment within print range"><input type="checkbox" id="chk-edit-deed-nodes"> ✏️ Edit Deed Nodes</label>
               <label class="toggle-overlay" title="Show or hide polygon segment length labels"><input type="checkbox" id="chk-show-seg-labels"> Labels</label>
               <label class="toggle-overlay"><input type="checkbox" id="chk-show-overlay" checked> Live Warped Overlay</label>
@@ -881,6 +902,21 @@
           </div>
           <div class="canvas-container" id="true-container">
             <canvas id="true-canvas"></canvas>
+            <!-- Floating Measurement HUD Overlay -->
+            <div id="measure-hud" style="display:none;position:absolute;top:10px;right:10px;background:rgba(18,24,38,0.92);border:1px solid rgba(255,179,0,0.5);border-radius:6px;padding:7px 11px;font-size:0.75rem;color:var(--text-main);box-shadow:0 4px 16px rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:35;min-width:190px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:3px;">
+                <span style="font-weight:700;color:#ffb300;display:flex;align-items:center;gap:4px;">📏 Measurement</span>
+                <button id="btn-clear-measure" style="background:none;border:none;color:#ff5252;cursor:pointer;font-size:0.78rem;font-weight:bold;padding:0 2px;" title="Clear measurement (Esc)">✕</button>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px;font-family:monospace;font-size:0.72rem;">
+                <div>Points: <strong id="measure-pts-count" style="color:#00e5ff;">0</strong></div>
+                <div>Total Dist: <strong id="measure-total-dist" style="color:#00e676;">0.00 m</strong></div>
+                <div id="measure-area-row" style="display:none;">Area: <strong id="measure-area-m2" style="color:#ffb300;">0.00 m²</strong> (<span id="measure-area-plazas" style="color:#ffd54f;">0.00 pl</span>)</div>
+              </div>
+              <div style="font-size:0.64rem;color:var(--text-muted);margin-top:4px;line-height:1.2;">
+                Click to place points • Esc to clear
+              </div>
+            </div>
           </div>
           <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to pan field survey. Click '🎯 Anchor Mode' to drop points.</div>
         </div>
@@ -2313,6 +2349,13 @@ EOF`;
       },
       // Temporary Reference DXF files loaded for visual reference
       refDxfFiles: [],
+      // Measuring tool (distances & areas between sequential clicks on true canvas)
+      measureTool: {
+        active: false,
+        points: [],
+        cursorPt: null,
+        closed: false
+      },
     };
 
     const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
@@ -2855,6 +2898,193 @@ EOF`;
       if (state.currentSnapTarget) {
         drawSnapTargetOnCanvas(trueCtx, state.currentSnapTarget.screenPt);
       }
+
+      // Layer 8: Measuring Tool overlay
+      drawMeasuringToolGIS(trueCtx, vp, h);
+    }
+
+    /* ── Measuring Tool Visual Renderer ──────────────────────────────── */
+    function drawMeasureLabel(ctx, text, x, y, isDraft) {
+      ctx.save();
+      ctx.font = "bold 11px monospace";
+      const tm = ctx.measureText(text);
+      const pw = tm.width + 10;
+      const ph = 18;
+      ctx.fillStyle = isDraft ? "rgba(35, 28, 5, 0.90)" : "rgba(18, 24, 38, 0.90)";
+      ctx.strokeStyle = isDraft ? "#ffea00" : "#ffb300";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x - pw / 2, y - ph / 2, pw, ph, 4);
+      } else {
+        ctx.rect(x - pw / 2, y - ph / 2, pw, ph);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = isDraft ? "#ffea00" : "#ffffff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function drawMeasureAreaBadge(ctx, text, x, y) {
+      ctx.save();
+      ctx.font = "bold 12px sans-serif";
+      const tm = ctx.measureText(text);
+      const pw = tm.width + 14;
+      const ph = 22;
+      ctx.fillStyle = "rgba(18, 24, 38, 0.94)";
+      ctx.strokeStyle = "#ffb300";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x - pw / 2, y - ph / 2, pw, ph, 5);
+      } else {
+        ctx.rect(x - pw / 2, y - ph / 2, pw, ph);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffb300";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    function drawMeasuringToolGIS(ctx, vp, canvasH) {
+      const mt = state.measureTool;
+      if (!mt || (!mt.active && mt.points.length === 0)) return;
+
+      const pts = mt.points;
+      const cur = (mt.active && !mt.closed && mt.cursorPt) ? mt.cursorPt : null;
+      const activePts = cur ? [...pts, cur] : [...pts];
+      if (activePts.length === 0) return;
+
+      ctx.save();
+
+      // 1. Polygon Fill for >= 3 points (or 2 points + live cursor)
+      if (activePts.length >= 3) {
+        ctx.beginPath();
+        const s0 = worldToScreenGIS(activePts[0], vp, canvasH);
+        ctx.moveTo(s0.x, s0.y);
+        for (let i = 1; i < activePts.length; i++) {
+          const s = worldToScreenGIS(activePts[i], vp, canvasH);
+          ctx.lineTo(s.x, s.y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = "rgba(255, 179, 0, 0.15)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 179, 0, 0.45)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 2. Confirmed solid segments
+      if (pts.length >= 2) {
+        ctx.beginPath();
+        const s0 = worldToScreenGIS(pts[0], vp, canvasH);
+        ctx.moveTo(s0.x, s0.y);
+        for (let i = 1; i < pts.length; i++) {
+          const s = worldToScreenGIS(pts[i], vp, canvasH);
+          ctx.lineTo(s.x, s.y);
+        }
+        if (mt.closed) {
+          ctx.closePath();
+        }
+        ctx.strokeStyle = "#ffb300";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
+      // 3. Dynamic rubber-band segment to cursor
+      if (cur && pts.length >= 1) {
+        const lastPt = pts[pts.length - 1];
+        const sLast = worldToScreenGIS(lastPt, vp, canvasH);
+        const sCur = worldToScreenGIS(cur, vp, canvasH);
+        ctx.beginPath();
+        ctx.moveTo(sLast.x, sLast.y);
+        ctx.lineTo(sCur.x, sCur.y);
+        ctx.strokeStyle = "#ffea00";
+        ctx.lineWidth = 2.0;
+        ctx.setLineDash([5, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const segDist = Math.hypot(cur.x - lastPt.x, cur.y - lastPt.y);
+        if (segDist > 0.05) {
+          const midX = (sLast.x + sCur.x) / 2;
+          const midY = (sLast.y + sCur.y) / 2;
+          drawMeasureLabel(ctx, `${segDist.toFixed(2)} m`, midX, midY, true);
+        }
+      }
+
+      // 4. Badges for confirmed segments
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p1 = pts[i];
+        const p2 = pts[i + 1];
+        const s1 = worldToScreenGIS(p1, vp, canvasH);
+        const s2 = worldToScreenGIS(p2, vp, canvasH);
+        const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        const midX = (s1.x + s2.x) / 2;
+        const midY = (s1.y + s2.y) / 2;
+        drawMeasureLabel(ctx, `${dist.toFixed(2)} m`, midX, midY, false);
+      }
+      if (mt.closed && pts.length >= 3) {
+        const p1 = pts[pts.length - 1];
+        const p2 = pts[0];
+        const s1 = worldToScreenGIS(p1, vp, canvasH);
+        const s2 = worldToScreenGIS(p2, vp, canvasH);
+        const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        const midX = (s1.x + s2.x) / 2;
+        const midY = (s1.y + s2.y) / 2;
+        drawMeasureLabel(ctx, `${dist.toFixed(2)} m`, midX, midY, false);
+      }
+
+      // 5. Point dots and index numbers
+      pts.forEach((pt, idx) => {
+        const s = worldToScreenGIS(pt, vp, canvasH);
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = idx === 0 ? "#00e676" : "#ffb300";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.font = "bold 10px monospace";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(`#${idx + 1}`, s.x + 8, s.y - 4);
+      });
+
+      // 6. Centroid Area Badge
+      if ((mt.closed || pts.length >= 3) && pts.length >= 3) {
+        let signedArea = 0;
+        let cx = 0, cy = 0;
+        for (let i = 0; i < pts.length; i++) {
+          const j = (i + 1) % pts.length;
+          const cross = pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+          signedArea += cross;
+          cx += pts[i].x;
+          cy += pts[i].y;
+        }
+        const areaM2 = Math.abs(signedArea) / 2;
+        cx /= pts.length;
+        cy /= pts.length;
+        const sCentroid = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
+        const plazas = areaM2 / 6400;
+        const ha = areaM2 / 10000;
+        const areaStr = areaM2 >= 10000 
+          ? `Area: ${areaM2.toLocaleString('en-US', {maximumFractionDigits:1})} m² (${ha.toFixed(2)} ha / ${plazas.toFixed(2)} pl)`
+          : `Area: ${areaM2.toFixed(1)} m² (${plazas.toFixed(2)} pl)`;
+        drawMeasureAreaBadge(ctx, areaStr, sCentroid.x, sCentroid.y);
+      }
+
+      ctx.restore();
     }
 
     /* -----------------------------------------------------------------------
@@ -5141,6 +5371,16 @@ EOF`;
       if (e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
       if (e.code==="KeyP") setToolMode("pan");
       if (e.code==="KeyA") setToolMode("anchor");
+      if (e.code==="KeyM") toggleMeasureTool();
+      if (e.code==="Escape") {
+        if (state.measureTool && state.measureTool.active) {
+          if (state.measureTool.points.length > 0) {
+            clearMeasureTool();
+          } else {
+            toggleMeasureTool(false);
+          }
+        }
+      }
       if (e.code==="Space") { spacePressed=true; e.preventDefault(); }
     });
     window.addEventListener("keyup", e => { if(e.code==="Space") spacePressed=false; });
@@ -5183,8 +5423,9 @@ EOF`;
         }
       }
 
+      const isMeasuringOnTrue = (!isHist && state.measureTool && state.measureTool.active);
       const isPolyDrawOnTrue = (!isHist && state.userPolygon && state.userPolygon.drawMode && state.toolMode === "pan");
-      const shouldPan = (state.toolMode === "pan" && !isPolyDrawOnTrue) || e.button === 2 || e.button === 1 || spacePressed;
+      const shouldPan = (!isMeasuringOnTrue && ((state.toolMode === "pan" && !isPolyDrawOnTrue) || e.button === 2 || e.button === 1 || spacePressed)) || (isMeasuringOnTrue && (e.button === 2 || e.button === 1 || spacePressed));
 
       if (shouldPan) {
         isPanning = true;
@@ -5227,12 +5468,36 @@ EOF`;
         return;
       }
 
-      if (state.toolMode === "pan" && (!state.userPolygon || !state.userPolygon.drawMode || isHist)) return;
+      const isMeasuringOnTrue = (!isHist && state.measureTool && state.measureTool.active);
+      if (state.toolMode === "pan" && (!state.userPolygon || !state.userPolygon.drawMode || isHist) && !isMeasuringOnTrue) return;
       if (Math.abs(e.clientX - clickStart.x) > 6 || Math.abs(e.clientY - clickStart.y) > 6) return;
       if (e.button !== 0) return;
 
       const rect = canvas.getBoundingClientRect();
       const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+
+      // Sequential clicks for Measuring Tool on true canvas
+      if (isMeasuringOnTrue) {
+        const snap = state.currentSnapTarget;
+        const pt = snap ? { x: snap.worldPt.x, y: snap.worldPt.y } : screenToWorldGIS(sx, sy, viewport, canvas.height);
+        const mt = state.measureTool;
+        if (mt.closed) {
+          mt.points = [pt];
+          mt.closed = false;
+        } else if (mt.points.length >= 2) {
+          const s0 = worldToScreenGIS(mt.points[0], viewport, canvas.height);
+          if (Math.hypot(s0.x - sx, s0.y - sy) <= 18) {
+            mt.closed = true;
+          } else {
+            mt.points.push(pt);
+          }
+        } else {
+          mt.points.push(pt);
+        }
+        updateMeasureHUD();
+        redrawTrueCanvas();
+        return;
+      }
 
       if (isHist) {
         const worldPt = screenToWorld(sx, sy, viewport, canvas.height);
@@ -5462,6 +5727,33 @@ EOF`;
       const p = screenToWorldGIS(mouseX, mouseY, vp, h);
       coordsBar.textContent = `Field UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
 
+      // Measuring Tool active: track cursor, handle snapping, live distance
+      if (state.measureTool && state.measureTool.active) {
+        trueCanvas.style.cursor = "crosshair";
+        const nearestField = findNearestFieldVertex(p);
+        if (nearestField && nearestField.dist * vp.scale <= 18) {
+          const sp = worldToScreenGIS(nearestField, vp, h);
+          state.currentSnapTarget = {
+            worldPt: { x: nearestField.x, y: nearestField.y },
+            screenPt: sp,
+            sourceType: "field"
+          };
+          state.measureTool.cursorPt = { x: nearestField.x, y: nearestField.y };
+        } else {
+          state.currentSnapTarget = null;
+          state.measureTool.cursorPt = p;
+        }
+
+        const pts = state.measureTool.points;
+        if (pts.length > 0 && !state.measureTool.closed) {
+          const lastPt = pts[pts.length - 1];
+          const curDist = Math.hypot(state.measureTool.cursorPt.x - lastPt.x, state.measureTool.cursorPt.y - lastPt.y);
+          coordsBar.textContent = `📏 Measure: ${curDist.toFixed(2)}m from Point #${pts.length} | UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+        }
+        redrawTrueCanvas();
+        return;
+      }
+
       // 0. Edit Deed Nodes mode: hover detection over deed vertices on field canvas
       if (state.editDeedNodes && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && !state.draggingDeedNode) {
         const deedHit = findDeedNodeOnTrueCanvas(mouseX, mouseY, vp, h);
@@ -5635,6 +5927,11 @@ EOF`;
     });
 
     trueCanvas.addEventListener("mouseleave", () => {
+      if (state.measureTool && state.measureTool.active) {
+        state.measureTool.cursorPt = null;
+        state.currentSnapTarget = null;
+        redrawTrueCanvas();
+      }
       if (state.hoverPolyNode !== null || state.hoverPolySegment !== null || state.currentSnapTarget !== null) {
         state.hoverPolyNode = null;
         state.hoverPolySegment = null;
@@ -5676,10 +5973,28 @@ EOF`;
     histCanvas.addEventListener("contextmenu", e => e.preventDefault());
     trueCanvas.addEventListener("mousedown", e => handleMouseDown(e, trueCanvas, state.trueViewport, false));
     trueCanvas.addEventListener("mouseup",   e => handleMouseUp(e, trueCanvas, state.trueViewport, false));
-    trueCanvas.addEventListener("contextmenu", e => e.preventDefault());
+    trueCanvas.addEventListener("contextmenu", e => {
+      e.preventDefault();
+      if (state.measureTool && state.measureTool.active) {
+        if (state.measureTool.points.length > 0) {
+          clearMeasureTool();
+        } else {
+          toggleMeasureTool(false);
+        }
+      }
+    });
 
-    // Double-click on polygon segment to insert a new vertex
+    // Double-click on polygon segment to insert a new vertex (or close measuring polygon)
     trueCanvas.addEventListener("dblclick", function(e) {
+      if (state.measureTool && state.measureTool.active) {
+        if (state.measureTool.points.length >= 3) {
+          e.preventDefault();
+          state.measureTool.closed = true;
+          updateMeasureHUD();
+          redrawTrueCanvas();
+        }
+        return;
+      }
       if (state.toolMode === "anchor") return;
       const rect = trueCanvas.getBoundingClientRect();
       const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
@@ -6016,6 +6331,105 @@ EOF`;
       };
       r.readAsText(f);
     });
+
+    /* ======================================================
+       MEASURING TOOL (DISTANCES & AREAS ON TRUE FIELD CANVAS)
+       ====================================================== */
+    function toggleMeasureTool(force) {
+      const btn = document.getElementById("btn-measure-tool");
+      const hud = document.getElementById("measure-hud");
+      const next = typeof force === "boolean" ? force : !state.measureTool.active;
+
+      state.measureTool.active = next;
+      if (btn) btn.classList.toggle("active", next);
+      if (hud) hud.style.display = next ? "block" : "none";
+
+      if (next) {
+        // If anchor mode or user polygon drawing was active, set to pan mode
+        if (state.toolMode === "anchor") setToolMode("pan");
+        if (state.userPolygon && state.userPolygon.drawMode) {
+          state.userPolygon.drawMode = false;
+          updatePolygonButtonStates();
+        }
+        updateStatus("📏 Measuring Tool active — click sequentially on field canvas to measure segments and areas. Esc to clear.");
+        trueCanvas.style.cursor = "crosshair";
+      } else {
+        state.measureTool.points = [];
+        state.measureTool.cursorPt = null;
+        state.measureTool.closed = false;
+        state.currentSnapTarget = null;
+        trueCanvas.style.cursor = "grab";
+        updateStatus("Measuring Tool closed.");
+      }
+      updateMeasureHUD();
+      redrawTrueCanvas();
+    }
+
+    function clearMeasureTool() {
+      state.measureTool.points = [];
+      state.measureTool.cursorPt = null;
+      state.measureTool.closed = false;
+      state.currentSnapTarget = null;
+      updateMeasureHUD();
+      redrawTrueCanvas();
+      updateStatus("Measurement cleared. Click to start a new measurement.");
+    }
+
+    function updateMeasureHUD() {
+      const ptsCountEl = document.getElementById("measure-pts-count");
+      const totalDistEl = document.getElementById("measure-total-dist");
+      const areaRowEl = document.getElementById("measure-area-row");
+      const areaM2El = document.getElementById("measure-area-m2");
+      const areaPlazasEl = document.getElementById("measure-area-plazas");
+      if (!ptsCountEl) return;
+
+      const pts = state.measureTool.points;
+      const n = pts.length;
+      ptsCountEl.textContent = n;
+
+      if (n < 2) {
+        totalDistEl.textContent = "0.00 m";
+        if (areaRowEl) areaRowEl.style.display = "none";
+        return;
+      }
+
+      // Calculate total trajectory distance
+      let totalDist = 0;
+      for (let i = 0; i < n - 1; i++) {
+        totalDist += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+      }
+      if (state.measureTool.closed && n >= 3) {
+        totalDist += Math.hypot(pts[0].x - pts[n - 1].x, pts[0].y - pts[n - 1].y);
+      }
+      totalDistEl.textContent = `${totalDist.toFixed(2)} m`;
+
+      // Calculate area if >= 3 points
+      if (n >= 3) {
+        let signedArea = 0;
+        for (let i = 0; i < n; i++) {
+          const j = (i + 1) % n;
+          signedArea += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+        }
+        const areaM2 = Math.abs(signedArea) / 2;
+        const plazas = areaM2 / 6400;
+        const ha = areaM2 / 10000;
+        if (areaM2El) areaM2El.textContent = areaM2 >= 10000 ? `${areaM2.toLocaleString('en-US', {maximumFractionDigits:1})} m²` : `${areaM2.toFixed(1)} m²`;
+        if (areaPlazasEl) areaPlazasEl.textContent = `${plazas.toFixed(2)} pl (${ha.toFixed(2)} ha)`;
+        if (areaRowEl) areaRowEl.style.display = "block";
+      } else {
+        if (areaRowEl) areaRowEl.style.display = "none";
+      }
+    }
+
+    // Attach listeners for Measuring Tool button and clear HUD button
+    const btnMeasureTool = document.getElementById("btn-measure-tool");
+    const btnClearMeasure = document.getElementById("btn-clear-measure");
+    if (btnMeasureTool) {
+      btnMeasureTool.addEventListener("click", () => toggleMeasureTool());
+    }
+    if (btnClearMeasure) {
+      btnClearMeasure.addEventListener("click", () => clearMeasureTool());
+    }
 
     /* ======================================================
        TEMPORARY REFERENCE DXF MANAGER & ATTRIBUTES SUBPANEL
