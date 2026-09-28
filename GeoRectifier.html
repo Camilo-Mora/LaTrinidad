@@ -2435,7 +2435,7 @@ EOF`;
       hoverDeedNode: null,         // { entIdx, ptIdx, deedPt: {x,y}, warpedPt: {x,y} }
       draggingDeedNodeHist: null,  // { entIdx, ptIdx, origDeedPt: {x,y} }
       // Field DXF vertex editing
-      trueFileName: "Field.dxf",
+      trueFileName: "Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf",
       editFieldNodes: false,
       draggingFieldNode: null,     // { entIdx, ptIdx, origFieldPt: {x,y} }
       hoverFieldNode: null,        // { entIdx, ptIdx, fieldPt: {x,y}, screenPt: {x,y} }
@@ -3073,7 +3073,7 @@ EOF`;
         drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper, vp, h, "#ff1744", state.warpedDxfOpacity);
       }
 
-      // Layer 4: True Field Survey DXF (linea.dxf) — green
+      // Layer 4: True Field Survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf) — green
       drawEntitiesGIS(trueCtx, state.trueEntities, vp, h, "#00e676", state.trueDxfOpacity);
 
       // Layer 4b: Temporary Reference DXF Layers
@@ -7427,20 +7427,17 @@ EOF`;
         }
       }
 
-      // 4. Field survey DXF (linea.dxf)
+      // 4. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf)
       try {
-        let text;
-        try {
-          text = await fetchText("linea.dxf");
-        } catch(_) {
-          text = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf");
-        }
+        const fieldName = "Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf";
+        const text = await fetchText(fieldName);
+        state.trueFileName = fieldName;
         state.trueEntities = DXFParser.parse(text);
         trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
         if (!state.trueViewport.bbox && state.trueEntities.length > 0) {
           state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
         }
-        updateStatus(`Field survey DXF (linea.dxf) loaded: ${state.trueEntities.length} entities.`);
+        updateStatus(`Field survey DXF (${fieldName}) loaded: ${state.trueEntities.length} entities.`);
         redrawAll();
       } catch(e) {
         console.warn("Auto Field DXF:", e.message);
