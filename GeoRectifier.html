@@ -898,7 +898,7 @@
 
             <div class="layer-control-block">
               <div class="opacity-row">
-                <label style="min-width:130px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)">📍 Cercos La Trinidad</label>
+                <label style="min-width:130px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf)">📍 Cercos La Trinidad</label>
                 <input type="range" class="opacity-slider" id="true-dxf-opacity" min="0" max="100" value="0">
                 <span class="opacity-val" id="true-dxf-opacity-val">0%</span>
               </div>
@@ -1242,7 +1242,7 @@
                 </div>
               </div>
             </div>
-            <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);">Click "+ Create new polygon" then click on the field canvas to place vertices. Click near the first vertex to close.</p>
+            <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;">🖐️ <strong>Drag node</strong>: Move &bull; 🖱️ <strong>Double-click line</strong>: Add vertex &bull; 🗑 <strong>Right-click node</strong>: Delete</p>
           </div>
         </section>
       </aside>
@@ -1345,6 +1345,7 @@
         const entities = [];
         
         let currentEntity = null;
+        let inEntities = !dxfText.includes("ENTITIES");
 
         let i = 0;
         while (i < lines.length - 1) {
@@ -1356,6 +1357,30 @@
 
           if (code === 0) {
             const uVal = val.toUpperCase();
+
+            // Track sections: only model-space entities inside SECTION ENTITIES belong to the drawing
+            if (uVal === "SECTION") {
+              if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 2) {
+                const secName = lines[i + 1].trim().toUpperCase();
+                i += 2;
+                inEntities = (secName === "ENTITIES");
+              }
+              continue;
+            }
+
+            if (uVal === "ENDSEC") {
+              if (inEntities && currentEntity) {
+                DXFParser.finalizeEntity(currentEntity);
+                if (currentEntity.points.length >= 1) {
+                  entities.push(currentEntity);
+                }
+                currentEntity = null;
+              }
+              inEntities = false;
+              continue;
+            }
+
+            if (!inEntities) continue;
 
             // Handle VERTEX coordinates inside the active POLYLINE
             if (uVal === "VERTEX") {
@@ -2158,7 +2183,7 @@ EOF`;
        ========================================================================== */
     const state = {
       histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
-      trueEntities: [],      // DXF from Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf (GIS UTM coord space)
+      trueEntities: [],      // DXF from Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf (GIS UTM coord space)
       anchors: [],
       pendingSource: null,
       algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
@@ -2184,6 +2209,8 @@ EOF`;
         show: true,
       },
       draggingUserPolyNode: null,
+      hoverPolyNode: null,
+      hoverPolySegment: null,
       currentSnapTarget: null,
       showSegmentLabels: false,
       showDeedPanel: false,     // Deed map panel (hidden by default)
@@ -2261,17 +2288,21 @@ EOF`;
       const allPoints = [];
       entities.forEach(ent => ent.points.forEach(pt => allPoints.push(pt)));
       if (allPoints.length === 0) return { minX:0, minY:0, maxX:100, maxY:100, width:100, height:100 };
-      const nonZero = allPoints.filter(p => Math.abs(p.x) > 1e-4 || Math.abs(p.y) > 1e-4);
-      const pts = (nonZero.length > 0 && nonZero.length < allPoints.length) ? nonZero : allPoints;
-      const xs = pts.map(p => p.x).sort((a,b) => a-b);
-      const ys = pts.map(p => p.y).sort((a,b) => a-b);
+      
+      // If real GIS project coordinates (> 100,000m) exist, ignore all template origin/anchor points (0,0)
+      const gisPoints = allPoints.filter(p => Math.abs(p.x) > 100000 || Math.abs(p.y) > 100000);
+      const pts = gisPoints.length > 0 ? gisPoints : allPoints.filter(p => Math.abs(p.x) > 1e-4 || Math.abs(p.y) > 1e-4);
+      const working = pts.length > 0 ? pts : allPoints;
+
+      const xs = working.map(p => p.x).sort((a,b) => a-b);
+      const ys = working.map(p => p.y).sort((a,b) => a-b);
       const mid = n => Math.floor(n/2);
       const q1X = xs[Math.floor(xs.length*0.25)], q3X = xs[Math.floor(xs.length*0.75)];
       const q1Y = ys[Math.floor(ys.length*0.25)], q3Y = ys[Math.floor(ys.length*0.75)];
       const iqrX = Math.max(q3X-q1X,1), iqrY = Math.max(q3Y-q1Y,1);
       const mX = xs[mid(xs.length)], mY = ys[mid(ys.length)];
-      const clean = pts.filter(p => Math.abs(p.x-mX) <= 4.5*iqrX && Math.abs(p.y-mY) <= 4.5*iqrY);
-      const final = clean.length > 0 ? clean : pts;
+      const clean = working.filter(p => Math.abs(p.x-mX) <= 4.5*iqrX && Math.abs(p.y-mY) <= 4.5*iqrY);
+      const final = clean.length > 0 ? clean : working;
       let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
       final.forEach(p => { if(p.x<minX)minX=p.x; if(p.y<minY)minY=p.y; if(p.x>maxX)maxX=p.x; if(p.y>maxY)maxY=p.y; });
       if (minX===Infinity||minX===maxX) return {minX:0,minY:0,maxX:100,maxY:100,width:100,height:100};
@@ -2697,7 +2728,7 @@ EOF`;
         drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper, vp, h, "#ff1744", state.warpedDxfOpacity);
       }
 
-      // Layer 4: True Field Survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf) — green
+      // Layer 4: True Field Survey DXF (linea.dxf) — green
       drawEntitiesGIS(trueCtx, state.trueEntities, vp, h, "#00e676", state.trueDxfOpacity);
 
       // Layer 5: Target anchor pins + residual lines
@@ -3006,6 +3037,55 @@ EOF`;
       return -1;
     }
 
+    /** Hit test user polygon segments to allow inserting a new vertex on click */
+    function findUserPolySegmentAt(mouseX, mouseY, vp, canvasH, hitDist = 10) {
+      const poly = state.userPolygon;
+      if (!poly || !poly.vertices || poly.vertices.length < 2) return null;
+      const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
+      let best = null;
+      let minDist = hitDist;
+
+      for (let i = 0; i < nSegs; i++) {
+        const vA = poly.vertices[i];
+        const vB = poly.vertices[(i + 1) % poly.vertices.length];
+        const sa = worldToScreenGIS(vA, vp, canvasH);
+        const sb = worldToScreenGIS(vB, vp, canvasH);
+
+        const dx = sb.x - sa.x;
+        const dy = sb.y - sa.y;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq < 1e-4) continue;
+
+        // Project mouse coordinate onto segment line [sa, sb]
+        const t = ((mouseX - sa.x) * dx + (mouseY - sa.y) * dy) / lenSq;
+        // Keep clear of existing endpoints so node dragging and right-click delete are unaffected
+        const da = Math.hypot(mouseX - sa.x, mouseY - sa.y);
+        const db = Math.hypot(mouseX - sb.x, mouseY - sb.y);
+        if (da < 14 || db < 14) continue;
+
+        if (t >= 0 && t <= 1) {
+          const projX = sa.x + t * dx;
+          const projY = sa.y + t * dy;
+          const dist = Math.hypot(mouseX - projX, mouseY - projY);
+          if (dist <= minDist) {
+            minDist = dist;
+            best = {
+              segIdx: i,
+              t: t,
+              screenPt: { x: projX, y: projY },
+              worldPt: {
+                x: vA.x + t * (vB.x - vA.x),
+                y: vA.y + t * (vB.y - vA.y),
+                deedPt: null
+              },
+              dist: dist
+            };
+          }
+        }
+      }
+      return best;
+    }
+
     /**
      * Get error percentage and display color for a segment based on percent error
      * Color scale:
@@ -3249,11 +3329,15 @@ EOF`;
         ctx.restore();
       }
 
-      // 3. Vertex dots (dynamically filtered by style visibility for deed vs field nodes)
+      // 3. Vertex dots (dynamically filtered by style visibility for deed vs field nodes, always visible on hover/drag)
       verts.forEach((v, i) => {
         const isDeedNode = vertexHasDeedLength(poly, i);
-        if (isDeedNode && !state.stylePolyDeed.showNodes) return;
-        if (!isDeedNode && !state.stylePolyNoDeed.showNodes) return;
+        const isHovered = (state.hoverPolyNode === i);
+        const isDragging = (state.draggingUserPolyNode === i);
+        if (!isHovered && !isDragging) {
+          if (isDeedNode && !state.stylePolyDeed.showNodes) return;
+          if (!isDeedNode && !state.stylePolyNoDeed.showNodes) return;
+        }
 
         const sp = worldToScreenGIS(v, vp, canvasH);
         const origX = v.origX != null ? v.origX : v.x;
@@ -3261,14 +3345,38 @@ EOF`;
         const isShifted = v.deedPt && Math.hypot(v.x - origX, v.y - origY) > 0.05;
 
         const baseR = isDeedNode ? (state.stylePolyDeed.width + 2) : (state.stylePolyNoDeed.width + 2);
+        const r = (isHovered || isDragging) ? (baseR + 3) : (i === 0 ? (baseR + 2) : (isShifted ? (baseR + 1) : baseR));
+
         ctx.beginPath();
-        ctx.arc(sp.x, sp.y, i === 0 ? (baseR + 2) : (isShifted ? (baseR + 1) : baseR), 0, Math.PI * 2);
-        ctx.fillStyle = isDeedNode ? state.stylePolyDeed.color : state.stylePolyNoDeed.color;
+        ctx.arc(sp.x, sp.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = isHovered ? "#00e5ff" : (isDeedNode ? state.stylePolyDeed.color : state.stylePolyNoDeed.color);
         ctx.fill();
-        ctx.strokeStyle = i === 0 ? "#ffffff" : (isShifted ? "#ffd600" : "#ffffff");
-        ctx.lineWidth = (i === 0 || isShifted) ? 2 : 1.5;
+        ctx.strokeStyle = (isHovered || isDragging) ? "#ffffff" : (i === 0 ? "#ffffff" : (isShifted ? "#ffd600" : "#ffffff"));
+        ctx.lineWidth = (isHovered || isDragging || i === 0 || isShifted) ? 2.5 : 1.5;
         ctx.stroke();
+
+        if (isHovered && !isDragging) {
+          ctx.beginPath();
+          ctx.arc(sp.x, sp.y, r + 4, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
       });
+
+      // 3.5. Subtle dot on segment hover indicating double-click target
+      if (state.hoverPolySegment && !poly.drawMode && state.draggingUserPolyNode === null) {
+        const hp = state.hoverPolySegment.screenPt;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(hp.x, hp.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#00e5ff";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+      }
 
       // 4. Segment length labels with error percentage (when Labels checkbox is active)
       if (state.showSegmentLabels) {
@@ -3634,7 +3742,7 @@ EOF`;
       }
     }
 
-    /** Update Save / Export button states */
+    /** Update Save / Export button states and interactive hints */
     function updatePolygonButtonStates() {
       if (state.toolMode === "anchor") {
         updateDistanceAreaPanelState("anchor");
@@ -3646,6 +3754,17 @@ EOF`;
       const expBtn = document.getElementById("btn-export-polygon-dxf");
       expBtn.disabled = !poly.closed;
       expBtn.style.opacity = poly.closed ? "1" : "0.45";
+
+      const hint = document.getElementById("poly-status-hint");
+      if (hint) {
+        if (poly.drawMode) {
+          hint.innerHTML = "Click on field canvas to place vertices. Click near first vertex (blue dot) or '✓ Close polygon' to close.";
+        } else if (poly.vertices.length >= 2) {
+          hint.innerHTML = "🖐️ <strong>Drag node</strong>: Move &bull; 🖱️ <strong>Double-click line</strong>: Add vertex &bull; 🗑 <strong>Right-click node</strong>: Delete";
+        } else {
+          hint.innerHTML = "Click <strong>\"+ Create new polygon\"</strong> then click on the field canvas to place vertices. Or load a file.";
+        }
+      }
     }
 
     /** Reset the polygon to a clean state */
@@ -5353,9 +5472,34 @@ EOF`;
             }
           }
         }
-        if (!isPanning) {
-          trueCanvas.style.cursor = hitNode >= 0 ? "move" : (state.userPolygon.drawMode ? "crosshair" : "grab");
+        let hitSeg = null;
+        if (!state.userPolygon.drawMode && hitNode < 0 && state.userPolygon.vertices.length >= 2) {
+          hitSeg = findUserPolySegmentAt(mouseX, mouseY, vp, h, 10);
         }
+
+        state.hoverPolyNode = hitNode >= 0 ? hitNode : null;
+        state.hoverPolySegment = hitSeg;
+
+        if (!isPanning) {
+          if (hitNode >= 0) {
+            trueCanvas.style.cursor = "move";
+            coordsBar.textContent = `Polygon Node #${hitNode + 1}: (${state.userPolygon.vertices[hitNode].x.toFixed(2)}, ${state.userPolygon.vertices[hitNode].y.toFixed(2)}) — Drag to move • Right-click to delete`;
+          } else if (hitSeg) {
+            trueCanvas.style.cursor = "pointer";
+            coordsBar.textContent = `Double-click line to add vertex on Seg ${hitSeg.segIdx + 1}: (${hitSeg.worldPt.x.toFixed(2)}, ${hitSeg.worldPt.y.toFixed(2)})`;
+          } else {
+            trueCanvas.style.cursor = state.userPolygon.drawMode ? "crosshair" : "grab";
+          }
+        }
+        redrawTrueCanvas();
+      }
+    });
+
+    trueCanvas.addEventListener("mouseleave", () => {
+      if (state.hoverPolyNode !== null || state.hoverPolySegment !== null || state.currentSnapTarget !== null) {
+        state.hoverPolyNode = null;
+        state.hoverPolySegment = null;
+        state.currentSnapTarget = null;
         redrawTrueCanvas();
       }
     });
@@ -5394,6 +5538,38 @@ EOF`;
     trueCanvas.addEventListener("mousedown", e => handleMouseDown(e, trueCanvas, state.trueViewport, false));
     trueCanvas.addEventListener("mouseup",   e => handleMouseUp(e, trueCanvas, state.trueViewport, false));
     trueCanvas.addEventListener("contextmenu", e => e.preventDefault());
+
+    // Double-click on polygon segment to insert a new vertex
+    trueCanvas.addEventListener("dblclick", function(e) {
+      if (state.toolMode === "anchor") return;
+      const rect = trueCanvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const vp = state.trueViewport, h = trueCanvas.height;
+      const poly = state.userPolygon;
+
+      if (!poly || poly.drawMode || !poly.vertices || poly.vertices.length < 2) return;
+
+      const hitNode = findUserPolyNodeAt(sx, sy, vp, h);
+      if (hitNode >= 0) return; // Ignore double clicks directly on an existing node
+
+      const hitSeg = findUserPolySegmentAt(sx, sy, vp, h, 14);
+      if (hitSeg) {
+        e.preventDefault();
+        const insertIdx = hitSeg.segIdx + 1;
+        poly.vertices.splice(insertIdx, 0, hitSeg.worldPt);
+        poly.segmentLengths.splice(insertIdx, 0, null);
+        while (poly.segmentLengths.length < poly.vertices.length) poly.segmentLengths.push(null);
+
+        rebuildSegmentInputs();
+        recomputeUserPolygonMetrics();
+        updatePolygonButtonStates();
+
+        state.hoverPolyNode = insertIdx;
+        state.hoverPolySegment = null;
+        updateStatus(`➕ Double-click added vertex #${insertIdx + 1} on Segment ${hitSeg.segIdx + 1}.`);
+        redrawTrueCanvas();
+      }
+    });
 
     // Fit/center buttons
     document.getElementById("btn-fit-hist").addEventListener("click", () => {
@@ -5692,9 +5868,12 @@ EOF`;
       r.onload=function(){
         state.trueEntities=DXFParser.parse(this.result);
         trueStatus.textContent=`Field DXF: ${state.trueEntities.length} entities`;
-        state.trueViewport={scale:1,offsetX:0,offsetY:0,bbox:null};
+        if (state.trueEntities.length > 0 && trueCanvas.width > 0) {
+          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+        }
         resizeCanvases();
-        updateStatus(`Loaded field survey DXF: ${state.trueEntities.length} entities.`);
+        redrawAll();
+        updateStatus(`Loaded field survey DXF (${f.name}): ${state.trueEntities.length} entities.`);
       };
       r.readAsText(f);
     });
@@ -5822,12 +6001,14 @@ EOF`;
        AUTO-LOADERS — fetch defaults when served via HTTP
     ====================================================== */
     async function fetchBlob(url) {
-      const r = await fetch(url);
+      const sep = url.includes("?") ? "&" : "?";
+      const r = await fetch(`${url}${sep}_t=${Date.now()}`, { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.blob();
     }
     async function fetchText(url) {
-      const r = await fetch(url);
+      const sep = url.includes("?") ? "&" : "?";
+      const r = await fetch(`${url}${sep}_t=${Date.now()}`, { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.text();
     }
@@ -5871,20 +6052,20 @@ EOF`;
         }
       }
 
-      // 4. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf)
+      // 4. Field survey DXF (linea.dxf)
       try {
         let text;
         try {
-          text = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf");
+          text = await fetchText("linea.dxf");
         } catch(_) {
-          text = await fetchText(encodeURIComponent("Polygon_De_Campo_LaTrinidad(Cristian_2026).dxf"));
+          text = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf");
         }
         state.trueEntities = DXFParser.parse(text);
         trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
         if (!state.trueViewport.bbox && state.trueEntities.length > 0) {
           state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
         }
-        updateStatus(`Field survey DXF loaded: ${state.trueEntities.length} entities.`);
+        updateStatus(`Field survey DXF (linea.dxf) loaded: ${state.trueEntities.length} entities.`);
         redrawAll();
       } catch(e) {
         console.warn("Auto Field DXF:", e.message);
