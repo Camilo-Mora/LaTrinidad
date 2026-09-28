@@ -1082,6 +1082,13 @@
               <button class="btn-fit-view btn-add-ref" id="btn-add-ref-dxf" title="Load temporary reference DXF file (+)">➕ Ref DXF</button>
               <input type="file" id="ref-dxf-input" accept=".dxf" style="display:none;" multiple>
               <button class="btn-fit-view btn-measure" id="btn-measure-tool" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">📏 Measure</button>
+              
+              <div class="compact-tool-group group-deed" style="display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:4px;background:rgba(213,0,249,0.12);border:1px solid rgba(213,0,249,0.32);" title="PowerPoint-style Deed Aspect Squeeze (drag edge handles on field canvas to stretch X or Y)">
+                <span style="font-size:0.67rem;color:#d500f9;font-weight:700;letter-spacing:0.3px;">📐 SQUEEZE:</span>
+                <span id="deed-scale-display" style="font-size:0.68rem;color:#f0f4f8;font-family:monospace;font-weight:600;">X:100% Y:100%</span>
+                <button id="btn-reset-deed-scale" class="btn-fit-view" style="padding:1px 6px;font-size:0.64rem;border-color:rgba(213,0,249,0.45);cursor:pointer;" title="Reset Deed Aspect Ratio to 100% (1:1)">↺ Reset</button>
+                <button id="btn-toggle-deed-handles" class="btn-fit-view active" style="padding:1px 6px;font-size:0.64rem;border-color:rgba(213,0,249,0.45);cursor:pointer;" title="Toggle Squeeze Handles on/off">🔲 Handles</button>
+              </div>
               <button class="btn-fit-view btn-marker" id="btn-marker-tool" title="Add temporary reference markers on field canvas (Click to drop, drag to move, right-click to delete)">📍 Marker</button>
               
               <div class="compact-tool-group group-deed" title="Deed DXF: Edit Nodes (✏️) & Download DXF (📥)">
@@ -2094,10 +2101,7 @@
         };
       }
 
-      static createWarper(algorithm, anchors) {
-        const active = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
-        if (!active || active.length === 0) return (pt) => ({ ...pt });
-
+      static _buildRawWarper(algorithm, active) {
         switch (algorithm) {
           case "TPS":
             return active.length >= 3 ? TransformMath.buildTPSWarper(active) : TransformMath.buildSimilarityWarper(active);
@@ -2111,19 +2115,77 @@
         }
       }
 
+      static createWarper(algorithm, anchors, deedScale) {
+        const active = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
+        if (!active || active.length === 0) return (pt) => ({ ...pt });
+
+        const scale = deedScale || (typeof state !== "undefined" && state.deedScale) || { x: 1.0, y: 1.0 };
+        const hasScale = Math.abs(scale.x - 1.0) > 1e-5 || Math.abs(scale.y - 1.0) > 1e-5;
+
+        if (!hasScale) {
+          return TransformMath._buildRawWarper(algorithm, active);
+        }
+
+        const center = (typeof getDeedCenter === "function") ? getDeedCenter() : { x: 0, y: 0 };
+        const transformPt = (p) => ({
+          x: center.x + (p.x - center.x) * scale.x,
+          y: center.y + (p.y - center.y) * scale.y
+        });
+
+        // Scale anchor source coordinates in deed space
+        const scaledAnchors = active.map(a => ({
+          ...a,
+          src: transformPt(a.src)
+        }));
+
+        const rawWarper = TransformMath._buildRawWarper(algorithm, scaledAnchors);
+        return (pt) => rawWarper(transformPt(pt));
+      }
+
       /** Construct inverse warper mapping Field GIS coordinates back to Historical Deed coordinates */
-      static createInverseWarper(algorithm, anchors) {
+      static createInverseWarper(algorithm, anchors, deedScale) {
         const active = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
         if (!active || active.length < 2) return null;
+
+        const scale = deedScale || (typeof state !== "undefined" && state.deedScale) || { x: 1.0, y: 1.0 };
+        const hasScale = Math.abs(scale.x - 1.0) > 1e-5 || Math.abs(scale.y - 1.0) > 1e-5;
+
+        if (!hasScale) {
+          const invAnchors = active.map(a => ({
+            id: a.id,
+            color: a.color,
+            src: { x: a.dst.x, y: a.dst.y },
+            dst: { x: a.src.x, y: a.src.y },
+            active: true,
+            enabled: true
+          }));
+          return TransformMath._buildRawWarper(algorithm, invAnchors);
+        }
+
+        const center = (typeof getDeedCenter === "function") ? getDeedCenter() : { x: 0, y: 0 };
+        const transformPt = (p) => ({
+          x: center.x + (p.x - center.x) * scale.x,
+          y: center.y + (p.y - center.y) * scale.y
+        });
+        const unTransformPt = (p) => ({
+          x: center.x + (p.x - center.x) / scale.x,
+          y: center.y + (p.y - center.y) / scale.y
+        });
+
         const invAnchors = active.map(a => ({
           id: a.id,
           color: a.color,
           src: { x: a.dst.x, y: a.dst.y },
-          dst: { x: a.src.x, y: a.src.y },
+          dst: transformPt(a.src),
           active: true,
           enabled: true
         }));
-        return TransformMath.createWarper(algorithm, invAnchors);
+
+        const rawInvWarper = TransformMath._buildRawWarper(algorithm, invAnchors);
+        return (gisPt) => {
+          const scaledDeedPt = rawInvWarper(gisPt);
+          return unTransformPt(scaledDeedPt);
+        };
       }
 
       static computeRMSE(warper, anchors) {
@@ -2150,7 +2212,7 @@ ENTITIES
 0
 POLYLINE
 8
-HISTORICAL_FARM_BOUNDARY
+Lote_7
 66
 1
 70
@@ -2158,77 +2220,473 @@ HISTORICAL_FARM_BOUNDARY
 0
 VERTEX
 8
-HISTORICAL_FARM_BOUNDARY
+Lote_7
 10
-105.0
+461.3900
 20
-110.0
+141.8100
+30
+0.0
 0
 VERTEX
 8
-HISTORICAL_FARM_BOUNDARY
+Lote_7
 10
-295.0
+525.8300
 20
-125.0
+273.8100
+30
+0.0
 0
 VERTEX
 8
-HISTORICAL_FARM_BOUNDARY
+Lote_7
 10
-310.0
+388.9500
 20
-285.0
+376.7800
+30
+0.0
 0
 VERTEX
 8
-HISTORICAL_FARM_BOUNDARY
+Lote_7
 10
-245.0
+383.3900
 20
-340.0
+441.8100
+30
+0.0
 0
 VERTEX
 8
-HISTORICAL_FARM_BOUNDARY
+Lote_7
 10
-115.0
+362.2500
 20
-320.0
+254.8400
+30
+0.0
+0
+VERTEX
+8
+Lote_7
+10
+318.8800
+20
+224.4600
+30
+0.0
 0
 SEQEND
 0
 POLYLINE
 8
-HISTORICAL_INTERNAL_ROAD
+Lote_6
 66
 1
 70
-0
-0
-VERTEX
-8
-HISTORICAL_INTERNAL_ROAD
-10
-105.0
-20
-110.0
+1
 0
 VERTEX
 8
-HISTORICAL_INTERNAL_ROAD
+Lote_6
 10
-210.0
+362.2500
 20
-220.0
+254.8400
+30
+0.0
 0
 VERTEX
 8
-HISTORICAL_INTERNAL_ROAD
+Lote_6
 10
-245.0
+347.2500
 20
-340.0
+276.3400
+30
+0.0
+0
+VERTEX
+8
+Lote_6
+10
+381.1800
+20
+463.0000
+30
+0.0
+0
+VERTEX
+8
+Lote_6
+10
+383.3900
+20
+441.8100
+30
+0.0
+0
+SEQEND
+0
+POLYLINE
+8
+Lote_5
+66
+1
+70
+1
+0
+VERTEX
+8
+Lote_5
+10
+347.2500
+20
+276.3400
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+381.1800
+20
+463.0000
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+371.1800
+20
+601.3300
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+378.9500
+20
+637.3300
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+294.8800
+20
+466.5900
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+299.5000
+20
+389.4600
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+316.1300
+20
+378.0900
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+318.5000
+20
+365.8400
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+329.1300
+20
+355.9600
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+336.5000
+20
+318.2100
+30
+0.0
+0
+VERTEX
+8
+Lote_5
+10
+328.3800
+20
+302.5900
+30
+0.0
+0
+SEQEND
+0
+POLYLINE
+8
+Lote_4
+66
+1
+70
+1
+0
+VERTEX
+8
+Lote_4
+10
+294.8800
+20
+466.5900
+30
+0.0
+0
+VERTEX
+8
+Lote_4
+10
+289.2500
+20
+548.8400
+30
+0.0
+0
+VERTEX
+8
+Lote_4
+10
+247.6300
+20
+614.3400
+30
+0.0
+0
+VERTEX
+8
+Lote_4
+10
+314.5100
+20
+729.8100
+30
+0.0
+0
+VERTEX
+8
+Lote_4
+10
+484.3900
+20
+760.8100
+30
+0.0
+0
+VERTEX
+8
+Lote_4
+10
+462.8400
+20
+719.2500
+30
+0.0
+0
+VERTEX
+8
+Lote_4
+10
+475.6200
+20
+698.6900
+30
+0.0
+0
+VERTEX
+8
+Lote_4
+10
+442.2900
+20
+693.1400
+30
+0.0
+0
+VERTEX
+8
+Lote_4
+10
+378.9500
+20
+637.3300
+30
+0.0
+0
+SEQEND
+0
+POLYLINE
+8
+Camino
+66
+1
+70
+1
+0
+VERTEX
+8
+Camino
+10
+250.0000
+20
+610.7000
+30
+0.0
+0
+VERTEX
+8
+Camino
+10
+252.7100
+20
+606.3700
+30
+0.0
+0
+VERTEX
+8
+Camino
+10
+382.1600
+20
+742.5100
+30
+0.0
+0
+VERTEX
+8
+Camino
+10
+374.4300
+20
+740.9200
+30
+0.0
+0
+SEQEND
+0
+POLYLINE
+8
+Lote_8
+66
+1
+70
+1
+0
+VERTEX
+8
+Lote_8
+10
+318.8800
+20
+224.4600
+30
+0.0
+0
+VERTEX
+8
+Lote_8
+10
+461.3900
+20
+141.8100
+30
+0.0
+0
+VERTEX
+8
+Lote_8
+10
+410.3800
+20
+21.8700
+30
+0.0
+0
+VERTEX
+8
+Lote_8
+10
+283.0000
+20
+86.4600
+30
+0.0
+0
+VERTEX
+8
+Lote_8
+10
+239.6300
+20
+107.9600
+30
+0.0
+0
+VERTEX
+8
+Lote_8
+10
+258.1300
+20
+130.9600
+30
+0.0
+0
+VERTEX
+8
+Lote_8
+10
+267.2500
+20
+216.7100
+30
+0.0
+0
+VERTEX
+8
+Lote_8
+10
+290.7500
+20
+204.9600
+30
+0.0
 0
 SEQEND
 0
@@ -2965,6 +3423,754 @@ ENDSEC
 0
 EOF`;
 
+    const EMBEDDED_ANCHORS = [
+  {
+    "id": 1,
+    "color": "#ff1744",
+    "src": {
+      "x": 252.71,
+      "y": 606.42
+    },
+    "dst": {
+      "x": 1097703.3119,
+      "y": 876671.3626
+    }
+  },
+  {
+    "id": 2,
+    "color": "#00e676",
+    "src": {
+      "x": 283,
+      "y": 86.45
+    },
+    "dst": {
+      "x": 1098130.83,
+      "y": 877073.26
+    }
+  }
+];
+
+    const EMBEDDED_USER_POLYGON = {
+  "vertices": [
+    {
+      "x": 1098077.13,
+      "y": 877078.7,
+      "deedPt": null,
+      "origX": 1098077.13,
+      "origY": 877078.7
+    },
+    {
+      "x": 1098130.83,
+      "y": 877073.26,
+      "deedPt": null,
+      "origX": 1098130.83,
+      "origY": 877073.26
+    },
+    {
+      "x": 1098148.88,
+      "y": 877134.63,
+      "deedPt": null,
+      "origX": 1098146.690943762,
+      "origY": 877127.2472678409
+    },
+    {
+      "x": 1098167.46,
+      "y": 877173.35,
+      "deedPt": null,
+      "origX": 1098167.46,
+      "origY": 877173.35
+    },
+    {
+      "x": 1098170.92,
+      "y": 877221.25,
+      "deedPt": null,
+      "origX": 1098170.4405,
+      "origY": 877207.7676
+    },
+    {
+      "x": 1098074.184,
+      "y": 877259.4472,
+      "deedPt": null,
+      "origX": 1098078.388724669,
+      "origY": 877256.1666770407
+    },
+    {
+      "x": 1098031.743,
+      "y": 877218.4624,
+      "deedPt": null,
+      "origX": 1098031.742957494,
+      "origY": 877218.462360458
+    },
+    {
+      "x": 1097976.2051,
+      "y": 877280.1434,
+      "deedPt": null,
+      "origX": 1097976.205117166,
+      "origY": 877280.1433809726
+    },
+    {
+      "x": 1097913.2895,
+      "y": 877249.4574,
+      "deedPt": null,
+      "origX": 1097913.289533926,
+      "origY": 877249.4574006975
+    },
+    {
+      "x": 1097805.6282,
+      "y": 877218.586,
+      "deedPt": null,
+      "origX": 1097805.62822398,
+      "origY": 877218.5860168457
+    },
+    {
+      "x": 1097781.008,
+      "y": 877214.2448,
+      "deedPt": null,
+      "origX": 1097781.008030155,
+      "origY": 877214.2448124042
+    },
+    {
+      "x": 1097756.1441,
+      "y": 877206.6431,
+      "deedPt": null,
+      "origX": 1097756.1441065,
+      "origY": 877206.6431480814
+    },
+    {
+      "x": 1097745.0009,
+      "y": 877199.9477,
+      "deedPt": null,
+      "origX": 1097745.000931591,
+      "origY": 877199.9476531076
+    },
+    {
+      "x": 1097713.7357,
+      "y": 877149.9128,
+      "deedPt": null,
+      "origX": 1097720.673,
+      "origY": 877155.0750000002
+    },
+    {
+      "x": 1097728.9132,
+      "y": 877078.508,
+      "deedPt": null,
+      "origX": 1097723.99,
+      "origY": 877136.607
+    },
+    {
+      "x": 1097729.3321,
+      "y": 877054.5117,
+      "deedPt": null,
+      "origX": 1097727.9805,
+      "origY": 877100.5587000002
+    },
+    {
+      "x": 1097721.9087,
+      "y": 877022.3575,
+      "deedPt": null,
+      "origX": 1097723.6645,
+      "origY": 877070.1596
+    },
+    {
+      "x": 1097725.7453,
+      "y": 876967.4915,
+      "deedPt": null,
+      "origX": 1097718.8953,
+      "origY": 877027.3667999998
+    },
+    {
+      "x": 1097757.0707,
+      "y": 876906.012,
+      "deedPt": null,
+      "origX": 1097720.7162,
+      "origY": 877003.3017000002
+    },
+    {
+      "x": 1097809.4181,
+      "y": 876897.721,
+      "deedPt": null,
+      "origX": 1097757.07067193,
+      "origY": 876906.0120108258
+    },
+    {
+      "x": 1097781.8039,
+      "y": 876845.0776,
+      "deedPt": null,
+      "origX": 1097781.8039,
+      "origY": 876845.0776
+    },
+    {
+      "x": 1097777.702901042,
+      "y": 876833.836605712,
+      "deedPt": null,
+      "origX": 1097782.81296945,
+      "origY": 876836.3289526041
+    },
+    {
+      "x": 1097779.943901042,
+      "y": 876829.7576057117,
+      "deedPt": null,
+      "origX": 1097785.05396945,
+      "origY": 876832.2499526041
+    },
+    {
+      "x": 1097780.985901041,
+      "y": 876823.0136057117,
+      "deedPt": null,
+      "origX": 1097786.09596945,
+      "origY": 876825.505952604
+    },
+    {
+      "x": 1097757.491901042,
+      "y": 876812.4716057116,
+      "deedPt": null,
+      "origX": 1097762.60196945,
+      "origY": 876814.9639526042
+    },
+    {
+      "x": 1097751.367901041,
+      "y": 876808.6956057115,
+      "deedPt": null,
+      "origX": 1097756.47796945,
+      "origY": 876811.187952604
+    },
+    {
+      "x": 1097757.868901042,
+      "y": 876795.4106057116,
+      "deedPt": null,
+      "origX": 1097762.97896945,
+      "origY": 876797.9029526043
+    },
+    {
+      "x": 1097745.936901042,
+      "y": 876786.7086057115,
+      "deedPt": null,
+      "origX": 1097751.04696945,
+      "origY": 876789.2009526041
+    },
+    {
+      "x": 1097729.259901042,
+      "y": 876785.4396057115,
+      "deedPt": null,
+      "origX": 1097734.36996945,
+      "origY": 876787.9319526041
+    },
+    {
+      "x": 1097716.630901041,
+      "y": 876770.1846057116,
+      "deedPt": null,
+      "origX": 1097721.74096945,
+      "origY": 876772.676952604
+    },
+    {
+      "x": 1097695.002901041,
+      "y": 876757.4586057117,
+      "deedPt": null,
+      "origX": 1097700.11296945,
+      "origY": 876759.9509526041
+    },
+    {
+      "x": 1097702.344901042,
+      "y": 876728.2346057115,
+      "deedPt": null,
+      "origX": 1097707.45496945,
+      "origY": 876730.7269526041
+    },
+    {
+      "x": 1097704.617901041,
+      "y": 876724.0206057115,
+      "deedPt": null,
+      "origX": 1097709.72796945,
+      "origY": 876726.5129526041
+    },
+    {
+      "x": 1097702.752901041,
+      "y": 876715.9686057116,
+      "deedPt": null,
+      "origX": 1097702.752901041,
+      "origY": 876715.9686057116
+    },
+    {
+      "x": 1097700.938901042,
+      "y": 876706.3416057117,
+      "deedPt": null,
+      "origX": 1097700.938901042,
+      "origY": 876706.3416057117
+    },
+    {
+      "x": 1097692.419901042,
+      "y": 876668.7586057114,
+      "deedPt": null,
+      "origX": 1097697.52996945,
+      "origY": 876671.2509526042
+    },
+    {
+      "x": 1097703.311901042,
+      "y": 876671.3626057116,
+      "deedPt": null,
+      "origX": 1097703.311901042,
+      "origY": 876671.3626057116
+    },
+    {
+      "x": 1097705.9017213162,
+      "y": 876672.6836297732,
+      "deedPt": {
+        "x": 252.71,
+        "y": 606.37
+      },
+      "origX": 1097705.394527006,
+      "origY": 876672.209983566
+    },
+    {
+      "x": 1097778.9794356248,
+      "y": 876689.5549353061,
+      "deedPt": {
+        "x": 289.25,
+        "y": 548.84
+      },
+      "origX": 1097779.7181422517,
+      "origY": 876691.1828840653
+    },
+    {
+      "x": 1097911.6751838687,
+      "y": 876815.5738986423,
+      "deedPt": {
+        "x": 299.5,
+        "y": 389.46
+      },
+      "origX": 1097911.0488598833,
+      "origY": 876813.9172530483
+    },
+    {
+      "x": 1097933.2192039175,
+      "y": 876811.117918653,
+      "deedPt": {
+        "x": 316.13,
+        "y": 378.09
+      },
+      "origX": 1097933.449717207,
+      "origY": 876810.4103433274
+    },
+    {
+      "x": 1097945.4849768684,
+      "y": 876817.8670579855,
+      "deedPt": {
+        "x": 318.5,
+        "y": 365.84
+      },
+      "origX": 1097944.8407180936,
+      "origY": 876818.6234188597
+    },
+    {
+      "x": 1097960.479719568,
+      "y": 876817.4698691079,
+      "deedPt": {
+        "x": 329.13,
+        "y": 355.96
+      },
+      "origX": 1097961.174282672,
+      "origY": 876818.5229612995
+    },
+    {
+      "x": 1097997.397100858,
+      "y": 876844.5760612056,
+      "deedPt": {
+        "x": 336.5,
+        "y": 318.21
+      },
+      "origX": 1097996.3316965771,
+      "origY": 876843.781328301
+    },
+    {
+      "x": 1098002.4804487508,
+      "y": 876863.919262946,
+      "deedPt": {
+        "x": 328.38,
+        "y": 302.59
+      },
+      "origX": 1098001.7235489069,
+      "origY": 876862.8476023445
+    },
+    {
+      "x": 1098067.075553904,
+      "y": 876874.7691075288,
+      "deedPt": {
+        "x": 362.25,
+        "y": 254.84
+      },
+      "origX": 1098066.3153592309,
+      "origY": 876875.8634184354
+    },
+    {
+      "x": 1098047.1837913748,
+      "y": 876972.7703094444,
+      "deedPt": {
+        "x": 290.75,
+        "y": 204.96
+      },
+      "origX": 1098046.180646691,
+      "origY": 876971.8965206564
+    },
+    {
+      "x": 1098018.6421718472,
+      "y": 876982.0097541552,
+      "deedPt": {
+        "x": 267.25,
+        "y": 216.71
+      },
+      "origX": 1098017.8555151552,
+      "origY": 876980.3907509899
+    },
+    {
+      "x": 1098074.7230064985,
+      "y": 877057.8378410769,
+      "deedPt": {
+        "x": 258.13,
+        "y": 130.96
+      },
+      "origX": 1098076.5186217565,
+      "origY": 877057.7122789592
+    }
+  ],
+  "segmentLengths": [
+    54,
+    64,
+    43,
+    48,
+    104,
+    59,
+    83,
+    70,
+    112,
+    25,
+    26,
+    13,
+    59,
+    73,
+    24,
+    33,
+    55,
+    69,
+    53,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    75,
+    183,
+    22,
+    14,
+    15,
+    45.8,
+    20,
+    65.5,
+    100,
+    30,
+    94.3,
+    21
+  ],
+  "segmentSections": [
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "E296",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "Quebrada",
+    "1073",
+    "1073",
+    "1073",
+    "1073",
+    "1073",
+    "1073",
+    "1073",
+    "1073",
+    "1073",
+    "1073",
+    "1073",
+    "1073"
+  ],
+  "segmentParts": [
+    "4-5",
+    "3-4",
+    "2-3",
+    "1-2",
+    "27-1",
+    "26-27",
+    "25-26",
+    "24-25",
+    "23-24",
+    "22-23",
+    "21-22",
+    "20-21",
+    "19-20",
+    "18-19",
+    "17-18",
+    "16-17",
+    "15-16",
+    "14-15",
+    "13-14",
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    "35-34",
+    "34-32",
+    "32-31",
+    "31-30",
+    "30-29",
+    "29-28",
+    "26-27",
+    "27-25",
+    "25-23",
+    "23-22",
+    "22-21",
+    "21-20"
+  ],
+  "segmentOptimize": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "closed": true,
+  "drawMode": false,
+  "show": true,
+  "segmentNames": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "sectionStyles": {
+    "1073": {
+      "color": "#ff0000",
+      "dash": "solid",
+      "width": 3.5,
+      "showNodes": false
+    },
+    "e296": {
+      "color": "#0000ff",
+      "dash": "solid",
+      "width": 3.5,
+      "showNodes": false
+    },
+    "quebrada": {
+      "color": "#ffd600",
+      "dash": "solid",
+      "width": 3.5,
+      "showNodes": false
+    }
+  },
+  "defaultPolyStyle": {
+    "color": "#0066ff",
+    "dash": "solid",
+    "width": 3.5,
+    "showNodes": false
+  }
+};
+
+    function applyAnchors(list) {
+      if (!Array.isArray(list) || list.length === 0) return;
+      state.anchors = list.map((a, i) => ({
+        id: a.id || i + 1,
+        color: a.color || anchorColors[i % anchorColors.length],
+        src: { x: a.src.x, y: a.src.y },
+        dst: { x: a.dst.x, y: a.dst.y },
+        active: a.active !== false && a.enabled !== false,
+        enabled: a.active !== false && a.enabled !== false
+      }));
+      updateAnalyticsUI();
+    }
+
+    function applyUserPolygon(obj) {
+      if (!obj || !Array.isArray(obj.vertices) || obj.vertices.length === 0) return false;
+      if (obj.sectionStyles) state.sectionStyles = { ...obj.sectionStyles };
+      if (obj.defaultPolyStyle) state.defaultPolyStyle = { ...obj.defaultPolyStyle };
+      state.userPolygon = {
+        vertices: (obj.vertices || []).map(v => ({
+          x: v.x,
+          y: v.y,
+          deedPt: v.deedPt || null,
+          origX: v.origX != null ? v.origX : null,
+          origY: v.origY != null ? v.origY : null
+        })),
+        segmentLengths: obj.segmentLengths || [],
+        segmentSections: obj.segmentSections || obj.segmentNames || [],
+        segmentParts: obj.segmentParts || [],
+        segmentOptimize: obj.segmentOptimize || [],
+        closed: !!obj.closed,
+        drawMode: false,
+        show: true,
+      };
+      while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
+        state.userPolygon.segmentLengths.push(null);
+      }
+      if (!state.userPolygon.segmentNames) state.userPolygon.segmentNames = [];
+      while (state.userPolygon.segmentNames.length < state.userPolygon.vertices.length) {
+        state.userPolygon.segmentNames.push(null);
+      }
+      if (!state.userPolygon.segmentOptimize) state.userPolygon.segmentOptimize = [];
+      while (state.userPolygon.segmentOptimize.length < state.userPolygon.vertices.length) {
+        const idx = state.userPolygon.segmentOptimize.length;
+        const dLen = state.userPolygon.segmentLengths[idx];
+        state.userPolygon.segmentOptimize.push(dLen !== null && dLen > 0 && idx >= 39 && idx <= 48);
+      }
+      rebuildSegmentInputs();
+      recomputeUserPolygonMetrics();
+      updatePolygonButtonStates();
+      return true;
+    }
+
+
     /* ==========================================================================
        3.5. BOUNDARY OPTIMIZATION ENGINE (Constrained Relaxation: Spring & Area Model)
        ========================================================================== */
@@ -3213,6 +4419,10 @@ EOF`;
        4. APPLICATION LOGIC & DUAL-CANVAS RENDERING ENGINE
        ========================================================================== */
     const state = {
+      deedScale: { x: 1.0, y: 1.0 },
+      showDeedHandles: true,
+      activeDeedHandle: null,
+      deedDragStart: null,
       histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
       trueEntities: [],      // DXF from Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf (GIS UTM coord space)
       anchors: [],
@@ -3937,6 +5147,210 @@ EOF`;
       }
     }
 
+    
+    /* ==========================================================================
+       DEED SQUEEZE & ASPECT RATIO GIZMO (PowerPoint-style Transform Handles)
+       ========================================================================== */
+    function getDeedCenter() {
+      if (typeof state !== "undefined") {
+        if (state.histPdfCanvas && state.histPdfW > 0 && state.histPdfH > 0) {
+          return { x: state.histPdfW / 2, y: state.histPdfH / 2 };
+        }
+        if (state.histEntities && state.histEntities.length > 0) {
+          const bbox = computeBoundingBox(state.histEntities);
+          return { x: bbox.minX + bbox.width / 2, y: bbox.minY + bbox.height / 2 };
+        }
+      }
+      return { x: 382.0, y: 391.0 };
+    }
+
+    function getDeedRectDeedSpace() {
+      if (state.histPdfCanvas && state.histPdfW > 0 && state.histPdfH > 0) {
+        return { minX: 0, minY: 0, maxX: state.histPdfW, maxY: state.histPdfH, width: state.histPdfW, height: state.histPdfH };
+      }
+      if (state.histEntities && state.histEntities.length > 0) {
+        return computeBoundingBox(state.histEntities);
+      }
+      return null;
+    }
+
+    function getDeedBoundingGizmo(vp, canvasH) {
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length < 2) return null;
+      let warper = null;
+      try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) { return null; }
+      if (!warper) return null;
+
+      const rect = getDeedRectDeedSpace();
+      if (!rect) return null;
+
+      const cTL = { x: rect.minX, y: rect.minY };
+      const cTR = { x: rect.maxX, y: rect.minY };
+      const cBR = { x: rect.maxX, y: rect.maxY };
+      const cBL = { x: rect.minX, y: rect.maxY };
+
+      const sTL = worldToScreenGIS(warper(cTL), vp, canvasH);
+      const sTR = worldToScreenGIS(warper(cTR), vp, canvasH);
+      const sBR = worldToScreenGIS(warper(cBR), vp, canvasH);
+      const sBL = worldToScreenGIS(warper(cBL), vp, canvasH);
+
+      const midTop = { x: (sTL.x + sTR.x) / 2, y: (sTL.y + sTR.y) / 2 };
+      const midBottom = { x: (sBL.x + sBR.x) / 2, y: (sBL.y + sBR.y) / 2 };
+      const midLeft = { x: (sTL.x + sBL.x) / 2, y: (sTL.y + sBL.y) / 2 };
+      const midRight = { x: (sTR.x + sBR.x) / 2, y: (sTR.y + sBR.y) / 2 };
+      const center = { x: (sTL.x + sTR.x + sBR.x + sBL.x) / 4, y: (sTL.y + sTR.y + sBR.y + sBL.y) / 4 };
+
+      const dxW = midRight.x - midLeft.x, dyW = midRight.y - midLeft.y;
+      const lenW = Math.max(1, Math.hypot(dxW, dyW));
+      const uWidth = { x: dxW / lenW, y: dyW / lenW };
+
+      const dxH = midBottom.x - midTop.x, dyH = midBottom.y - midTop.y;
+      const lenH = Math.max(1, Math.hypot(dxH, dyH));
+      const uHeight = { x: dxH / lenH, y: dyH / lenH };
+
+      return {
+        corners: { tl: sTL, tr: sTR, br: sBR, bl: sBL },
+        midpoints: { top: midTop, bottom: midBottom, left: midLeft, right: midRight },
+        center,
+        widthScreen: lenW,
+        heightScreen: lenH,
+        uWidth,
+        uHeight,
+        angleWidth: Math.atan2(dyW, dxW),
+        angleHeight: Math.atan2(dyH, dxH)
+      };
+    }
+
+    function findDeedHandleAt(sx, sy, vp, canvasH) {
+      const gizmo = getDeedBoundingGizmo(vp, canvasH);
+      if (!gizmo) return null;
+
+      const HIT_R = 14;
+      const { corners, midpoints } = gizmo;
+
+      // Check corner handles first
+      if (Math.hypot(sx - corners.tl.x, sy - corners.tl.y) <= HIT_R) return { handle: "tl", cursor: "nwse-resize", gizmo };
+      if (Math.hypot(sx - corners.tr.x, sy - corners.tr.y) <= HIT_R) return { handle: "tr", cursor: "nesw-resize", gizmo };
+      if (Math.hypot(sx - corners.br.x, sy - corners.br.y) <= HIT_R) return { handle: "br", cursor: "nwse-resize", gizmo };
+      if (Math.hypot(sx - corners.bl.x, sy - corners.bl.y) <= HIT_R) return { handle: "bl", cursor: "nesw-resize", gizmo };
+
+      // Check edge handles
+      if (Math.hypot(sx - midpoints.left.x, sy - midpoints.left.y) <= HIT_R) return { handle: "left", cursor: "ew-resize", gizmo };
+      if (Math.hypot(sx - midpoints.right.x, sy - midpoints.right.y) <= HIT_R) return { handle: "right", cursor: "ew-resize", gizmo };
+      if (Math.hypot(sx - midpoints.top.x, sy - midpoints.top.y) <= HIT_R) return { handle: "top", cursor: "ns-resize", gizmo };
+      if (Math.hypot(sx - midpoints.bottom.x, sy - midpoints.bottom.y) <= HIT_R) return { handle: "bottom", cursor: "ns-resize", gizmo };
+
+      return null;
+    }
+
+    function drawDeedTransformGizmo(ctx, vp, canvasH) {
+      if (!state.showOverlay || state.showDeedHandles === false) return;
+      const gizmo = getDeedBoundingGizmo(vp, canvasH);
+      if (!gizmo) return;
+
+      const { corners, midpoints, angleWidth, angleHeight } = gizmo;
+
+      ctx.save();
+
+      // 1. Dashed bounding frame
+      ctx.strokeStyle = "rgba(213, 0, 249, 0.85)";
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([6, 5]);
+      ctx.beginPath();
+      ctx.moveTo(corners.tl.x, corners.tl.y);
+      ctx.lineTo(corners.tr.x, corners.tr.y);
+      ctx.lineTo(corners.br.x, corners.br.y);
+      ctx.lineTo(corners.bl.x, corners.bl.y);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Helper for edge pill handle
+      function drawPill(x, y, angle, isHighlighted) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.fillStyle = isHighlighted ? "#d500f9" : "#ffffff";
+        ctx.strokeStyle = isHighlighted ? "#ffffff" : "#d500f9";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 4;
+        const pw = 16, ph = 8;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(-pw/2, -ph/2, pw, ph, 3);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(-pw/2, -ph/2, pw, ph);
+          ctx.strokeRect(-pw/2, -ph/2, pw, ph);
+        }
+        // Grip lines
+        ctx.strokeStyle = isHighlighted ? "#ffffff" : "#333333";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(-2, -2.5); ctx.lineTo(-2, 2.5);
+        ctx.moveTo(2, -2.5); ctx.lineTo(2, 2.5);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Helper for corner handle
+      function drawCorner(x, y, isHighlighted) {
+        ctx.save();
+        ctx.fillStyle = isHighlighted ? "#d500f9" : "#ffffff";
+        ctx.strokeStyle = isHighlighted ? "#ffffff" : "#d500f9";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 4;
+        const s = 9;
+        ctx.fillRect(x - s/2, y - s/2, s, s);
+        ctx.strokeRect(x - s/2, y - s/2, s, s);
+        ctx.restore();
+      }
+
+      // 2. Draw 4 Edge Handles
+      drawPill(midpoints.left.x, midpoints.left.y, angleHeight, state.activeDeedHandle === "left");
+      drawPill(midpoints.right.x, midpoints.right.y, angleHeight, state.activeDeedHandle === "right");
+      drawPill(midpoints.top.x, midpoints.top.y, angleWidth, state.activeDeedHandle === "top");
+      drawPill(midpoints.bottom.x, midpoints.bottom.y, angleWidth, state.activeDeedHandle === "bottom");
+
+      // 3. Draw 4 Corner Handles
+      drawCorner(corners.tl.x, corners.tl.y, state.activeDeedHandle === "tl");
+      drawCorner(corners.tr.x, corners.tr.y, state.activeDeedHandle === "tr");
+      drawCorner(corners.br.x, corners.br.y, state.activeDeedHandle === "br");
+      drawCorner(corners.bl.x, corners.bl.y, state.activeDeedHandle === "bl");
+
+      ctx.restore();
+    }
+
+    function updateDeedScaleDisplay() {
+      const el = document.getElementById("deed-scale-display");
+      if (el && state.deedScale) {
+        el.textContent = `X:${(state.deedScale.x * 100).toFixed(1)}% Y:${(state.deedScale.y * 100).toFixed(1)}%`;
+      }
+    }
+
+    function resetDeedScale() {
+      state.deedScale.x = 1.0;
+      state.deedScale.y = 1.0;
+      updateDeedScaleDisplay();
+      updateUserPolygonWarp();
+      updateCustomPolygonAnchors();
+      redrawAll();
+      updateStatus("📐 Deed Aspect Ratio reset to 100% (1:1).");
+    }
+
+    function toggleDeedHandles(force) {
+      state.showDeedHandles = (force !== undefined) ? force : !state.showDeedHandles;
+      const btn = document.getElementById("btn-toggle-deed-handles");
+      if (btn) {
+        btn.classList.toggle("active", state.showDeedHandles);
+      }
+      redrawTrueCanvas();
+      updateStatus(state.showDeedHandles ? "🔲 Squeeze Handles enabled — drag edge handles on field canvas to stretch." : "🔲 Squeeze Handles hidden.");
+    }
+
     function redrawTrueCanvas() {
       const w = trueCanvas.width, h = trueCanvas.height;
       trueCtx.clearRect(0,0,w,h);
@@ -3965,6 +5379,11 @@ EOF`;
       // Layer 3: Warped deed DXF boundary
       if (warper) {
         drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper, vp, h, "#ff1744", state.warpedDxfOpacity);
+      }
+
+      // Layer 3b: PowerPoint-style Deed Aspect Squeeze Handles
+      if (warper && state.showOverlay && state.showDeedHandles !== false) {
+        drawDeedTransformGizmo(trueCtx, vp, h);
       }
 
       // Layer 4: True Field Survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf) — green
@@ -7946,6 +9365,26 @@ EOF`;
 
     // Capture-phase mouse listener for trueCanvas (user polygon creation, node drag & right-click node delete)
     trueCanvas.addEventListener("mousedown", function(e) {
+      // 0. Squeeze Deed Handles (PowerPoint-style drag)
+      if (e.button === 0 && !spacePressed && state.toolMode === "pan" && state.showOverlay && state.showDeedHandles !== false) {
+        const rect = trueCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const handleHit = findDeedHandleAt(sx, sy, state.trueViewport, trueCanvas.height);
+        if (handleHit) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          state.activeDeedHandle = handleHit.handle;
+          state.deedDragStart = {
+            sx, sy,
+            initScaleX: state.deedScale.x,
+            initScaleY: state.deedScale.y,
+            gizmo: handleHit.gizmo
+          };
+          trueCanvas.style.cursor = handleHit.cursor;
+          updateStatus(`📐 Squeezing Deed (${handleHit.handle.toUpperCase()}) — drag to stretch/squeeze aspect ratio.`);
+          return;
+        }
+      }
       // In Anchor Mode: block ALL polygon interactions — move, create, delete — anchors have exclusive control
       if (state.toolMode === "anchor") {
         return;
@@ -8993,6 +10432,70 @@ EOF`;
       const r = trueCanvas.getBoundingClientRect();
       const mouseX = e.clientX - r.left, mouseY = e.clientY - r.top;
       const vp = state.trueViewport, h = trueCanvas.height;
+
+      // Squeeze Deed Handle Dragging
+      if (state.activeDeedHandle !== null && state.deedDragStart) {
+        const start = state.deedDragStart;
+        const dx = mouseX - start.sx;
+        const dy = mouseY - start.sy;
+        const gizmo = start.gizmo;
+
+        if (gizmo) {
+          if (state.activeDeedHandle === "right") {
+            const proj = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
+            const factor = 1 + proj / (gizmo.widthScreen / 2);
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * factor));
+          } else if (state.activeDeedHandle === "left") {
+            const proj = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
+            const factor = 1 + proj / (gizmo.widthScreen / 2);
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * factor));
+          } else if (state.activeDeedHandle === "bottom") {
+            const proj = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
+            const factor = 1 + proj / (gizmo.heightScreen / 2);
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * factor));
+          } else if (state.activeDeedHandle === "top") {
+            const proj = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
+            const factor = 1 + proj / (gizmo.heightScreen / 2);
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * factor));
+          } else if (state.activeDeedHandle === "br") {
+            const projX = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
+            const projY = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / (gizmo.widthScreen / 2))));
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / (gizmo.heightScreen / 2))));
+          } else if (state.activeDeedHandle === "tl") {
+            const projX = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
+            const projY = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / (gizmo.widthScreen / 2))));
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / (gizmo.heightScreen / 2))));
+          } else if (state.activeDeedHandle === "tr") {
+            const projX = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
+            const projY = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / (gizmo.widthScreen / 2))));
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / (gizmo.heightScreen / 2))));
+          } else if (state.activeDeedHandle === "bl") {
+            const projX = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
+            const projY = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
+            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / (gizmo.widthScreen / 2))));
+            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / (gizmo.heightScreen / 2))));
+          }
+        }
+
+        updateDeedScaleDisplay();
+        updateUserPolygonWarp();
+        updateCustomPolygonAnchors();
+        redrawTrueCanvas();
+        return;
+      }
+
+      // Deed Handle Hover detection
+      if (!isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && state.showOverlay && state.showDeedHandles !== false && state.toolMode === "pan") {
+        const handleHit = findDeedHandleAt(mouseX, mouseY, vp, h);
+        if (handleHit) {
+          trueCanvas.style.cursor = handleHit.cursor;
+          coordsBar.textContent = `📐 Deed Squeeze [${handleHit.handle.toUpperCase()}]: Drag to adjust aspect ratio.`;
+          return;
+        }
+      }
       const p = screenToWorldGIS(mouseX, mouseY, vp, h);
       coordsBar.textContent = `Field UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
 
@@ -10378,7 +11881,6 @@ EOF`;
         await parseGeoTiff(blob);
       } catch(e) {
         console.warn("Auto GeoTIFF:", e.message);
-        updateStatus("Drone GeoTIFF not auto-loaded (CORS). Use 🛸 Drone GeoTIFF button.");
       }
 
       // 2. Deed PDF
@@ -10394,19 +11896,16 @@ EOF`;
       try {
         const text = await fetchText("Polygon_Escritura1073_FerminSuarez.dxf");
         state.histEntities = DXFParser.parse(text);
-        histStatus.textContent = `DXF+PDF ready (${state.histEntities.length} ents)`;
-        updateStatus(`Deed DXF loaded: ${state.histEntities.length} entities.`);
-        redrawAll();
+        histStatus.textContent = `Deed DXF ready (${state.histEntities.length} ents)`;
       } catch(e) {
         console.warn("Auto Deed DXF:", e.message);
-        if (state.histEntities.length === 0 && typeof HISTORICAL_DXF_SAMPLE !== "undefined") {
+        if (typeof HISTORICAL_DXF_SAMPLE !== "undefined") {
           state.histEntities = DXFParser.parse(HISTORICAL_DXF_SAMPLE);
-          histStatus.textContent = `Sample DXF ready (${state.histEntities.length} ents)`;
-          if (!state.histViewport.bbox && histCanvas.width > 0) {
-            state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
-          }
-          redrawAll();
+          histStatus.textContent = `Deed DXF ready (${state.histEntities.length} ents)`;
         }
+      }
+      if (histCanvas.width > 0 && state.histEntities.length > 0) {
+        state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
       }
 
       // 4. Field survey DXF (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf)
@@ -10416,42 +11915,33 @@ EOF`;
         state.trueFileName = fieldName;
         state.trueEntities = DXFParser.parse(text);
         trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
-        if (!state.trueViewport.bbox && state.trueEntities.length > 0) {
-          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
-        }
-        updateStatus(`Field survey DXF (${fieldName}) loaded: ${state.trueEntities.length} entities.`);
-        redrawAll();
       } catch(e) {
         console.warn("Auto Field DXF:", e.message);
-        if (state.trueEntities.length === 0 && typeof TRUE_FIELD_DXF_SAMPLE !== "undefined") {
+        state.trueFileName = "Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf";
+        if (typeof TRUE_FIELD_DXF_SAMPLE !== "undefined") {
           state.trueEntities = DXFParser.parse(TRUE_FIELD_DXF_SAMPLE);
-          trueStatus.textContent = `Sample Field DXF (${state.trueEntities.length} ents)`;
-          if (!state.trueViewport.bbox) {
-            state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
-          }
-          redrawAll();
+          trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
         }
+      }
+      if (trueCanvas.width > 0 && state.trueEntities.length > 0) {
+        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
       }
 
       // 5. Dedicated anchors for this app (anchors_georectifier.json)
+      let loadedAnchors = false;
       try {
         const text = await fetchText("anchors_georectifier.json");
         const data = JSON.parse(text);
         const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
         if (list.length > 0) {
-          state.anchors = list.map((a, i) => ({
-            id: a.id || i + 1,
-            color: a.color || anchorColors[i % anchorColors.length],
-            src: { x: a.src.x, y: a.src.y },
-            dst: { x: a.dst.x, y: a.dst.y },
-            active: a.active !== false && a.enabled !== false,
-            enabled: a.active !== false && a.enabled !== false
-          }));
-          updateStatus(`Loaded ${state.anchors.length} anchors (${getActiveAnchors().length} active) from anchors_georectifier.json.`);
-          redrawAll();
+          applyAnchors(list);
+          loadedAnchors = true;
         }
       } catch(e) {
         console.warn("anchors_georectifier.json:", e.message);
+      }
+      if (!loadedAnchors && typeof EMBEDDED_ANCHORS !== "undefined" && EMBEDDED_ANCHORS.length > 0) {
+        applyAnchors(EMBEDDED_ANCHORS);
       }
 
       // 6. User polygon preload (user_polygon.json or user_polygon.dxf)
@@ -10459,62 +11949,41 @@ EOF`;
       try {
         const text = await fetchText("user_polygon.json");
         const obj = JSON.parse(text);
-        if (Array.isArray(obj.vertices) && obj.vertices.length > 0) {
-          if (obj.sectionStyles) state.sectionStyles = { ...obj.sectionStyles };
-          if (obj.defaultPolyStyle) state.defaultPolyStyle = { ...obj.defaultPolyStyle };
-          state.userPolygon = {
-            vertices: (obj.vertices || []).map(v => ({
-              x: v.x,
-              y: v.y,
-              deedPt: v.deedPt || null,
-              origX: v.origX != null ? v.origX : null,
-              origY: v.origY != null ? v.origY : null
-            })),
-            segmentLengths: obj.segmentLengths || [],
-            segmentSections: obj.segmentSections || obj.segmentNames || [],
-            segmentParts: obj.segmentParts || [],
-            segmentOptimize: obj.segmentOptimize || [],
-            closed: !!obj.closed,
-            drawMode: false,
-            show: true,
-          };
-          while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
-            state.userPolygon.segmentLengths.push(null);
-          }
-          if (!state.userPolygon.segmentNames) state.userPolygon.segmentNames = [];
-          while (state.userPolygon.segmentNames.length < state.userPolygon.vertices.length) {
-            state.userPolygon.segmentNames.push(null);
-          }
-          if (!state.userPolygon.segmentOptimize) state.userPolygon.segmentOptimize = [];
-          while (state.userPolygon.segmentOptimize.length < state.userPolygon.vertices.length) {
-            const idx = state.userPolygon.segmentOptimize.length;
-            const dLen = state.userPolygon.segmentLengths[idx];
-            state.userPolygon.segmentOptimize.push(dLen !== null && dLen > 0 && idx >= 39 && idx <= 48);
-          }
-          rebuildSegmentInputs();
-          recomputeUserPolygonMetrics();
-          updatePolygonButtonStates();
-          redrawTrueCanvas();
-          updateStatus(`Preloaded polygon (${state.userPolygon.vertices.length} vertices) from user_polygon.json.`);
-          loadedPoly = true;
-        }
+        loadedPoly = applyUserPolygon(obj);
       } catch(e) {
         console.warn("user_polygon.json preload:", e.message);
+      }
+
+      if (!loadedPoly && typeof EMBEDDED_USER_POLYGON !== "undefined") {
+        loadedPoly = applyUserPolygon(EMBEDDED_USER_POLYGON);
       }
 
       if (!loadedPoly) {
         try {
           const dxfText = await fetchText("user_polygon.dxf");
           loadUserPolygonFromDXF(dxfText, "user_polygon.dxf");
-          updateStatus(`Preloaded polygon from user_polygon.dxf.`);
+          loadedPoly = true;
         } catch(e) {
           console.warn("user_polygon.dxf preload:", e.message);
         }
       }
 
-      // 7. Initialize constraints and display buffers immediately if checkboxes are active
+      // 7. Initialize constraints, subpanels, metrics and redraw
       initConstraintsAndBuffers();
+      renderCustomPolyList();
+      updateCustomPolyButtonStates();
+      recomputeCustomPolygonMetrics();
+      redrawAll();
+
+      const activeAnc = getActiveAnchors().length;
+      updateStatus(`⚡ Ready: Deed DXF (${state.histEntities.length} ents), Field DXF (${state.trueEntities.length} ents), Anchors (${activeAnc}) & Boundary (${state.userPolygon.vertices.length} pts) loaded.`);
     }
+
+    
+    const btnResetDeedScale = document.getElementById("btn-reset-deed-scale");
+    if (btnResetDeedScale) btnResetDeedScale.addEventListener("click", resetDeedScale);
+    const btnToggleDeedHandles = document.getElementById("btn-toggle-deed-handles");
+    if (btnToggleDeedHandles) btnToggleDeedHandles.addEventListener("click", () => toggleDeedHandles());
 
     // File input listeners for manual override
     document.getElementById("geotiff-input").addEventListener("change", e => { const f=e.target.files[0]; if(f) parseGeoTiff(f); });
@@ -10525,6 +11994,7 @@ EOF`;
     state.anchors = [];
     algorithmSelect.value = state.algorithm;
     initConstraintsAndBuffers();
+    renderCustomPolyList();
     updateCustomPolyButtonStates();
     recomputeCustomPolygonMetrics();
     setToolMode("pan");
