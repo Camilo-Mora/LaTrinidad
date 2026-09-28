@@ -1209,7 +1209,7 @@
         <section class="panel-card" id="panel-distance-area">
           <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:8px;">
-              <h3>📏 Distance &amp; Area</h3>
+              <h3>📏 Boundary Reconstructed</h3>
               <button id="btn-download-polygon-dxf" class="btn-icon-action" style="background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.35);color:var(--accent-cyan);width:26px;height:26px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s;" title="Download Polygon DXF (LaTrinidadOptimized.dxf)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
@@ -1423,6 +1423,74 @@
               </div>
             </div>
             <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;">🖐️ <strong>Drag node</strong>: Move &bull; 🖱️ <strong>Double-click line</strong>: Add vertex &bull; 🗑 <strong>Right-click node</strong>: Delete</p>
+          </div>
+        </section>
+
+        <!-- Autonomous Custom Field Polygon Panel -->
+        <section class="panel-card" id="panel-custom-polygon">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h3>📐 Custom Polygon</h3>
+              <button id="btn-download-custom-poly-dxf" class="btn-icon-action" style="background:rgba(255,179,0,0.12);border:1px solid rgba(255,179,0,0.35);color:#ffb300;width:26px;height:26px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s;" title="Download Custom Polygon DXF (custom_polygon.dxf)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+              </button>
+            </div>
+            <span id="custom-poly-mode-badge" style="font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(255,179,0,0.12);color:#ffb300;font-weight:600;">Idle</span>
+          </div>
+          <div id="body-custom-polygon" style="display:flex;flex-direction:column;gap:8px;">
+            <!-- Action buttons -->
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button id="btn-create-custom-poly" class="btn btn-primary btn-sm" style="background:linear-gradient(135deg,#ff9100,#ff6d00);border-color:#ff9100;" title="Start drawing a new custom polygon on the field canvas">+ Create polygon</button>
+              <button id="btn-cancel-custom-poly" class="btn btn-secondary btn-sm" style="display:none;" title="Cancel drawing custom polygon">✕ Cancel</button>
+              <button id="btn-close-custom-poly" class="btn btn-secondary btn-sm" style="display:none;background:rgba(255,179,0,0.25);border-color:#ffb300;color:#ffb300;" title="Close and finish the custom polygon">✓ Close polygon</button>
+              <button id="btn-clear-custom-poly" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear and delete the custom polygon">🗑 Clear</button>
+            </div>
+
+            <!-- Toggles: Nodes, Labels, Snap / Anchor -->
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:4px 0;border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06);">
+              <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;cursor:pointer;" title="Show or hide vertex nodes (points)">
+                <input type="checkbox" id="chk-custom-poly-nodes" checked style="accent-color:#ffb300;">
+                Nodes
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;cursor:pointer;" title="Show or hide segment length labels and vertex indices">
+                <input type="checkbox" id="chk-custom-poly-labels" checked style="accent-color:#ffb300;">
+                Labels
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:0.75rem;cursor:pointer;color:#ffb300;font-weight:600;" title="Snap and dynamically anchor vertices to Reconstructed Boundary &amp; Survey vertices">
+                <input type="checkbox" id="chk-custom-poly-snap" checked style="accent-color:#ffb300;">
+                ⚓ Anchor / Snap
+              </label>
+            </div>
+
+            <!-- Area & Metrics display -->
+            <div id="custom-poly-metrics" style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,179,0,0.25);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Area:</span>
+                <div style="text-align:right;">
+                  <span id="custom-poly-area" style="font-size:1.05rem;font-weight:700;color:#ffb300;font-family:monospace;">—</span>
+                  <span style="font-size:0.72rem;color:var(--text-muted);"> m²</span>
+                  <span id="custom-poly-area-plazas" style="font-size:0.75rem;color:#ffe082;margin-left:4px;">(— plazas)</span>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
+                <span style="color:var(--text-muted);">Perimeter:</span>
+                <span id="custom-poly-perimeter" style="font-family:monospace;color:var(--text-main);font-weight:600;">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
+                <span style="color:var(--text-muted);">Vertices:</span>
+                <span id="custom-poly-vertex-count" style="font-family:monospace;color:var(--text-main);">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
+                <span style="color:var(--text-muted);">Anchored Vertices:</span>
+                <span id="custom-poly-anchored-count" style="font-family:monospace;color:#ffb300;font-weight:600;">0</span>
+              </div>
+            </div>
+
+            <p id="custom-poly-hint" style="font-size:0.7rem;color:var(--text-muted);margin:0;line-height:1.35;">
+              💡 With <strong>Anchor / Snap</strong> on, clicking near a vertex of <em>Boundary Reconstructed</em> binds to it. Boundary shifts or optimizations dynamically update this polygon's area.
+            </p>
           </div>
         </section>
       </aside>
@@ -3081,6 +3149,20 @@ EOF`;
       hoverPolySegment: null,
       currentSnapTarget: null,
       showSegmentLabels: false,
+      // Autonomous Custom Field Polygon (Custom Polygon Panel)
+      customPolygon: {
+        vertices: [],          // [{ x, y, anchor: { type: 'boundary'|'field'|'deed', vertexIdx?: number, entIdx?: number, ptIdx?: number } | null }]
+        closed: false,
+        drawMode: false,
+        showNodes: true,
+        showLabels: true,
+        snapEnabled: true,
+      },
+      draggingCustomPolyNode: null,
+      hoverCustomPolyNode: null,
+      hoverCustomPolySegment: null,
+      customPolySnapTarget: null,
+      customPolyCursorPt: null,
       showDeedPanel: false,     // Deed map panel (hidden by default)
       showFieldPanel: true,     // Field map panel (active by default)
       sidebarVisible: true,     // Control Panel sidebar (active by default)
@@ -3853,9 +3935,16 @@ EOF`;
       // Layer 6: Hand-crafted user polygon
       drawUserPolygon(trueCtx, vp, h);
 
+      // Layer 6.5: Autonomous Custom Field Polygon
+      updateCustomPolygonAnchors();
+      drawCustomPolygon(trueCtx, vp, h);
+
       // Layer 7: Snap target ring indicator
       if (state.currentSnapTarget) {
         drawSnapTargetOnCanvas(trueCtx, state.currentSnapTarget.screenPt);
+      }
+      if (state.customPolySnapTarget) {
+        drawCustomPolySnapTargetOnCanvas(trueCtx, state.customPolySnapTarget.screenPt, state.customPolySnapTarget.label);
       }
 
       // Layer 8: Measuring Tool overlay
@@ -5044,6 +5133,599 @@ EOF`;
       ctx.restore();
     }
 
+    /* ═══════════════════════════════════════════════════════════════════════
+       AUTONOMOUS CUSTOM FIELD POLYGON LOGIC & RENDERING
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    /** Hit-test custom polygon nodes */
+    function findCustomPolyNodeAt(mouseX, mouseY, vp, canvasH) {
+      const poly = state.customPolygon;
+      if (!poly || !poly.vertices) return -1;
+      const HIT_RADIUS = 12; // screen pixels
+      for (let i = 0; i < poly.vertices.length; i++) {
+        const sp = worldToScreenGIS(poly.vertices[i], vp, canvasH);
+        if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) return i;
+      }
+      return -1;
+    }
+
+    /** Hit-test custom polygon segments for vertex insertion on double click */
+    function findCustomPolySegmentAt(mouseX, mouseY, vp, canvasH, hitDist = 10) {
+      const poly = state.customPolygon;
+      if (!poly || !poly.vertices || poly.vertices.length < 2) return null;
+      const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
+      let best = null;
+      let minDist = hitDist;
+
+      for (let i = 0; i < nSegs; i++) {
+        const vA = poly.vertices[i];
+        const vB = poly.vertices[(i + 1) % poly.vertices.length];
+        const sa = worldToScreenGIS(vA, vp, canvasH);
+        const sb = worldToScreenGIS(vB, vp, canvasH);
+
+        const dx = sb.x - sa.x;
+        const dy = sb.y - sa.y;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq < 1e-4) continue;
+
+        const t = ((mouseX - sa.x) * dx + (mouseY - sa.y) * dy) / lenSq;
+        const da = Math.hypot(mouseX - sa.x, mouseY - sa.y);
+        const db = Math.hypot(mouseX - sb.x, mouseY - sb.y);
+        if (da < 14 || db < 14) continue;
+
+        if (t >= 0 && t <= 1) {
+          const projX = sa.x + t * dx;
+          const projY = sa.y + t * dy;
+          const dist = Math.hypot(mouseX - projX, mouseY - projY);
+          if (dist <= minDist) {
+            minDist = dist;
+            best = {
+              segIdx: i,
+              t: t,
+              screenPt: { x: projX, y: projY },
+              worldPt: {
+                x: vA.x + t * (vB.x - vA.x),
+                y: vA.y + t * (vB.y - vA.y),
+                anchor: null
+              },
+              dist: dist
+            };
+          }
+        }
+      }
+      return best;
+    }
+
+    /** Find snapping / anchor target for custom polygon */
+    function findCustomPolySnapTarget(mouseX, mouseY, vp, canvasH, excludeNodeIdx = -1) {
+      if (!state.customPolygon || !state.customPolygon.snapEnabled) return null;
+      const SNAP_RADIUS = 18; // screen pixels
+      let best = null;
+      let minDist = SNAP_RADIUS;
+
+      // 1. If in drawMode and custom polygon has >= 3 vertices, check vertex 0 to close
+      if (state.customPolygon.drawMode && state.customPolygon.vertices.length >= 3) {
+        const v0 = state.customPolygon.vertices[0];
+        const s0 = worldToScreenGIS(v0, vp, canvasH);
+        const d0 = Math.hypot(s0.x - mouseX, s0.y - mouseY);
+        if (d0 <= minDist) {
+          minDist = d0;
+          best = {
+            type: 'close',
+            worldPt: { x: v0.x, y: v0.y },
+            screenPt: s0,
+            label: '✓ Close Polygon',
+            anchor: null
+          };
+        }
+      }
+
+      // 2. Snap & anchor to Reconstructed Boundary vertices (state.userPolygon.vertices)
+      if (state.userPolygon && state.userPolygon.vertices) {
+        for (let i = 0; i < state.userPolygon.vertices.length; i++) {
+          const bv = state.userPolygon.vertices[i];
+          const sp = worldToScreenGIS(bv, vp, canvasH);
+          const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+          if (d <= minDist) {
+            minDist = d;
+            best = {
+              type: 'boundary',
+              worldPt: { x: bv.x, y: bv.y },
+              screenPt: sp,
+              label: `⚓ Boundary Vertex #${i + 1}`,
+              anchor: { type: 'boundary', vertexIdx: i }
+            };
+          }
+        }
+      }
+
+      // 3. Snap & anchor to Field Survey DXF vertices (state.trueEntities)
+      if (state.trueEntities && state.trueEntities.length > 0) {
+        for (let entIdx = 0; entIdx < state.trueEntities.length; entIdx++) {
+          const ent = state.trueEntities[entIdx];
+          const pts = ent.points || ent.vertices;
+          if (!pts) continue;
+          for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+            const pt = pts[ptIdx];
+            const sp = worldToScreenGIS(pt, vp, canvasH);
+            const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+            if (d <= minDist) {
+              minDist = d;
+              best = {
+                type: 'field',
+                worldPt: { x: pt.x, y: pt.y },
+                screenPt: sp,
+                label: `Field Survey #${ptIdx + 1}`,
+                anchor: { type: 'field', entIdx, ptIdx }
+              };
+            }
+          }
+        }
+      }
+
+      // 4. Snap to other custom polygon vertices (if dragging a vertex, snap to another node)
+      if (state.customPolygon.vertices && !state.customPolygon.drawMode) {
+        for (let i = 0; i < state.customPolygon.vertices.length; i++) {
+          if (i === excludeNodeIdx) continue;
+          const cv = state.customPolygon.vertices[i];
+          const sp = worldToScreenGIS(cv, vp, canvasH);
+          const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+          if (d <= minDist) {
+            minDist = d;
+            best = {
+              type: 'custom',
+              worldPt: { x: cv.x, y: cv.y },
+              screenPt: sp,
+              label: `Custom Node #${i + 1}`,
+              anchor: null
+            };
+          }
+        }
+      }
+
+      return best;
+    }
+
+    /** Update all anchored custom polygon vertices to follow their host polygon */
+    function updateCustomPolygonAnchors() {
+      const poly = state.customPolygon;
+      if (!poly || !poly.vertices || poly.vertices.length === 0) return;
+      let changed = false;
+
+      for (let i = 0; i < poly.vertices.length; i++) {
+        const v = poly.vertices[i];
+        if (!v.anchor) continue;
+
+        if (v.anchor.type === 'boundary') {
+          const uPoly = state.userPolygon;
+          if (uPoly && uPoly.vertices && v.anchor.vertexIdx < uPoly.vertices.length) {
+            const target = uPoly.vertices[v.anchor.vertexIdx];
+            if (target && (v.x !== target.x || v.y !== target.y)) {
+              v.x = target.x;
+              v.y = target.y;
+              changed = true;
+            }
+          }
+        } else if (v.anchor.type === 'field') {
+          const ent = state.trueEntities && state.trueEntities[v.anchor.entIdx];
+          const pts = ent ? (ent.points || ent.vertices) : null;
+          if (pts && v.anchor.ptIdx < pts.length) {
+            const target = pts[v.anchor.ptIdx];
+            if (target && (v.x !== target.x || v.y !== target.y)) {
+              v.x = target.x;
+              v.y = target.y;
+              changed = true;
+            }
+          }
+        }
+      }
+
+      if (changed) {
+        recomputeCustomPolygonMetrics();
+      }
+    }
+
+    /** Recompute and display metrics for Custom Polygon */
+    function recomputeCustomPolygonMetrics() {
+      const poly = state.customPolygon;
+      if (!poly) return;
+
+      const countEl = document.getElementById("custom-poly-vertex-count");
+      const anchorCountEl = document.getElementById("custom-poly-anchored-count");
+      const areaEl = document.getElementById("custom-poly-area");
+      const areaPlazasEl = document.getElementById("custom-poly-area-plazas");
+      const perimEl = document.getElementById("custom-poly-perimeter");
+
+      const verts = poly.vertices || [];
+      if (countEl) countEl.textContent = verts.length;
+
+      let anchoredCount = 0;
+      for (let i = 0; i < verts.length; i++) {
+        if (verts[i].anchor) anchoredCount++;
+      }
+      if (anchorCountEl) anchorCountEl.textContent = anchoredCount;
+
+      // Perimeter
+      let perimeter = 0;
+      const nSegs = poly.closed ? verts.length : (verts.length > 1 ? verts.length - 1 : 0);
+      for (let i = 0; i < nSegs; i++) {
+        const a = verts[i], b = verts[(i + 1) % verts.length];
+        perimeter += Math.hypot(b.x - a.x, b.y - a.y);
+      }
+      if (perimEl) {
+        perimEl.textContent = perimeter > 0 ? `${perimeter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m` : "—";
+      }
+
+      // Area (Shoelace formula)
+      let areaM2 = 0;
+      if (poly.closed && verts.length >= 3) {
+        for (let i = 0; i < verts.length; i++) {
+          const j = (i + 1) % verts.length;
+          areaM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
+        }
+        areaM2 = Math.abs(areaM2) / 2;
+      }
+
+      if (areaM2 > 0) {
+        const plazas = areaM2 / 6400;
+        if (areaEl) areaEl.textContent = areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (areaPlazasEl) areaPlazasEl.textContent = `(${plazas.toFixed(2)} plazas)`;
+      } else {
+        if (areaEl) areaEl.textContent = "—";
+        if (areaPlazasEl) areaPlazasEl.textContent = "(— plazas)";
+      }
+    }
+
+    /** Update button states and status badge for Custom Polygon */
+    function updateCustomPolyButtonStates() {
+      const poly = state.customPolygon;
+      if (!poly) return;
+
+      const btnCreate = document.getElementById("btn-create-custom-poly");
+      const btnCancel = document.getElementById("btn-cancel-custom-poly");
+      const btnClose = document.getElementById("btn-close-custom-poly");
+      const btnClear = document.getElementById("btn-clear-custom-poly");
+      const btnDxf = document.getElementById("btn-download-custom-poly-dxf");
+      const badge = document.getElementById("custom-poly-mode-badge");
+
+      const hasVerts = poly.vertices && poly.vertices.length > 0;
+      const canClose = poly.drawMode && poly.vertices && poly.vertices.length >= 3;
+
+      if (poly.drawMode) {
+        if (btnCreate) btnCreate.style.display = "none";
+        if (btnCancel) btnCancel.style.display = "";
+        if (btnClose) {
+          btnClose.style.display = canClose ? "" : "none";
+        }
+        if (badge) {
+          badge.textContent = "Drawing...";
+          badge.style.color = "#00e5ff";
+          badge.style.background = "rgba(0,229,255,0.15)";
+        }
+      } else {
+        if (btnCreate) {
+          btnCreate.style.display = "";
+          btnCreate.textContent = hasVerts ? "Redraw polygon" : "+ Create polygon";
+        }
+        if (btnCancel) btnCancel.style.display = "none";
+        if (btnClose) btnClose.style.display = "none";
+        if (badge) {
+          if (poly.closed && hasVerts) {
+            badge.textContent = "Closed";
+            badge.style.color = "#00e676";
+            badge.style.background = "rgba(0,230,118,0.15)";
+          } else if (hasVerts) {
+            badge.textContent = "Open";
+            badge.style.color = "#ffb300";
+            badge.style.background = "rgba(255,179,0,0.15)";
+          } else {
+            badge.textContent = "Idle";
+            badge.style.color = "#ffb300";
+            badge.style.background = "rgba(255,179,0,0.12)";
+          }
+        }
+      }
+
+      if (btnClear) {
+        btnClear.disabled = !hasVerts && !poly.drawMode;
+        btnClear.style.opacity = (!hasVerts && !poly.drawMode) ? "0.4" : "1";
+      }
+      if (btnDxf) {
+        const canDxf = poly.vertices && poly.vertices.length >= 2;
+        btnDxf.disabled = !canDxf;
+        btnDxf.style.opacity = canDxf ? "1" : "0.4";
+        btnDxf.style.cursor = canDxf ? "pointer" : "not-allowed";
+      }
+    }
+
+    /** Draw snap ring indicator for custom polygon */
+    function drawCustomPolySnapTargetOnCanvas(ctx, screenPt, label) {
+      if (!screenPt) return;
+      const { x: sx, y: sy } = screenPt;
+      ctx.save();
+      // Outer amber ring
+      ctx.beginPath();
+      ctx.arc(sx, sy, 14, 0, Math.PI * 2);
+      ctx.strokeStyle = "#ffb300";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Inner cyan dot
+      ctx.beginPath();
+      ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#00e5ff";
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Crosshairs
+      ctx.beginPath();
+      ctx.moveTo(sx - 18, sy); ctx.lineTo(sx + 18, sy);
+      ctx.moveTo(sx, sy - 18); ctx.lineTo(sx, sy + 18);
+      ctx.strokeStyle = "rgba(255, 179, 0, 0.75)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Label badge
+      if (label) {
+        ctx.font = "bold 11px sans-serif";
+        const tm = ctx.measureText(label);
+        const pw = tm.width + 12;
+        const ph = 18;
+        const px = sx + 14;
+        const py = sy - 22;
+        ctx.fillStyle = "rgba(10, 14, 23, 0.92)";
+        ctx.strokeStyle = "#ffb300";
+        ctx.lineWidth = 1;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(px, py, pw, ph, 4);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(px, py, pw, ph);
+          ctx.strokeRect(px, py, pw, ph);
+        }
+        ctx.fillStyle = "#ffb300";
+        ctx.fillText(label, px + 6, py + 13);
+      }
+      ctx.restore();
+    }
+
+    /** Render Autonomous Custom Polygon on trueCanvas */
+    function drawCustomPolygon(ctx, vp, canvasH) {
+      const poly = state.customPolygon;
+      if (!poly) return;
+      const verts = poly.vertices;
+      if (!verts || verts.length === 0) return;
+
+      ctx.save();
+      ctx.globalAlpha = 1;
+
+      // 1. Fill interior if closed
+      if (poly.closed && verts.length >= 3) {
+        ctx.beginPath();
+        const s0 = worldToScreenGIS(verts[0], vp, canvasH);
+        ctx.moveTo(s0.x, s0.y);
+        for (let i = 1; i < verts.length; i++) {
+          const s = worldToScreenGIS(verts[i], vp, canvasH);
+          ctx.lineTo(s.x, s.y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = "rgba(255, 179, 0, 0.12)";
+        ctx.fill();
+      }
+
+      // 2. Stroke perimeter segments
+      const nSegs = poly.closed ? verts.length : verts.length - 1;
+      if (nSegs > 0) {
+        ctx.beginPath();
+        const s0 = worldToScreenGIS(verts[0], vp, canvasH);
+        ctx.moveTo(s0.x, s0.y);
+        for (let i = 1; i < verts.length; i++) {
+          const s = worldToScreenGIS(verts[i], vp, canvasH);
+          ctx.lineTo(s.x, s.y);
+        }
+        if (poly.closed) ctx.closePath();
+        ctx.strokeStyle = "#ffb300";
+        ctx.lineWidth = 2.8;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.stroke();
+      }
+
+      // Rubber-band line from last placed vertex to current cursor in drawMode
+      if (poly.drawMode && verts.length > 0 && state.customPolyCursorPt) {
+        const lastV = verts[verts.length - 1];
+        const sLast = worldToScreenGIS(lastV, vp, canvasH);
+        const targetPt = state.customPolySnapTarget ? state.customPolySnapTarget.screenPt : state.customPolyCursorPt;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([5, 5]);
+        ctx.moveTo(sLast.x, sLast.y);
+        ctx.lineTo(targetPt.x, targetPt.y);
+        ctx.strokeStyle = "#ffe082";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 3. Segment length labels (when poly.showLabels is true)
+      if (poly.showLabels && nSegs > 0) {
+        for (let i = 0; i < nSegs; i++) {
+          const a = verts[i], b = verts[(i + 1) % verts.length];
+          const sa = worldToScreenGIS(a, vp, canvasH);
+          const sb = worldToScreenGIS(b, vp, canvasH);
+          const midX = (sa.x + sb.x) / 2;
+          const midY = (sa.y + sb.y) / 2;
+          const len = Math.hypot(b.x - a.x, b.y - a.y);
+          const label = `${len.toFixed(1)}m`;
+
+          ctx.save();
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          const tw = ctx.measureText(label).width;
+          const bw = tw + 8, bh = 15;
+          ctx.fillStyle = "rgba(10, 14, 23, 0.92)";
+          ctx.strokeStyle = "rgba(255, 179, 0, 0.65)";
+          ctx.lineWidth = 1;
+          ctx.fillRect(midX - bw / 2, midY - 8, bw, bh);
+          ctx.strokeRect(midX - bw / 2, midY - 8, bw, bh);
+          ctx.fillStyle = "#ffb300";
+          ctx.fillText(label, midX, midY + 3);
+          ctx.restore();
+        }
+      }
+
+      // 4. Vertex nodes (when poly.showNodes is true or in drawMode)
+      if (poly.showNodes || poly.drawMode) {
+        for (let i = 0; i < verts.length; i++) {
+          const v = verts[i];
+          const sp = worldToScreenGIS(v, vp, canvasH);
+          const isAnchored = !!v.anchor;
+          const isDragging = (state.draggingCustomPolyNode === i);
+          const isHovered = (state.hoverCustomPolyNode === i);
+
+          ctx.save();
+          if (isAnchored) {
+            // Double ring for anchored node: outer amber, inner cyan
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, isDragging ? 9 : (isHovered ? 8 : 6.5), 0, Math.PI * 2);
+            ctx.fillStyle = "#ffb300";
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = "#00e5ff";
+            ctx.fill();
+
+            // Small anchor icon badge
+            ctx.font = "9px sans-serif";
+            ctx.fillStyle = "#00e5ff";
+            ctx.fillText("⚓", sp.x + 7, sp.y - 7);
+          } else {
+            // Free node: solid amber dot
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, isDragging ? 8 : (isHovered ? 7 : 5), 0, Math.PI * 2);
+            ctx.fillStyle = "#ffb300";
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+
+          // If showLabels: show vertex index
+          if (poly.showLabels) {
+            ctx.font = "bold 9px sans-serif";
+            ctx.textAlign = "left";
+            const idxTxt = `#${i + 1}`;
+            const tm = ctx.measureText(idxTxt);
+            const pw = tm.width + 6;
+            const ph = 12;
+            ctx.fillStyle = "rgba(10, 14, 23, 0.85)";
+            ctx.fillRect(sp.x + 8, sp.y - 14, pw, ph);
+            ctx.strokeStyle = isAnchored ? "#00e5ff" : "#ffb300";
+            ctx.lineWidth = 0.8;
+            ctx.strokeRect(sp.x + 8, sp.y - 14, pw, ph);
+            ctx.fillStyle = isAnchored ? "#00e5ff" : "#ffb300";
+            ctx.fillText(idxTxt, sp.x + 11, sp.y - 5);
+          }
+          ctx.restore();
+        }
+      }
+
+      // 5. Hover indicator for segment insertion
+      if (state.hoverCustomPolySegment && !poly.drawMode && state.draggingCustomPolyNode === null) {
+        const hp = state.hoverCustomPolySegment.screenPt;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(hp.x, hp.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffb300";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 6. Area HUD callout box pinned to top-left of the field canvas
+      if (poly.closed && verts.length >= 3) {
+        let areaM2 = 0;
+        for (let i = 0; i < verts.length; i++) {
+          const j = (i + 1) % verts.length;
+          areaM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
+        }
+        areaM2 = Math.abs(areaM2) / 2;
+        const plazas = areaM2 / 6400;
+
+        const txt1 = `📐 Custom: ${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
+        const txt2 = `${plazas.toFixed(2)} plazas (${verts.length} nodes)`;
+
+        const hasUserPolyHud = state.userPolygon && state.userPolygon.closed && state.userPolygon.vertices && state.userPolygon.vertices.length >= 3;
+        const boxX = 14;
+        const boxY = hasUserPolyHud ? 54 : 14;
+        const bw = 145;
+        const bh = 34;
+
+        ctx.save();
+        ctx.fillStyle = "rgba(6, 9, 16, 0.90)";
+        ctx.strokeStyle = "rgba(255, 179, 0, 0.65)";
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(boxX, boxY, bw, bh, 6);
+        } else {
+          ctx.rect(boxX, boxY, bw, bh);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        const centerX = boxX + bw / 2;
+        ctx.fillStyle = "#ffb300";
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(txt1, centerX, boxY + 14);
+        ctx.fillStyle = "#cbd5e1";
+        ctx.font = "10px sans-serif";
+        ctx.fillText(txt2, centerX, boxY + 28);
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    /** Download custom polygon as DXF */
+    function downloadCustomPolygonDxf() {
+      const poly = state.customPolygon;
+      if (!poly || !poly.vertices || poly.vertices.length < 2) {
+        alert("Please create a custom polygon first before downloading.");
+        return;
+      }
+      const entity = {
+        type: "POLYLINE",
+        layer: "CUSTOM_POLYGON",
+        closed: poly.closed !== false,
+        points: poly.vertices.map(v => ({ x: v.x, y: v.y }))
+      };
+      const dxfStr = DXFParser.serialize([entity]);
+      const blob = new Blob([dxfStr], { type: "application/dxf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "custom_polygon.dxf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      updateStatus("📐 Downloaded custom polygon to custom_polygon.dxf.");
+    }
+
             /** Rebuild the per-segment <input> rows in the sidebar */
     function rebuildSegmentInputs() {
       const poly = state.userPolygon;
@@ -5377,6 +6059,9 @@ EOF`;
 
     /** Compute and display polygon metrics in the sub-panel */
     function recomputeUserPolygonMetrics() {
+      if (typeof updateCustomPolygonAnchors === "function") {
+        updateCustomPolygonAnchors();
+      }
       const poly = state.userPolygon;
       const metricsDiv = document.getElementById("polygon-metrics");
       if (!metricsDiv) return;
@@ -5736,6 +6421,101 @@ EOF`;
 
     const btnExportPolyTop = document.getElementById("btn-export-polygon-dxf");
     if (btnExportPolyTop) btnExportPolyTop.addEventListener("click", downloadOptimizedPolygonDxf);
+
+    // ── Custom Polygon Handlers ──────────────────────────────────────────
+    const btnCreateCustomPoly = document.getElementById("btn-create-custom-poly");
+    if (btnCreateCustomPoly) {
+      btnCreateCustomPoly.addEventListener("click", () => {
+        setToolMode("pan");
+        state.customPolygon.drawMode = true;
+        state.customPolygon.closed = false;
+        state.customPolygon.vertices = [];
+        if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = "crosshair";
+        updateCustomPolyButtonStates();
+        recomputeCustomPolygonMetrics();
+        redrawTrueCanvas();
+        updateStatus("📐 Custom Polygon: Click on field canvas to place vertices. With Anchor/Snap enabled, click near Boundary Reconstructed vertices to bind dynamically.");
+      });
+    }
+
+    const btnCancelCustomPoly = document.getElementById("btn-cancel-custom-poly");
+    if (btnCancelCustomPoly) {
+      btnCancelCustomPoly.addEventListener("click", () => {
+        state.customPolygon.drawMode = false;
+        state.customPolygon.vertices = [];
+        state.customPolygon.closed = false;
+        state.customPolySnapTarget = null;
+        state.customPolyCursorPt = null;
+        if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        updateCustomPolyButtonStates();
+        recomputeCustomPolygonMetrics();
+        redrawTrueCanvas();
+        updateStatus("Custom polygon drawing cancelled.");
+      });
+    }
+
+    const btnCloseCustomPoly = document.getElementById("btn-close-custom-poly");
+    if (btnCloseCustomPoly) {
+      btnCloseCustomPoly.addEventListener("click", () => {
+        const poly = state.customPolygon;
+        if (poly.vertices.length >= 3 && !poly.closed) {
+          poly.closed = true;
+          poly.drawMode = false;
+          state.customPolySnapTarget = null;
+          state.customPolyCursorPt = null;
+          if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+          updateCustomPolyButtonStates();
+          recomputeCustomPolygonMetrics();
+          redrawTrueCanvas();
+          updateStatus("Custom polygon closed ✓");
+        }
+      });
+    }
+
+    const btnClearCustomPoly = document.getElementById("btn-clear-custom-poly");
+    if (btnClearCustomPoly) {
+      btnClearCustomPoly.addEventListener("click", () => {
+        state.customPolygon.vertices = [];
+        state.customPolygon.closed = false;
+        state.customPolygon.drawMode = false;
+        state.customPolySnapTarget = null;
+        state.customPolyCursorPt = null;
+        if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        updateCustomPolyButtonStates();
+        recomputeCustomPolygonMetrics();
+        redrawTrueCanvas();
+        updateStatus("Custom polygon cleared.");
+      });
+    }
+
+    const chkCustomPolyNodes = document.getElementById("chk-custom-poly-nodes");
+    if (chkCustomPolyNodes) {
+      chkCustomPolyNodes.addEventListener("change", e => {
+        state.customPolygon.showNodes = e.target.checked;
+        redrawTrueCanvas();
+      });
+    }
+
+    const chkCustomPolyLabels = document.getElementById("chk-custom-poly-labels");
+    if (chkCustomPolyLabels) {
+      chkCustomPolyLabels.addEventListener("change", e => {
+        state.customPolygon.showLabels = e.target.checked;
+        redrawTrueCanvas();
+      });
+    }
+
+    const chkCustomPolySnap = document.getElementById("chk-custom-poly-snap");
+    if (chkCustomPolySnap) {
+      chkCustomPolySnap.addEventListener("change", e => {
+        state.customPolygon.snapEnabled = e.target.checked;
+        redrawTrueCanvas();
+      });
+    }
+
+    const btnDlCustomPolyDxf = document.getElementById("btn-download-custom-poly-dxf");
+    if (btnDlCustomPolyDxf) {
+      btnDlCustomPolyDxf.addEventListener("click", downloadCustomPolygonDxf);
+    }
 
     // ── Boundary Optimization Handlers ──────────────────────────────────
     const optBufferSlider = document.getElementById("opt-buffer-slider");
@@ -6609,8 +7389,21 @@ EOF`;
         }
       }
 
+      const customHitNode = findCustomPolyNodeAt(sx, sy, vp, h);
+
       // Right-click (button === 2): Delete node if hit!
       if (e.button === 2) {
+        if (customHitNode >= 0) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          state.customPolygon.vertices.splice(customHitNode, 1);
+          if (state.customPolygon.vertices.length < 3) state.customPolygon.closed = false;
+          recomputeCustomPolygonMetrics();
+          updateCustomPolyButtonStates();
+          redrawTrueCanvas();
+          updateStatus(`🗑 Deleted custom polygon vertex #${customHitNode + 1}. Remaining: ${state.customPolygon.vertices.length}`);
+          return;
+        }
         if (hitNode >= 0) {
           e.preventDefault();
           e.stopImmediatePropagation();
@@ -6629,6 +7422,49 @@ EOF`;
 
       // Left-click (button === 0):
       if (e.button === 0 && !spacePressed) {
+        // If in custom polygon draw mode -> add vertex or close
+        if (state.customPolygon && state.customPolygon.drawMode) {
+          e.stopImmediatePropagation();
+          const snap = state.customPolySnapTarget || findCustomPolySnapTarget(sx, sy, vp, h);
+          if (snap && snap.type === 'close') {
+            state.customPolygon.closed = true;
+            state.customPolygon.drawMode = false;
+            state.customPolySnapTarget = null;
+            state.customPolyCursorPt = null;
+            if (typeof trueCanvas !== "undefined") trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+            updateCustomPolyButtonStates();
+            recomputeCustomPolygonMetrics();
+            updateStatus("Custom polygon closed ✓");
+            redrawTrueCanvas();
+            return;
+          }
+          const rawPt = screenToWorldGIS(sx, sy, vp, h);
+          const worldPt = snap ? {
+            x: snap.worldPt.x,
+            y: snap.worldPt.y,
+            anchor: snap.anchor ? { ...snap.anchor } : null
+          } : {
+            x: rawPt.x,
+            y: rawPt.y,
+            anchor: null
+          };
+          state.customPolygon.vertices.push(worldPt);
+          const n = state.customPolygon.vertices.length;
+          recomputeCustomPolygonMetrics();
+          updateCustomPolyButtonStates();
+          updateStatus(`Custom polygon vertex #${n} placed${worldPt.anchor ? " (anchored ⚓)" : ""}. ${n >= 3 ? "Click near vertex #1 or '✓ Close polygon' to close." : "Continue adding vertices."}`);
+          redrawTrueCanvas();
+          return;
+        }
+
+        // If clicking existing custom polygon node -> start dragging it
+        if (customHitNode >= 0) {
+          e.stopImmediatePropagation();
+          state.draggingCustomPolyNode = customHitNode;
+          trueCanvas.style.cursor = "move";
+          return;
+        }
+
         // If clicking an existing node -> start dragging it!
         if (hitNode >= 0) {
           e.stopImmediatePropagation();
@@ -7344,16 +8180,25 @@ EOF`;
         updatePolygonButtonStates();
         redrawTrueCanvas();
       }
+      if (state.draggingCustomPolyNode !== null) {
+        state.draggingCustomPolyNode = null;
+        state.customPolySnapTarget = null;
+        recomputeCustomPolygonMetrics();
+        updateCustomPolyButtonStates();
+        redrawTrueCanvas();
+      }
       if (isPanning) {
         isPanning = false;
         activePanViewport = null;
-        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        const trueCursor = (state.customPolygon && state.customPolygon.drawMode) ? "crosshair" :
+                           ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair"));
         histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
         trueCanvas.style.cursor = trueCursor;
       }
       if (draggingAnchor) {
         draggingAnchor = null;
-        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        const trueCursor = (state.customPolygon && state.customPolygon.drawMode) ? "crosshair" :
+                           ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair"));
         histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
         trueCanvas.style.cursor = trueCursor;
         redrawAll();
@@ -7467,6 +8312,27 @@ EOF`;
         }
       }
 
+      // 0.5. Custom Polygon node dragging active
+      if (state.draggingCustomPolyNode !== null) {
+        const curV = state.customPolygon.vertices[state.draggingCustomPolyNode];
+        const snap = state.customPolygon.snapEnabled ? findCustomPolySnapTarget(mouseX, mouseY, vp, h, state.draggingCustomPolyNode) : null;
+        state.customPolySnapTarget = snap;
+        if (snap) {
+          curV.x = snap.worldPt.x;
+          curV.y = snap.worldPt.y;
+          curV.anchor = snap.anchor ? { ...snap.anchor } : null;
+          coordsBar.textContent = `Custom Node #${state.draggingCustomPolyNode + 1}: (${curV.x.toFixed(2)}, ${curV.y.toFixed(2)})${curV.anchor ? " [Anchored ⚓]" : ""}`;
+        } else {
+          curV.x = p.x;
+          curV.y = p.y;
+          curV.anchor = null;
+          coordsBar.textContent = `Custom Node #${state.draggingCustomPolyNode + 1}: (${curV.x.toFixed(2)}, ${curV.y.toFixed(2)})`;
+        }
+        recomputeCustomPolygonMetrics();
+        redrawTrueCanvas();
+        return;
+      }
+
       // 1. Node dragging active
       if (state.draggingUserPolyNode !== null) {
         const curVertex = state.userPolygon.vertices[state.draggingUserPolyNode];
@@ -7568,6 +8434,20 @@ EOF`;
         return;
       }
 
+      // 2.5. Custom Polygon draw mode active
+      if (state.customPolygon && state.customPolygon.drawMode) {
+        state.customPolyCursorPt = { x: mouseX, y: mouseY };
+        state.customPolySnapTarget = state.customPolygon.snapEnabled ? findCustomPolySnapTarget(mouseX, mouseY, vp, h) : null;
+        trueCanvas.style.cursor = "crosshair";
+        if (state.customPolySnapTarget) {
+          coordsBar.textContent = `Snap: ${state.customPolySnapTarget.label} | (${state.customPolySnapTarget.worldPt.x.toFixed(2)}, ${state.customPolySnapTarget.worldPt.y.toFixed(2)})`;
+        } else {
+          coordsBar.textContent = `Custom Poly: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+        }
+        redrawTrueCanvas();
+        return;
+      }
+
       // 3. Pan Mode: Hovering/drawing user polygon (creating, snapping, and dragging nodes)
       if (state.userPolygon && (state.userPolygon.drawMode || state.userPolygon.vertices.length > 0)) {
         const snap = getPolygonSnapTarget(mouseX, mouseY, vp, h);
@@ -7614,6 +8494,32 @@ EOF`;
         }
         redrawTrueCanvas();
       }
+
+      // 4. Custom Polygon hover detection (nodes & segments)
+      if (state.customPolygon && state.customPolygon.vertices && state.customPolygon.vertices.length > 0 && !state.customPolygon.drawMode && state.toolMode === "pan" && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null) {
+        const customHitNode = findCustomPolyNodeAt(mouseX, mouseY, vp, h);
+        const customHitSeg = (customHitNode < 0 && state.customPolygon.vertices.length >= 2) ? findCustomPolySegmentAt(mouseX, mouseY, vp, h, 10) : null;
+
+        const prevCustNode = state.hoverCustomPolyNode;
+        const prevCustSeg = state.hoverCustomPolySegment;
+        state.hoverCustomPolyNode = customHitNode >= 0 ? customHitNode : null;
+        state.hoverCustomPolySegment = customHitSeg;
+
+        if (customHitNode >= 0) {
+          trueCanvas.style.cursor = "move";
+          const cv = state.customPolygon.vertices[customHitNode];
+          coordsBar.textContent = `Custom Node #${customHitNode + 1}: (${cv.x.toFixed(2)}, ${cv.y.toFixed(2)})${cv.anchor ? " [Anchored ⚓]" : ""} — Drag to move • Right-click to delete`;
+          redrawTrueCanvas();
+          return;
+        } else if (customHitSeg) {
+          trueCanvas.style.cursor = "pointer";
+          coordsBar.textContent = `Double-click custom segment ${customHitSeg.segIdx + 1} to add vertex`;
+          redrawTrueCanvas();
+          return;
+        } else if (prevCustNode !== null || prevCustSeg !== null) {
+          redrawTrueCanvas();
+        }
+      }
     });
 
     trueCanvas.addEventListener("mouseleave", () => {
@@ -7626,6 +8532,13 @@ EOF`;
         state.hoverPolyNode = null;
         state.hoverPolySegment = null;
         state.currentSnapTarget = null;
+        redrawTrueCanvas();
+      }
+      if (state.hoverCustomPolyNode !== null || state.hoverCustomPolySegment !== null || state.customPolySnapTarget !== null || state.customPolyCursorPt !== null) {
+        state.hoverCustomPolyNode = null;
+        state.hoverCustomPolySegment = null;
+        state.customPolySnapTarget = null;
+        state.customPolyCursorPt = null;
         redrawTrueCanvas();
       }
     });
@@ -7689,6 +8602,31 @@ EOF`;
       const rect = trueCanvas.getBoundingClientRect();
       const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
       const vp = state.trueViewport, h = trueCanvas.height;
+
+      // Check custom polygon segment double-click insertion
+      if (state.customPolygon && !state.customPolygon.drawMode && state.customPolygon.vertices && state.customPolygon.vertices.length >= 2) {
+        const hitCustomNode = findCustomPolyNodeAt(sx, sy, vp, h);
+        if (hitCustomNode < 0) {
+          const hitCustomSeg = findCustomPolySegmentAt(sx, sy, vp, h, 14);
+          if (hitCustomSeg) {
+            e.preventDefault();
+            const insertIdx = hitCustomSeg.segIdx + 1;
+            state.customPolygon.vertices.splice(insertIdx, 0, {
+              x: hitCustomSeg.worldPt.x,
+              y: hitCustomSeg.worldPt.y,
+              anchor: null
+            });
+            recomputeCustomPolygonMetrics();
+            updateCustomPolyButtonStates();
+            state.hoverCustomPolyNode = insertIdx;
+            state.hoverCustomPolySegment = null;
+            updateStatus(`➕ Added custom vertex #${insertIdx + 1} at (${hitCustomSeg.worldPt.x.toFixed(2)}, ${hitCustomSeg.worldPt.y.toFixed(2)}).`);
+            redrawTrueCanvas();
+            return;
+          }
+        }
+      }
+
       const poly = state.userPolygon;
 
       if (!poly || poly.drawMode || !poly.vertices || poly.vertices.length < 2) return;
@@ -8743,6 +9681,8 @@ EOF`;
     state.anchors = [];
     algorithmSelect.value = state.algorithm;
     initConstraintsAndBuffers();
+    updateCustomPolyButtonStates();
+    recomputeCustomPolygonMetrics();
     setToolMode("pan");
     updateStatus("⏳ Initialising — loading deed PDF, DXF files and drone imagery…");
 
