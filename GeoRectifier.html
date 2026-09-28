@@ -448,6 +448,14 @@
       color: var(--text-main);
     }
 
+    .anchor-row-disabled {
+      opacity: 0.45;
+      background: rgba(255, 23, 68, 0.04);
+    }
+    .anchor-row-disabled td {
+      color: var(--text-muted) !important;
+    }
+
     .anchor-badge {
       display: inline-block;
       width: 18px;
@@ -1177,6 +1185,12 @@
             <table class="anchor-table">
               <thead>
                 <tr>
+                  <th style="width:36px;text-align:center;" title="Enable / Disable anchor points in transformation calculation">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
+                      <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
+                      <span style="font-size:0.7rem;">Use</span>
+                    </div>
+                  </th>
                   <th>#</th>
                   <th>Source (Hist X, Y)</th>
                   <th>Target (True X, Y)</th>
@@ -1918,43 +1932,48 @@
       }
 
       static createWarper(algorithm, anchors) {
-        if (!anchors || anchors.length === 0) return (pt) => ({ ...pt });
+        const active = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
+        if (!active || active.length === 0) return (pt) => ({ ...pt });
 
         switch (algorithm) {
           case "TPS":
-            return anchors.length >= 3 ? TransformMath.buildTPSWarper(anchors) : TransformMath.buildSimilarityWarper(anchors);
+            return active.length >= 3 ? TransformMath.buildTPSWarper(active) : TransformMath.buildSimilarityWarper(active);
           case "AFFINE":
-            return anchors.length >= 3 ? TransformMath.buildAffineWarper(anchors) : TransformMath.buildSimilarityWarper(anchors);
+            return active.length >= 3 ? TransformMath.buildAffineWarper(active) : TransformMath.buildSimilarityWarper(active);
           case "PROJECTIVE":
-            return anchors.length >= 4 ? TransformMath.buildProjectiveWarper(anchors) : (anchors.length >= 3 ? TransformMath.buildAffineWarper(anchors) : TransformMath.buildSimilarityWarper(anchors));
+            return active.length >= 4 ? TransformMath.buildProjectiveWarper(active) : (active.length >= 3 ? TransformMath.buildAffineWarper(active) : TransformMath.buildSimilarityWarper(active));
           case "SIMILARITY":
           default:
-            return TransformMath.buildSimilarityWarper(anchors);
+            return TransformMath.buildSimilarityWarper(active);
         }
       }
 
       /** Construct inverse warper mapping Field GIS coordinates back to Historical Deed coordinates */
       static createInverseWarper(algorithm, anchors) {
-        if (!anchors || anchors.length < 2) return null;
-        const invAnchors = anchors.map(a => ({
+        const active = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
+        if (!active || active.length < 2) return null;
+        const invAnchors = active.map(a => ({
           id: a.id,
           color: a.color,
           src: { x: a.dst.x, y: a.dst.y },
-          dst: { x: a.src.x, y: a.src.y }
+          dst: { x: a.src.x, y: a.src.y },
+          active: true,
+          enabled: true
         }));
         return TransformMath.createWarper(algorithm, invAnchors);
       }
 
       static computeRMSE(warper, anchors) {
-        if (!anchors || anchors.length === 0) return { totalRMSE: 0, residuals: [] };
+        const active = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
+        if (!active || active.length === 0 || !warper) return { totalRMSE: 0, residuals: [] };
         let sumSqErr = 0;
-        const residuals = anchors.map((anc) => {
+        const residuals = active.map((anc) => {
           const warped = warper(anc.src);
           const err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y);
           sumSqErr += err * err;
           return err;
         });
-        return { totalRMSE: Math.sqrt(sumSqErr / anchors.length), residuals };
+        return { totalRMSE: Math.sqrt(sumSqErr / active.length), residuals };
       }
     }
 
@@ -3137,6 +3156,11 @@ EOF`;
 
     const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
 
+    function getActiveAnchors(anchors = state.anchors) {
+      if (!anchors) return [];
+      return anchors.filter(a => a.active !== false && a.enabled !== false);
+    }
+
     const histCanvas = document.getElementById("hist-canvas");
     const histCtx    = histCanvas.getContext("2d");
     const trueCanvas = document.getElementById("true-canvas");
@@ -3646,12 +3670,23 @@ EOF`;
 
       // Layer 4: Source anchor pins
       state.anchors.forEach(anc => {
+        const isEnabled = anc.active !== false && anc.enabled !== false;
         const sp = worldToScreen(anc.src, vp, h);
+        histCtx.save();
+        if (!isEnabled) {
+          histCtx.globalAlpha = 0.35;
+        }
         histCtx.beginPath(); histCtx.arc(sp.x,sp.y,7,0,Math.PI*2);
         histCtx.fillStyle=anc.color; histCtx.fill();
-        histCtx.strokeStyle="#fff"; histCtx.lineWidth=2; histCtx.stroke();
-        histCtx.fillStyle="#fff"; histCtx.font="bold 11px sans-serif";
-        histCtx.fillText(`#${anc.id}`,sp.x+10,sp.y-6);
+        histCtx.strokeStyle = isEnabled ? "#fff" : "#999";
+        histCtx.lineWidth=2;
+        if (!isEnabled) histCtx.setLineDash([2, 2]);
+        histCtx.stroke();
+        histCtx.setLineDash([]);
+        histCtx.fillStyle = isEnabled ? "#fff" : "#aaa";
+        histCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
+        histCtx.fillText(`#${anc.id}${isEnabled ? "" : " (off)"}`,sp.x+10,sp.y-6);
+        histCtx.restore();
       });
     }
 
@@ -3660,13 +3695,14 @@ EOF`;
     function updateUserPolygonWarp() {
       const poly = state.userPolygon;
       if (!poly || !poly.vertices || poly.vertices.length === 0) return;
-      if (!state.anchors || state.anchors.length < 2) return;
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length < 2) return;
 
       // Never overwrite vertex positions while actively dragging a polygon node or tuning anchors!
       if (state.draggingUserPolyNode !== null || state.tuningAnchorsActive) return;
 
       try {
-        const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+        const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
         let changed = false;
         poly.vertices.forEach(v => {
           if (v.deedPt) {
@@ -3686,11 +3722,15 @@ EOF`;
             } else {
               v.origX = w.x;
               v.origY = w.y;
+              if (v.x == null || isNaN(v.x)) v.x = w.x;
+              if (v.y == null || isNaN(v.y)) v.y = w.y;
+              changed = true;
             }
           }
         });
         if (changed) {
           recomputeUserPolygonMetrics();
+          rebuildSegmentInputs();
         }
       } catch (e) {
         console.warn("Polygon warp error:", e);
@@ -3708,8 +3748,9 @@ EOF`;
 
       // Build warper from anchors (deed-space → GIS-space)
       let warper = null;
-      if (state.showOverlay && state.anchors.length >= 2) {
-        try { warper = TransformMath.createWarper(state.algorithm, state.anchors); }
+      const activeAnchors = getActiveAnchors();
+      if (state.showOverlay && activeAnchors.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); }
         catch(e) { console.warn("Warper error:", e); }
       }
 
@@ -3740,17 +3781,19 @@ EOF`;
 
       // Layer 5: Target anchor pins + residual lines
       state.anchors.forEach(anc => {
+        const isEnabled = anc.active !== false && anc.enabled !== false;
         const tp = worldToScreenGIS(anc.dst, vp, h);
         if (warper) {
           const wp = worldToScreenGIS(warper(anc.src), vp, h);
           trueCtx.beginPath(); trueCtx.moveTo(wp.x,wp.y); trueCtx.lineTo(tp.x,tp.y);
-          trueCtx.strokeStyle="#ff1744"; trueCtx.lineWidth=1.5;
-          trueCtx.setLineDash([3,3]); trueCtx.stroke(); trueCtx.setLineDash([]);
-          trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y,4,0,Math.PI*2);
-          trueCtx.fillStyle="#ff1744"; trueCtx.fill();
+          trueCtx.strokeStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.25)";
+          trueCtx.lineWidth = isEnabled ? 1.5 : 1;
+          trueCtx.setLineDash(isEnabled ? [3,3] : [2,4]); trueCtx.stroke(); trueCtx.setLineDash([]);
+          trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y, isEnabled ? 4 : 3, 0, Math.PI*2);
+          trueCtx.fillStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.3)"; trueCtx.fill();
         }
         // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor origin during unconstrained simulation)
-        if (state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
+        if (isEnabled && state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
           let centerPt = null;
           if (state.constrainAnchorsToField) {
             const nearestField = findNearestFieldVertex(anc.dst);
@@ -3790,11 +3833,21 @@ EOF`;
           }
         }
 
+        trueCtx.save();
+        if (!isEnabled) {
+          trueCtx.globalAlpha = 0.35;
+        }
         trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
         trueCtx.fillStyle=anc.color; trueCtx.fill();
-        trueCtx.strokeStyle="#fff"; trueCtx.lineWidth=2; trueCtx.stroke();
-        trueCtx.fillStyle="#fff"; trueCtx.font="bold 11px sans-serif";
-        trueCtx.fillText(`#${anc.id}`,tp.x+10,tp.y-6);
+        trueCtx.strokeStyle = isEnabled ? "#fff" : "#999";
+        trueCtx.lineWidth=2;
+        if (!isEnabled) trueCtx.setLineDash([2, 2]);
+        trueCtx.stroke();
+        trueCtx.setLineDash([]);
+        trueCtx.fillStyle = isEnabled ? "#fff" : "#aaa";
+        trueCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
+        trueCtx.fillText(`#${anc.id}${isEnabled ? "" : " (off)"}`,tp.x+10,tp.y-6);
+        trueCtx.restore();
       });
 
       // Layer 6: Hand-crafted user polygon
@@ -4118,8 +4171,9 @@ EOF`;
     function findNearestWarpedDeedVertex(worldPt) {
       if (!state.histEntities || state.histEntities.length === 0 || !worldPt) return null;
       let warper = null;
-      if (state.anchors && state.anchors.length >= 2) {
-        try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
       }
       let closest = null;
       let minDist = Infinity;
@@ -4222,9 +4276,10 @@ EOF`;
       };
 
       // 1. Warped deed DXF vertices (Historical Deed) -> store original deedPt!
-      if (state.anchors.length >= 2) {
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length >= 2) {
         try {
-          const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+          const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
           (state.histEntities || []).forEach(ent => {
             (ent.points || []).forEach(dPt => {
               const wPt = warper(dPt);
@@ -4281,9 +4336,10 @@ EOF`;
 
     /** Hit test deed DXF vertices on trueCanvas (warped to GIS space) */
     function findDeedNodeOnTrueCanvas(mouseX, mouseY, vp, canvasH) {
-      if (!state.anchors || state.anchors.length < 2 || !state.histEntities || state.histEntities.length === 0) return null;
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length < 2 || !state.histEntities || state.histEntities.length === 0) return null;
       try {
-        const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+        const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
         const HIT_RADIUS = 14; // pixels
         for (let entIdx = 0; entIdx < state.histEntities.length; entIdx++) {
           const ent = state.histEntities[entIdx];
@@ -4699,8 +4755,9 @@ EOF`;
         ctx.save();
         ctx.globalAlpha = (state.corridorOpacity !== undefined ? state.corridorOpacity : 0.5);
         let warper = null;
-        if (state.anchors && state.anchors.length >= 2) {
-          try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+        const activeAnchors = getActiveAnchors();
+        if (activeAnchors.length >= 2) {
+          try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
         }
         const drawCorridorRibbon = (radiusM, fillColor, strokeColor, dash) => {
           const rPx = radiusM * vp.scale;
@@ -4774,8 +4831,9 @@ EOF`;
       if ((state.constrainPolyToDeed || state.showBufferDisks) && state.optBufferRadius > 0 && poly && poly.vertices) {
         ctx.save();
         let warper = null;
-        if (state.anchors && state.anchors.length >= 2) {
-          try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+        const activeAnchors = getActiveAnchors();
+        if (activeAnchors.length >= 2) {
+          try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
         }
         const rPx = state.optBufferRadius * vp.scale;
         const drawnDeedBuffers = new Set();
@@ -5260,8 +5318,9 @@ EOF`;
       const nSegs = poly.closed ? V.length : V.length - 1;
 
       let warper = null;
-      if (state.anchors && state.anchors.length >= 2) {
-        try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
       }
 
       let totalDeedLen = 0;
@@ -5408,13 +5467,14 @@ EOF`;
       // Scale Factor computation for the current transformation warper
       let scaleFactor = null;
       let scaleDefPpm = null;
-      if (state.anchors && state.anchors.length >= 2) {
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length >= 2) {
         try {
-          const warper = TransformMath.createWarper(state.algorithm, state.anchors);
+          const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
           let cx = 0, cy = 0;
-          state.anchors.forEach(a => { cx += a.src.x; cy += a.src.y; });
-          cx /= state.anchors.length;
-          cy /= state.anchors.length;
+          activeAnchors.forEach(a => { cx += a.src.x; cy += a.src.y; });
+          cx /= activeAnchors.length;
+          cy /= activeAnchors.length;
 
           const p0 = warper({ x: cx, y: cy });
           const px = warper({ x: cx + 100, y: cy });
@@ -5889,8 +5949,9 @@ EOF`;
     const btnAutoTune = document.getElementById("btn-autotune-anchors");
 
     async function runAutoTuneAnchors() {
-      if (!state.anchors || state.anchors.length < 2) {
-        alert("Auto-Tune requires ≥ 2 anchor pairs.");
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length < 2) {
+        alert("Auto-Tune requires ≥ 2 active anchor pairs.");
         return;
       }
       const poly = state.userPolygon;
@@ -6129,8 +6190,10 @@ EOF`;
             // Animate orderly movement across buffer disks so the user sees the sequential sweep
             if (cIdx % yieldInterval === 0 || cIdx === totalCombos - 1 || isNewBest) {
               for (let k = 0; k < M; k++) {
-                state.anchors[k].dst.x = trialEval.candAnchors[k].dst.x;
-                state.anchors[k].dst.y = trialEval.candAnchors[k].dst.y;
+                if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
+                  state.anchors[k].dst.x = trialEval.candAnchors[k].dst.x;
+                  state.anchors[k].dst.y = trialEval.candAnchors[k].dst.y;
+                }
               }
               if (trialEval.optRes) {
                 poly.vertices = trialEval.optRes.vertices.map(v => ({ ...v }));
@@ -6151,8 +6214,10 @@ EOF`;
           // At the end of combinations for this radius, snap display to the winning combo found
           if (globalBest.candAnchors && globalBest.optRes) {
             for (let k = 0; k < M; k++) {
-              state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
-              state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+              if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
+                state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
+                state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+              }
             }
             poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
             recomputeUserPolygonMetrics();
@@ -6234,8 +6299,10 @@ EOF`;
             // Live screen animation update
             if (globalBest.candAnchors && globalBest.optRes) {
               for (let k = 0; k < M; k++) {
-                state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
-                state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+                if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
+                  state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
+                  state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+                }
               }
               poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
               recomputeUserPolygonMetrics();
@@ -6283,11 +6350,13 @@ EOF`;
         if (optBufferVal) optBufferVal.textContent = `±${winningR.toFixed(1)} m`;
 
         for (let k = 0; k < M; k++) {
-          state.anchors[k].dst.x = globalOverallBest.candAnchors[k].dst.x;
-          state.anchors[k].dst.y = globalOverallBest.candAnchors[k].dst.y;
+          if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
+            state.anchors[k].dst.x = globalOverallBest.candAnchors[k].dst.x;
+            state.anchors[k].dst.y = globalOverallBest.candAnchors[k].dst.y;
+          }
         }
 
-        const finalWarper = TransformMath.createWarper(state.algorithm, state.anchors);
+        const finalWarper = TransformMath.createWarper(state.algorithm, getActiveAnchors());
         const finalNominal = poly.vertices.map(v => {
           if (v.deedPt) {
             const w = finalWarper(v.deedPt);
@@ -6522,8 +6591,9 @@ EOF`;
         // Also hit-test the deed anchor centers of constrained vertices so clicking either marker grabs the node
         const HIT_RADIUS = 14;
         let warper = null;
-        if (state.anchors && state.anchors.length >= 2) {
-          try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+        const activeAnchors = getActiveAnchors();
+        if (activeAnchors.length >= 2) {
+          try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
         }
         for (let i = 0; i < poly.vertices.length; i++) {
           if (!vertexIsDeedConstrained(poly, i)) continue;
@@ -6567,8 +6637,9 @@ EOF`;
           const isConstrained = state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(poly, hitNode);
           if (isConstrained && curVertex && curVertex.deedPt) {
             let warper = null;
-            if (state.anchors && state.anchors.length >= 2) {
-              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+            const activeAnchors = getActiveAnchors();
+            if (activeAnchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
             }
             const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
             curVertex.origX = w.x;
@@ -7134,8 +7205,9 @@ EOF`;
           // Synchronize any user polygon vertex linked to this deed point
           if (state.userPolygon && state.userPolygon.vertices) {
             let warper = null;
-            if (state.anchors.length >= 2) {
-              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+            const activeAnchors = getActiveAnchors();
+            if (activeAnchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
             }
             state.userPolygon.vertices.forEach(v => {
               if (v.deedPt && Math.hypot(v.deedPt.x - origDeed.x, v.deedPt.y - origDeed.y) < 0.05) {
@@ -7210,7 +7282,7 @@ EOF`;
         const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
         const fieldPt = screenToWorldGIS(mouseX, mouseY, vp, h);
 
-        const invWarper = TransformMath.createInverseWarper(state.algorithm, state.anchors);
+        const invWarper = TransformMath.createInverseWarper(state.algorithm, getActiveAnchors());
         if (invWarper) {
           const newDeedPt = invWarper(fieldPt);
           const ent = state.histEntities[state.draggingDeedNode.entIdx];
@@ -7420,8 +7492,9 @@ EOF`;
           let deedAnchor = state.dragDeedAnchor;
           if (!deedAnchor && curVertex && curVertex.deedPt) {
             let warper = null;
-            if (state.anchors && state.anchors.length >= 2) {
-              try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+            const activeAnchors = getActiveAnchors();
+            if (activeAnchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
             }
             const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
             deedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
@@ -7503,8 +7576,9 @@ EOF`;
         if (hitNode < 0 && state.constrainPolyToDeed && state.userPolygon && state.userPolygon.vertices) {
           const HIT_RADIUS = 14;
           let warper = null;
-          if (state.anchors && state.anchors.length >= 2) {
-            try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+          const activeAnchors = getActiveAnchors();
+          if (activeAnchors.length >= 2) {
+            try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
           }
           for (let i = 0; i < state.userPolygon.vertices.length; i++) {
             if (!vertexIsDeedConstrained(state.userPolygon, i)) continue;
@@ -7684,7 +7758,7 @@ EOF`;
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        updateStatus(`💾 Saved ${state.anchors.length} anchors to anchors_georectifier.json.`);
+        updateStatus(`💾 Saved ${state.anchors.length} anchors (${getActiveAnchors().length} active) to anchors_georectifier.json.`);
       });
     }
 
@@ -7703,11 +7777,13 @@ EOF`;
                 id: a.id || i + 1,
                 color: a.color || anchorColors[i % anchorColors.length],
                 src: { x: a.src.x, y: a.src.y },
-                dst: { x: a.dst.x, y: a.dst.y }
+                dst: { x: a.dst.x, y: a.dst.y },
+                active: a.active !== false && a.enabled !== false,
+                enabled: a.active !== false && a.enabled !== false
               }));
               state.pendingSource = null;
               redrawAll();
-              updateStatus(`✅ Loaded ${state.anchors.length} anchors from ${file.name}`);
+              updateStatus(`✅ Loaded ${state.anchors.length} anchors (${getActiveAnchors().length} active) from ${file.name}`);
             } else {
               updateStatus("⚠️ No valid anchor pairs found in file.");
             }
@@ -7751,8 +7827,9 @@ EOF`;
         state.currentSnapTarget = null;
         if (state.userPolygon && state.userPolygon.vertices) {
           let warper = null;
-          if (state.anchors && state.anchors.length >= 2) {
-            try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+          const activeAnchors = getActiveAnchors();
+          if (activeAnchors.length >= 2) {
+            try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
           }
           state.userPolygon.vertices.forEach((v, idx) => {
             if (vertexIsDeedConstrained(state.userPolygon, idx)) {
@@ -7843,47 +7920,124 @@ EOF`;
     ];
 
     function updateAnalyticsUI() {
-      anchorTableBody.innerHTML="";
-      let warper=null, rmseInfo={totalRMSE:0,residuals:[]};
-      if (state.anchors.length>0) {
-        try { warper=TransformMath.createWarper(state.algorithm,state.anchors); rmseInfo=TransformMath.computeRMSE(warper,state.anchors); } catch(_){}
+      anchorTableBody.innerHTML = "";
+      let warper = null, rmseInfo = { totalRMSE: 0, residuals: [] };
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length >= 2) {
+        try {
+          warper = TransformMath.createWarper(state.algorithm, activeAnchors);
+          rmseInfo = TransformMath.computeRMSE(warper, activeAnchors);
+        } catch(_) {}
       }
-      if (rmseDisplay) rmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
-      state.anchors.forEach((anc,idx) => {
-        const err=(rmseInfo.residuals[idx]||0).toFixed(2);
-        const tr=document.createElement("tr");
-        tr.innerHTML=`<td><span class="anchor-badge" style="background:${anc.color}">#${anc.id}</span></td>
-          <td>(${anc.src.x.toFixed(1)},${anc.src.y.toFixed(1)})</td>
-          <td>(${anc.dst.x.toFixed(1)},${anc.dst.y.toFixed(1)})</td>
-          <td style="color:${parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)'}">${err}</td>
-          <td><button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})">✕</button></td>`;
+      const activeCount = activeAnchors.length;
+      const totalCount = state.anchors.length;
+      if (rmseDisplay) {
+        if (activeCount < 2) {
+          rmseDisplay.textContent = `RMSE: — (${activeCount}/${totalCount} active)`;
+        } else if (totalCount > activeCount) {
+          rmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)} (${activeCount}/${totalCount} active)`;
+        } else {
+          rmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
+        }
+      }
+
+      const chkToggleAll = document.getElementById("chk-toggle-all-anchors");
+      if (chkToggleAll) {
+        chkToggleAll.checked = totalCount > 0 && activeCount === totalCount;
+        chkToggleAll.indeterminate = activeCount > 0 && activeCount < totalCount;
+      }
+
+      state.anchors.forEach((anc, idx) => {
+        const isEnabled = anc.active !== false && anc.enabled !== false;
+        let err = "—";
+        if (warper) {
+          try {
+            const warped = warper(anc.src);
+            err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y).toFixed(2);
+          } catch(_) {}
+        }
+        const tr = document.createElement("tr");
+        if (!isEnabled) {
+          tr.className = "anchor-row-disabled";
+        }
+        tr.innerHTML = `<td style="text-align:center;width:36px;">
+            <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:14px;height:14px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
+          </td>
+          <td><span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'}">#${anc.id}</span></td>
+          <td style="${isEnabled ? '' : 'color:var(--text-muted);'}">(${anc.src.x.toFixed(1)},${anc.src.y.toFixed(1)})</td>
+          <td style="${isEnabled ? '' : 'color:var(--text-muted);'}">(${anc.dst.x.toFixed(1)},${anc.dst.y.toFixed(1)})</td>
+          <td style="color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)')}">${err}${!isEnabled && err !== "—" ? ' <span style="font-size:0.65rem;opacity:0.8;">(off)</span>' : ''}</td>
+          <td><button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})" title="Delete Anchor #${anc.id}">✕</button></td>`;
         anchorTableBody.appendChild(tr);
       });
       updateAlgoComparePanel();
     }
 
+    function toggleAnchor(id, active) {
+      const anc = (state.anchors || []).find(a => a.id === id);
+      if (!anc) return;
+      const willBeActive = (active !== undefined) ? active : (anc.active === false || anc.enabled === false);
+      anc.active = willBeActive;
+      anc.enabled = willBeActive;
+      const activeCount = getActiveAnchors().length;
+      const totalCount = state.anchors.length;
+      if (activeCount < 2) {
+        updateStatus(`Anchor #${id} ${willBeActive ? "enabled" : "disabled"}. ⚠️ Need ≥ 2 active anchors for transformation (currently ${activeCount}/${totalCount} active).`);
+      } else {
+        updateStatus(`Anchor #${id} ${willBeActive ? "enabled" : "disabled"}. Active anchors: ${activeCount}/${totalCount}. Live polygon & transformation updated.`);
+      }
+      redrawAll();
+    }
+    window.toggleAnchor = toggleAnchor;
+
+    function toggleAllAnchors(active) {
+      (state.anchors || []).forEach(a => {
+        a.active = active;
+        a.enabled = active;
+      });
+      const activeCount = getActiveAnchors().length;
+      updateStatus(active ? `All ${activeCount} anchors enabled.` : `All anchors disabled.`);
+      redrawAll();
+    }
+    window.toggleAllAnchors = toggleAllAnchors;
+
+    anchorTableBody.addEventListener("change", e => {
+      if (e.target && e.target.classList.contains("chk-anchor-active")) {
+        const id = parseInt(e.target.dataset.id || e.target.getAttribute("data-id"), 10);
+        toggleAnchor(id, e.target.checked);
+      }
+    });
+
+    const chkToggleAllAnchors = document.getElementById("chk-toggle-all-anchors");
+    if (chkToggleAllAnchors) {
+      chkToggleAllAnchors.addEventListener("change", e => {
+        toggleAllAnchors(e.target.checked);
+      });
+    }
+
     function updateAlgoComparePanel() {
       if (!algoCompareList) return;
-      const n=state.anchors.length;
-      if (n<2) { algoCompareList.innerHTML=`<p class="compare-note">Add ≥ 2 anchor pairs to compare algorithms.</p>`; return; }
-      const scores=ALGORITHMS.map(algo => {
-        if (n<algo.minAnchors) return {...algo,rmse:null,note:`needs ≥${algo.minAnchors}`};
-        try { const w=TransformMath.createWarper(algo.key,state.anchors); return {...algo,rmse:TransformMath.computeRMSE(w,state.anchors).totalRMSE,note:null}; }
-        catch(e) { return {...algo,rmse:null,note:"error"}; }
+      const activeAnchors = getActiveAnchors();
+      const n = activeAnchors.length;
+      if (n < 2) { algoCompareList.innerHTML = `<p class="compare-note">Enable ≥ 2 anchor pairs to compare algorithms.</p>`; return; }
+      const scores = ALGORITHMS.map(algo => {
+        if (n < algo.minAnchors) return { ...algo, rmse: null, note: `needs ≥${algo.minAnchors}` };
+        try { const w = TransformMath.createWarper(algo.key, activeAnchors); return { ...algo, rmse: TransformMath.computeRMSE(w, activeAnchors).totalRMSE, note: null }; }
+        catch(e) { return { ...algo, rmse: null, note: "error" }; }
       });
-      const ranked=[...scores].sort((a,b) => a.rmse===null?1:b.rmse===null?-1:a.rmse-b.rmse);
-      const rankMap={};ranked.forEach((r,i)=>{rankMap[r.key]=i+1;});
-      const maxRmse=Math.max(...scores.filter(s=>s.rmse!==null).map(s=>s.rmse),1);
-      const bestKey=ranked[0].rmse!==null?ranked[0].key:null;
-      algoCompareList.innerHTML="";
+      const ranked = [...scores].sort((a,b) => a.rmse===null?1:b.rmse===null?-1:a.rmse-b.rmse);
+      const rankMap = {}; ranked.forEach((r,i)=>{rankMap[r.key]=i+1;});
+      const maxRmse = Math.max(...scores.filter(s=>s.rmse!==null).map(s=>s.rmse),1);
+      const bestKey = ranked[0].rmse!==null?ranked[0].key:null;
+      algoCompareList.innerHTML = "";
       scores.forEach(algo => {
-        const rank=rankMap[algo.key], isActive=algo.key===state.algorithm, isBest=algo.key===bestKey;
-        const barPct=algo.rmse!==null?Math.round((algo.rmse/maxRmse)*100):100;
-        const rmseText=algo.rmse!==null?algo.rmse.toFixed(3):(algo.note||"—");
-        const row=document.createElement("div");
-        row.className=`algo-row${isActive?" algo-active":""}${isBest?" algo-best":""}`;
-        row.title=`Click to switch to ${algo.label}`;
-        row.innerHTML=`<div class="algo-row-header">
+        const rank = rankMap[algo.key], isActive = algo.key===state.algorithm, isBest = algo.key===bestKey;
+        const barPct = algo.rmse!==null?Math.round((algo.rmse/maxRmse)*100):100;
+        const rmseText = algo.rmse!==null?algo.rmse.toFixed(3):(algo.note||"—");
+        const row = document.createElement("div");
+        row.className = `algo-row${isActive?" algo-active":""}${isBest?" algo-best":""}`;
+        row.title = `Click to switch to ${algo.label}`;
+        row.innerHTML = `<div class="algo-row-header">
           <span class="algo-name">${algo.label}</span>
           <div class="algo-badges">
             ${isBest&&algo.rmse!==null?`<span class="badge-best">✦ BEST</span>`:""}
@@ -7893,14 +8047,12 @@ EOF`;
           </div></div>
           <div class="algo-bar-track"><div class="algo-bar-fill" style="width:${barPct}%;background:${RANK_COLORS[Math.min(rank-1,3)]}"></div></div>`;
         row.addEventListener("click",()=>{
-          state.algorithm=algo.key; algorithmSelect.value=algo.key; redrawAll();
+          state.algorithm = algo.key; algorithmSelect.value=algo.key; redrawAll();
           updateStatus(`Switched to ${algo.label} (RMSE: ${rmseText})`);
         });
         algoCompareList.appendChild(row);
       });
     }
-
-    window.deleteAnchor = id => { state.anchors=state.anchors.filter(a=>a.id!==id); redrawAll(); updateStatus(`Deleted Anchor #${id}.`); };
     function updateStatus(msg) { statusBar.textContent=msg; }
 
     // ── Manual file-input listeners ───────────────────────────────────
@@ -8308,15 +8460,16 @@ EOF`;
     // ── Export DXF ────────────────────────────────────────────────────
     btnExportDxf.addEventListener("click", () => {
       if (!state.histEntities.length) { alert("No deed DXF loaded."); return; }
-      if (!state.anchors.length) { alert("Add at least 2 anchor pairs before exporting."); return; }
-      const warper=TransformMath.createWarper(state.algorithm,state.anchors);
-      const rectified=state.histEntities.map(ent=>({...ent,layer:`${ent.layer}_RECTIFIED`,points:ent.points.map(pt=>warper(pt))}));
-      const txt=DXFParser.serialize(rectified);
-      const blob=new Blob([txt],{type:"application/dxf"});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement("a"); a.href=url; a.download="rectified_escritura1073.dxf";
+      const activeAnchors = getActiveAnchors();
+      if (!activeAnchors.length || activeAnchors.length < 2) { alert("Add or enable at least 2 anchor pairs before exporting."); return; }
+      const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
+      const rectified = state.histEntities.map(ent => ({ ...ent, layer: `${ent.layer}_RECTIFIED`, points: ent.points.map(pt => warper(pt)) }));
+      const txt = DXFParser.serialize(rectified);
+      const blob = new Blob([txt], { type: "application/dxf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = "rectified_escritura1073.dxf";
       document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-      updateStatus("Exported rectified DXF.");
+      updateStatus(`Exported rectified DXF using ${activeAnchors.length} active anchors.`);
     });
 
     /* ======================================================
@@ -8509,8 +8662,10 @@ EOF`;
             color: a.color || anchorColors[i % anchorColors.length],
             src: { x: a.src.x, y: a.src.y },
             dst: { x: a.dst.x, y: a.dst.y },
+            active: a.active !== false && a.enabled !== false,
+            enabled: a.active !== false && a.enabled !== false
           }));
-          updateStatus(`Loaded ${state.anchors.length} anchors from anchors_georectifier.json.`);
+          updateStatus(`Loaded ${state.anchors.length} anchors (${getActiveAnchors().length} active) from anchors_georectifier.json.`);
           redrawAll();
         }
       } catch(e) {
