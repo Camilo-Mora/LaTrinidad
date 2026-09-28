@@ -1139,72 +1139,14 @@
               <div id="ref-dxf-list" style="display:flex;flex-direction:column;gap:6px;"></div>
             </div>
 
-            <!-- Polygon Dynamic Styling Controls -->
+            <!-- Polygon Dynamic Styling Controls (By Sección) -->
             <div id="poly-styling-container" style="display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;margin-top:6px;">
-              <div style="font-size:0.71rem;font-weight:700;color:var(--text-main);display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-size:0.71rem;font-weight:700;color:var(--text-main);display:flex;align-items:center;justify-content:space-between;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,0.08);">
                 <span>🎨 Lindero La Trinidad Reconstruido</span>
               </div>
               
-              <!-- Sub-style 1: Segments WITH Deed Length -->
-              <div style="display:flex;flex-direction:column;gap:3px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-                <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.69rem;color:var(--accent-cyan);font-weight:600;">
-                  <span>📍 Segmentos reconstruidos de la 1073:</span>
-                  <label class="chk-nodes-label" title="Show or hide vertex nodes for segments with deed distance">
-                    <input type="checkbox" id="style-poly-deed-nodes" style="accent-color:var(--accent-cyan);"> Nodes
-                  </label>
-                </div>
-                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                  <input type="color" id="style-poly-deed-color" value="#ff1744" class="color-picker-swatch" title="Line color for deed segments">
-                  <select id="style-poly-deed-dash" class="style-select" title="Line style for deed segments">
-                    <option value="solid" selected>Solid ──</option>
-                    <option value="dashed">Dashed ─ ─</option>
-                    <option value="dotted">Dotted · · ·</option>
-                  </select>
-                  <select id="style-poly-deed-width" class="style-select width-select" title="Line thickness">
-                    <option value="1">1px</option>
-                    <option value="2">2px</option>
-                    <option value="3">3px</option>
-                    <option value="3.5" selected>3.5px</option>
-                    <option value="5">5px</option>
-                  </select>
-                  <label style="font-size:0.65rem;color:var(--text-muted);display:flex;align-items:center;gap:3px;cursor:pointer;" title="Color segments by error percentage (<2%, 5%, 10%...) instead of chosen solid color">
-                    <input type="checkbox" id="style-poly-deed-error-colors" style="accent-color:var(--accent-cyan);"> Error % colors
-                  </label>
-                </div>
-              </div>
-
-              <!-- Sub-style 2: Segments WITHOUT Deed Length -->
-              <div style="display:flex;flex-direction:column;gap:3px;padding:3px 0;">
-                <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.69rem;color:#94a3b8;font-weight:600;">
-                  <span>📐 Segmentos Validados:</span>
-                  <label class="chk-nodes-label" title="Show or hide vertex nodes for field segments without deed distance">
-                    <input type="checkbox" id="style-poly-nodeed-nodes" style="accent-color:var(--accent-cyan);"> Nodes
-                  </label>
-                </div>
-                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                  <input type="color" id="style-poly-nodeed-color" value="#0066ff" class="color-picker-swatch" title="Line color for non-deed segments">
-                  <select id="style-poly-nodeed-dash" class="style-select" title="Line style for non-deed segments">
-                    <option value="solid" selected>Solid ──</option>
-                    <option value="dashed">Dashed ─ ─</option>
-                    <option value="dotted">Dotted · · ·</option>
-                  </select>
-                  <select id="style-poly-nodeed-width" class="style-select width-select" title="Line thickness">
-                    <option value="1">1px</option>
-                    <option value="2">2px</option>
-                    <option value="3">3px</option>
-                    <option value="4" selected>4px</option>
-                    <option value="5">5px</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Sub-style 3: DYNAMIC SECTION COLORS (Generated for each unique Section!) -->
-              <div id="section-colors-container" style="display:none;flex-direction:column;gap:3px;padding:4px 0;border-top:1px solid rgba(255,255,255,0.06);">
-                <div style="font-size:0.68rem;color:var(--accent-cyan);font-weight:600;display:flex;align-items:center;gap:4px;">
-                  <span>🏷️ Colores por Sección:</span>
-                </div>
-                <div id="section-colors-list" style="display:flex;flex-direction:column;gap:3px;"></div>
-              </div>
+              <!-- Dynamic Sections Styling List (Each section has its own card: Title + Nodes chk, Color swatch, Dash select, Width select) -->
+              <div id="section-styling-list" style="display:flex;flex-direction:column;gap:5px;"></div>
             </div>
           </div>
         </section>
@@ -3125,7 +3067,8 @@ EOF`;
       constrainAnchorsToField: true,
       // Polygon deed vertex constraint
       constrainPolyToDeed: true,
-      sectionColors: {},
+      sectionStyles: {},
+      defaultPolyStyle: { color: '#0066ff', dash: 'solid', width: 3.5, showNodes: false },
       // Deed DXF vertex editing on field panel & historical panel
       histFileName: "Polygon_Escritura1073_FerminSuarez.dxf",
       editDeedNodes: false,
@@ -4473,17 +4416,23 @@ EOF`;
       "#ff6d00", // Dark Amber
     ];
 
-    function getSectionColor(name) {
-      if (!name || typeof name !== "string") return null;
+    function getSectionStyle(name) {
+      if (!state.defaultPolyStyle) {
+        state.defaultPolyStyle = { color: "#0066ff", dash: "solid", width: 3.5, showNodes: false };
+      }
+      if (!name || typeof name !== "string") return state.defaultPolyStyle;
       const clean = name.trim();
-      if (!clean || clean.toLowerCase().match(/^seg\s*\d+$/i)) return null;
+      if (!clean || clean.toLowerCase().match(/^seg\s*\d+$/i)) return state.defaultPolyStyle;
       const key = clean.toLowerCase();
 
-      if (state.sectionColors && state.sectionColors[key]) {
-        return state.sectionColors[key];
+      if (!state.sectionStyles) state.sectionStyles = {};
+      if (state.sectionStyles[key]) {
+        return state.sectionStyles[key];
       }
 
+      // Assign initial palette color
       const p = state.userPolygon;
+      let color = SEG_GROUP_PALETTE[0];
       if (p && p.segmentSections) {
         const unique = [];
         p.segmentSections.forEach(s => {
@@ -4492,84 +4441,169 @@ EOF`;
           if (c && !c.match(/^seg\s*\d+$/i) && !unique.includes(c)) unique.push(c);
         });
         const idx = unique.indexOf(key);
-        if (idx >= 0) {
-          const assigned = SEG_GROUP_PALETTE[idx % SEG_GROUP_PALETTE.length];
-          if (!state.sectionColors) state.sectionColors = {};
-          state.sectionColors[key] = assigned;
-          return assigned;
-        }
+        if (idx >= 0) color = SEG_GROUP_PALETTE[idx % SEG_GROUP_PALETTE.length];
       }
 
-      let hash = 0;
-      for (let i = 0; i < clean.length; i++) hash = ((hash << 5) - hash) + clean.charCodeAt(i);
-      const fallback = SEG_GROUP_PALETTE[Math.abs(hash) % SEG_GROUP_PALETTE.length];
-      if (!state.sectionColors) state.sectionColors = {};
-      state.sectionColors[key] = fallback;
-      return fallback;
+      state.sectionStyles[key] = {
+        color: color,
+        dash: "solid",
+        width: 3.5,
+        showNodes: false
+      };
+      return state.sectionStyles[key];
+    }
+
+    function getSectionColor(name) {
+      return getSectionStyle(name).color;
     }
 
     function updateSectionStyleControls() {
-      const container = document.getElementById("section-colors-container");
-      const list = document.getElementById("section-colors-list");
-      if (!container || !list) return;
+      const container = document.getElementById("section-styling-list");
+      if (!container) return;
 
       const poly = state.userPolygon;
-      if (!poly || !poly.vertices) {
-        container.style.display = "none";
+      if (!poly || !poly.vertices || poly.vertices.length < 2) {
+        container.innerHTML = '<div style="font-size:0.67rem;color:var(--text-muted);font-style:italic;">No hay secciones definidas</div>';
         return;
       }
 
+      const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
       const sectionCounts = {};
-      if (poly.segmentSections) {
-        poly.segmentSections.forEach(s => {
-          if (!s || typeof s !== "string") return;
-          const c = s.trim();
-          if (!c || c.toLowerCase().match(/^seg\s*\d+$/i)) return;
-          sectionCounts[c] = (sectionCounts[c] || 0) + 1;
+      let unassignedCount = 0;
+
+      for (let i = 0; i < nSegs; i++) {
+        const sec = poly.segmentSections ? poly.segmentSections[i] : null;
+        if (sec && typeof sec === "string" && sec.trim() && !sec.trim().toLowerCase().match(/^seg\s*\d+$/i)) {
+          const clean = sec.trim();
+          sectionCounts[clean] = (sectionCounts[clean] || 0) + 1;
+        } else {
+          unassignedCount++;
+        }
+      }
+
+      const sectionNames = Object.keys(sectionCounts);
+      container.innerHTML = "";
+
+      function createSectionCard(title, count, styleObj, onChange) {
+        const card = document.createElement("div");
+        card.style.cssText = "display:flex;flex-direction:column;gap:3px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06);";
+
+        // Top line: Section Title & Nodes checkbox
+        const topRow = document.createElement("div");
+        topRow.style.cssText = "display:flex;align-items:center;justify-content:space-between;font-size:0.69rem;font-weight:600;";
+
+        const titleSpan = document.createElement("span");
+        titleSpan.style.cssText = `color:${styleObj.color};display:flex;align-items:center;gap:4px;`;
+        titleSpan.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${styleObj.color};box-shadow:0 0 4px ${styleObj.color};"></span><strong>${title}</strong> <span style="font-size:0.62rem;color:var(--text-muted);font-weight:normal;">(${count} segs)</span>`;
+
+        const nodesLabel = document.createElement("label");
+        nodesLabel.className = "chk-nodes-label";
+        nodesLabel.title = `Mostrar u ocultar nodos de vértice para ${title}`;
+        nodesLabel.style.cssText = "display:flex;align-items:center;gap:4px;font-size:0.68rem;color:var(--text-muted);cursor:pointer;";
+        const nodesChk = document.createElement("input");
+        nodesChk.type = "checkbox";
+        nodesChk.checked = !!styleObj.showNodes;
+        nodesChk.style.cssText = "accent-color:var(--accent-cyan);cursor:pointer;margin:0;";
+        nodesChk.addEventListener("change", e => {
+          styleObj.showNodes = e.target.checked;
+          onChange();
         });
+        nodesLabel.appendChild(nodesChk);
+        nodesLabel.appendChild(document.createTextNode(" Nodes"));
+
+        topRow.appendChild(titleSpan);
+        topRow.appendChild(nodesLabel);
+
+        // Controls line: Color picker, Dash select, Width select
+        const controlsRow = document.createElement("div");
+        controlsRow.style.cssText = "display:flex;align-items:center;gap:5px;flex-wrap:wrap;";
+
+        const colorInput = document.createElement("input");
+        colorInput.type = "color";
+        colorInput.value = styleObj.color;
+        colorInput.className = "color-picker-swatch";
+        colorInput.title = `Color de línea para ${title}`;
+        colorInput.addEventListener("input", e => {
+          styleObj.color = e.target.value;
+          const str = titleSpan.querySelector("strong");
+          if (str) str.style.color = e.target.value;
+          const dot = titleSpan.querySelector("span");
+          if (dot) {
+            dot.style.background = e.target.value;
+            dot.style.boxShadow = `0 0 4px ${e.target.value}`;
+          }
+          onChange();
+        });
+
+        const dashSelect = document.createElement("select");
+        dashSelect.className = "style-select";
+        dashSelect.title = `Estilo de línea para ${title}`;
+        [
+          { val: "solid", label: "Solid ──" },
+          { val: "dashed", label: "Dashed ─ ─" },
+          { val: "dotted", label: "Dotted · · ·" }
+        ].forEach(optData => {
+          const opt = document.createElement("option");
+          opt.value = optData.val;
+          opt.textContent = optData.label;
+          if (styleObj.dash === optData.val) opt.selected = true;
+          dashSelect.appendChild(opt);
+        });
+        dashSelect.addEventListener("change", e => {
+          styleObj.dash = e.target.value;
+          onChange();
+        });
+
+        const widthSelect = document.createElement("select");
+        widthSelect.className = "style-select width-select";
+        widthSelect.title = `Grosor de línea para ${title}`;
+        [
+          { val: 1, label: "1px" },
+          { val: 2, label: "2px" },
+          { val: 3, label: "3px" },
+          { val: 3.5, label: "3.5px" },
+          { val: 4, label: "4px" },
+          { val: 5, label: "5px" }
+        ].forEach(wData => {
+          const opt = document.createElement("option");
+          opt.value = wData.val;
+          opt.textContent = wData.label;
+          if (Number(styleObj.width) === wData.val) opt.selected = true;
+          widthSelect.appendChild(opt);
+        });
+        widthSelect.addEventListener("change", e => {
+          styleObj.width = parseFloat(e.target.value) || 3.5;
+          onChange();
+        });
+
+        controlsRow.appendChild(colorInput);
+        controlsRow.appendChild(dashSelect);
+        controlsRow.appendChild(widthSelect);
+
+        card.appendChild(topRow);
+        card.appendChild(controlsRow);
+        container.appendChild(card);
       }
 
-      const sections = Object.keys(sectionCounts);
-      if (sections.length === 0) {
-        container.style.display = "none";
-        list.innerHTML = "";
-        return;
-      }
-
-      container.style.display = "flex";
-      list.innerHTML = "";
-
-      sections.forEach(secName => {
-        const col = getSectionColor(secName);
-        const count = sectionCounts[secName];
-
-        const row = document.createElement("div");
-        row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:2px 4px;background:rgba(255,255,255,0.03);border-radius:4px;border:1px solid rgba(255,255,255,0.06);";
-
-        const labelSpan = document.createElement("span");
-        labelSpan.style.cssText = "font-size:0.69rem;color:#f0f4f8;display:flex;align-items:center;gap:5px;";
-        labelSpan.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${col};box-shadow:0 0 4px ${col};"></span><strong style="color:${col};">${secName}</strong> <span style="font-size:0.62rem;color:var(--text-muted);">(${count} segs)</span>`;
-
-        const picker = document.createElement("input");
-        picker.type = "color";
-        picker.value = col;
-        picker.className = "color-picker-swatch";
-        picker.title = `Color para la sección ${secName}`;
-        picker.style.cssText = "width:22px;height:18px;border:none;border-radius:3px;cursor:pointer;padding:0;background:transparent;";
-
-        picker.addEventListener("input", e => {
-          const newCol = e.target.value;
-          if (!state.sectionColors) state.sectionColors = {};
-          state.sectionColors[secName.toLowerCase()] = newCol;
-          if (state.userPolygon) state.userPolygon.sectionColors = state.sectionColors;
+      if (unassignedCount > 0 || sectionNames.length === 0) {
+        if (!state.defaultPolyStyle) {
+          state.defaultPolyStyle = { color: "#0066ff", dash: "solid", width: 3.5, showNodes: false };
+        }
+        createSectionCard("🌐 Sin Sección / General", unassignedCount || nSegs, state.defaultPolyStyle, () => {
           redrawTrueCanvas();
           rebuildSegmentInputs();
-          updateSectionStyleControls();
         });
+      }
 
-        row.appendChild(labelSpan);
-        row.appendChild(picker);
-        list.appendChild(row);
+      sectionNames.forEach(secName => {
+        const secStyle = getSectionStyle(secName);
+        createSectionCard(`🏷️ ${secName}`, sectionCounts[secName], secStyle, () => {
+          if (!state.sectionStyles) state.sectionStyles = {};
+          state.sectionStyles[secName.toLowerCase()] = secStyle;
+          if (state.userPolygon) state.userPolygon.sectionStyles = state.sectionStyles;
+          redrawTrueCanvas();
+          rebuildSegmentInputs();
+        });
       });
     }
 
@@ -4606,23 +4640,13 @@ EOF`;
         const hasDeedLen = deedLen != null && deedLen > 0;
         const meta = getSegmentErrorMeta(measLen, deedLen);
 
-        // Segments anchored to the deed (both endpoints have deedPt) refer to "Segmentos reconstruidos de la 1073:"
-        const isDeed = (a.deedPt !== null && b.deedPt !== null);
-        const segStyle = isDeed ? state.stylePolyDeed : state.stylePolyNoDeed;
-
+        // Stroke styled strictly by its Sección
         const secName = poly.segmentSections ? poly.segmentSections[i] : null;
-        const secColor = secName ? getSectionColor(secName) : null;
+        const secStyle = getSectionStyle(secName);
 
-        let strokeCol;
-        if (secColor) {
-          strokeCol = secColor;
-        } else if (isDeed && state.stylePolyDeed.useErrorColors && meta.color) {
-          strokeCol = meta.color;
-        } else {
-          strokeCol = segStyle.color;
-        }
-        const lineW = secColor ? Math.max(segStyle.width, 3.2) : segStyle.width;
-        const dash = segStyle.dash === "dashed" ? [6, 4] : (segStyle.dash === "dotted" ? [2, 3] : []);
+        const strokeCol = secStyle.color;
+        const lineW = secStyle.width;
+        const dash = secStyle.dash === "dashed" ? [6, 4] : (secStyle.dash === "dotted" ? [2, 3] : []);
 
         const sa = worldToScreenGIS(a, vp, canvasH);
         const sb = worldToScreenGIS(b, vp, canvasH);
@@ -4794,27 +4818,31 @@ EOF`;
         ctx.restore();
       }
 
-      // 3. Vertex dots (dynamically filtered by style visibility for deed vs field nodes, always visible on hover/drag)
+      // 3. Vertex dots (filtered by section showNodes preference, always visible on hover/drag)
       verts.forEach((v, i) => {
-        const isDeedNode = vertexHasDeedLength(poly, i);
         const isHovered = (state.hoverPolyNode === i);
         const isDragging = (state.draggingUserPolyNode === i);
-        if (!isHovered && !isDragging) {
-          if (isDeedNode && !state.stylePolyDeed.showNodes) return;
-          if (!isDeedNode && !state.stylePolyNoDeed.showNodes) return;
-        }
+
+        const secNext = poly.segmentSections ? poly.segmentSections[i] : null;
+        const secPrev = poly.segmentSections ? poly.segmentSections[(i - 1 + nSegs) % nSegs] : null;
+        const styleNext = getSectionStyle(secNext);
+        const stylePrev = getSectionStyle(secPrev);
+        const shouldShowNode = styleNext.showNodes || stylePrev.showNodes;
+
+        if (!isHovered && !isDragging && !shouldShowNode) return;
 
         const sp = worldToScreenGIS(v, vp, canvasH);
         const origX = v.origX != null ? v.origX : v.x;
         const origY = v.origY != null ? v.origY : v.y;
         const isShifted = v.deedPt && Math.hypot(v.x - origX, v.y - origY) > 0.05;
 
-        const baseR = isDeedNode ? (state.stylePolyDeed.width + 2) : (state.stylePolyNoDeed.width + 2);
+        const nodeColor = styleNext.color || stylePrev.color || "#00e5ff";
+        const baseR = Math.max(styleNext.width, stylePrev.width) + 1.5;
         const r = (isHovered || isDragging) ? (baseR + 3) : (i === 0 ? (baseR + 2) : (isShifted ? (baseR + 1) : baseR));
 
         ctx.beginPath();
         ctx.arc(sp.x, sp.y, r, 0, Math.PI * 2);
-        ctx.fillStyle = isHovered ? "#00e5ff" : (isDeedNode ? state.stylePolyDeed.color : state.stylePolyNoDeed.color);
+        ctx.fillStyle = isHovered ? "#00e5ff" : nodeColor;
         ctx.fill();
         ctx.strokeStyle = (isHovered || isDragging) ? "#ffffff" : (i === 0 ? "#ffffff" : (isShifted ? "#ffd600" : "#ffffff"));
         ctx.lineWidth = (isHovered || isDragging || i === 0 || isShifted) ? 2.5 : 1.5;
@@ -5479,7 +5507,8 @@ EOF`;
 
     // Save polygon to JSON
     document.getElementById("btn-save-polygon").addEventListener("click", () => {
-      state.userPolygon.sectionColors = { ...state.sectionColors };
+      state.userPolygon.sectionStyles = { ...state.sectionStyles };
+      state.userPolygon.defaultPolyStyle = { ...state.defaultPolyStyle };
       const data = JSON.stringify(state.userPolygon, null, 2);
       const blob = new Blob([data], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -5697,36 +5726,8 @@ EOF`;
       if (styleTrueWidth) styleTrueWidth.addEventListener("change", e => { state.styleTrueDxf.width = parseFloat(e.target.value) || 2; redrawTrueCanvas(); });
       if (styleTrueNodes) styleTrueNodes.addEventListener("change", e => { state.styleTrueDxf.showNodes = e.target.checked; redrawTrueCanvas(); });
 
-      // 3. User Polygon - Deed Segments (With Lengths)
-      const stylePolyDeedColor = document.getElementById("style-poly-deed-color");
-      const stylePolyDeedDash  = document.getElementById("style-poly-deed-dash");
-      const stylePolyDeedWidth = document.getElementById("style-poly-deed-width");
-      const stylePolyDeedNodes = document.getElementById("style-poly-deed-nodes");
-      const stylePolyDeedErr   = document.getElementById("style-poly-deed-error-colors");
-
-      if (stylePolyDeedColor) stylePolyDeedColor.addEventListener("input", e => {
-        state.stylePolyDeed.color = e.target.value;
-        if (stylePolyDeedErr) {
-          stylePolyDeedErr.checked = false;
-          state.stylePolyDeed.useErrorColors = false;
-        }
-        redrawTrueCanvas();
-      });
-      if (stylePolyDeedDash)  stylePolyDeedDash.addEventListener("change", e => { state.stylePolyDeed.dash = e.target.value; redrawTrueCanvas(); });
-      if (stylePolyDeedWidth) stylePolyDeedWidth.addEventListener("change", e => { state.stylePolyDeed.width = parseFloat(e.target.value) || 3.5; redrawTrueCanvas(); });
-      if (stylePolyDeedNodes) stylePolyDeedNodes.addEventListener("change", e => { state.stylePolyDeed.showNodes = e.target.checked; redrawTrueCanvas(); });
-      if (stylePolyDeedErr)   stylePolyDeedErr.addEventListener("change", e => { state.stylePolyDeed.useErrorColors = e.target.checked; redrawTrueCanvas(); });
-
-      // 4. User Polygon - Non-Deed Segments (Field/No Lengths)
-      const stylePolyNoDeedColor = document.getElementById("style-poly-nodeed-color");
-      const stylePolyNoDeedDash  = document.getElementById("style-poly-nodeed-dash");
-      const stylePolyNoDeedWidth = document.getElementById("style-poly-nodeed-width");
-      const stylePolyNoDeedNodes = document.getElementById("style-poly-nodeed-nodes");
-
-      if (stylePolyNoDeedColor) stylePolyNoDeedColor.addEventListener("input", e => { state.stylePolyNoDeed.color = e.target.value; redrawTrueCanvas(); });
-      if (stylePolyNoDeedDash)  stylePolyNoDeedDash.addEventListener("change", e => { state.stylePolyNoDeed.dash = e.target.value; redrawTrueCanvas(); });
-      if (stylePolyNoDeedWidth) stylePolyNoDeedWidth.addEventListener("change", e => { state.stylePolyNoDeed.width = parseFloat(e.target.value) || 2; redrawTrueCanvas(); });
-      if (stylePolyNoDeedNodes) stylePolyNoDeedNodes.addEventListener("change", e => { state.stylePolyNoDeed.showNodes = e.target.checked; redrawTrueCanvas(); });
+            // User Polygon styles are now dynamically managed per Sección by updateSectionStyleControls()
+      updateSectionStyleControls();
     }
     initLayerStyleListeners();
 
@@ -8510,7 +8511,8 @@ EOF`;
         const text = await fetchText("user_polygon.json");
         const obj = JSON.parse(text);
         if (Array.isArray(obj.vertices) && obj.vertices.length > 0) {
-          if (obj.sectionColors) state.sectionColors = { ...obj.sectionColors };
+          if (obj.sectionStyles) state.sectionStyles = { ...obj.sectionStyles };
+          if (obj.defaultPolyStyle) state.defaultPolyStyle = { ...obj.defaultPolyStyle };
           state.userPolygon = {
             vertices: (obj.vertices || []).map(v => ({
               x: v.x,
