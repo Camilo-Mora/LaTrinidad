@@ -236,6 +236,17 @@
       display: none !important;
     }
 
+    /* Hide number input spinners / dials */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
     /* Sidebar */
     .sidebar {
       width: 380px;
@@ -1253,7 +1264,7 @@
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
               <div style="display:flex;align-items:center;gap:14px;">
                 <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;">
-                  <input type="checkbox" id="chk-polygon-snap" checked style="accent-color:var(--accent-cyan);">
+                  <input type="checkbox" id="chk-polygon-snap" style="accent-color:var(--accent-cyan);">
                   Snap vertices
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;cursor:pointer;" title="Show or hide segment distance labels on the field canvas">
@@ -2849,11 +2860,13 @@ EOF`;
           return { success: false, reason: "No dynamic deed vertices found to optimize." };
         }
 
-        // Count segments with deed distances
+        // Count segments with deed distances (only deed-anchored segments)
         let countSegs = 0;
         for (let i = 0; i < N; i++) {
           const dl = segmentLengths[i];
-          if (dl !== null && dl !== undefined && dl > 0) countSegs++;
+          const nextIdx = (i + 1) % N;
+          const isDeedSeg = (pts[i].deedPt !== null && pts[nextIdx].deedPt !== null);
+          if (isDeedSeg && dl !== null && dl !== undefined && dl > 0) countSegs++;
         }
 
         // Weighting from balance slider (0..100)
@@ -2866,12 +2879,15 @@ EOF`;
           let distLoss = 0;
           const gradDist = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
 
-          // 1. Distance loss & gradients
+          // 1. Distance loss & gradients (only deed-anchored segments are optimized)
           for (let i = 0; i < N; i++) {
             const deedLen = segmentLengths[i];
+            const nextIdx = (i + 1) % N;
+            const isDeedSeg = (currentPts[i].deedPt !== null && currentPts[nextIdx].deedPt !== null);
+            if (!isDeedSeg) continue; // Skip field segments from optimization calculation
+
             if (deedLen !== null && deedLen !== undefined && deedLen > 0) {
               const a = currentPts[i];
-              const nextIdx = (i + 1) % N;
               const nextPt = currentPts[nextIdx];
 
               const dx = nextPt.x - a.x;
@@ -4678,9 +4694,10 @@ EOF`;
           const deedLen = poly.segmentLengths[i];
           const meta = getSegmentErrorMeta(len, deedLen);
 
+          const segName = (poly.segmentNames && poly.segmentNames[i]) || `Seg ${i + 1}`;
           const label = meta.errPct != null
-            ? `Seg ${i + 1}: ${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m (${meta.errPct.toFixed(1)}%)`
-            : `Seg ${i + 1}: ${len.toFixed(1)}m`;
+            ? `${segName}: ${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m (${meta.errPct.toFixed(1)}%)`
+            : `${segName}: ${len.toFixed(1)}m`;
 
           ctx.font = "bold 10px sans-serif";
           ctx.textAlign = "center";
@@ -4770,15 +4787,33 @@ EOF`;
         const dot = document.createElement("span");
         dot.style.cssText = `width:7px;height:7px;border-radius:50%;background:${meta.color};box-shadow:0 0 5px ${meta.color};flex-shrink:0;`;
 
-        const segTitle = document.createElement("strong");
-        segTitle.style.cssText = `color:${meta.color};`;
-        segTitle.textContent = `Seg ${i + 1}`;
+        const segName = (poly.segmentNames && poly.segmentNames[i]) || `Seg ${i + 1}`;
+        const segNameInput = document.createElement("input");
+        segNameInput.type = "text";
+        segNameInput.value = segName;
+        segNameInput.placeholder = `Seg ${i + 1}`;
+        segNameInput.title = "Click to name or rename this segment";
+        segNameInput.style.cssText = `width:66px;background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,0.25);color:${meta.color};font-weight:700;font-size:0.72rem;padding:0 2px;outline:none;text-overflow:ellipsis;`;
+        segNameInput.addEventListener("focus", () => {
+          segNameInput.style.borderBottom = "1px solid var(--accent-cyan)";
+          segNameInput.style.background = "rgba(0,0,0,0.4)";
+        });
+        segNameInput.addEventListener("blur", () => {
+          segNameInput.style.borderBottom = "1px dashed rgba(255,255,255,0.25)";
+          segNameInput.style.background = "transparent";
+        });
+        segNameInput.addEventListener("input", () => {
+          if (!state.userPolygon.segmentNames) state.userPolygon.segmentNames = [];
+          while (state.userPolygon.segmentNames.length < poly.vertices.length) state.userPolygon.segmentNames.push(null);
+          state.userPolygon.segmentNames[i] = segNameInput.value.trim() || null;
+          redrawTrueCanvas();
+        });
 
         const lenText = document.createElement("span");
         lenText.textContent = `(${calcLen.toFixed(1)}m):`;
 
         lbl.appendChild(dot);
-        lbl.appendChild(segTitle);
+        lbl.appendChild(segNameInput);
         lbl.appendChild(lenText);
 
         const rightGroup = document.createElement("div");
@@ -4786,9 +4821,10 @@ EOF`;
 
         const field = document.createElement("input");
         field.type = "number";
-        field.step = "0.1";
+        field.step = "any";
         field.min = "0";
         field.placeholder = "deed m";
+        field.title = "Length (m) documented in deed or survey";
         field.style.cssText = "width:62px;padding:2px 5px;font-size:0.72rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;";
         if (poly.segmentLengths[i] != null) field.value = poly.segmentLengths[i];
         field.dataset.segIdx = i;
@@ -4807,7 +4843,7 @@ EOF`;
           errBadge.style.borderColor = updatedMeta.color + "40";
           dot.style.background = updatedMeta.color;
           dot.style.boxShadow = `0 0 5px ${updatedMeta.color}`;
-          segTitle.style.color = updatedMeta.color;
+          segNameInput.style.color = updatedMeta.color;
           recomputeUserPolygonMetrics();
           redrawTrueCanvas();
         });
@@ -4958,15 +4994,20 @@ EOF`;
       // Segment errors
       const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
       const errors = [];
+      let totalAssigned = 0;
       for (let i = 0; i < nSegs; i++) {
         const a = poly.vertices[i], b = poly.vertices[(i + 1) % poly.vertices.length];
         const measLen = Math.hypot(b.x - a.x, b.y - a.y);
         const deedLen = poly.segmentLengths[i];
+        const isDeedSeg = (a.deedPt !== null && b.deedPt !== null);
         if (deedLen != null && deedLen > 0) {
-          errors.push(Math.abs(measLen - deedLen) / deedLen * 100);
+          totalAssigned++;
+          if (isDeedSeg) {
+            errors.push(Math.abs(measLen - deedLen) / deedLen * 100);
+          }
         }
       }
-      document.getElementById("poly-seg-with-dist").textContent = `${errors.length} / ${nSegs}`;
+      document.getElementById("poly-seg-with-dist").textContent = `${totalAssigned} / ${nSegs}`;
       const avgSegErr = errors.length ? errors.reduce((s, v) => s + v, 0) / errors.length : null;
       document.getElementById("avg-seg-error").textContent = avgSegErr != null ? avgSegErr.toFixed(2) : "—";
 
@@ -5060,7 +5101,7 @@ EOF`;
 
     /** Reset the polygon to a clean state */
     function resetUserPolygon() {
-      state.userPolygon = { vertices: [], segmentLengths: [], closed: false, drawMode: false, show: true };
+      state.userPolygon = { vertices: [], segmentLengths: [], segmentNames: [], closed: false, drawMode: false, show: true };
       document.getElementById("polygon-seg-inputs").innerHTML = "";
       document.getElementById("polygon-segments-container").style.display = "none";
       const optPanel = document.getElementById("boundary-optimization-panel");
@@ -5171,6 +5212,7 @@ EOF`;
                 origY: v.origY != null ? v.origY : null
               })),
               segmentLengths: obj.segmentLengths || [],
+              segmentNames: obj.segmentNames || [],
               closed: !!obj.closed,
               drawMode: false,
               show: true,
@@ -5645,7 +5687,8 @@ EOF`;
             let segErrSum = 0, countSegs = 0;
             for (let i = 0; i < nSegs; i++) {
               const dLen = poly.segmentLengths[i];
-              if (dLen != null && dLen > 0) {
+              const isDeedSeg = (candVertices[i].deedPt !== null && candVertices[(i + 1) % nSegs].deedPt !== null);
+              if (isDeedSeg && dLen != null && dLen > 0) {
                 const mLen = Math.hypot(V[(i + 1) % nSegs].x - V[i].x, V[(i + 1) % nSegs].y - V[i].y);
                 segErrSum += (Math.abs(mLen - dLen) / dLen) * 100;
                 countSegs++;
@@ -7383,7 +7426,10 @@ EOF`;
       const chkAnchors = document.getElementById("chk-constrain-anchors");
       const chkDeed = document.getElementById("chk-constrain-deed-vertices");
       if (chkAnchors) state.constrainAnchorsToField = chkAnchors.checked;
-      if (chkDeed) state.constrainPolyToDeed = chkDeed.checked;
+      if (chkDeed) {
+        chkDeed.checked = true;
+        state.constrainPolyToDeed = true;
+      }
 
       if (state.constrainPolyToDeed) {
         applyDeedConstraints(false);
@@ -8137,12 +8183,17 @@ EOF`;
               origY: v.origY != null ? v.origY : null
             })),
             segmentLengths: obj.segmentLengths || [],
+            segmentNames: obj.segmentNames || [],
             closed: !!obj.closed,
             drawMode: false,
             show: true,
           };
           while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
             state.userPolygon.segmentLengths.push(null);
+          }
+          if (!state.userPolygon.segmentNames) state.userPolygon.segmentNames = [];
+          while (state.userPolygon.segmentNames.length < state.userPolygon.vertices.length) {
+            state.userPolygon.segmentNames.push(null);
           }
           rebuildSegmentInputs();
           recomputeUserPolygonMetrics();
@@ -8177,6 +8228,7 @@ EOF`;
     state.trueEntities = [];
     state.anchors = [];
     algorithmSelect.value = state.algorithm;
+    initConstraintsAndBuffers();
     setToolMode("pan");
     updateStatus("⏳ Initialising — loading deed PDF, DXF files and drone imagery…");
 
