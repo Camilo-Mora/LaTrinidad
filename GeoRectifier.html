@@ -2900,24 +2900,50 @@ EOF`;
        ========================================================================== */
     const POLY_SNAP_RADIUS = 15; // screen pixels – matches index.html snap radius
 
-    /** Find nearest vertex from Field.dxf (state.trueEntities) to a given world point (in meters) */
+    /** Find nearest vertex from Field.dxf (state.trueEntities) and any visible reference DXFs (state.refDxfFiles) to a given world point (in meters) */
     function findNearestFieldVertex(worldPt) {
-      if (!state.trueEntities || state.trueEntities.length === 0 || !worldPt) return null;
+      if (!worldPt) return null;
       let closest = null;
       let minDist = Infinity;
-      for (let entIdx = 0; entIdx < state.trueEntities.length; entIdx++) {
-        const ent = state.trueEntities[entIdx];
-        if (!ent || !ent.points) continue;
-        for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
-          const pt = ent.points[ptIdx];
-          if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
-          const d = Math.hypot(pt.x - worldPt.x, pt.y - worldPt.y);
-          if (d < minDist) {
-            minDist = d;
-            closest = { x: pt.x, y: pt.y, dist: d };
+
+      // 1. Check Field survey DXF entities
+      if (state.trueEntities && state.trueEntities.length > 0) {
+        for (let entIdx = 0; entIdx < state.trueEntities.length; entIdx++) {
+          const ent = state.trueEntities[entIdx];
+          if (!ent || !ent.points) continue;
+          for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+            const pt = ent.points[ptIdx];
+            if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+            const d = Math.hypot(pt.x - worldPt.x, pt.y - worldPt.y);
+            if (d < minDist) {
+              minDist = d;
+              closest = { x: pt.x, y: pt.y, dist: d };
+            }
           }
         }
       }
+
+      // 2. Check added temporary Reference DXFs
+      if (state.refDxfFiles && state.refDxfFiles.length > 0) {
+        for (let r = 0; r < state.refDxfFiles.length; r++) {
+          const ref = state.refDxfFiles[r];
+          if (!ref.visible || ref.opacity <= 0 || !ref.entities) continue;
+          for (let entIdx = 0; entIdx < ref.entities.length; entIdx++) {
+            const ent = ref.entities[entIdx];
+            if (!ent || !ent.points) continue;
+            for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+              const pt = ent.points[ptIdx];
+              if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+              const d = Math.hypot(pt.x - worldPt.x, pt.y - worldPt.y);
+              if (d < minDist) {
+                minDist = d;
+                closest = { x: pt.x, y: pt.y, dist: d };
+              }
+            }
+          }
+        }
+      }
+
       return closest;
     }
 
@@ -5199,7 +5225,17 @@ EOF`;
           updateStatus("Click a landmark on the deed map (left) first.");
           return;
         }
-        const worldPt = screenToWorldGIS(sx, sy, viewport, canvas.height);
+        let worldPt = screenToWorldGIS(sx, sy, viewport, canvas.height);
+
+        // Snap to nearest vertex (Field survey or added reference DXFs)
+        const nearestField = findNearestFieldVertex(worldPt);
+        if (nearestField) {
+          const snapDistPx = nearestField.dist * viewport.scale;
+          if (snapDistPx <= 18 || (state.constrainAnchorsToField && nearestField.dist <= state.optBufferRadius)) {
+            worldPt = { x: nearestField.x, y: nearestField.y };
+          }
+        }
+
         const nextId = state.anchors.length + 1;
         const color = anchorColors[(nextId - 1) % anchorColors.length];
         state.anchors.push({
@@ -5237,10 +5273,13 @@ EOF`;
         } else {
           let targetPt = screenToWorldGIS(sx, sy, state.trueViewport, trueCanvas.height);
 
-          // If Constrain checkbox is checked: clamp anchor movement inside Pen Buffer of nearest Field.dxf vertex
-          if (state.constrainAnchorsToField && state.optBufferRadius > 0) {
-            const nearestField = findNearestFieldVertex(targetPt);
-            if (nearestField) {
+          const nearestField = findNearestFieldVertex(targetPt);
+          if (nearestField) {
+            const snapDistPx = nearestField.dist * state.trueViewport.scale;
+            // Magnetic snap to vertex when close (within 15 screen pixels)
+            if (snapDistPx <= 15) {
+              targetPt = { x: nearestField.x, y: nearestField.y };
+            } else if (state.constrainAnchorsToField && state.optBufferRadius > 0) {
               const R = state.optBufferRadius;
               // If the cursor is within or approaching the vertex buffer (within 2*R detection zone):
               if (nearestField.dist <= R * 2.0) {
@@ -5500,11 +5539,27 @@ EOF`;
         return;
       }
 
-      // 2. Anchor Mode active: prioritize anchor pin hovering and ignore polygon node interactions completely
+      // 2. Anchor Mode active: prioritize anchor pin hovering and snap indicator on field/reference DXF vertices
       if (state.toolMode === "anchor") {
         if (!isPanning && !draggingAnchor) {
           const hit = hitTestAnchor(mouseX, mouseY, false);
           trueCanvas.style.cursor = hit ? "move" : "crosshair";
+
+          // If pending source anchor is set, detect nearest vertex (field or ref DXF) and show snap indicator
+          if (!hit && state.pendingSource) {
+            const nearestField = findNearestFieldVertex(p);
+            if (nearestField && (nearestField.dist * vp.scale <= 18 || (state.constrainAnchorsToField && nearestField.dist <= state.optBufferRadius))) {
+              const sp = worldToScreenGIS(nearestField, vp, h);
+              state.currentSnapTarget = {
+                worldPt: { x: nearestField.x, y: nearestField.y },
+                screenPt: sp,
+                sourceType: "field"
+              };
+              coordsBar.textContent = `Field Snap Vertex: (${nearestField.x.toFixed(2)}, ${nearestField.y.toFixed(2)}) [${nearestField.dist.toFixed(2)}m away]`;
+              redrawTrueCanvas();
+              return;
+            }
+          }
         }
         if (state.currentSnapTarget !== null) {
           state.currentSnapTarget = null;
