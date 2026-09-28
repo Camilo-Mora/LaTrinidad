@@ -1286,8 +1286,9 @@
               <!-- Dynamic Group Summary Tags -->
               <div id="segment-group-tags" style="display:none;flex-wrap:wrap;gap:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:2px;"></div>
 
-              <!-- 4-Column Table Header: Seg #, Extra Name/Group Column, Deed (m), Err % -->
-              <div style="display:grid;grid-template-columns:88px 1fr 54px 44px;gap:5px;font-size:0.67rem;color:var(--text-muted);font-weight:600;padding:2px 4px;border-bottom:1px solid rgba(255,255,255,0.08);">
+              <!-- 5-Column Table Header: Opt Checkbox, Seg #, Extra Name/Group Column, Deed (m), Err % -->
+              <div style="display:grid;grid-template-columns:20px 76px 1fr 52px 42px;gap:5px;font-size:0.67rem;color:var(--text-muted);font-weight:600;padding:2px 4px;border-bottom:1px solid rgba(255,255,255,0.08);align-items:center;">
+                <span style="display:flex;align-items:center;justify-content:center;"><input type="checkbox" id="chk-opt-all" title="Toggle all segments for optimization" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:13px;height:13px;"></span>
                 <span>Seg (m)</span>
                 <span>Name / Group</span>
                 <span>Deed (m)</span>
@@ -2837,6 +2838,7 @@ EOF`;
         const {
           vertices,
           segmentLengths,
+          segmentOptimize,
           bufferRadius = 3.0,
           balance = 50,
           targetArea = 162156.0,
@@ -2858,10 +2860,16 @@ EOF`;
           origY: (v.origY !== undefined && v.origY !== null) ? v.origY : v.y,
         }));
 
-        // Identify dynamic vertex indices (only deed-anchored vertices are optimized)
+        // Identify dynamic vertex indices (vertices adjacent to selected segments or deed-anchored)
         const dynamicIndices = [];
         for (let i = 0; i < N; i++) {
-          if (pts[i].deedPt !== null) {
+          const prevIdx = (i - 1 + N) % N;
+          const isAdjToOpt = segmentOptimize ? (
+            (segmentOptimize[i] && segmentLengths[i] > 0) ||
+            (segmentOptimize[prevIdx] && segmentLengths[prevIdx] > 0)
+          ) : (pts[i].deedPt !== null);
+
+          if (pts[i].deedPt !== null || isAdjToOpt) {
             dynamicIndices.push(i);
           }
         }
@@ -2870,13 +2878,13 @@ EOF`;
           return { success: false, reason: "No dynamic deed vertices found to optimize." };
         }
 
-        // Count segments with deed distances (only deed-anchored segments)
+        // Count segments selected for optimization
         let countSegs = 0;
         for (let i = 0; i < N; i++) {
           const dl = segmentLengths[i];
           const nextIdx = (i + 1) % N;
-          const isDeedSeg = (pts[i].deedPt !== null && pts[nextIdx].deedPt !== null);
-          if (isDeedSeg && dl !== null && dl !== undefined && dl > 0) countSegs++;
+          const isSelected = segmentOptimize ? (segmentOptimize[i] === true) : (pts[i].deedPt !== null && pts[nextIdx].deedPt !== null);
+          if (isSelected && dl !== null && dl !== undefined && dl > 0) countSegs++;
         }
 
         // Weighting from balance slider (0..100)
@@ -2889,12 +2897,13 @@ EOF`;
           let distLoss = 0;
           const gradDist = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
 
-          // 1. Distance loss & gradients (only deed-anchored segments are optimized)
+          // 1. Distance loss & gradients (strictly for segments selected via checkbox)
           for (let i = 0; i < N; i++) {
+            const isSelected = segmentOptimize ? (segmentOptimize[i] === true) : (currentPts[i].deedPt !== null && currentPts[(i + 1) % N].deedPt !== null);
+            if (!isSelected) continue; // Skip unselected segments from optimization calculation
+
             const deedLen = segmentLengths[i];
             const nextIdx = (i + 1) % N;
-            const isDeedSeg = (currentPts[i].deedPt !== null && currentPts[nextIdx].deedPt !== null);
-            if (!isDeedSeg) continue; // Skip field segments from optimization calculation
 
             if (deedLen !== null && deedLen !== undefined && deedLen > 0) {
               const a = currentPts[i];
@@ -4827,6 +4836,31 @@ EOF`;
       if (nSegs === 0) { container.style.display = "none"; return; }
       container.style.display = "flex";
 
+      if (!poly.segmentOptimize) poly.segmentOptimize = [];
+      while (poly.segmentOptimize.length < nSegs) {
+        const idx = poly.segmentOptimize.length;
+        const dl = poly.segmentLengths[idx];
+        poly.segmentOptimize.push(dl !== null && dl > 0 && idx >= 39 && idx <= 48);
+      }
+
+      // Synchronize header chk-opt-all state and listener
+      const chkAll = document.getElementById("chk-opt-all");
+      if (chkAll) {
+        const allC = nSegs > 0 && poly.segmentOptimize.slice(0, nSegs).every(Boolean);
+        const someC = poly.segmentOptimize.slice(0, nSegs).some(Boolean);
+        chkAll.checked = allC;
+        chkAll.indeterminate = !allC && someC;
+        chkAll.onchange = e => {
+          const val = e.target.checked;
+          for (let k = 0; k < nSegs; k++) {
+            poly.segmentOptimize[k] = val;
+          }
+          rebuildSegmentInputs();
+          recomputeUserPolygonMetrics();
+          redrawTrueCanvas();
+        };
+      }
+
       // Populate Datalist for autocomplete suggestions from unique group names
       const datalist = document.getElementById("seg-group-datalist");
       if (datalist) {
@@ -4885,20 +4919,57 @@ EOF`;
         const groupColor = getSegmentGroupColor(rawName, poly);
         const rowColor = groupColor || meta.color;
 
+        if (!poly.segmentOptimize) poly.segmentOptimize = [];
+        while (poly.segmentOptimize.length < nSegs) {
+          const idx = poly.segmentOptimize.length;
+          const dl = poly.segmentLengths[idx];
+          poly.segmentOptimize.push(dl !== null && dl > 0 && idx >= 39 && idx <= 48);
+        }
+        const isOpt = !!poly.segmentOptimize[i];
+
         const wrap = document.createElement("div");
         wrap.className = "seg-table-row";
-        wrap.style.cssText = `display:grid;grid-template-columns:88px 1fr 54px 44px;gap:5px;align-items:center;padding:2px 4px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid ${groupColor ? groupColor + '40' : 'rgba(255,255,255,0.06)'};border-left:3px solid ${rowColor};`;
+        wrap.style.cssText = `display:grid;grid-template-columns:20px 76px 1fr 52px 42px;gap:5px;align-items:center;padding:2px 4px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid ${groupColor ? groupColor + '40' : 'rgba(255,255,255,0.06)'};border-left:3px solid ${rowColor};`;
+
+        // Col 0: Opt Checkbox
+        const col0 = document.createElement("div");
+        col0.style.cssText = "display:flex;align-items:center;justify-content:center;";
+        const optChk = document.createElement("input");
+        optChk.type = "checkbox";
+        optChk.checked = isOpt;
+        optChk.title = isOpt ? "✓ Included in optimization (click to exclude)" : "Excluded from optimization (click to include)";
+        optChk.style.cssText = "accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:13px;height:13px;";
+        optChk.dataset.segIdx = i;
+        optChk.addEventListener("change", e => {
+          poly.segmentOptimize[i] = e.target.checked;
+          optChk.title = e.target.checked ? "✓ Included in optimization (click to exclude)" : "Excluded from optimization (click to include)";
+          const optPanel = document.getElementById("boundary-optimization-panel");
+          if (optPanel) {
+            const hasActiveOpt = poly.segmentOptimize.some((opt, idx) => opt && poly.segmentLengths[idx] > 0);
+            optPanel.style.display = hasActiveOpt ? "flex" : "none";
+          }
+          recomputeUserPolygonMetrics();
+          redrawTrueCanvas();
+          const chkAll = document.getElementById("chk-opt-all");
+          if (chkAll) {
+            const allC = poly.segmentOptimize.slice(0, nSegs).every(Boolean);
+            const someC = poly.segmentOptimize.slice(0, nSegs).some(Boolean);
+            chkAll.checked = allC;
+            chkAll.indeterminate = !allC && someC;
+          }
+        });
+        col0.appendChild(optChk);
 
         // Col 1: Seg # & Measured Length
         const col1 = document.createElement("div");
-        col1.style.cssText = "display:flex;align-items:center;gap:4px;overflow:hidden;font-size:0.71rem;";
+        col1.style.cssText = "display:flex;align-items:center;gap:3px;overflow:hidden;font-size:0.71rem;";
         const dot = document.createElement("span");
-        dot.style.cssText = `width:7px;height:7px;border-radius:50%;background:${rowColor};box-shadow:0 0 4px ${rowColor};flex-shrink:0;`;
+        dot.style.cssText = `width:6px;height:6px;border-radius:50%;background:${rowColor};box-shadow:0 0 4px ${rowColor};flex-shrink:0;`;
         const segNum = document.createElement("strong");
         segNum.style.cssText = `color:${rowColor};font-size:0.71rem;`;
         segNum.textContent = `#${i + 1}`;
         const lenSpan = document.createElement("span");
-        lenSpan.style.cssText = "font-size:0.65rem;color:var(--text-muted);white-space:nowrap;";
+        lenSpan.style.cssText = "font-size:0.64rem;color:var(--text-muted);white-space:nowrap;";
         lenSpan.textContent = `${calcLen.toFixed(1)}m`;
         col1.appendChild(dot);
         col1.appendChild(segNum);
@@ -4984,6 +5055,7 @@ EOF`;
         });
         col3.appendChild(distField);
 
+        wrap.appendChild(col0);
         wrap.appendChild(col1);
         wrap.appendChild(col2);
         wrap.appendChild(col3);
@@ -5008,8 +5080,8 @@ EOF`;
       // Update visibility of boundary optimization sub-panel
       const optPanel = document.getElementById("boundary-optimization-panel");
       if (optPanel) {
-        const hasDeedLengths = poly.segmentLengths && poly.segmentLengths.some(l => l !== null && l > 0);
-        optPanel.style.display = hasDeedLengths ? "flex" : "none";
+        const hasActiveOpt = poly.segmentOptimize && poly.segmentOptimize.some((opt, idx) => opt && poly.segmentLengths && poly.segmentLengths[idx] > 0);
+        optPanel.style.display = hasActiveOpt ? "flex" : "none";
       }
     }
 
@@ -5135,10 +5207,10 @@ EOF`;
         const a = poly.vertices[i], b = poly.vertices[(i + 1) % poly.vertices.length];
         const measLen = Math.hypot(b.x - a.x, b.y - a.y);
         const deedLen = poly.segmentLengths[i];
-        const isDeedSeg = (a.deedPt !== null && b.deedPt !== null);
+        const isOpt = poly.segmentOptimize ? (poly.segmentOptimize[i] === true) : (a.deedPt !== null && b.deedPt !== null);
         if (deedLen != null && deedLen > 0) {
           totalAssigned++;
-          if (isDeedSeg) {
+          if (isOpt) {
             errors.push(Math.abs(measLen - deedLen) / deedLen * 100);
           }
         }
@@ -5237,7 +5309,7 @@ EOF`;
 
     /** Reset the polygon to a clean state */
     function resetUserPolygon() {
-      state.userPolygon = { vertices: [], segmentLengths: [], segmentNames: [], closed: false, drawMode: false, show: true };
+      state.userPolygon = { vertices: [], segmentLengths: [], segmentNames: [], segmentOptimize: [], closed: false, drawMode: false, show: true };
       document.getElementById("polygon-seg-inputs").innerHTML = "";
       document.getElementById("polygon-segments-container").style.display = "none";
       const optPanel = document.getElementById("boundary-optimization-panel");
@@ -5349,6 +5421,7 @@ EOF`;
               })),
               segmentLengths: obj.segmentLengths || [],
               segmentNames: obj.segmentNames || [],
+              segmentOptimize: obj.segmentOptimize || [],
               closed: !!obj.closed,
               drawMode: false,
               show: true,
@@ -5580,6 +5653,7 @@ EOF`;
           const result = BoundaryOptimizer.optimize({
             vertices: poly.vertices,
             segmentLengths: poly.segmentLengths,
+            segmentOptimize: poly.segmentOptimize,
             bufferRadius: state.optBufferRadius,
             balance: state.optBalance,
             targetArea: 162156.0,
@@ -5800,6 +5874,7 @@ EOF`;
             const optRes = BoundaryOptimizer.optimize({
               vertices: candVertices,
               segmentLengths: poly.segmentLengths,
+              segmentOptimize: poly.segmentOptimize,
               bufferRadius: currentR,
               balance: state.optBalance,
               targetArea: 162156.0,
@@ -5823,8 +5898,8 @@ EOF`;
             let segErrSum = 0, countSegs = 0;
             for (let i = 0; i < nSegs; i++) {
               const dLen = poly.segmentLengths[i];
-              const isDeedSeg = (candVertices[i].deedPt !== null && candVertices[(i + 1) % nSegs].deedPt !== null);
-              if (isDeedSeg && dLen != null && dLen > 0) {
+              const isSelected = poly.segmentOptimize ? (poly.segmentOptimize[i] === true) : (candVertices[i].deedPt !== null && candVertices[(i + 1) % nSegs].deedPt !== null);
+              if (isSelected && dLen != null && dLen > 0) {
                 const mLen = Math.hypot(V[(i + 1) % nSegs].x - V[i].x, V[(i + 1) % nSegs].y - V[i].y);
                 segErrSum += (Math.abs(mLen - dLen) / dLen) * 100;
                 countSegs++;
@@ -6051,6 +6126,7 @@ EOF`;
         const finalOpt = BoundaryOptimizer.optimize({
           vertices: finalNominal,
           segmentLengths: poly.segmentLengths,
+          segmentOptimize: poly.segmentOptimize,
           bufferRadius: winningR,
           balance: state.optBalance,
           targetArea: 162156.0,
@@ -8320,6 +8396,7 @@ EOF`;
             })),
             segmentLengths: obj.segmentLengths || [],
             segmentNames: obj.segmentNames || [],
+            segmentOptimize: obj.segmentOptimize || [],
             closed: !!obj.closed,
             drawMode: false,
             show: true,
@@ -8330,6 +8407,12 @@ EOF`;
           if (!state.userPolygon.segmentNames) state.userPolygon.segmentNames = [];
           while (state.userPolygon.segmentNames.length < state.userPolygon.vertices.length) {
             state.userPolygon.segmentNames.push(null);
+          }
+          if (!state.userPolygon.segmentOptimize) state.userPolygon.segmentOptimize = [];
+          while (state.userPolygon.segmentOptimize.length < state.userPolygon.vertices.length) {
+            const idx = state.userPolygon.segmentOptimize.length;
+            const dLen = state.userPolygon.segmentLengths[idx];
+            state.userPolygon.segmentOptimize.push(dLen !== null && dLen > 0 && idx >= 39 && idx <= 48);
           }
           rebuildSegmentInputs();
           recomputeUserPolygonMetrics();
