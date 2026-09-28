@@ -4686,6 +4686,10 @@ EOF`;
       if ((state.showCorridor104 || state.showCorridor520) && poly && poly.segmentLengths) {
         ctx.save();
         ctx.globalAlpha = (state.corridorOpacity !== undefined ? state.corridorOpacity : 0.5);
+        let warper = null;
+        if (state.anchors && state.anchors.length >= 2) {
+          try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+        }
         const drawCorridorRibbon = (radiusM, fillColor, strokeColor, dash) => {
           const rPx = radiusM * vp.scale;
           if (rPx < 0.5) return;
@@ -4698,10 +4702,11 @@ EOF`;
           ctx.strokeStyle = fillColor;
 
           for (let i = 0; i < nSegs; i++) {
+            if (poly.segmentOptimize && !poly.segmentOptimize[i]) continue;
             if (poly.segmentLengths[i] == null || poly.segmentLengths[i] <= 0) continue;
             const a = verts[i], b = verts[(i + 1) % verts.length];
-            const a0 = { x: a.origX != null ? a.origX : a.x, y: a.origY != null ? a.origY : a.y };
-            const b0 = { x: b.origX != null ? b.origX : b.x, y: b.origY != null ? b.origY : b.y };
+            const a0 = (a.origX != null && a.origY != null) ? { x: a.origX, y: a.origY } : (a.deedPt && warper ? warper(a.deedPt) : { x: a.x, y: a.y });
+            const b0 = (b.origX != null && b.origY != null) ? { x: b.origX, y: b.origY } : (b.deedPt && warper ? warper(b.deedPt) : { x: b.x, y: b.y });
             const sa = worldToScreenGIS(a0, vp, canvasH);
             const sb = worldToScreenGIS(b0, vp, canvasH);
             ctx.moveTo(sa.x, sa.y);
@@ -4720,10 +4725,11 @@ EOF`;
             else ctx.setLineDash([]);
 
             for (let i = 0; i < nSegs; i++) {
+              if (poly.segmentOptimize && !poly.segmentOptimize[i]) continue;
               if (poly.segmentLengths[i] == null || poly.segmentLengths[i] <= 0) continue;
               const a = verts[i], b = verts[(i + 1) % verts.length];
-              const a0 = { x: a.origX != null ? a.origX : a.x, y: a.origY != null ? a.origY : a.y };
-              const b0 = { x: b.origX != null ? b.origX : b.x, y: b.origY != null ? b.origY : b.y };
+              const a0 = (a.origX != null && a.origY != null) ? { x: a.origX, y: a.origY } : (a.deedPt && warper ? warper(a.deedPt) : { x: a.x, y: a.y });
+              const b0 = (b.origX != null && b.origY != null) ? { x: b.origX, y: b.origY } : (b.deedPt && warper ? warper(b.deedPt) : { x: b.x, y: b.y });
               const sa = worldToScreenGIS(a0, vp, canvasH);
               const sb = worldToScreenGIS(b0, vp, canvasH);
               const dx = sb.x - sa.x, dy = sb.y - sa.y;
@@ -5241,11 +5247,19 @@ EOF`;
       const V = poly.vertices;
       const nSegs = poly.closed ? V.length : V.length - 1;
 
+      let warper = null;
+      if (state.anchors && state.anchors.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
+      }
+
       let totalDeedLen = 0;
       let lenIn104 = 0;
       let lenIn520 = 0;
 
       for (let i = 0; i < nSegs; i++) {
+        // Strictly filter to segments ticked for optimization
+        if (poly.segmentOptimize && !poly.segmentOptimize[i]) continue;
+
         const deedLen = poly.segmentLengths[i];
         if (deedLen == null || deedLen <= 0) continue;
 
@@ -5253,8 +5267,8 @@ EOF`;
         const segLen = Math.hypot(b.x - a.x, b.y - a.y);
         if (segLen < 1e-4) continue;
 
-        const a0 = { x: a.origX != null ? a.origX : a.x, y: a.origY != null ? a.origY : a.y };
-        const b0 = { x: b.origX != null ? b.origX : b.x, y: b.origY != null ? b.origY : b.y };
+        const a0 = (a.origX != null && a.origY != null) ? { x: a.origX, y: a.origY } : (a.deedPt && warper ? warper(a.deedPt) : { x: a.x, y: a.y });
+        const b0 = (b.origX != null && b.origY != null) ? { x: b.origX, y: b.origY } : (b.deedPt && warper ? warper(b.deedPt) : { x: b.x, y: b.y });
         const rawDx = b0.x - a0.x, rawDy = b0.y - a0.y;
         const rawLenSq = rawDx * rawDx + rawDy * rawDy;
 
@@ -5420,7 +5434,7 @@ EOF`;
           const avgErrStr = avgSegErr != null ? avgSegErr.toFixed(2) : "0.00";
           const areaErrStr = (areaM2 > 0) ? ((Math.abs(areaM2 - REF_DEED_AREA_M2) / REF_DEED_AREA_M2) * 100).toFixed(2) : "0.00";
 
-          elConclusion.innerHTML = `El lindero reconstruido satisface el <strong>${pctDistGood.toFixed(1)}%</strong> de las distancias de la escritura (error medio ${avgErrStr}%) y <strong>${areaErrStr}%</strong> de error en el área legal de la Escritura 296 (162.156 m²). A su vez, el <strong>${comp.pct104.toFixed(1)}%</strong> de su longitud total se encuentra estrictamente dentro del margen milimétrico de gabinete del IGAC (±1.04 m a 1:2.000), y el <strong>${comp.pct520.toFixed(1)}%</strong> queda comprendido dentro de la tolerancia de terreno rural con cobertura vegetal (±5.20 m).`;
+          elConclusion.innerHTML = `El lindero reconstruido satisface el <strong>${pctDistGood.toFixed(1)}%</strong> de las distancias de la escritura (error medio ${avgErrStr}%) y <strong>${areaErrStr}%</strong> de error en el área legal de la Escritura 296 (162.156 m²). A su vez, el <strong>${comp.pct104.toFixed(1)}%</strong> de la longitud optimizada se encuentra estrictamente dentro del margen milimétrico de gabinete del IGAC (±1.04 m a 1:2.000), y el <strong>${comp.pct520.toFixed(1)}%</strong> queda comprendido dentro de la tolerancia de terreno rural con cobertura vegetal (±5.20 m).`;
         } else {
           elConclusion.innerHTML = "—";
         }
