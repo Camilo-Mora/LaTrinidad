@@ -2274,6 +2274,7 @@ EOF`;
       corridorOpacity: 0.5,    // opacity of IGAC corridor ribbons (0.0 .. 1.0)
       tuningAnchorsActive: false,
       tuningCancelRequested: false,
+      tuningAnchorCenters: null,   // Active exploration centers during auto-tune simulation
       // Anchor field vertex constraint
       constrainAnchorsToField: true,
       // Polygon deed vertex constraint
@@ -2799,11 +2800,23 @@ EOF`;
           trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y,4,0,Math.PI*2);
           trueCtx.fillStyle="#ff1744"; trueCtx.fill();
         }
-        // If Constrain mode is on, render the pen buffer disk around the locked/nearest Field vertex
-        if (state.constrainAnchorsToField && state.optBufferRadius > 0) {
-          const nearestField = findNearestFieldVertex(anc.dst);
-          if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
-            const sCenter = worldToScreenGIS(nearestField, vp, h);
+        // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor origin during unconstrained simulation)
+        if (state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
+          let centerPt = null;
+          if (state.constrainAnchorsToField) {
+            const nearestField = findNearestFieldVertex(anc.dst);
+            if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
+              centerPt = nearestField;
+            }
+          } else if (state.tuningAnchorsActive && state.tuningAnchorCenters) {
+            const ancIdx = state.anchors.indexOf(anc);
+            if (ancIdx >= 0 && state.tuningAnchorCenters[ancIdx]) {
+              centerPt = state.tuningAnchorCenters[ancIdx];
+            }
+          }
+
+          if (centerPt) {
+            const sCenter = worldToScreenGIS(centerPt, vp, h);
             const rPx = state.optBufferRadius * vp.scale;
             trueCtx.save();
             trueCtx.beginPath();
@@ -2816,7 +2829,7 @@ EOF`;
             trueCtx.stroke();
             trueCtx.setLineDash([]);
 
-            // Center crosshair marker on the Field.dxf vertex
+            // Center crosshair marker on the buffer disk center
             trueCtx.beginPath();
             trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
             trueCtx.fillStyle = "#00e5ff";
@@ -4289,12 +4302,16 @@ EOF`;
         ? Array.from({ length: 30 }, (_, i) => +(0.1 * (i + 1)).toFixed(1))
         : [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0];
 
-      // Identify buffer centers for each anchor based on maximum possible search radius (3.0m)
+      // Identify buffer centers for each anchor:
+      // If "Constrain to Field Vertices" is ticked, start/center from the snapped vertex.
+      // If unticked, start/center from the exact point where the anchor is currently located.
       const baseR = 3.0;
       const anchorCenters = state.anchors.map(anc => {
-        const nearestField = findNearestFieldVertex(anc.dst);
-        if (nearestField && nearestField.dist <= baseR * 2.5) {
-          return { x: nearestField.x, y: nearestField.y };
+        if (state.constrainAnchorsToField) {
+          const nearestField = findNearestFieldVertex(anc.dst);
+          if (nearestField && nearestField.dist <= baseR * 2.5) {
+            return { x: nearestField.x, y: nearestField.y };
+          }
         }
         return { x: anc.dst.x, y: anc.dst.y };
       });
@@ -4302,6 +4319,7 @@ EOF`;
       // UI state setup
       state.tuningAnchorsActive = true;
       state.tuningCancelRequested = false;
+      state.tuningAnchorCenters = anchorCenters;
 
       if (btnAutoTune) {
         btnAutoTune.innerHTML = "⏹ Stop Auto-Tune";
@@ -4695,6 +4713,7 @@ EOF`;
       // Cleanup state & UI
       state.tuningAnchorsActive = false;
       state.tuningCancelRequested = false;
+      state.tuningAnchorCenters = null;
       if (btnRunOpt) btnRunOpt.disabled = false;
       if (btnResetOpt) btnResetOpt.disabled = false;
       if (btnAutoTune) {
