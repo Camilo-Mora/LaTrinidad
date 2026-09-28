@@ -636,6 +636,90 @@
       color: #ffffff;
       box-shadow: 0 0 14px rgba(255, 179, 0, 0.55);
     }
+    .btn-marker {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      color: #fbbf24;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-marker:hover {
+      background: rgba(245, 158, 11, 0.26);
+      border-color: #fbbf24;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+    }
+    .btn-marker.active {
+      background: rgba(245, 158, 11, 0.35);
+      border-color: #f59e0b;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.55);
+    }
+    .compact-tool-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 1px 4px;
+      transition: all 0.2s ease;
+      vertical-align: middle;
+    }
+    .compact-tool-group:hover {
+      border-color: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.09);
+    }
+    .compact-tool-group .group-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 4px 0 2px;
+      user-select: none;
+    }
+    .compact-tool-group.group-deed .group-label {
+      color: var(--accent-orange, #ff9100);
+    }
+    .compact-tool-group.group-field .group-label {
+      color: var(--accent-green, #00e676);
+    }
+    .compact-tool-group .btn-icon-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-main);
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.18s ease;
+    }
+    .compact-tool-group .btn-icon-action:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .compact-tool-group .btn-icon-action:active {
+      transform: translateY(0);
+    }
+    .compact-tool-group.group-deed .btn-icon-action.active {
+      background: rgba(255, 145, 0, 0.28);
+      border-color: #ff9100;
+      color: #ffb300;
+      box-shadow: 0 0 8px rgba(255, 145, 0, 0.45);
+    }
+    .compact-tool-group.group-field .btn-icon-action.active {
+      background: rgba(0, 230, 118, 0.28);
+      border-color: #00e676;
+      color: #00e676;
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.45);
+    }
     .ref-dxf-subpanel {
       background: rgba(0, 0, 0, 0.35);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -873,9 +957,17 @@
         <div class="viewport-card hidden" id="hist-card">
           <div class="viewport-header">
             <span class="view-title historical-title">📜 Historical Deed (PDF + DXF)</span>
-            <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;align-items:center;gap:6px;">
               <button class="btn-fit-view" id="btn-fit-hist" title="Fit & Center Display">🎯 Center View</button>
-              <button id="btn-save-deed-dxf" class="btn btn-secondary btn-sm" title="Save & download modified Deed DXF with its original filename">💾 Save Deed DXF</button>
+              <div class="compact-tool-group group-deed" title="Deed DXF: Edit Nodes (✏️) & Download DXF (📥)">
+                <span class="group-label">Deed</span>
+                <button class="btn-icon-action btn-edit-deed" title="Toggle Edit Deed Nodes (drag vertices on canvas to fine-tune)">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                </button>
+                <button class="btn-icon-action btn-save-deed" title="Download modified Deed DXF">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+              </div>
               <span id="hist-status" class="view-badge">Loading…</span>
             </div>
           </div>
@@ -894,7 +986,28 @@
               <button class="btn-fit-view btn-add-ref" id="btn-add-ref-dxf" title="Load temporary reference DXF file (+)">➕ Ref DXF</button>
               <input type="file" id="ref-dxf-input" accept=".dxf" style="display:none;" multiple>
               <button class="btn-fit-view btn-measure" id="btn-measure-tool" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">📏 Measure</button>
-              <label class="toggle-overlay" style="color:var(--accent-orange);font-weight:600;" title="Enable dragging deed vertices directly on the field canvas to fine-tune alignment within print range"><input type="checkbox" id="chk-edit-deed-nodes"> ✏️ Edit Deed Nodes</label>
+              <button class="btn-fit-view btn-marker" id="btn-marker-tool" title="Add temporary reference markers on field canvas (Click to drop, drag to move, right-click to delete)">📍 Marker</button>
+              
+              <div class="compact-tool-group group-deed" title="Deed DXF: Edit Nodes (✏️) & Download DXF (📥)">
+                <span class="group-label">Deed</span>
+                <button class="btn-icon-action btn-edit-deed" title="Toggle Edit Deed Nodes (drag vertices on field canvas to fine-tune alignment)">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                </button>
+                <button class="btn-icon-action btn-save-deed" title="Download modified Deed DXF">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+              </div>
+
+              <div class="compact-tool-group group-field" title="Field DXF: Edit Nodes (✏️) & Download DXF (📥)">
+                <span class="group-label">Field</span>
+                <button class="btn-icon-action btn-edit-field" title="Toggle Edit Field Nodes (drag vertices on field canvas)">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                </button>
+                <button class="btn-icon-action btn-save-field" title="Download modified Field DXF">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+              </div>
+
               <label class="toggle-overlay" title="Show or hide polygon segment length labels"><input type="checkbox" id="chk-show-seg-labels"> Labels</label>
               <label class="toggle-overlay"><input type="checkbox" id="chk-show-overlay" checked> Live Warped Overlay</label>
               <span id="true-status" class="view-badge">Loading…</span>
@@ -2321,6 +2434,17 @@ EOF`;
       draggingDeedNode: null,      // { entIdx, ptIdx, origDeedPt: {x,y}, origFieldPt: {x,y} }
       hoverDeedNode: null,         // { entIdx, ptIdx, deedPt: {x,y}, warpedPt: {x,y} }
       draggingDeedNodeHist: null,  // { entIdx, ptIdx, origDeedPt: {x,y} }
+      // Field DXF vertex editing
+      trueFileName: "Field.dxf",
+      editFieldNodes: false,
+      draggingFieldNode: null,     // { entIdx, ptIdx, origFieldPt: {x,y} }
+      hoverFieldNode: null,        // { entIdx, ptIdx, fieldPt: {x,y}, screenPt: {x,y} }
+      // Temporary reference markers on field canvas
+      tempMarkers: [],             // [ { id: 1, label: "M1", x: utmX, y: utmY } ]
+      tempMarkerCounter: 0,
+      markerToolActive: false,
+      draggingTempMarker: null,    // { idx, marker, origPt: {x,y} }
+      hoverTempMarker: null,       // { idx, marker, screenPt }
       // Layer & Polygon Visual Styles
       styleDeedDxf: {
         color: "#ff1744",
@@ -2599,6 +2723,132 @@ EOF`;
         });
       }
 
+      // If Edit Field Nodes is active, render interactive vertex handles and drift feedback on Field DXF
+      if (state.editFieldNodes && entities === state.trueEntities) {
+        entities.forEach((ent, entIdx) => {
+          (ent.points || []).forEach((pt, ptIdx) => {
+            const p = worldToScreenGIS(pt, vp, canvasH);
+            const isHover = state.hoverFieldNode && state.hoverFieldNode.entIdx === entIdx && state.hoverFieldNode.ptIdx === ptIdx;
+            const isDrag = state.draggingFieldNode && state.draggingFieldNode.entIdx === entIdx && state.draggingFieldNode.ptIdx === ptIdx;
+
+            // Vertex handle dot
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, isDrag ? 8.5 : (isHover ? 7 : 5), 0, Math.PI * 2);
+            ctx.fillStyle = isDrag ? "#ffd600" : (isHover ? "#00e5ff" : "#00e676");
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = isDrag || isHover ? 2 : 1.2;
+            ctx.stroke();
+
+            // If actively dragging, draw drift line & tolerance label from original position
+            if (isDrag && state.draggingFieldNode.origFieldPt) {
+              const origScr = worldToScreenGIS(state.draggingFieldNode.origFieldPt, vp, canvasH);
+              const driftM = Math.hypot(pt.x - state.draggingFieldNode.origFieldPt.x, pt.y - state.draggingFieldNode.origFieldPt.y);
+
+              // Original anchor spot
+              ctx.beginPath();
+              ctx.arc(origScr.x, origScr.y, 4, 0, Math.PI * 2);
+              ctx.fillStyle = "rgba(0, 230, 118, 0.6)";
+              ctx.fill();
+
+              // Vector drift line
+              ctx.beginPath();
+              ctx.moveTo(origScr.x, origScr.y);
+              ctx.lineTo(p.x, p.y);
+              ctx.strokeStyle = "#ffd600";
+              ctx.lineWidth = 1.5;
+              ctx.setLineDash([3, 3]);
+              ctx.stroke();
+              ctx.setLineDash([]);
+
+              // Drift badge
+              const tag = `Δ ${driftM.toFixed(2)}m (field shift)`;
+              ctx.font = "bold 10px monospace";
+              const tw = ctx.measureText(tag).width;
+              ctx.fillStyle = "rgba(6, 9, 15, 0.88)";
+              ctx.fillRect(p.x + 10, p.y - 8, tw + 8, 14);
+              ctx.strokeStyle = "#ffd600";
+              ctx.lineWidth = 1;
+              ctx.strokeRect(p.x + 10, p.y - 8, tw + 8, 14);
+              ctx.fillStyle = "#ffd600";
+              ctx.fillText(tag, p.x + 14, p.y + 3);
+            }
+          });
+        });
+      }
+
+      ctx.restore();
+    }
+
+    // Draw temporary reference markers on the true-field canvas
+    function drawTempMarkersGIS(ctx, vp, canvasH) {
+      if (!state.tempMarkers || state.tempMarkers.length === 0) return;
+      ctx.save();
+      state.tempMarkers.forEach(m => {
+        const sp = worldToScreenGIS(m, vp, canvasH);
+        const isHover = state.hoverTempMarker && state.hoverTempMarker.id === m.id;
+        const isDrag = state.draggingTempMarker && state.draggingTempMarker.id === m.id;
+
+        // Outer glow on hover / drag
+        if (isHover || isDrag) {
+          ctx.beginPath();
+          ctx.arc(sp.x, sp.y, 14, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(245, 158, 11, 0.25)";
+          ctx.fill();
+        }
+
+        // Pin marker
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, isDrag ? 8.5 : (isHover ? 7.5 : 5.5), 0, Math.PI * 2);
+        ctx.fillStyle = isDrag ? "#ffd600" : (isHover ? "#ffb300" : "#f59e0b");
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Pin center dot
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        // Pin label pill
+        const label = m.label || `M${m.id}`;
+        ctx.font = "bold 10px 'Segoe UI', monospace";
+        const tw = ctx.measureText(label).width;
+        const bx = sp.x - tw / 2 - 4;
+        const by = sp.y - 20;
+
+        ctx.fillStyle = isHover || isDrag ? "rgba(245, 158, 11, 0.95)" : "rgba(18, 24, 38, 0.9)";
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(bx, by, tw + 8, 14, 3);
+        else ctx.rect(bx, by, tw + 8, 14);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = isHover || isDrag ? "#000000" : "#ffd54f";
+        ctx.fillText(label, bx + 4, by + 10.5);
+
+        // Coordinates badge if hovered or dragged
+        if (isHover || isDrag) {
+          const coordText = `${m.x.toFixed(2)}, ${m.y.toFixed(2)}`;
+          ctx.font = "9px monospace";
+          const cw = ctx.measureText(coordText).width;
+          const cx = sp.x - cw / 2 - 4;
+          const cy = sp.y + 11;
+          ctx.fillStyle = "rgba(6, 9, 15, 0.92)";
+          ctx.strokeStyle = "rgba(245, 158, 11, 0.5)";
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(cx, cy, cw + 8, 13, 2);
+          else ctx.rect(cx, cy, cw + 8, 13);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(coordText, cx + 4, cy + 9.5);
+        }
+      });
       ctx.restore();
     }
 
@@ -2831,6 +3081,9 @@ EOF`;
         if (!ref.visible || ref.opacity <= 0) return;
         drawEntitiesGIS(trueCtx, ref.entities, vp, h, ref.style.color, ref.opacity, ref.style);
       });
+
+      // Layer 4c: Temporary Reference Checkpoint Markers
+      drawTempMarkersGIS(trueCtx, vp, h);
 
       // Layer 5: Target anchor pins + residual lines
       state.anchors.forEach(anc => {
@@ -3187,6 +3440,19 @@ EOF`;
         }
       }
 
+      // 3. Check temporary reference markers on field canvas
+      if (state.tempMarkers && state.tempMarkers.length > 0) {
+        for (let m = 0; m < state.tempMarkers.length; m++) {
+          const pt = state.tempMarkers[m];
+          if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+          const d = Math.hypot(pt.x - worldPt.x, pt.y - worldPt.y);
+          if (d < minDist) {
+            minDist = d;
+            closest = { x: pt.x, y: pt.y, dist: d, isMarker: true, label: pt.label };
+          }
+        }
+      }
+
       return closest;
     }
 
@@ -3356,6 +3622,40 @@ EOF`;
           }
         }
       } catch (e) {}
+      return null;
+    }
+
+    /** Hit test field DXF vertices on trueCanvas (GIS space) */
+    function findFieldNodeOnTrueCanvas(mouseX, mouseY, vp, canvasH) {
+      if (!state.trueEntities || state.trueEntities.length === 0) return null;
+      const HIT_RADIUS = 14; // pixels
+      for (let entIdx = 0; entIdx < state.trueEntities.length; entIdx++) {
+        const ent = state.trueEntities[entIdx];
+        if (!ent || !ent.points) continue;
+        for (let ptIdx = 0; ptIdx < ent.points.length; ptIdx++) {
+          const pt = ent.points[ptIdx];
+          if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+          const sp = worldToScreenGIS(pt, vp, canvasH);
+          if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) {
+            return { entIdx, ptIdx, fieldPt: pt, screenPt: sp };
+          }
+        }
+      }
+      return null;
+    }
+
+    /** Hit test temporary reference markers on trueCanvas */
+    function findTempMarkerAt(mouseX, mouseY, vp, canvasH) {
+      if (!state.tempMarkers || state.tempMarkers.length === 0) return null;
+      const HIT_RADIUS = 14; // pixels
+      for (let i = 0; i < state.tempMarkers.length; i++) {
+        const m = state.tempMarkers[i];
+        if (!m || typeof m.x !== "number" || typeof m.y !== "number") continue;
+        const sp = worldToScreenGIS(m, vp, canvasH);
+        if (Math.hypot(sp.x - mouseX, sp.y - mouseY) <= HIT_RADIUS) {
+          return { idx: i, marker: m, screenPt: sp };
+        }
+      }
       return null;
     }
 
@@ -5016,6 +5316,11 @@ EOF`;
       if (state.toolMode === "anchor") return;
       const rect = trueCanvas.getBoundingClientRect();
       const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const hitMarker = findTempMarkerAt(sx, sy, state.trueViewport, trueCanvas.height);
+      if (hitMarker) {
+        e.preventDefault();
+        return;
+      }
       const hitNode = findUserPolyNodeAt(sx, sy, state.trueViewport, trueCanvas.height);
       if ((state.userPolygon && state.userPolygon.drawMode) || hitNode >= 0) {
         e.preventDefault();
@@ -5034,22 +5339,96 @@ EOF`;
       const vp = state.trueViewport, h = trueCanvas.height;
       const poly = state.userPolygon;
 
-      // Edit Deed Nodes mode: priority drag of deed vertices
-      if (state.editDeedNodes && e.button === 0 && !spacePressed) {
-        const deedHit = findDeedNodeOnTrueCanvas(sx, sy, vp, h);
-        if (deedHit) {
+      // Right-click on temporary marker: delete it
+      if (e.button === 2) {
+        const markerHit = findTempMarkerAt(sx, sy, vp, h);
+        if (markerHit) {
           e.preventDefault();
           e.stopImmediatePropagation();
-          state.draggingDeedNode = {
-            entIdx: deedHit.entIdx,
-            ptIdx: deedHit.ptIdx,
-            origDeedPt: { x: deedHit.deedPt.x, y: deedHit.deedPt.y },
-            origFieldPt: { x: deedHit.warpedPt.x, y: deedHit.warpedPt.y }
-          };
-          trueCanvas.style.cursor = "move";
-          updateStatus(`✏️ Dragging Deed Vertex #${deedHit.ptIdx + 1} — move on field survey to fine-tune.`);
+          const removed = state.tempMarkers.splice(markerHit.idx, 1)[0];
+          updateStatus(`📍 Removed temporary marker ${removed ? removed.label : ""}.`);
           redrawTrueCanvas();
           return;
+        }
+      }
+
+      // Left-click interactions
+      if (e.button === 0 && !spacePressed) {
+        // 1. Existing temporary marker drag
+        const markerHit = findTempMarkerAt(sx, sy, vp, h);
+        if (markerHit) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          state.draggingTempMarker = {
+            idx: markerHit.idx,
+            marker: markerHit.marker,
+            origPt: { x: markerHit.marker.x, y: markerHit.marker.y }
+          };
+          trueCanvas.style.cursor = "move";
+          updateStatus(`📍 Dragging Marker ${markerHit.marker.label} — release to place.`);
+          redrawTrueCanvas();
+          return;
+        }
+
+        // 2. Marker tool active: drop a new temporary checkpoint pin
+        if (state.markerToolActive) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          const pt = screenToWorldGIS(sx, sy, vp, h);
+          // Auto-snap to nearby survey vertex if clicked within 18 screen px
+          const nearest = findNearestFieldVertex(pt);
+          let finalPt = pt;
+          if (nearest && nearest.dist * vp.scale <= 18) {
+            finalPt = { x: nearest.x, y: nearest.y };
+          }
+          state.tempMarkerCounter = (state.tempMarkerCounter || 0) + 1;
+          const newMarker = {
+            id: state.tempMarkerCounter,
+            label: `M${state.tempMarkerCounter}`,
+            x: finalPt.x,
+            y: finalPt.y
+          };
+          state.tempMarkers.push(newMarker);
+          updateStatus(`📍 Placed Marker ${newMarker.label} at (${finalPt.x.toFixed(2)}, ${finalPt.y.toFixed(2)}). Drag to adjust or right-click to delete.`);
+          redrawTrueCanvas();
+          return;
+        }
+
+        // 3. Edit Field Nodes mode: drag field survey vertices
+        if (state.editFieldNodes) {
+          const fieldHit = findFieldNodeOnTrueCanvas(sx, sy, vp, h);
+          if (fieldHit) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            state.draggingFieldNode = {
+              entIdx: fieldHit.entIdx,
+              ptIdx: fieldHit.ptIdx,
+              origFieldPt: { x: fieldHit.fieldPt.x, y: fieldHit.fieldPt.y }
+            };
+            trueCanvas.style.cursor = "move";
+            updateStatus(`✏️ Dragging Field Vertex #${fieldHit.ptIdx + 1} — move to adjust position.`);
+            redrawTrueCanvas();
+            return;
+          }
+        }
+
+        // 4. Edit Deed Nodes mode: priority drag of deed vertices
+        if (state.editDeedNodes) {
+          const deedHit = findDeedNodeOnTrueCanvas(sx, sy, vp, h);
+          if (deedHit) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            state.draggingDeedNode = {
+              entIdx: deedHit.entIdx,
+              ptIdx: deedHit.ptIdx,
+              origDeedPt: { x: deedHit.deedPt.x, y: deedHit.deedPt.y },
+              origFieldPt: { x: deedHit.warpedPt.x, y: deedHit.warpedPt.y }
+            };
+            trueCanvas.style.cursor = "move";
+            updateStatus(`✏️ Dragging Deed Vertex #${deedHit.ptIdx + 1} — move on field survey to fine-tune.`);
+            redrawTrueCanvas();
+            return;
+          }
         }
       }
 
@@ -5328,44 +5707,103 @@ EOF`;
       chkShowSegLabelsSidebar.addEventListener("change", e => setSegmentLabelsVisible(e.target.checked));
     }
 
-    // Edit Deed Nodes toggle handler
-    const chkEditDeedNodes = document.getElementById("chk-edit-deed-nodes");
-    if (chkEditDeedNodes) {
-      chkEditDeedNodes.addEventListener("change", e => {
-        state.editDeedNodes = e.target.checked;
-        if (state.editDeedNodes) {
-          updateStatus("✏️ Edit Deed Nodes active — click and drag deed vertices on field canvas (or deed map) to adjust alignment.");
-        } else {
-          state.hoverDeedNode = null;
-          state.draggingDeedNode = null;
-          state.draggingDeedNodeHist = null;
-          updateStatus("Edit Deed Nodes disabled.");
-        }
-        redrawAll();
-      });
+    // ── DEED & FIELD COMPACT CONTROLS & MARKER TOOL ─────────────────────
+    function toggleEditDeedNodes(force) {
+      state.editDeedNodes = (typeof force === "boolean") ? force : !state.editDeedNodes;
+      if (state.editDeedNodes) {
+        if (state.editFieldNodes) toggleEditFieldNodes(false);
+        if (state.markerToolActive) toggleMarkerTool(false);
+        if (state.measureTool && state.measureTool.active) toggleMeasureTool(false);
+        updateStatus("✏️ Edit Deed Nodes active — drag deed vertices on field canvas (or deed map) to adjust alignment.");
+      } else {
+        state.hoverDeedNode = null;
+        state.draggingDeedNode = null;
+        state.draggingDeedNodeHist = null;
+        updateStatus("Edit Deed Nodes disabled.");
+      }
+      document.querySelectorAll(".btn-edit-deed").forEach(btn => btn.classList.toggle("active", state.editDeedNodes));
+      redrawAll();
     }
 
-    // Save Deed DXF button handler
-    const btnSaveDeedDxf = document.getElementById("btn-save-deed-dxf");
-    if (btnSaveDeedDxf) {
-      btnSaveDeedDxf.addEventListener("click", () => {
-        if (!state.histEntities || state.histEntities.length === 0) {
-          alert("No deed DXF loaded to save.");
-          return;
-        }
-        const txt = DXFParser.serialize(state.histEntities);
-        const blob = new Blob([txt], { type: "application/dxf" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = state.histFileName || "Polygon_Escritura1073_FerminSuarez.dxf";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        updateStatus(`💾 Saved modified Deed DXF to '${a.download}'.`);
-      });
+    function toggleEditFieldNodes(force) {
+      state.editFieldNodes = (typeof force === "boolean") ? force : !state.editFieldNodes;
+      if (state.editFieldNodes) {
+        if (state.editDeedNodes) toggleEditDeedNodes(false);
+        if (state.markerToolActive) toggleMarkerTool(false);
+        if (state.measureTool && state.measureTool.active) toggleMeasureTool(false);
+        updateStatus("✏️ Edit Field Nodes active — drag field vertices on field canvas to fine-tune geometry.");
+      } else {
+        state.hoverFieldNode = null;
+        state.draggingFieldNode = null;
+        updateStatus("Edit Field Nodes disabled.");
+      }
+      document.querySelectorAll(".btn-edit-field").forEach(btn => btn.classList.toggle("active", state.editFieldNodes));
+      redrawTrueCanvas();
     }
+
+    function toggleMarkerTool(force) {
+      state.markerToolActive = (typeof force === "boolean") ? force : !state.markerToolActive;
+      if (state.markerToolActive) {
+        if (state.measureTool && state.measureTool.active) toggleMeasureTool(false);
+        if (state.editDeedNodes) toggleEditDeedNodes(false);
+        if (state.editFieldNodes) toggleEditFieldNodes(false);
+        trueCanvas.style.cursor = "crosshair";
+        updateStatus("📍 Temporary Marker tool active — click anywhere on the field canvas to place a checkpoint pin. Drag to adjust, right-click to delete.");
+      } else {
+        state.draggingTempMarker = null;
+        state.hoverTempMarker = null;
+        trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        updateStatus("Marker tool disabled.");
+      }
+      const btn = document.getElementById("btn-marker-tool");
+      if (btn) btn.classList.toggle("active", state.markerToolActive);
+      redrawTrueCanvas();
+    }
+
+    function saveDeedDxf() {
+      if (!state.histEntities || state.histEntities.length === 0) {
+        alert("No deed DXF loaded to save.");
+        return;
+      }
+      const txt = DXFParser.serialize(state.histEntities);
+      const blob = new Blob([txt], { type: "application/dxf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = state.histFileName || "Polygon_Escritura1073_FerminSuarez.dxf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      updateStatus(`💾 Saved modified Deed DXF to '${a.download}'.`);
+    }
+
+    function saveFieldDxf() {
+      if (!state.trueEntities || state.trueEntities.length === 0) {
+        alert("No Field DXF loaded to save.");
+        return;
+      }
+      const txt = DXFParser.serialize(state.trueEntities);
+      const blob = new Blob([txt], { type: "application/dxf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = state.trueFileName || "Field.dxf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      updateStatus(`💾 Saved modified Field DXF to '${a.download}'.`);
+    }
+
+    // Attach listeners to Deed/Field compact tool buttons & Marker button
+    document.querySelectorAll(".btn-edit-deed").forEach(btn => btn.addEventListener("click", () => toggleEditDeedNodes()));
+    document.querySelectorAll(".btn-save-deed").forEach(btn => btn.addEventListener("click", saveDeedDxf));
+    document.querySelectorAll(".btn-edit-field").forEach(btn => btn.addEventListener("click", () => toggleEditFieldNodes()));
+    document.querySelectorAll(".btn-save-field").forEach(btn => btn.addEventListener("click", saveFieldDxf));
+
+    const btnMarkerTool = document.getElementById("btn-marker-tool");
+    if (btnMarkerTool) btnMarkerTool.addEventListener("click", () => toggleMarkerTool());
 
     window.addEventListener("keydown", e => {
       if (e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
@@ -5379,6 +5817,12 @@ EOF`;
           } else {
             toggleMeasureTool(false);
           }
+        } else if (state.markerToolActive) {
+          toggleMarkerTool(false);
+        } else if (state.editFieldNodes) {
+          toggleEditFieldNodes(false);
+        } else if (state.editDeedNodes) {
+          toggleEditDeedNodes(false);
         }
       }
       if (e.code==="Space") { spacePressed=true; e.preventDefault(); }
@@ -5424,8 +5868,12 @@ EOF`;
       }
 
       const isMeasuringOnTrue = (!isHist && state.measureTool && state.measureTool.active);
+      const isMarkerOnTrue = (!isHist && state.markerToolActive);
+      const isEditingFieldOnTrue = (!isHist && state.editFieldNodes);
+      const isEditingDeedOnTrue = (!isHist && state.editDeedNodes);
       const isPolyDrawOnTrue = (!isHist && state.userPolygon && state.userPolygon.drawMode && state.toolMode === "pan");
-      const shouldPan = (!isMeasuringOnTrue && ((state.toolMode === "pan" && !isPolyDrawOnTrue) || e.button === 2 || e.button === 1 || spacePressed)) || (isMeasuringOnTrue && (e.button === 2 || e.button === 1 || spacePressed));
+      const isInteractiveOnTrue = isMeasuringOnTrue || isMarkerOnTrue || isEditingFieldOnTrue || isEditingDeedOnTrue;
+      const shouldPan = (!isInteractiveOnTrue && ((state.toolMode === "pan" && !isPolyDrawOnTrue) || e.button === 2 || e.button === 1 || spacePressed)) || (isInteractiveOnTrue && (e.button === 2 || e.button === 1 || spacePressed));
 
       if (shouldPan) {
         isPanning = true;
@@ -5453,7 +5901,10 @@ EOF`;
       if (isPanning) {
         isPanning = false;
         activePanViewport = null;
-        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        const trueCursor = (state.measureTool && state.measureTool.active) ? "crosshair" :
+                           (state.markerToolActive ? "crosshair" :
+                           ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" :
+                           (state.toolMode === "pan" ? "grab" : "crosshair")));
         histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
         trueCanvas.style.cursor = trueCursor;
       }
@@ -5461,7 +5912,10 @@ EOF`;
       if (draggingAnchor) {
         updateStatus(`Updated Anchor #${draggingAnchor.anc.id} position.`);
         draggingAnchor = null;
-        const trueCursor = (state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair");
+        const trueCursor = (state.measureTool && state.measureTool.active) ? "crosshair" :
+                           (state.markerToolActive ? "crosshair" :
+                           ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" :
+                           (state.toolMode === "pan" ? "grab" : "crosshair")));
         histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
         trueCanvas.style.cursor = trueCursor;
         redrawAll();
@@ -5469,7 +5923,10 @@ EOF`;
       }
 
       const isMeasuringOnTrue = (!isHist && state.measureTool && state.measureTool.active);
-      if (state.toolMode === "pan" && (!state.userPolygon || !state.userPolygon.drawMode || isHist) && !isMeasuringOnTrue) return;
+      const isMarkerOnTrue = (!isHist && state.markerToolActive);
+      const isEditingFieldOnTrue = (!isHist && state.editFieldNodes);
+      const isEditingDeedOnTrue = (!isHist && state.editDeedNodes);
+      if (state.toolMode === "pan" && (!state.userPolygon || !state.userPolygon.drawMode || isHist) && !isMeasuringOnTrue && !isMarkerOnTrue && !isEditingFieldOnTrue && !isEditingDeedOnTrue) return;
       if (Math.abs(e.clientX - clickStart.x) > 6 || Math.abs(e.clientY - clickStart.y) > 6) return;
       if (e.button !== 0) return;
 
@@ -5623,6 +6080,53 @@ EOF`;
         return;
       }
 
+      // Dragging temporary reference marker
+      if (state.draggingTempMarker) {
+        const vp = state.trueViewport;
+        const h = trueCanvas.height;
+        const rect = trueCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+        const fieldPt = screenToWorldGIS(mouseX, mouseY, vp, h);
+        state.draggingTempMarker.marker.x = fieldPt.x;
+        state.draggingTempMarker.marker.y = fieldPt.y;
+        redrawTrueCanvas();
+        return;
+      }
+
+      // Dragging field survey node
+      if (state.draggingFieldNode) {
+        const vp = state.trueViewport;
+        const h = trueCanvas.height;
+        const rect = trueCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+        let fieldPt = screenToWorldGIS(mouseX, mouseY, vp, h);
+
+        // Snap to nearest temporary marker, ref DXF, or other field vertex if within 16px
+        const nearest = findNearestFieldVertex(fieldPt);
+        if (nearest && nearest.dist * vp.scale <= 16) {
+          fieldPt = { x: nearest.x, y: nearest.y };
+        }
+
+        const ent = state.trueEntities[state.draggingFieldNode.entIdx];
+        if (ent && ent.points && ent.points[state.draggingFieldNode.ptIdx]) {
+          const origField = state.draggingFieldNode.origFieldPt;
+          ent.points[state.draggingFieldNode.ptIdx].x = fieldPt.x;
+          ent.points[state.draggingFieldNode.ptIdx].y = fieldPt.y;
+
+          // If an anchor was sitting on this field vertex, move the anchor dst along with it
+          if (state.anchors && state.anchors.length > 0) {
+            state.anchors.forEach(anc => {
+              if (anc.dst && Math.hypot(anc.dst.x - origField.x, anc.dst.y - origField.y) < 0.1) {
+                anc.dst.x = fieldPt.x;
+                anc.dst.y = fieldPt.y;
+              }
+            });
+          }
+          redrawAll();
+        }
+        return;
+      }
+
       // Dragging deed node with live reverse-transform (backtracking)
       if (state.draggingDeedNode) {
         const vp = state.trueViewport;
@@ -5660,16 +6164,28 @@ EOF`;
     });
 
     window.addEventListener("mouseup", () => {
+      if (state.draggingTempMarker) {
+        const m = state.draggingTempMarker.marker;
+        state.draggingTempMarker = null;
+        updateStatus(`📍 Marker ${m ? m.label : ""} moved to (${m.x.toFixed(2)}, ${m.y.toFixed(2)}).`);
+        redrawTrueCanvas();
+      }
+      if (state.draggingFieldNode) {
+        const ptIdx = state.draggingFieldNode.ptIdx;
+        state.draggingFieldNode = null;
+        updateStatus(`✏️ Field vertex #${ptIdx + 1} updated. Click download in Field tool group to save '${state.trueFileName || "Field.dxf"}'.`);
+        redrawAll();
+      }
       if (state.draggingDeedNodeHist) {
         const ptIdx = state.draggingDeedNodeHist.ptIdx;
         state.draggingDeedNodeHist = null;
-        updateStatus(`✏️ Deed vertex #${ptIdx + 1} updated. Click '💾 Save Deed DXF' to download '${state.histFileName || "deed DXF"}'.`);
+        updateStatus(`✏️ Deed vertex #${ptIdx + 1} updated. Click download in Deed tool group to save '${state.histFileName || "deed DXF"}'.`);
         redrawAll();
       }
       if (state.draggingDeedNode) {
         const ptIdx = state.draggingDeedNode.ptIdx;
         state.draggingDeedNode = null;
-        updateStatus(`✏️ Deed vertex #${ptIdx + 1} updated. Click '💾 Save Deed DXF' to download '${state.histFileName || "deed DXF"}'.`);
+        updateStatus(`✏️ Deed vertex #${ptIdx + 1} updated. Click download in Deed tool group to save '${state.histFileName || "deed DXF"}'.`);
         redrawAll();
       }
       if (state.draggingUserPolyNode !== null) {
@@ -5754,8 +6270,43 @@ EOF`;
         return;
       }
 
+      // Hover detection over temporary reference markers
+      if (!isPanning && !draggingAnchor && state.draggingUserPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker) {
+        const markerHit = findTempMarkerAt(mouseX, mouseY, vp, h);
+        const prevMarkerHover = state.hoverTempMarker;
+        state.hoverTempMarker = markerHit ? { id: markerHit.marker.id, marker: markerHit.marker, screenPt: markerHit.screenPt } : null;
+        if (markerHit) {
+          trueCanvas.style.cursor = "move";
+          coordsBar.textContent = `📍 Marker ${markerHit.marker.label}: (${markerHit.marker.x.toFixed(2)}, ${markerHit.marker.y.toFixed(2)}) | Drag to move, Right-click to delete`;
+          redrawTrueCanvas();
+          return;
+        } else if (prevMarkerHover !== null) {
+          redrawTrueCanvas();
+        }
+      }
+
+      // Edit Field Nodes mode: hover detection over field vertices on canvas
+      if (state.editFieldNodes && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && !state.draggingFieldNode && !state.draggingTempMarker) {
+        const fieldHit = findFieldNodeOnTrueCanvas(mouseX, mouseY, vp, h);
+        const prevFieldHover = state.hoverFieldNode;
+        state.hoverFieldNode = fieldHit;
+        if (fieldHit) {
+          trueCanvas.style.cursor = "move";
+          coordsBar.textContent = `Field Vertex #${fieldHit.ptIdx + 1}: (${fieldHit.fieldPt.x.toFixed(2)}, ${fieldHit.fieldPt.y.toFixed(2)})`;
+          redrawTrueCanvas();
+          return;
+        } else if (prevFieldHover !== null) {
+          redrawTrueCanvas();
+        }
+      }
+
+      // If Marker Tool is active on open canvas, set crosshair
+      if (state.markerToolActive && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && !state.draggingTempMarker) {
+        trueCanvas.style.cursor = "crosshair";
+      }
+
       // 0. Edit Deed Nodes mode: hover detection over deed vertices on field canvas
-      if (state.editDeedNodes && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && !state.draggingDeedNode) {
+      if (state.editDeedNodes && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker) {
         const deedHit = findDeedNodeOnTrueCanvas(mouseX, mouseY, vp, h);
         const prevHover = state.hoverDeedNode;
         state.hoverDeedNode = deedHit;
@@ -6317,11 +6868,12 @@ EOF`;
     });
 
     trueInput.addEventListener("change", e => {
-      const f=e.target.files[0]; if (!f) return;
-      const r=new FileReader();
-      r.onload=function(){
-        state.trueEntities=DXFParser.parse(this.result);
-        trueStatus.textContent=`Field DXF: ${state.trueEntities.length} entities`;
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = function() {
+        state.trueFileName = f.name;
+        state.trueEntities = DXFParser.parse(this.result);
+        trueStatus.textContent = `Field DXF: ${state.trueEntities.length} entities`;
         if (state.trueEntities.length > 0 && trueCanvas.width > 0) {
           state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
         }
