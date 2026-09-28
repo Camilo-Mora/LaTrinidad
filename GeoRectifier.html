@@ -1193,8 +1193,17 @@
                     <option value="2">2px</option>
                     <option value="3">3px</option>
                     <option value="4" selected>4px</option>
+                    <option value="5">5px</option>
                   </select>
                 </div>
+              </div>
+
+              <!-- Sub-style 3: DYNAMIC SECTION COLORS (Generated for each unique Section!) -->
+              <div id="section-colors-container" style="display:none;flex-direction:column;gap:3px;padding:4px 0;border-top:1px solid rgba(255,255,255,0.06);">
+                <div style="font-size:0.68rem;color:var(--accent-cyan);font-weight:600;display:flex;align-items:center;gap:4px;">
+                  <span>🏷️ Colores por Sección:</span>
+                </div>
+                <div id="section-colors-list" style="display:flex;flex-direction:column;gap:3px;"></div>
               </div>
             </div>
           </div>
@@ -1286,16 +1295,17 @@
               <!-- Dynamic Group Summary Tags -->
               <div id="segment-group-tags" style="display:none;flex-wrap:wrap;gap:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:2px;"></div>
 
-              <!-- 5-Column Table Header: Opt Checkbox, Seg #, Extra Name/Group Column, Deed (m), Err % -->
-              <div style="display:grid;grid-template-columns:20px 76px 1fr 52px 42px;gap:5px;font-size:0.67rem;color:var(--text-muted);font-weight:600;padding:2px 4px;border-bottom:1px solid rgba(255,255,255,0.08);align-items:center;">
+              <!-- 6-Column Table Header: Opt Checkbox, Seg #, Seccion, Part, Deed (m), Err % -->
+              <div style="display:grid;grid-template-columns:18px 58px 1fr 42px 48px 38px;gap:4px;font-size:0.67rem;color:var(--text-muted);font-weight:600;padding:2px 4px;border-bottom:1px solid rgba(255,255,255,0.08);align-items:center;">
                 <span style="display:flex;align-items:center;justify-content:center;"><input type="checkbox" id="chk-opt-all" title="Toggle all segments for optimization" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:13px;height:13px;"></span>
-                <span>Seg (m)</span>
-                <span>Name / Group</span>
-                <span>Deed (m)</span>
+                <span>Seg</span>
+                <span>Sección</span>
+                <span>Part</span>
+                <span>Deed(m)</span>
                 <span style="text-align:center;">Err %</span>
               </div>
               <div id="polygon-seg-inputs" style="display:flex;flex-direction:column;gap:3px;"></div>
-              <datalist id="seg-group-datalist"></datalist>
+              <datalist id="seg-section-datalist"></datalist>
               <!-- Segment Error Color Legend -->
               <div id="segment-error-legend" style="display:flex;align-items:center;justify-content:space-between;font-size:0.67rem;padding:4px 6px;background:rgba(0,0,0,0.3);border-radius:4px;border:1px solid rgba(255,255,255,0.08);margin-top:6px;color:var(--text-muted);">
                 <span style="display:flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#00e676;"></span>&lt;2%</span>
@@ -3115,6 +3125,7 @@ EOF`;
       constrainAnchorsToField: true,
       // Polygon deed vertex constraint
       constrainPolyToDeed: true,
+      sectionColors: {},
       // Deed DXF vertex editing on field panel & historical panel
       histFileName: "Polygon_Escritura1073_FerminSuarez.dxf",
       editDeedNodes: false,
@@ -4462,28 +4473,104 @@ EOF`;
       "#ff6d00", // Dark Amber
     ];
 
-    function getSegmentGroupColor(name, poly) {
+    function getSectionColor(name) {
       if (!name || typeof name !== "string") return null;
       const clean = name.trim();
       if (!clean || clean.toLowerCase().match(/^seg\s*\d+$/i)) return null;
+      const key = clean.toLowerCase();
 
-      const p = poly || (typeof state !== "undefined" ? state.userPolygon : null);
-      if (p && p.segmentNames) {
+      if (state.sectionColors && state.sectionColors[key]) {
+        return state.sectionColors[key];
+      }
+
+      const p = state.userPolygon;
+      if (p && p.segmentSections) {
         const unique = [];
-        p.segmentNames.forEach(n => {
-          if (!n || typeof n !== "string") return;
-          const c = n.trim();
-          if (!c || c.toLowerCase().match(/^seg\s*\d+$/i)) return;
-          const k = c.toLowerCase();
-          if (!unique.includes(k)) unique.push(k);
+        p.segmentSections.forEach(s => {
+          if (!s || typeof s !== "string") return;
+          const c = s.trim().toLowerCase();
+          if (c && !c.match(/^seg\s*\d+$/i) && !unique.includes(c)) unique.push(c);
         });
-        const idx = unique.indexOf(clean.toLowerCase());
-        if (idx >= 0) return SEG_GROUP_PALETTE[idx % SEG_GROUP_PALETTE.length];
+        const idx = unique.indexOf(key);
+        if (idx >= 0) {
+          const assigned = SEG_GROUP_PALETTE[idx % SEG_GROUP_PALETTE.length];
+          if (!state.sectionColors) state.sectionColors = {};
+          state.sectionColors[key] = assigned;
+          return assigned;
+        }
       }
 
       let hash = 0;
       for (let i = 0; i < clean.length; i++) hash = ((hash << 5) - hash) + clean.charCodeAt(i);
-      return SEG_GROUP_PALETTE[Math.abs(hash) % SEG_GROUP_PALETTE.length];
+      const fallback = SEG_GROUP_PALETTE[Math.abs(hash) % SEG_GROUP_PALETTE.length];
+      if (!state.sectionColors) state.sectionColors = {};
+      state.sectionColors[key] = fallback;
+      return fallback;
+    }
+
+    function updateSectionStyleControls() {
+      const container = document.getElementById("section-colors-container");
+      const list = document.getElementById("section-colors-list");
+      if (!container || !list) return;
+
+      const poly = state.userPolygon;
+      if (!poly || !poly.vertices) {
+        container.style.display = "none";
+        return;
+      }
+
+      const sectionCounts = {};
+      if (poly.segmentSections) {
+        poly.segmentSections.forEach(s => {
+          if (!s || typeof s !== "string") return;
+          const c = s.trim();
+          if (!c || c.toLowerCase().match(/^seg\s*\d+$/i)) return;
+          sectionCounts[c] = (sectionCounts[c] || 0) + 1;
+        });
+      }
+
+      const sections = Object.keys(sectionCounts);
+      if (sections.length === 0) {
+        container.style.display = "none";
+        list.innerHTML = "";
+        return;
+      }
+
+      container.style.display = "flex";
+      list.innerHTML = "";
+
+      sections.forEach(secName => {
+        const col = getSectionColor(secName);
+        const count = sectionCounts[secName];
+
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:2px 4px;background:rgba(255,255,255,0.03);border-radius:4px;border:1px solid rgba(255,255,255,0.06);";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.style.cssText = "font-size:0.69rem;color:#f0f4f8;display:flex;align-items:center;gap:5px;";
+        labelSpan.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${col};box-shadow:0 0 4px ${col};"></span><strong style="color:${col};">${secName}</strong> <span style="font-size:0.62rem;color:var(--text-muted);">(${count} segs)</span>`;
+
+        const picker = document.createElement("input");
+        picker.type = "color";
+        picker.value = col;
+        picker.className = "color-picker-swatch";
+        picker.title = `Color para la sección ${secName}`;
+        picker.style.cssText = "width:22px;height:18px;border:none;border-radius:3px;cursor:pointer;padding:0;background:transparent;";
+
+        picker.addEventListener("input", e => {
+          const newCol = e.target.value;
+          if (!state.sectionColors) state.sectionColors = {};
+          state.sectionColors[secName.toLowerCase()] = newCol;
+          if (state.userPolygon) state.userPolygon.sectionColors = state.sectionColors;
+          redrawTrueCanvas();
+          rebuildSegmentInputs();
+          updateSectionStyleControls();
+        });
+
+        row.appendChild(labelSpan);
+        row.appendChild(picker);
+        list.appendChild(row);
+      });
     }
 
     /** Draw the user polygon on the true-field canvas */
@@ -4519,11 +4606,22 @@ EOF`;
         const hasDeedLen = deedLen != null && deedLen > 0;
         const meta = getSegmentErrorMeta(measLen, deedLen);
 
-        const segStyle = hasDeedLen ? state.stylePolyDeed : state.stylePolyNoDeed;
-        const segName = poly.segmentNames ? poly.segmentNames[i] : null;
-        const groupColor = getSegmentGroupColor(segName, poly);
-        const strokeCol = groupColor ? groupColor : ((hasDeedLen && state.stylePolyDeed.useErrorColors) ? meta.color : segStyle.color);
-        const lineW = groupColor ? Math.max(segStyle.width, 3.2) : segStyle.width;
+        // Segments anchored to the deed (both endpoints have deedPt) refer to "Segmentos reconstruidos de la 1073:"
+        const isDeed = (a.deedPt !== null && b.deedPt !== null);
+        const segStyle = isDeed ? state.stylePolyDeed : state.stylePolyNoDeed;
+
+        const secName = poly.segmentSections ? poly.segmentSections[i] : null;
+        const secColor = secName ? getSectionColor(secName) : null;
+
+        let strokeCol;
+        if (secColor) {
+          strokeCol = secColor;
+        } else if (isDeed && state.stylePolyDeed.useErrorColors && meta.color) {
+          strokeCol = meta.color;
+        } else {
+          strokeCol = segStyle.color;
+        }
+        const lineW = secColor ? Math.max(segStyle.width, 3.2) : segStyle.width;
         const dash = segStyle.dash === "dashed" ? [6, 4] : (segStyle.dash === "dotted" ? [2, 3] : []);
 
         const sa = worldToScreenGIS(a, vp, canvasH);
@@ -4754,9 +4852,16 @@ EOF`;
           const deedLen = poly.segmentLengths[i];
           const meta = getSegmentErrorMeta(len, deedLen);
 
-          const rawSegName = (poly.segmentNames && poly.segmentNames[i]) || "";
-          const groupColor = getSegmentGroupColor(rawSegName, poly);
-          const segDisplayName = rawSegName ? rawSegName : `Seg ${i + 1}`;
+          const sec = (poly.segmentSections && poly.segmentSections[i]) || "";
+          const part = (poly.segmentParts && poly.segmentParts[i]) || "";
+          let segDisplayName = "";
+          if (sec && part) segDisplayName = `${sec} ${part}`;
+          else if (sec) segDisplayName = sec;
+          else if (part) segDisplayName = `Part ${part}`;
+          else segDisplayName = `Seg ${i + 1}`;
+
+          const isDeed = (a.deedPt !== null && b.deedPt !== null);
+          const secColor = sec ? getSectionColor(sec) : null;
           const label = meta.errPct != null
             ? `${segDisplayName}: ${len.toFixed(1)}m / ${Number(deedLen).toFixed(1)}m (${meta.errPct.toFixed(1)}%)`
             : `${segDisplayName}: ${len.toFixed(1)}m`;
@@ -4766,12 +4871,11 @@ EOF`;
           const tw = ctx.measureText(label).width;
           const bw = tw + 10, bh = 15;
 
-          // Box background & border colored by group color or error
-          const boxBorderCol = groupColor || meta.color;
+          const boxBorderCol = secColor || (isDeed ? state.stylePolyDeed.color : meta.color);
           ctx.fillStyle = "rgba(6, 9, 15, 0.92)";
           ctx.fillRect(mid.x - bw / 2, mid.y - 10, bw, bh);
           ctx.strokeStyle = boxBorderCol;
-          ctx.lineWidth = groupColor ? 1.8 : 1.2;
+          ctx.lineWidth = secColor ? 1.8 : 1.2;
           ctx.strokeRect(mid.x - bw / 2, mid.y - 10, bw, bh);
 
           ctx.fillStyle = boxBorderCol;
@@ -4826,7 +4930,7 @@ EOF`;
       ctx.restore();
     }
 
-        /** Rebuild the per-segment <input> rows in the sidebar */
+            /** Rebuild the per-segment <input> rows in the sidebar */
     function rebuildSegmentInputs() {
       const poly = state.userPolygon;
       const container = document.getElementById("polygon-segments-container");
@@ -4836,12 +4940,64 @@ EOF`;
       if (nSegs === 0) { container.style.display = "none"; return; }
       container.style.display = "flex";
 
+      // Ensure segment arrays
+      if (!poly.segmentSections) poly.segmentSections = [];
+      if (!poly.segmentParts) poly.segmentParts = [];
       if (!poly.segmentOptimize) poly.segmentOptimize = [];
+      while (poly.segmentSections.length < nSegs) poly.segmentSections.push(null);
+      while (poly.segmentParts.length < nSegs) poly.segmentParts.push(null);
       while (poly.segmentOptimize.length < nSegs) {
         const idx = poly.segmentOptimize.length;
         const dl = poly.segmentLengths[idx];
         poly.segmentOptimize.push(dl !== null && dl > 0 && idx >= 39 && idx <= 48);
       }
+
+      // Populate Datalist for autocomplete suggestions from unique sections
+      const datalist = document.getElementById("seg-section-datalist");
+      if (datalist) {
+        datalist.innerHTML = "";
+        const uniqueSet = new Set();
+        poly.segmentSections.forEach(s => {
+          if (s && typeof s === "string") {
+            const c = s.trim();
+            if (c && !c.toLowerCase().match(/^seg\s*\d+$/i)) uniqueSet.add(c);
+          }
+        });
+        uniqueSet.forEach(u => {
+          const opt = document.createElement("option");
+          opt.value = u;
+          datalist.appendChild(opt);
+        });
+      }
+
+      // Populate Dynamic Group Tags Bar
+      const tagsBar = document.getElementById("segment-group-tags");
+      if (tagsBar) {
+        tagsBar.innerHTML = "";
+        const sectionCounts = {};
+        poly.segmentSections.forEach(s => {
+          if (!s || typeof s !== "string") return;
+          const c = s.trim();
+          if (!c || c.toLowerCase().match(/^seg\s*\d+$/i)) return;
+          sectionCounts[c] = (sectionCounts[c] || 0) + 1;
+        });
+        const sectionKeys = Object.keys(sectionCounts);
+        if (sectionKeys.length > 0) {
+          tagsBar.style.display = "flex";
+          sectionKeys.forEach(secName => {
+            const col = getSectionColor(secName);
+            const tag = document.createElement("span");
+            tag.style.cssText = `background:${col}22;color:${col};border:1px solid ${col}60;padding:1px 6px;border-radius:10px;font-size:0.65rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;`;
+            tag.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:${col};box-shadow:0 0 3px ${col};"></span>${secName} <span style="opacity:0.75;font-size:0.60rem;">(${sectionCounts[secName]})</span>`;
+            tagsBar.appendChild(tag);
+          });
+        } else {
+          tagsBar.style.display = "none";
+        }
+      }
+
+      // Update Section Colors in Lindero La Trinidad Reconstruido panel
+      updateSectionStyleControls();
 
       // Synchronize header chk-opt-all state and listener
       const chkAll = document.getElementById("chk-opt-all");
@@ -4861,75 +5017,23 @@ EOF`;
         };
       }
 
-      // Populate Datalist for autocomplete suggestions from unique group names
-      const datalist = document.getElementById("seg-group-datalist");
-      if (datalist) {
-        datalist.innerHTML = "";
-        const uniqueSet = new Set();
-        if (poly.segmentNames) {
-          poly.segmentNames.forEach(n => {
-            if (n && typeof n === "string") {
-              const c = n.trim();
-              if (c && !c.toLowerCase().match(/^seg\s*\d+$/i)) uniqueSet.add(c);
-            }
-          });
-        }
-        uniqueSet.forEach(u => {
-          const opt = document.createElement("option");
-          opt.value = u;
-          datalist.appendChild(opt);
-        });
-      }
-
-      // Populate Dynamic Group Tags Bar
-      const tagsBar = document.getElementById("segment-group-tags");
-      if (tagsBar) {
-        tagsBar.innerHTML = "";
-        const groupCounts = {};
-        if (poly.segmentNames) {
-          poly.segmentNames.forEach(n => {
-            if (!n || typeof n !== "string") return;
-            const c = n.trim();
-            if (!c || c.toLowerCase().match(/^seg\s*\d+$/i)) return;
-            groupCounts[c] = (groupCounts[c] || 0) + 1;
-          });
-        }
-        const groupKeys = Object.keys(groupCounts);
-        if (groupKeys.length > 0) {
-          tagsBar.style.display = "flex";
-          groupKeys.forEach(grpName => {
-            const col = getSegmentGroupColor(grpName, poly);
-            const tag = document.createElement("span");
-            tag.style.cssText = `background:${col}22;color:${col};border:1px solid ${col}60;padding:1px 6px;border-radius:10px;font-size:0.65rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;`;
-            tag.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:${col};box-shadow:0 0 3px ${col};"></span>${grpName} <span style="opacity:0.75;font-size:0.60rem;">(${groupCounts[grpName]})</span>`;
-            tagsBar.appendChild(tag);
-          });
-        } else {
-          tagsBar.style.display = "none";
-        }
-      }
-
       for (let i = 0; i < nSegs; i++) {
         const a = poly.vertices[i], b = poly.vertices[(i + 1) % poly.vertices.length];
         const calcLen = Math.hypot(b.x - a.x, b.y - a.y);
         const deedLen = poly.segmentLengths[i];
         const meta = getSegmentErrorMeta(calcLen, deedLen);
 
-        const rawName = (poly.segmentNames && poly.segmentNames[i]) || "";
-        const groupColor = getSegmentGroupColor(rawName, poly);
-        const rowColor = groupColor || meta.color;
+        const isDeed = (a.deedPt !== null && b.deedPt !== null);
+        const rawSec = (poly.segmentSections && poly.segmentSections[i]) || "";
+        const rawPart = (poly.segmentParts && poly.segmentParts[i]) || "";
+        const secColor = rawSec ? getSectionColor(rawSec) : null;
+        const rowColor = secColor || (isDeed ? state.stylePolyDeed.color : meta.color);
 
-        if (!poly.segmentOptimize) poly.segmentOptimize = [];
-        while (poly.segmentOptimize.length < nSegs) {
-          const idx = poly.segmentOptimize.length;
-          const dl = poly.segmentLengths[idx];
-          poly.segmentOptimize.push(dl !== null && dl > 0 && idx >= 39 && idx <= 48);
-        }
         const isOpt = !!poly.segmentOptimize[i];
 
         const wrap = document.createElement("div");
         wrap.className = "seg-table-row";
-        wrap.style.cssText = `display:grid;grid-template-columns:20px 76px 1fr 52px 42px;gap:5px;align-items:center;padding:2px 4px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid ${groupColor ? groupColor + '40' : 'rgba(255,255,255,0.06)'};border-left:3px solid ${rowColor};`;
+        wrap.style.cssText = `display:grid;grid-template-columns:18px 58px 1fr 42px 48px 38px;gap:4px;align-items:center;padding:2px 4px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid ${secColor ? secColor + '40' : (isDeed ? state.stylePolyDeed.color + '33' : 'rgba(255,255,255,0.06)')};border-left:3px solid ${rowColor};`;
 
         // Col 0: Opt Checkbox
         const col0 = document.createElement("div");
@@ -4938,7 +5042,7 @@ EOF`;
         optChk.type = "checkbox";
         optChk.checked = isOpt;
         optChk.title = isOpt ? "✓ Included in optimization (click to exclude)" : "Excluded from optimization (click to include)";
-        optChk.style.cssText = "accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:13px;height:13px;";
+        optChk.style.cssText = "accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:12px;height:12px;";
         optChk.dataset.segIdx = i;
         optChk.addEventListener("change", e => {
           poly.segmentOptimize[i] = e.target.checked;
@@ -4950,7 +5054,6 @@ EOF`;
           }
           recomputeUserPolygonMetrics();
           redrawTrueCanvas();
-          const chkAll = document.getElementById("chk-opt-all");
           if (chkAll) {
             const allC = poly.segmentOptimize.slice(0, nSegs).every(Boolean);
             const someC = poly.segmentOptimize.slice(0, nSegs).some(Boolean);
@@ -4962,79 +5065,96 @@ EOF`;
 
         // Col 1: Seg # & Measured Length
         const col1 = document.createElement("div");
-        col1.style.cssText = "display:flex;align-items:center;gap:3px;overflow:hidden;font-size:0.71rem;";
+        col1.style.cssText = "display:flex;align-items:center;gap:3px;overflow:hidden;font-size:0.69rem;";
         const dot = document.createElement("span");
-        dot.style.cssText = `width:6px;height:6px;border-radius:50%;background:${rowColor};box-shadow:0 0 4px ${rowColor};flex-shrink:0;`;
+        dot.style.cssText = `width:6px;height:6px;border-radius:50%;background:${rowColor};box-shadow:0 0 3px ${rowColor};flex-shrink:0;`;
         const segNum = document.createElement("strong");
-        segNum.style.cssText = `color:${rowColor};font-size:0.71rem;`;
+        segNum.style.cssText = `color:${rowColor};font-size:0.69rem;`;
         segNum.textContent = `#${i + 1}`;
         const lenSpan = document.createElement("span");
-        lenSpan.style.cssText = "font-size:0.64rem;color:var(--text-muted);white-space:nowrap;";
+        lenSpan.style.cssText = "font-size:0.62rem;color:var(--text-muted);white-space:nowrap;";
         lenSpan.textContent = `${calcLen.toFixed(1)}m`;
         col1.appendChild(dot);
         col1.appendChild(segNum);
         col1.appendChild(lenSpan);
 
-        // Col 2: EXTRA COLUMN - Name / Group Input
+        // Col 2: Sección Input
         const col2 = document.createElement("div");
         col2.style.cssText = "display:flex;align-items:center;";
-        const nameField = document.createElement("input");
-        nameField.type = "text";
-        nameField.setAttribute("list", "seg-group-datalist");
-        nameField.value = rawName;
-        nameField.placeholder = "Group / Name";
-        nameField.title = "Name or group this segment (segments with the same name share color)";
-        nameField.style.cssText = `width:100%;box-sizing:border-box;font-size:0.71rem;padding:2px 4px;border-radius:3px;background:rgba(255,255,255,0.07);border:1px solid ${groupColor ? groupColor + '60' : 'rgba(255,255,255,0.15)'};color:${groupColor || '#f0f4f8'};font-weight:${groupColor ? '600' : '400'};outline:none;`;
-        nameField.dataset.segIdx = i;
-
-        nameField.addEventListener("focus", () => {
-          nameField.style.background = "rgba(0,0,0,0.45)";
-          nameField.style.borderColor = groupColor || "var(--accent-cyan)";
+        const secField = document.createElement("input");
+        secField.type = "text";
+        secField.setAttribute("list", "seg-section-datalist");
+        secField.value = rawSec;
+        secField.placeholder = "Sección";
+        secField.title = "Nombre de Sección (ej: Quebrada, Norte, Camino, 1073)";
+        secField.style.cssText = `width:100%;box-sizing:border-box;font-size:0.69rem;padding:2px 3px;border-radius:3px;background:rgba(255,255,255,0.07);border:1px solid ${secColor ? secColor + '60' : 'rgba(255,255,255,0.15)'};color:${secColor || '#f0f4f8'};font-weight:${secColor ? '600' : '400'};outline:none;`;
+        secField.dataset.segIdx = i;
+        secField.addEventListener("focus", () => {
+          secField.style.background = "rgba(0,0,0,0.45)";
+          secField.style.borderColor = secColor || "var(--accent-cyan)";
         });
-        nameField.addEventListener("blur", () => {
-          nameField.style.background = "rgba(255,255,255,0.07)";
+        secField.addEventListener("blur", () => {
+          secField.style.background = "rgba(255,255,255,0.07)";
         });
-        nameField.addEventListener("input", () => {
-          if (!state.userPolygon.segmentNames) state.userPolygon.segmentNames = [];
-          while (state.userPolygon.segmentNames.length < poly.vertices.length) state.userPolygon.segmentNames.push(null);
-          state.userPolygon.segmentNames[i] = nameField.value.trim() || null;
-          const updatedColor = getSegmentGroupColor(state.userPolygon.segmentNames[i], state.userPolygon);
-          const activeCol = updatedColor || meta.color;
+        secField.addEventListener("input", () => {
+          if (!poly.segmentSections) poly.segmentSections = [];
+          while (poly.segmentSections.length < poly.vertices.length) poly.segmentSections.push(null);
+          poly.segmentSections[i] = secField.value.trim() || null;
+          const updatedCol = secField.value.trim() ? getSectionColor(secField.value.trim()) : null;
+          const activeCol = updatedCol || (isDeed ? state.stylePolyDeed.color : meta.color);
           dot.style.background = activeCol;
-          dot.style.boxShadow = `0 0 4px ${activeCol}`;
+          dot.style.boxShadow = `0 0 3px ${activeCol}`;
           segNum.style.color = activeCol;
           wrap.style.borderLeftColor = activeCol;
-          wrap.style.borderColor = updatedColor ? updatedColor + '40' : 'rgba(255,255,255,0.06)';
-          nameField.style.borderColor = updatedColor ? updatedColor + '60' : 'rgba(255,255,255,0.15)';
-          nameField.style.color = updatedColor || '#f0f4f8';
-          nameField.style.fontWeight = updatedColor ? '600' : '400';
+          wrap.style.borderColor = updatedCol ? updatedCol + '40' : (isDeed ? state.stylePolyDeed.color + '33' : 'rgba(255,255,255,0.06)');
+          secField.style.borderColor = updatedCol ? updatedCol + '60' : 'rgba(255,255,255,0.15)';
+          secField.style.color = updatedCol || '#f0f4f8';
+          secField.style.fontWeight = updatedCol ? '600' : '400';
           redrawTrueCanvas();
         });
-        nameField.addEventListener("change", () => {
+        secField.addEventListener("change", () => {
           rebuildSegmentInputs();
         });
-        col2.appendChild(nameField);
+        col2.appendChild(secField);
 
-        // Col 3: Deed Distance Input
+        // Col 3: Part Input
         const col3 = document.createElement("div");
         col3.style.cssText = "display:flex;align-items:center;";
+        const partField = document.createElement("input");
+        partField.type = "text";
+        partField.value = rawPart;
+        partField.placeholder = "Part";
+        partField.title = "Parte o número de tramo (ej: 1, 2, A, P1)";
+        partField.style.cssText = "width:100%;box-sizing:border-box;font-size:0.69rem;padding:2px 3px;border-radius:3px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:#fff;outline:none;";
+        partField.dataset.segIdx = i;
+        partField.addEventListener("input", () => {
+          if (!poly.segmentParts) poly.segmentParts = [];
+          while (poly.segmentParts.length < poly.vertices.length) poly.segmentParts.push(null);
+          poly.segmentParts[i] = partField.value.trim() || null;
+          redrawTrueCanvas();
+        });
+        col3.appendChild(partField);
+
+        // Col 4: Deed Distance Input
+        const col4 = document.createElement("div");
+        col4.style.cssText = "display:flex;align-items:center;";
         const distField = document.createElement("input");
         distField.type = "number";
         distField.step = "any";
         distField.min = "0";
         distField.placeholder = "m";
-        distField.title = "Deed or reference length in meters";
-        distField.style.cssText = "width:100%;box-sizing:border-box;padding:2px 4px;font-size:0.71rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:#fff;outline:none;";
+        distField.title = "Longitud de escritura o referencia en metros";
+        distField.style.cssText = "width:100%;box-sizing:border-box;padding:2px 3px;font-size:0.69rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:#fff;outline:none;";
         if (poly.segmentLengths[i] != null) distField.value = poly.segmentLengths[i];
         distField.dataset.segIdx = i;
 
-        // Col 4: Error % Badge
-        const col4 = document.createElement("div");
-        col4.style.cssText = "display:flex;justify-content:center;";
+        // Col 5: Error % Badge
+        const col5 = document.createElement("div");
+        col5.style.cssText = "display:flex;justify-content:center;";
         const errBadge = document.createElement("span");
-        errBadge.style.cssText = `font-size:0.67rem;font-weight:700;padding:2px 2px;border-radius:3px;width:100%;text-align:center;background:${meta.badgeColor};color:${meta.color};border:1px solid ${meta.color}40;`;
+        errBadge.style.cssText = `font-size:0.65rem;font-weight:700;padding:2px 1px;border-radius:3px;width:100%;text-align:center;background:${meta.badgeColor};color:${meta.color};border:1px solid ${meta.color}40;`;
         errBadge.textContent = meta.errPct != null ? `${meta.errPct.toFixed(1)}%` : "—";
-        col4.appendChild(errBadge);
+        col5.appendChild(errBadge);
 
         distField.addEventListener("input", () => {
           const v = parseFloat(distField.value);
@@ -5044,22 +5164,23 @@ EOF`;
           errBadge.style.background = updatedMeta.badgeColor;
           errBadge.style.color = updatedMeta.color;
           errBadge.style.borderColor = updatedMeta.color + "40";
-          if (!groupColor) {
+          if (!secColor && !isDeed) {
             dot.style.background = updatedMeta.color;
-            dot.style.boxShadow = `0 0 4px ${updatedMeta.color}`;
+            dot.style.boxShadow = `0 0 3px ${updatedMeta.color}`;
             segNum.style.color = updatedMeta.color;
             wrap.style.borderLeftColor = updatedMeta.color;
           }
           recomputeUserPolygonMetrics();
           redrawTrueCanvas();
         });
-        col3.appendChild(distField);
+        col4.appendChild(distField);
 
         wrap.appendChild(col0);
         wrap.appendChild(col1);
         wrap.appendChild(col2);
         wrap.appendChild(col3);
         wrap.appendChild(col4);
+        wrap.appendChild(col5);
         inp.appendChild(wrap);
       }
 
@@ -5309,7 +5430,7 @@ EOF`;
 
     /** Reset the polygon to a clean state */
     function resetUserPolygon() {
-      state.userPolygon = { vertices: [], segmentLengths: [], segmentNames: [], segmentOptimize: [], closed: false, drawMode: false, show: true };
+      state.userPolygon = { vertices: [], segmentLengths: [], segmentSections: [], segmentParts: [], segmentOptimize: [], closed: false, drawMode: false, show: true };
       document.getElementById("polygon-seg-inputs").innerHTML = "";
       document.getElementById("polygon-segments-container").style.display = "none";
       const optPanel = document.getElementById("boundary-optimization-panel");
@@ -5358,6 +5479,7 @@ EOF`;
 
     // Save polygon to JSON
     document.getElementById("btn-save-polygon").addEventListener("click", () => {
+      state.userPolygon.sectionColors = { ...state.sectionColors };
       const data = JSON.stringify(state.userPolygon, null, 2);
       const blob = new Blob([data], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -5411,6 +5533,7 @@ EOF`;
           } else {
             const obj = JSON.parse(content);
             if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
+            if (obj.sectionColors) { state.sectionColors = { ...obj.sectionColors }; }
             state.userPolygon = {
               vertices: (obj.vertices || []).map(v => ({
                 x: v.x,
@@ -5420,7 +5543,8 @@ EOF`;
                 origY: v.origY != null ? v.origY : null
               })),
               segmentLengths: obj.segmentLengths || [],
-              segmentNames: obj.segmentNames || [],
+              segmentSections: obj.segmentSections || obj.segmentNames || [],
+              segmentParts: obj.segmentParts || [],
               segmentOptimize: obj.segmentOptimize || [],
               closed: !!obj.closed,
               drawMode: false,
@@ -8386,6 +8510,7 @@ EOF`;
         const text = await fetchText("user_polygon.json");
         const obj = JSON.parse(text);
         if (Array.isArray(obj.vertices) && obj.vertices.length > 0) {
+          if (obj.sectionColors) state.sectionColors = { ...obj.sectionColors };
           state.userPolygon = {
             vertices: (obj.vertices || []).map(v => ({
               x: v.x,
@@ -8395,7 +8520,8 @@ EOF`;
               origY: v.origY != null ? v.origY : null
             })),
             segmentLengths: obj.segmentLengths || [],
-            segmentNames: obj.segmentNames || [],
+            segmentSections: obj.segmentSections || obj.segmentNames || [],
+            segmentParts: obj.segmentParts || [],
             segmentOptimize: obj.segmentOptimize || [],
             closed: !!obj.closed,
             drawMode: false,
