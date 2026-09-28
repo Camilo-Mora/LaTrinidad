@@ -1242,7 +1242,7 @@
                 </div>
               </div>
             </div>
-            <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);">Click "+ Create new polygon" then click on the field canvas to place vertices. Click near the first vertex to close.</p>
+            <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;">🖐️ <strong>Drag node</strong>: Move &bull; 🖱️ <strong>Double-click line</strong>: Add vertex &bull; 🗑 <strong>Right-click node</strong>: Delete</p>
           </div>
         </section>
       </aside>
@@ -2209,6 +2209,8 @@ EOF`;
         show: true,
       },
       draggingUserPolyNode: null,
+      hoverPolyNode: null,
+      hoverPolySegment: null,
       currentSnapTarget: null,
       showSegmentLabels: false,
       showDeedPanel: false,     // Deed map panel (hidden by default)
@@ -3035,6 +3037,55 @@ EOF`;
       return -1;
     }
 
+    /** Hit test user polygon segments to allow inserting a new vertex on click */
+    function findUserPolySegmentAt(mouseX, mouseY, vp, canvasH, hitDist = 10) {
+      const poly = state.userPolygon;
+      if (!poly || !poly.vertices || poly.vertices.length < 2) return null;
+      const nSegs = poly.closed ? poly.vertices.length : poly.vertices.length - 1;
+      let best = null;
+      let minDist = hitDist;
+
+      for (let i = 0; i < nSegs; i++) {
+        const vA = poly.vertices[i];
+        const vB = poly.vertices[(i + 1) % poly.vertices.length];
+        const sa = worldToScreenGIS(vA, vp, canvasH);
+        const sb = worldToScreenGIS(vB, vp, canvasH);
+
+        const dx = sb.x - sa.x;
+        const dy = sb.y - sa.y;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq < 1e-4) continue;
+
+        // Project mouse coordinate onto segment line [sa, sb]
+        const t = ((mouseX - sa.x) * dx + (mouseY - sa.y) * dy) / lenSq;
+        // Keep clear of existing endpoints so node dragging and right-click delete are unaffected
+        const da = Math.hypot(mouseX - sa.x, mouseY - sa.y);
+        const db = Math.hypot(mouseX - sb.x, mouseY - sb.y);
+        if (da < 14 || db < 14) continue;
+
+        if (t >= 0 && t <= 1) {
+          const projX = sa.x + t * dx;
+          const projY = sa.y + t * dy;
+          const dist = Math.hypot(mouseX - projX, mouseY - projY);
+          if (dist <= minDist) {
+            minDist = dist;
+            best = {
+              segIdx: i,
+              t: t,
+              screenPt: { x: projX, y: projY },
+              worldPt: {
+                x: vA.x + t * (vB.x - vA.x),
+                y: vA.y + t * (vB.y - vA.y),
+                deedPt: null
+              },
+              dist: dist
+            };
+          }
+        }
+      }
+      return best;
+    }
+
     /**
      * Get error percentage and display color for a segment based on percent error
      * Color scale:
@@ -3278,11 +3329,15 @@ EOF`;
         ctx.restore();
       }
 
-      // 3. Vertex dots (dynamically filtered by style visibility for deed vs field nodes)
+      // 3. Vertex dots (dynamically filtered by style visibility for deed vs field nodes, always visible on hover/drag)
       verts.forEach((v, i) => {
         const isDeedNode = vertexHasDeedLength(poly, i);
-        if (isDeedNode && !state.stylePolyDeed.showNodes) return;
-        if (!isDeedNode && !state.stylePolyNoDeed.showNodes) return;
+        const isHovered = (state.hoverPolyNode === i);
+        const isDragging = (state.draggingUserPolyNode === i);
+        if (!isHovered && !isDragging) {
+          if (isDeedNode && !state.stylePolyDeed.showNodes) return;
+          if (!isDeedNode && !state.stylePolyNoDeed.showNodes) return;
+        }
 
         const sp = worldToScreenGIS(v, vp, canvasH);
         const origX = v.origX != null ? v.origX : v.x;
@@ -3290,14 +3345,38 @@ EOF`;
         const isShifted = v.deedPt && Math.hypot(v.x - origX, v.y - origY) > 0.05;
 
         const baseR = isDeedNode ? (state.stylePolyDeed.width + 2) : (state.stylePolyNoDeed.width + 2);
+        const r = (isHovered || isDragging) ? (baseR + 3) : (i === 0 ? (baseR + 2) : (isShifted ? (baseR + 1) : baseR));
+
         ctx.beginPath();
-        ctx.arc(sp.x, sp.y, i === 0 ? (baseR + 2) : (isShifted ? (baseR + 1) : baseR), 0, Math.PI * 2);
-        ctx.fillStyle = isDeedNode ? state.stylePolyDeed.color : state.stylePolyNoDeed.color;
+        ctx.arc(sp.x, sp.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = isHovered ? "#00e5ff" : (isDeedNode ? state.stylePolyDeed.color : state.stylePolyNoDeed.color);
         ctx.fill();
-        ctx.strokeStyle = i === 0 ? "#ffffff" : (isShifted ? "#ffd600" : "#ffffff");
-        ctx.lineWidth = (i === 0 || isShifted) ? 2 : 1.5;
+        ctx.strokeStyle = (isHovered || isDragging) ? "#ffffff" : (i === 0 ? "#ffffff" : (isShifted ? "#ffd600" : "#ffffff"));
+        ctx.lineWidth = (isHovered || isDragging || i === 0 || isShifted) ? 2.5 : 1.5;
         ctx.stroke();
+
+        if (isHovered && !isDragging) {
+          ctx.beginPath();
+          ctx.arc(sp.x, sp.y, r + 4, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
       });
+
+      // 3.5. Subtle dot on segment hover indicating double-click target
+      if (state.hoverPolySegment && !poly.drawMode && state.draggingUserPolyNode === null) {
+        const hp = state.hoverPolySegment.screenPt;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(hp.x, hp.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#00e5ff";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+      }
 
       // 4. Segment length labels with error percentage (when Labels checkbox is active)
       if (state.showSegmentLabels) {
@@ -3663,7 +3742,7 @@ EOF`;
       }
     }
 
-    /** Update Save / Export button states */
+    /** Update Save / Export button states and interactive hints */
     function updatePolygonButtonStates() {
       if (state.toolMode === "anchor") {
         updateDistanceAreaPanelState("anchor");
@@ -3675,6 +3754,17 @@ EOF`;
       const expBtn = document.getElementById("btn-export-polygon-dxf");
       expBtn.disabled = !poly.closed;
       expBtn.style.opacity = poly.closed ? "1" : "0.45";
+
+      const hint = document.getElementById("poly-status-hint");
+      if (hint) {
+        if (poly.drawMode) {
+          hint.innerHTML = "Click on field canvas to place vertices. Click near first vertex (blue dot) or '✓ Close polygon' to close.";
+        } else if (poly.vertices.length >= 2) {
+          hint.innerHTML = "🖐️ <strong>Drag node</strong>: Move &bull; 🖱️ <strong>Double-click line</strong>: Add vertex &bull; 🗑 <strong>Right-click node</strong>: Delete";
+        } else {
+          hint.innerHTML = "Click <strong>\"+ Create new polygon\"</strong> then click on the field canvas to place vertices. Or load a file.";
+        }
+      }
     }
 
     /** Reset the polygon to a clean state */
@@ -5382,9 +5472,34 @@ EOF`;
             }
           }
         }
-        if (!isPanning) {
-          trueCanvas.style.cursor = hitNode >= 0 ? "move" : (state.userPolygon.drawMode ? "crosshair" : "grab");
+        let hitSeg = null;
+        if (!state.userPolygon.drawMode && hitNode < 0 && state.userPolygon.vertices.length >= 2) {
+          hitSeg = findUserPolySegmentAt(mouseX, mouseY, vp, h, 10);
         }
+
+        state.hoverPolyNode = hitNode >= 0 ? hitNode : null;
+        state.hoverPolySegment = hitSeg;
+
+        if (!isPanning) {
+          if (hitNode >= 0) {
+            trueCanvas.style.cursor = "move";
+            coordsBar.textContent = `Polygon Node #${hitNode + 1}: (${state.userPolygon.vertices[hitNode].x.toFixed(2)}, ${state.userPolygon.vertices[hitNode].y.toFixed(2)}) — Drag to move • Right-click to delete`;
+          } else if (hitSeg) {
+            trueCanvas.style.cursor = "pointer";
+            coordsBar.textContent = `Double-click line to add vertex on Seg ${hitSeg.segIdx + 1}: (${hitSeg.worldPt.x.toFixed(2)}, ${hitSeg.worldPt.y.toFixed(2)})`;
+          } else {
+            trueCanvas.style.cursor = state.userPolygon.drawMode ? "crosshair" : "grab";
+          }
+        }
+        redrawTrueCanvas();
+      }
+    });
+
+    trueCanvas.addEventListener("mouseleave", () => {
+      if (state.hoverPolyNode !== null || state.hoverPolySegment !== null || state.currentSnapTarget !== null) {
+        state.hoverPolyNode = null;
+        state.hoverPolySegment = null;
+        state.currentSnapTarget = null;
         redrawTrueCanvas();
       }
     });
@@ -5423,6 +5538,38 @@ EOF`;
     trueCanvas.addEventListener("mousedown", e => handleMouseDown(e, trueCanvas, state.trueViewport, false));
     trueCanvas.addEventListener("mouseup",   e => handleMouseUp(e, trueCanvas, state.trueViewport, false));
     trueCanvas.addEventListener("contextmenu", e => e.preventDefault());
+
+    // Double-click on polygon segment to insert a new vertex
+    trueCanvas.addEventListener("dblclick", function(e) {
+      if (state.toolMode === "anchor") return;
+      const rect = trueCanvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const vp = state.trueViewport, h = trueCanvas.height;
+      const poly = state.userPolygon;
+
+      if (!poly || poly.drawMode || !poly.vertices || poly.vertices.length < 2) return;
+
+      const hitNode = findUserPolyNodeAt(sx, sy, vp, h);
+      if (hitNode >= 0) return; // Ignore double clicks directly on an existing node
+
+      const hitSeg = findUserPolySegmentAt(sx, sy, vp, h, 14);
+      if (hitSeg) {
+        e.preventDefault();
+        const insertIdx = hitSeg.segIdx + 1;
+        poly.vertices.splice(insertIdx, 0, hitSeg.worldPt);
+        poly.segmentLengths.splice(insertIdx, 0, null);
+        while (poly.segmentLengths.length < poly.vertices.length) poly.segmentLengths.push(null);
+
+        rebuildSegmentInputs();
+        recomputeUserPolygonMetrics();
+        updatePolygonButtonStates();
+
+        state.hoverPolyNode = insertIdx;
+        state.hoverPolySegment = null;
+        updateStatus(`➕ Double-click added vertex #${insertIdx + 1} on Segment ${hitSeg.segIdx + 1}.`);
+        redrawTrueCanvas();
+      }
+    });
 
     // Fit/center buttons
     document.getElementById("btn-fit-hist").addEventListener("click", () => {
