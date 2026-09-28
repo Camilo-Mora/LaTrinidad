@@ -1189,19 +1189,13 @@
           </div>
         </section>
 
-        <!-- Transformation Accuracy & Analytics Card -->
-        <section class="panel-card">
-          <div class="panel-header">
-            <h3>Alignment Accuracy</h3>
-            <span id="rmse-display" class="badge-rmse">RMSE: 0.00</span>
-          </div>
-          <p class="rmse-subtitle">Lower RMSE = higher geometric precision at control points.</p>
-        </section>
-
         <!-- Anchor Pairs Manager -->
         <section class="panel-card flex-grow">
           <div class="panel-header">
-            <h3>Control Point Pairs (Anchors)</h3>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h3>Control Point Pairs (Anchors)</h3>
+              <span id="rmse-display" class="badge-rmse" style="font-size:0.7rem;padding:2px 7px;">RMSE: 0.00</span>
+            </div>
             <div style="display:flex;gap:5px;align-items:center;">
               <button id="btn-save-anchors" class="btn-sm btn-success" title="Download & save anchors to anchors_georectifier.json">💾 Save</button>
               <label for="anchor-file-input" class="btn-sm btn-secondary" style="cursor:pointer;margin:0;" title="Load custom anchors JSON file">📂 Load</label>
@@ -1235,18 +1229,6 @@
           </div>
         </section>
 
-        <!-- Instructions Card -->
-        <section class="panel-card info-card">
-          <h4>How to Georectify</h4>
-          <ol>
-            <li>Click <strong>🗺️ Load GeoTIFF Background</strong> to display your satellite/aerial image.</li>
-            <li>Load your <strong>Historical DXF</strong> (left) and <strong>True Field DXF</strong> (right) vectors.</li>
-            <li><strong>Click a landmark</strong> on the Historical Map to place a Source Anchor.</li>
-            <li><strong>Click the matching point</strong> on the True Survey Map to complete the pair.</li>
-            <li>Add 3+ pairs to activate real-time rubber-sheeting!</li>
-            <li>Click <strong>Export Rectified DXF</strong> when satisfied!</li>
-          </ol>
-        </section>
 
         <section class="panel-card" id="panel-distance-area">
           <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
@@ -7471,7 +7453,7 @@ EOF`;
       if (state.anchors.length>0) {
         try { warper=TransformMath.createWarper(state.algorithm,state.anchors); rmseInfo=TransformMath.computeRMSE(warper,state.anchors); } catch(_){}
       }
-      rmseDisplay.textContent=`RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
+      if (rmseDisplay) rmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
       state.anchors.forEach((anc,idx) => {
         const err=(rmseInfo.residuals[idx]||0).toFixed(2);
         const tr=document.createElement("tr");
