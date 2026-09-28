@@ -2812,7 +2812,7 @@ EOF`;
           origY: (v.origY !== undefined && v.origY !== null) ? v.origY : v.y,
         }));
 
-        // Identify dynamic vertex indices (vertices adjacent to selected segments or deed-anchored)
+        // Identify dynamic vertex indices (strictly deed-anchored vertices adjacent to segments selected for optimization)
         const dynamicIndices = [];
         for (let i = 0; i < N; i++) {
           const prevIdx = (i - 1 + N) % N;
@@ -2821,7 +2821,7 @@ EOF`;
             (segmentOptimize[prevIdx] && segmentLengths[prevIdx] > 0)
           ) : (pts[i].deedPt !== null);
 
-          if (pts[i].deedPt !== null || isAdjToOpt) {
+          if (pts[i].deedPt !== null && isAdjToOpt) {
             dynamicIndices.push(i);
           }
         }
@@ -4166,6 +4166,24 @@ EOF`;
              (lenPrev !== null && lenPrev !== undefined && lenPrev > 0);
     }
 
+    /** Determine whether polygon vertex i is strictly deed-anchored and part of the active simulation */
+    function vertexIsDeedConstrained(poly, i) {
+      if (!poly || !poly.vertices) return false;
+      const N = poly.vertices.length;
+      if (N === 0 || i < 0 || i >= N) return false;
+      const v = poly.vertices[i];
+      if (!v || !v.deedPt) return false;
+
+      // Must be adjacent to at least one segment selected for optimization
+      if (poly.segmentOptimize && Array.isArray(poly.segmentOptimize)) {
+        const prevIdx = (i - 1 + N) % N;
+        const nextOpt = poly.segmentOptimize[i] === true;
+        const prevOpt = poly.segmentOptimize[prevIdx] === true;
+        if (!nextOpt && !prevOpt) return false;
+      }
+      return true;
+    }
+
     /** Find nearest DXF vertex or other polygon vertex to snap to (matches index.html getFieldSnapTarget) */
     function getPolygonSnapTarget(mouseX, mouseY, vp, canvasH, ignorePtIdx = null) {
       const chk = document.getElementById("chk-polygon-snap");
@@ -4745,22 +4763,14 @@ EOF`;
         const drawnDeedBuffers = new Set();
 
         verts.forEach((v, idx) => {
-          // Only for vertices that have an associated deed length on adjacent segments
-          if (!vertexHasDeedLength(poly, idx)) return;
+          // Strictly only for deed-anchored vertices part of the active simulation
+          if (!vertexIsDeedConstrained(poly, idx)) return;
+          if (!v.deedPt) return;
 
-          let deedCenter = null;
-          const nearest = findNearestWarpedDeedVertex(v);
-          if (nearest && nearest.dist <= 35.0) {
-            v.deedPt = nearest.deedPt;
-            v.origX = nearest.x;
-            v.origY = nearest.y;
-            deedCenter = { x: nearest.x, y: nearest.y, deedPt: nearest.deedPt };
-          } else if (v.deedPt) {
-            const w = warper ? warper(v.deedPt) : { x: v.deedPt.x, y: v.deedPt.y };
-            deedCenter = { x: w.x, y: w.y, deedPt: v.deedPt };
-            v.origX = w.x;
-            v.origY = w.y;
-          }
+          const w = warper ? warper(v.deedPt) : { x: v.deedPt.x, y: v.deedPt.y };
+          const deedCenter = { x: w.x, y: w.y, deedPt: v.deedPt };
+          v.origX = w.x;
+          v.origY = w.y;
 
           // If no deed vertex is associated with this polygon vertex, DO NOT draw buffer around polygon vertex!
           if (!deedCenter) return;
@@ -4834,7 +4844,7 @@ EOF`;
         const sp = worldToScreenGIS(v, vp, canvasH);
         const origX = v.origX != null ? v.origX : v.x;
         const origY = v.origY != null ? v.origY : v.y;
-        const isShifted = v.deedPt && Math.hypot(v.x - origX, v.y - origY) > 0.05;
+        const isShifted = vertexIsDeedConstrained(poly, i) && Math.hypot(v.x - origX, v.y - origY) > 0.05;
 
         const nodeColor = styleNext.color || stylePrev.color || "#00e5ff";
         const baseR = Math.max(styleNext.width, stylePrev.width) + 1.5;
@@ -5210,20 +5220,6 @@ EOF`;
         wrap.appendChild(col4);
         wrap.appendChild(col5);
         inp.appendChild(wrap);
-      }
-
-      // Auto-associate vertices that have deed lengths with deed DXF points
-      if (poly && poly.vertices) {
-        poly.vertices.forEach((v, idx) => {
-          if (vertexHasDeedLength(poly, idx)) {
-            const nearest = findNearestWarpedDeedVertex(v);
-            if (nearest && nearest.dist <= 35.0) {
-              v.deedPt = nearest.deedPt;
-              v.origX = nearest.x;
-              v.origY = nearest.y;
-            }
-          }
-        });
       }
 
       // Update visibility of boundary optimization sub-panel
@@ -5817,8 +5813,8 @@ EOF`;
         const poly = state.userPolygon;
         if (!poly || !poly.vertices) return;
         let count = 0;
-        poly.vertices.forEach(v => {
-          if (v.deedPt && v.origX !== undefined && v.origX !== null) {
+        poly.vertices.forEach((v, idx) => {
+          if (v.deedPt && v.origX !== undefined && v.origX !== null && vertexIsDeedConstrained(poly, idx)) {
             v.x = v.origX;
             v.y = v.origY;
             count++;
@@ -6478,7 +6474,7 @@ EOF`;
           try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
         }
         for (let i = 0; i < poly.vertices.length; i++) {
-          if (!vertexHasDeedLength(poly, i)) continue;
+          if (!vertexIsDeedConstrained(poly, i)) continue;
           const v = poly.vertices[i];
           const deedPt = v.origX != null && v.origY != null ? { x: v.origX, y: v.origY } : (v.deedPt ? (warper ? warper(v.deedPt) : v.deedPt) : null);
           if (deedPt) {
@@ -6516,26 +6512,16 @@ EOF`;
           e.stopImmediatePropagation();
           state.draggingUserPolyNode = hitNode;
           const curVertex = poly.vertices[hitNode];
-          const hasDeedLen = vertexHasDeedLength(poly, hitNode);
-          if (state.constrainPolyToDeed && state.optBufferRadius > 0 && hasDeedLen) {
-            let deedAnchor = null;
+          const isConstrained = state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(poly, hitNode);
+          if (isConstrained && curVertex && curVertex.deedPt) {
             let warper = null;
             if (state.anchors && state.anchors.length >= 2) {
               try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
             }
-            const nearest = findNearestWarpedDeedVertex(curVertex);
-            if (nearest && nearest.dist <= 35.0) {
-              curVertex.deedPt = nearest.deedPt;
-              curVertex.origX = nearest.x;
-              curVertex.origY = nearest.y;
-              deedAnchor = { x: nearest.x, y: nearest.y, deedPt: nearest.deedPt };
-            } else if (curVertex.deedPt) {
-              const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
-              deedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
-              curVertex.origX = w.x;
-              curVertex.origY = w.y;
-            }
-            state.dragDeedAnchor = deedAnchor;
+            const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
+            curVertex.origX = w.x;
+            curVertex.origY = w.y;
+            state.dragDeedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
           } else {
             state.dragDeedAnchor = null;
           }
@@ -7360,7 +7346,7 @@ EOF`;
       // 1. Node dragging active
       if (state.draggingUserPolyNode !== null) {
         const curVertex = state.userPolygon.vertices[state.draggingUserPolyNode];
-        const hasDeedLen = vertexHasDeedLength(state.userPolygon, state.draggingUserPolyNode);
+        const isConstrained = state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(state.userPolygon, state.draggingUserPolyNode);
         const snap = (!state.constrainPolyToDeed) ? getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode) : null;
         state.currentSnapTarget = snap;
         let targetPt = snap ? {
@@ -7377,28 +7363,18 @@ EOF`;
           origY: curVertex ? curVertex.origY : undefined
         };
 
-        // If Constrain to Deed Vertices is checked: clamp polygon node inside Pen Buffer of deed vertex ONLY if vertex has deed length
-        if (state.constrainPolyToDeed && state.optBufferRadius > 0 && hasDeedLen) {
+        // If Constrain to Deed Vertices is checked: clamp polygon node inside Pen Buffer of deed vertex ONLY if vertex is deed-constrained
+        if (isConstrained) {
           let deedAnchor = state.dragDeedAnchor;
-          if (!deedAnchor) {
+          if (!deedAnchor && curVertex && curVertex.deedPt) {
             let warper = null;
             if (state.anchors && state.anchors.length >= 2) {
               try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
             }
-            const nearest = findNearestWarpedDeedVertex(curVertex || targetPt);
-            if (nearest && nearest.dist <= 35.0) {
-              deedAnchor = { x: nearest.x, y: nearest.y, deedPt: nearest.deedPt };
-              if (curVertex) {
-                curVertex.deedPt = nearest.deedPt;
-                curVertex.origX = nearest.x;
-                curVertex.origY = nearest.y;
-              }
-            } else if (curVertex && curVertex.deedPt) {
-              const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
-              deedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
-              curVertex.origX = w.x;
-              curVertex.origY = w.y;
-            }
+            const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
+            deedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
+            curVertex.origX = w.x;
+            curVertex.origY = w.y;
             state.dragDeedAnchor = deedAnchor;
           }
 
@@ -7411,7 +7387,7 @@ EOF`;
               targetPt = {
                 x: deedAnchor.x + R * Math.cos(angle),
                 y: deedAnchor.y + R * Math.sin(angle),
-                deedPt: deedAnchor.deedPt ? { x: deedAnchor.deedPt.x, y: deedAnchor.deedPt.y } : (curVertex ? curVertex.deedPt : null),
+                deedPt: curVertex ? curVertex.deedPt : null,
                 origX: deedAnchor.x,
                 origY: deedAnchor.y
               };
@@ -7420,7 +7396,7 @@ EOF`;
               targetPt = {
                 x: p.x,
                 y: p.y,
-                deedPt: deedAnchor.deedPt ? { x: deedAnchor.deedPt.x, y: deedAnchor.deedPt.y } : (curVertex ? curVertex.deedPt : null),
+                deedPt: curVertex ? curVertex.deedPt : null,
                 origX: deedAnchor.x,
                 origY: deedAnchor.y
               };
@@ -7429,7 +7405,7 @@ EOF`;
         }
 
         state.userPolygon.vertices[state.draggingUserPolyNode] = targetPt;
-        if (state.constrainPolyToDeed && hasDeedLen && targetPt.origX != null) {
+        if (isConstrained && targetPt.origX != null) {
           const shift = Math.hypot(targetPt.x - targetPt.origX, targetPt.y - targetPt.origY);
           coordsBar.textContent = `Polygon Node #${state.draggingUserPolyNode + 1}: (${targetPt.x.toFixed(2)}, ${targetPt.y.toFixed(2)}) | Deed offset: ${shift.toFixed(2)}m (max ±${state.optBufferRadius.toFixed(1)}m)`;
         }
@@ -7479,7 +7455,7 @@ EOF`;
             try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
           }
           for (let i = 0; i < state.userPolygon.vertices.length; i++) {
-            if (!vertexHasDeedLength(state.userPolygon, i)) continue;
+            if (!vertexIsDeedConstrained(state.userPolygon, i)) continue;
             const v = state.userPolygon.vertices[i];
             const deedPt = v.origX != null && v.origY != null ? { x: v.origX, y: v.origY } : (v.deedPt ? (warper ? warper(v.deedPt) : v.deedPt) : null);
             if (deedPt) {
@@ -7727,30 +7703,14 @@ EOF`;
             try { warper = TransformMath.createWarper(state.algorithm, state.anchors); } catch (_) {}
           }
           state.userPolygon.vertices.forEach((v, idx) => {
-            if (vertexHasDeedLength(state.userPolygon, idx)) {
-              const nearest = findNearestWarpedDeedVertex(v);
-              if (nearest && nearest.dist <= 35.0) {
-                v.deedPt = nearest.deedPt;
-                v.origX = nearest.x;
-                v.origY = nearest.y;
-              } else if (v.deedPt && warper) {
+            if (vertexIsDeedConstrained(state.userPolygon, idx)) {
+              if (v.deedPt && warper) {
                 const w = warper(v.deedPt);
                 v.origX = w.x;
                 v.origY = w.y;
               }
-
-              // If vertex is currently outside the buffer disk of its deed vertex, clamp it to the perimeter
-              if (v.origX != null && v.origY != null && state.optBufferRadius > 0) {
-                const d = Math.hypot(v.x - v.origX, v.y - v.origY);
-                if (d > state.optBufferRadius) {
-                  const angle = Math.atan2(v.y - v.origY, v.x - v.origX);
-                  v.x = v.origX + state.optBufferRadius * Math.cos(angle);
-                  v.y = v.origY + state.optBufferRadius * Math.sin(angle);
-                }
-              }
             }
           });
-          recomputeUserPolygonMetrics();
         }
         if (verbose) updateStatus(`🔒 Polygon constrained: buffers (±${state.optBufferRadius.toFixed(1)}m) generated around Deed DXF vertices. Drag vertices within buffers.`);
       } else {
