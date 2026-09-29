@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Trinidad - Reconstructed Boundary</title>
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --bg-header: #101622;
+      --border-color: rgba(255, 255, 255, 0.12);
+      --accent-cyan: #00e5ff;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-color);
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand h1 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .brand span {
+      font-size: 0.72rem;
+      color: var(--accent-cyan);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover { background: rgba(255, 255, 255, 0.16); }
+    .btn-cyan {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.08);
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-family: monospace;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--accent-cyan);
+    }
+
+    /* Canvas Area */
+    main {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Floating Status Bar */
+    .status-bar {
+      position: absolute;
+      bottom: 12px;
+      left: 16px;
+      background: rgba(16, 22, 34, 0.85);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: monospace;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>La Trinidad</h1>
+      <span>Layer 1: Reconstructed Boundary</span>
+      <span class="badge" id="poly-badge">Loading...</span>
+    </div>
+    <div class="header-controls">
+      <label class="btn" title="Load custom or updated DXF file">
+        📂 Load DXF
+        <input type="file" id="dxf-file-input" accept=".dxf" style="display:none;">
+      </label>
+      <button class="btn btn-cyan" id="btn-fit" title="Fit to polygon extents">⛶ Fit View</button>
+    </div>
+  </header>
+
+  <main id="canvas-container">
+    <canvas id="map-canvas"></canvas>
+    <div class="status-bar" id="status-bar">Cursor: — | Nodes: 0</div>
+  </main>
+
+  <script>
+    // Embedded default 49 vertices from LaTrinidadOptimized.dxf (ensures instant load even on file:// protocol)
+    const DEFAULT_VERTICES = [
+      { x: 1098077.13, y: 877078.7 },
+      { x: 1098130.83, y: 877073.26 },
+      { x: 1098148.88, y: 877134.63 },
+      { x: 1098167.46, y: 877173.35 },
+      { x: 1098170.92, y: 877221.25 },
+      { x: 1098188.42, y: 877239.38 },
+      { x: 1098236.42, y: 877233.15 },
+      { x: 1098256.09, y: 877218.42 },
+      { x: 1098285.34, y: 877228.61 },
+      { x: 1098314.92, y: 877221.94 },
+      { x: 1098327.91, y: 877203.22 },
+      { x: 1098357.6,  y: 877196.86 },
+      { x: 1098440.09, y: 877195.83 },
+      { x: 1098453.75, y: 877169.58 },
+      { x: 1098453.94, y: 877135.05 },
+      { x: 1098471.69, y: 877114.15 },
+      { x: 1098522.61, y: 877085.37 },
+      { x: 1098539.02, y: 877048.98 },
+      { x: 1098544.69, y: 877014.28 },
+      { x: 1098526.47, y: 876985.31 },
+      { x: 1098516.48, y: 876934.34 },
+      { x: 1098481.56, y: 876878.88 },
+      { x: 1098451.27, y: 876856.88 },
+      { x: 1098399.71, y: 876841.67 },
+      { x: 1098379.8,  y: 876822.42 },
+      { x: 1098348.65, y: 876767.14 },
+      { x: 1098343.83, y: 876722.9 },
+      { x: 1098305.88, y: 876673.84 },
+      { x: 1098254.49, y: 876622.68 },
+      { x: 1098197.6,  y: 876587.52 },
+      { x: 1098135.88, y: 876571.86 },
+      { x: 1098059.25, y: 876579.52 },
+      { x: 1097980.24, y: 876587.42 },
+      { x: 1097906.56, y: 876574.96 },
+      { x: 1097834.62, y: 876547.46 },
+      { x: 1097772.28, y: 876545.06 },
+      { x: 1097707.3,  y: 876670.74 },
+      { x: 1097720.69, y: 876793.68 },
+      { x: 1097754.47, y: 876911.36 },
+      { x: 1097783.3,  y: 876962.63 },
+      { x: 1097830.43, y: 877000.32 },
+      { x: 1097893.36, y: 877028.26 },
+      { x: 1097950.41, y: 877047.88 },
+      { x: 1098007.83, y: 877058.46 },
+      { x: 1098048.8,  y: 877059.98 },
+      { x: 1098059.18, y: 877058.43 },
+      { x: 1098068.73, y: 877057.48 },
+      { x: 1098076.01, y: 877056.11 }
+    ];
+
+    // App state: single polygon layer
+    const state = {
+      polygon: {
+        layer: "LATRINIDAD_OPTIMIZED",
+        points: [...DEFAULT_VERTICES],
+        closed: true
+      },
+      viewport: {
+        scale: 1.0,
+        offsetX: 0,
+        offsetY: 0,
+        bbox: null
+      }
+    };
+
+    // Canvas references
+    const canvas = document.getElementById("map-canvas");
+    const ctx = canvas.getContext("2d");
+    const container = document.getElementById("canvas-container");
+    const statusBar = document.getElementById("status-bar");
+    const polyBadge = document.getElementById("poly-badge");
+
+    // Initialize
+    window.addEventListener("DOMContentLoaded", async () => {
+      resizeCanvas();
+      window.addEventListener("resize", () => { resizeCanvas(); draw(); });
+
+      // Try fetching the local file dynamically, fallback to embedded DEFAULT_VERTICES
+      try {
+        const res = await fetch("LaTrinidadOptimized.dxf");
+        if (res.ok) {
+          const text = await res.text();
+          const parsed = parseDXF(text);
+          if (parsed && parsed.length > 0 && parsed[0].points.length > 0) {
+            state.polygon = parsed[0];
+          }
+        }
+      } catch (e) {
+        // file:// protocol CORS fallback - already using DEFAULT_VERTICES
+      }
+
+      updateBBox();
+      fitExtents();
+      updateUI();
+      draw();
+      setupEvents();
+    });
+
+    function updateUI() {
+      const count = state.polygon.points.length;
+      polyBadge.textContent = `${count} Vertices`;
+      statusBar.textContent = `Polygon: ${state.polygon.layer} | Nodes: ${count}`;
+    }
+
+    // Compute bounding box
+    function updateBBox() {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const p of state.polygon.points) {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      }
+      state.viewport.bbox = { minX, minY, maxX, maxY };
+    }
+
+    // Fit view to polygon
+    function fitExtents() {
+      const b = state.viewport.bbox;
+      if (!b) return;
+      const bw = b.maxX - b.minX;
+      const bh = b.maxY - b.minY;
+      if (bw <= 0 || bh <= 0) return;
+
+      const cw = canvas.width;
+      const ch = canvas.height;
+      const pad = 0.85;
+
+      const scaleX = (cw * pad) / bw;
+      const scaleY = (ch * pad) / bh;
+      state.viewport.scale = Math.min(scaleX, scaleY);
+      state.viewport.offsetX = b.minX - (cw / state.viewport.scale - bw) / 2;
+      state.viewport.offsetY = b.minY - (ch / state.viewport.scale - bh) / 2;
+    }
+
+    function resizeCanvas() {
+      const rect = container.getBoundingClientRect();
+      canvas.width = rect.width * (window.devicePixelRatio || 1);
+      canvas.height = rect.height * (window.devicePixelRatio || 1);
+    }
+
+    // Coordinate conversions (GIS World <-> Canvas Screen)
+    function worldToScreen(wx, wy) {
+      return {
+        x: (wx - state.viewport.offsetX) * state.viewport.scale,
+        y: canvas.height - (wy - state.viewport.offsetY) * state.viewport.scale
+      };
+    }
+    function screenToWorld(sx, sy) {
+      return {
+        x: sx / state.viewport.scale + state.viewport.offsetX,
+        y: (canvas.height - sy) / state.viewport.scale + state.viewport.offsetY
+      };
+    }
+
+    // Main Draw Function
+    function draw() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const dpr = window.devicePixelRatio || 1;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#070a10";
+      ctx.fillRect(0, 0, w, h);
+
+      // Subtle background grid
+      drawGrid();
+
+      const pts = state.polygon.points;
+      if (!pts || pts.length === 0) return;
+
+      // 1. Draw Polygon Fill
+      ctx.beginPath();
+      const p0 = worldToScreen(pts[0].x, pts[0].y);
+      ctx.moveTo(p0.x, p0.y);
+      for (let i = 1; i < pts.length; i++) {
+        const p = worldToScreen(pts[i].x, pts[i].y);
+        ctx.lineTo(p.x, p.y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+      ctx.fill();
+
+      // 2. Draw Polygon Boundary Stroke
+      ctx.lineWidth = 2.5 * dpr;
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      // 3. Draw Vertex Nodes
+      for (let i = 0; i < pts.length; i++) {
+        const sp = worldToScreen(pts[i].x, pts[i].y);
+
+        // Outer glow
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 4 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = "#00e5ff";
+        ctx.fill();
+
+        // Inner core
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 2 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        // Node number label
+        ctx.font = `${9 * dpr}px monospace`;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+        ctx.fillText(`${i + 1}`, sp.x + 6 * dpr, sp.y - 4 * dpr);
+      }
+    }
+
+    function drawGrid() {
+      const dpr = window.devicePixelRatio || 1;
+      const step = 50 * dpr;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 0; x < canvas.width; x += step) {
+        ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+      }
+      for (let y = 0; y < canvas.height; y += step) {
+        ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+      }
+      ctx.stroke();
+    }
+
+    // Events: Pan & Zoom
+    function setupEvents() {
+      let isDragging = false;
+      let startX = 0, startY = 0;
+
+      container.addEventListener("mousedown", (e) => {
+        if (e.button !== 0 && e.button !== 1) return;
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (window.devicePixelRatio || 1);
+        const my = (e.clientY - rect.top) * (window.devicePixelRatio || 1);
+        const world = screenToWorld(mx, my);
+        statusBar.textContent = `X: ${world.x.toFixed(2)} | Y: ${world.y.toFixed(2)} | Nodes: ${state.polygon.points.length}`;
+
+        if (!isDragging) return;
+        const dx = (e.clientX - startX) * (window.devicePixelRatio || 1);
+        const dy = (e.clientY - startY) * (window.devicePixelRatio || 1);
+        startX = e.clientX;
+        startY = e.clientY;
+
+        state.viewport.offsetX -= dx / state.viewport.scale;
+        state.viewport.offsetY += dy / state.viewport.scale;
+        draw();
+      });
+
+      window.addEventListener("mouseup", () => { isDragging = false; });
+
+      container.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (window.devicePixelRatio || 1);
+        const my = (e.clientY - rect.top) * (window.devicePixelRatio || 1);
+
+        const worldBefore = screenToWorld(mx, my);
+        const factor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
+        state.viewport.scale *= factor;
+        const worldAfter = screenToWorld(mx, my);
+
+        state.viewport.offsetX += (worldBefore.x - worldAfter.x);
+        state.viewport.offsetY += (worldBefore.y - worldAfter.y);
+        draw();
+      }, { passive: false });
+
+      // Fit button
+      document.getElementById("btn-fit").addEventListener("click", () => {
+        fitExtents();
+        draw();
+      });
+
+      // Load custom DXF
+      const fileInput = document.getElementById("dxf-file-input");
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const parsed = parseDXF(evt.target.result);
+          if (parsed && parsed.length > 0 && parsed[0].points.length > 0) {
+            state.polygon = parsed[0];
+            updateBBox();
+            fitExtents();
+            updateUI();
+            draw();
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    // Clean Minimal DXF Parser
+    function parseDXF(text) {
+      if (!text) return [];
+      const lines = text.split(/\r?\n/);
+      const points = [];
+      let layer = "RECONSTRUCTED";
+      let inEntities = false;
+
+      for (let i = 0; i < lines.length - 1; i += 2) {
+        const code = parseInt(lines[i].trim(), 10);
+        const val = lines[i + 1].trim();
+
+        if (code === 0 && val.toUpperCase() === "SECTION") {
+          if (lines[i + 3]?.trim().toUpperCase() === "ENTITIES") inEntities = true;
+        }
+        if (code === 0 && val.toUpperCase() === "ENDSEC") inEntities = false;
+
+        if (inEntities) {
+          if (code === 8) layer = val;
+          if (code === 10) {
+            const x = parseFloat(val);
+            let y = 0;
+            if (parseInt(lines[i + 2]?.trim(), 10) === 20) {
+              y = parseFloat(lines[i + 3]?.trim());
+              i += 2;
+            }
+            if (!isNaN(x) && !isNaN(y)) points.push({ x, y });
+          }
+        }
+      }
+      return [{ layer, points, closed: true }];
+    }
+  </script>
+</body>
+</html>
