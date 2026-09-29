@@ -1172,12 +1172,29 @@
             <span class="geotiff-status" id="geotiff-status">No image loaded</span>
           </div>
           <div class="geotiff-panel">
-            <div class="opacity-row">
-              <label style="min-width:130px;">🛸 Drone TIF</label>
+
+            <!-- 1. DRONE SECTION -->
+            <div style="display:flex;align-items:center;gap:8px;margin-top:2px;margin-bottom:8px;">
+              <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:var(--accent-cyan);text-transform:uppercase;">🛸 Drone</span>
+              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(0,229,255,0.4), rgba(0,229,255,0.05));"></div>
+            </div>
+            <div class="opacity-row" style="margin-bottom:6px;">
+              <label style="min-width:130px;" title="Drone Satellite / Orthophoto Background (Trinidad_Dron_Resized.tif)">Transparencia TIF</label>
               <input type="range" class="opacity-slider" id="geotiff-opacity" min="0" max="100" value="100">
               <span class="opacity-val" id="geotiff-opacity-val">100%</span>
             </div>
-            <div class="opacity-row">
+
+            <!-- 2. ESCRITURA 1073 SECTION -->
+            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;margin-bottom:8px;">
+              <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#ff1744;text-transform:uppercase;">📜 Escritura 1073</span>
+              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(255,23,68,0.4), rgba(255,23,68,0.05));"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:0.72rem;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Toggle deed PDF background image visibility on field map">
+                <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;"> Mostrar Plano Escritura 1073 en Campo
+              </label>
+            </div>
+            <div class="opacity-row" style="margin-bottom:8px;">
               <label style="min-width:130px;" title="Warped Deed PDF Map Image on Field">📜 Plano Escritura 1073</label>
               <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="66">
               <span class="opacity-val" id="warped-pdf-opacity-val">66%</span>
@@ -1210,6 +1227,11 @@
               </div>
             </div>
 
+            <!-- 3. LA TRINIDAD SECTION -->
+            <div style="display:flex;align-items:center;gap:8px;margin-top:16px;margin-bottom:8px;">
+              <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#00e676;text-transform:uppercase;">📍 La Trinidad</span>
+              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(0,230,118,0.4), rgba(0,230,118,0.05));"></div>
+            </div>
             <div class="layer-control-block">
               <div class="opacity-row">
                 <label style="min-width:130px;" title="True Field Survey (Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf)">📍 Cercos La Trinidad</label>
@@ -1237,28 +1259,14 @@
                 </label>
               </div>
             </div>
-            <div style="display:flex;gap:12px;margin-top:4px;font-size:0.72rem;">
-              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
-                <input type="checkbox" id="chk-show-warped-pdf" checked> Show Plano Escritura 1073 on Field
-              </label>
-            </div>
-            <p class="geotiff-note">Adjust opacities to visually inspect deed alignment over the drone imagery, just like in PowerPoint.</p>
 
-            <!-- Deed Aspect Squeeze & Reset Controls -->
-            <div style="display:flex;flex-direction:column;gap:6px;padding:7px 10px;background:rgba(213,0,249,0.12);border:1.5px solid rgba(213,0,249,0.4);border-radius:6px;margin-top:6px;margin-bottom:6px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;">
-                <div style="display:flex;flex-direction:column;gap:2px;">
-                  <span style="font-size:0.75rem;font-weight:700;color:#d500f9;">📐 Deed Aspect Squeeze</span>
-                  <span id="deed-scale-display-sidebar" style="font-size:0.72rem;color:#f0f4f8;font-family:monospace;font-weight:600;">X: 100.0% | Y: 100.0%</span>
-                </div>
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <button id="btn-reset-deed-scale-sidebar" class="btn btn-sm" style="background:#d500f9;color:#ffffff;font-weight:bold;font-size:0.72rem;padding:3px 10px;cursor:pointer;box-shadow:0 0 10px rgba(213,0,249,0.4);" title="Reset Deed Aspect Ratio to 100% original (1:1)">↺ Reset</button>
-                </div>
+            <!-- Polygon Dynamic Styling Controls (By Sección) -->
+            <div id="poly-styling-container" style="display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;margin-top:6px;">
+              <div style="font-size:0.71rem;font-weight:700;color:var(--text-main);display:flex;align-items:center;justify-content:space-between;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,0.08);">
+                <span>🎨 Lindero La Trinidad Reconstruido</span>
               </div>
-              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.71rem;color:var(--accent-cyan);font-weight:600;border-top:1px solid rgba(213,0,249,0.25);padding-top:5px;margin-top:2px;" title="Equivalent Aspect Ratio: Whichever scale/reduction is applied to one axis is equivalently applied to the other axis to preserve true document aspect ratio">
-                <input type="checkbox" id="chk-lock-deed-aspect" style="accent-color:var(--accent-cyan);">
-                🔗 Match Equivalent Aspect (Link X & Y)
-              </label>
+              <!-- Dynamic Sections Styling List -->
+              <div id="section-styling-list" style="display:flex;flex-direction:column;gap:5px;"></div>
             </div>
 
             <!-- Reference DXFs Subpanel Container (Temporary Layers) -->
@@ -1273,15 +1281,6 @@
               <div id="ref-dxf-list" style="display:flex;flex-direction:column;gap:6px;"></div>
             </div>
 
-            <!-- Polygon Dynamic Styling Controls (By Sección) -->
-            <div id="poly-styling-container" style="display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;margin-top:6px;">
-              <div style="font-size:0.71rem;font-weight:700;color:var(--text-main);display:flex;align-items:center;justify-content:space-between;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,0.08);">
-                <span>🎨 Lindero La Trinidad Reconstruido</span>
-              </div>
-              
-              <!-- Dynamic Sections Styling List (Each section has its own card: Title + Nodes chk, Color swatch, Dash select, Width select) -->
-              <div id="section-styling-list" style="display:flex;flex-direction:column;gap:5px;"></div>
-            </div>
           </div>
         </section>
 
