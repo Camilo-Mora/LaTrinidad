@@ -3,217 +3,99 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>La Trinidad - Boundary & Comparison Dashboard</title>
-  <meta name="description" content="Modular interactive dashboard for La Trinidad: comparing historical escrituras, field surveys, and optimized reconstructed boundaries with PowerPoint-style opacity blending, independent anchors, and high-res vector rendering.">
-
-  <!-- External Libraries (GeoTIFF, PDF.js, jsPDF) -->
-  <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>
-    if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-  </script>
-
+  <title>La Trinidad - Reconstructed Boundary</title>
   <style>
     :root {
-      --bg-dark: #07090e;
-      --bg-panel: #0d121d;
-      --bg-card: #131b2a;
-      --bg-input: #1a2438;
+      --bg-dark: #0a0d14;
+      --bg-header: #101622;
       --border-color: rgba(255, 255, 255, 0.12);
-      --border-focus: #00e5ff;
+      --accent-cyan: #00e5ff;
       --text-main: #e2e8f0;
       --text-muted: #94a3b8;
-      --accent-cyan: #00e5ff;
-      --accent-purple: #d500f9;
-      --accent-red: #ff1744;
-      --accent-orange: #ff9100;
-      --accent-green: #00e676;
-      --accent-yellow: #ffea00;
-      --accent-blue: #2979ff;
-      --radius-sm: 4px;
-      --radius-md: 8px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg-dark);
       color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       height: 100vh;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
-    /* ==========================================================================
-       HEADER & NAVIGATION
-       ========================================================================== */
-    .app-header {
-      background: var(--bg-panel);
+    /* Header */
+    header {
+      background: var(--bg-header);
       border-bottom: 1px solid var(--border-color);
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px 14px;
-      height: 48px;
-      z-index: 100;
-      gap: 12px;
+      padding: 0 16px;
+      z-index: 10;
     }
 
-    .brand-section {
+    .brand {
       display: flex;
       align-items: center;
       gap: 10px;
-      min-width: 220px;
     }
-    .brand-logo {
-      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
+    .brand h1 {
+      font-size: 0.95rem;
+      font-weight: 700;
       color: #fff;
     }
-    .brand-titles h1 { font-size: 0.95rem; font-weight: 700; color: #fff; line-height: 1.1; }
-    .brand-titles p { font-size: 0.68rem; color: var(--accent-cyan); font-weight: 500; }
-
-    /* Pill Display Selector */
-    .window-selector-group {
-      display: inline-flex;
-      align-items: center;
-      gap: 14px;
-      background: rgba(0, 0, 0, 0.55);
-      border: 1px solid var(--border-color);
-      padding: 4px 14px;
-      border-radius: 20px;
+    .brand span {
+      font-size: 0.72rem;
+      color: var(--accent-cyan);
     }
-    .window-checkbox {
+
+    .header-controls {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
-      cursor: pointer;
-      user-select: none;
-    }
-    .window-checkbox input[type="checkbox"] {
-      width: 14px;
-      height: 14px;
-      cursor: pointer;
+      gap: 10px;
     }
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Buttons */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      border-radius: var(--radius-sm);
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-    }
-    .btn-sm { padding: 3px 7px; font-size: 0.7rem; }
-    .btn-primary { background: linear-gradient(135deg, #2979ff, #1565c0); color: #fff; }
-    .btn-primary:hover { filter: brightness(1.15); box-shadow: 0 0 8px rgba(41, 121, 255, 0.4); }
-    .btn-secondary { background: rgba(255, 255, 255, 0.08); border-color: var(--border-color); color: var(--text-main); }
-    .btn-secondary:hover { background: rgba(255, 255, 255, 0.18); }
-    .btn-success { background: linear-gradient(135deg, #00c853, #00e676); color: #000; font-weight: 700; }
-    .btn-success:hover { filter: brightness(1.15); box-shadow: 0 0 8px rgba(0, 230, 118, 0.4); }
-    .btn-accent { background: rgba(213, 0, 249, 0.2); border-color: var(--accent-purple); color: var(--accent-purple); }
-    .btn-accent:hover { background: rgba(213, 0, 249, 0.35); }
-
-    /* ==========================================================================
-       WORKSPACE LAYOUT
-       ========================================================================== */
-    .app-workspace {
-      display: flex;
-      flex: 1;
-      height: calc(100vh - 48px);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .split-viewport-area {
-      flex: 1;
-      display: flex;
-      height: 100%;
-      overflow: hidden;
-      background: #040609;
-      position: relative;
-    }
-
-    .viewport-card {
-      flex: 1;
-      min-width: 0;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      border-right: 1px solid var(--border-color);
-      position: relative;
-      background: #05080e;
-    }
-    .viewport-card:last-child { border-right: none; }
-    .viewport-card.hidden { display: none !important; }
-
-    .viewport-header {
-      height: 38px;
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 10px;
-      z-index: 10;
-    }
-    .view-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .title-296 { color: var(--accent-purple); }
-    .title-1073 { color: var(--accent-red); }
-    .title-196 { color: var(--accent-orange); }
-    .title-true { color: var(--accent-green); }
-
-    .view-controls {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .view-badge {
-      font-size: 0.65rem;
-      padding: 2px 6px;
-      border-radius: 10px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--border-color);
-      color: var(--text-muted);
+      color: var(--text-main);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
-    .view-badge.green { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border-color: rgba(0, 230, 118, 0.3); }
-    .view-badge.red { background: rgba(255, 23, 68, 0.15); color: var(--accent-red); border-color: rgba(255, 23, 68, 0.3); }
+    .btn:hover { background: rgba(255, 255, 255, 0.16); }
+    .btn-cyan {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.08);
+    }
 
-    .canvas-container {
+    .badge {
+      font-size: 0.7rem;
+      font-family: monospace;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--accent-cyan);
+    }
+
+    /* Canvas Area */
+    main {
       flex: 1;
       position: relative;
       overflow: hidden;
       cursor: crosshair;
     }
-    .canvas-container canvas {
+    canvas {
       position: absolute;
       top: 0;
       left: 0;
@@ -221,1609 +103,277 @@
       height: 100%;
     }
 
-    /* Viewport bottom hint & tools bar */
-    .viewport-hint {
-      height: 30px;
-      background: rgba(10, 15, 25, 0.95);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      padding: 0 8px;
-      z-index: 10;
-    }
-    .vp-tool-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-muted);
-      border-radius: var(--radius-sm);
-      width: 24px;
-      height: 24px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.75rem;
-    }
-    .vp-tool-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
-    .vp-tool-btn.active { background: rgba(0, 229, 255, 0.15); border-color: var(--accent-cyan); color: var(--accent-cyan); }
-    .vp-tool-sep { width: 1px; height: 14px; background: var(--border-color); margin: 0 2px; }
-
-    /* ==========================================================================
-       SIDEBAR CONTROL PANEL
-       ========================================================================== */
-    .sidebar {
-      width: 360px;
-      background: var(--bg-panel);
-      border-left: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow-y: auto;
-      z-index: 20;
-      transition: width 0.2s ease, opacity 0.2s ease;
-    }
-    .sidebar.collapsed {
-      display: none !important;
-    }
-
-    .panel-card {
-      border-bottom: 1px solid var(--border-color);
-      padding: 10px 12px;
-    }
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .panel-header h3 {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* PowerPoint Opacity Controls */
-    .opacity-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 5px;
-      font-size: 0.74rem;
-    }
-    .opacity-row label {
-      min-width: 130px;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .opacity-slider {
-      flex: 1;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 2px;
-      outline: none;
-      -webkit-appearance: none;
-      cursor: pointer;
-    }
-    .opacity-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #fff;
-      cursor: pointer;
-      box-shadow: 0 0 4px rgba(0,0,0,0.5);
-    }
-    .opacity-val {
-      min-width: 34px;
-      text-align: right;
-      font-size: 0.68rem;
-      color: var(--accent-cyan);
-      font-family: monospace;
-    }
-
-    .layer-control-block {
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: var(--radius-sm);
-      padding: 6px 8px;
-      margin-bottom: 6px;
-    }
-    .style-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 4px;
-      font-size: 0.72rem;
-    }
-    .color-picker-swatch {
-      width: 18px;
-      height: 18px;
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 3px;
-      cursor: pointer;
-      padding: 0;
-      background: none;
-    }
-    .style-select {
-      background: rgba(255, 255, 255, 0.08);
+    /* Floating Status Bar */
+    .status-bar {
+      position: absolute;
+      bottom: 12px;
+      left: 16px;
+      background: rgba(16, 22, 34, 0.85);
       border: 1px solid var(--border-color);
-      color: #fff;
-      border-radius: 3px;
-      font-size: 0.68rem;
-      padding: 2px 4px;
-    }
-    .chk-nodes-label {
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
       color: var(--text-muted);
-      cursor: pointer;
-      font-size: 0.68rem;
-    }
-
-    /* Anchors Section */
-    .badge-rmse {
-      background: rgba(0, 229, 255, 0.15);
-      color: var(--accent-cyan);
-      border: 1px solid rgba(0, 229, 255, 0.3);
-      border-radius: 10px;
       font-family: monospace;
-      font-weight: 700;
-    }
-
-    .anchor-table-wrapper {
-      max-height: 240px;
-      overflow-y: auto;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: var(--radius-sm);
-      background: rgba(0, 0, 0, 0.3);
-    }
-    .anchor-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.68rem;
-    }
-    .anchor-table th {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-muted);
-      padding: 3px 5px;
-      font-weight: 600;
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-    .anchor-table td {
-      padding: 2px 5px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      color: var(--text-main);
-      font-family: monospace;
-      white-space: nowrap;
-    }
-    .anchor-deed-divider {
-      background: rgba(255, 255, 255, 0.04);
-      font-weight: 700;
-      color: var(--accent-cyan);
-      padding: 4px 6px !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
-    }
-
-    /* ==========================================================================
-       VECTORIZER / EDIT MODAL
-       ========================================================================== */
-    .vectorizer-modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .vectorizer-modal-overlay.visible { display: flex; }
-
-    .vectorizer-modal {
-      width: 90vw;
-      height: 85vh;
-      background: var(--bg-panel);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .modal-header {
-      padding: 8px 14px;
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .modal-title { font-size: 0.85rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
-    .modal-body {
-      flex: 1;
-      display: flex;
-      position: relative;
-      overflow: hidden;
-    }
-    .modal-canvas-area {
-      flex: 1;
-      position: relative;
-      background: #030508;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
 
-  <!-- ==========================================================================
-       HEADER
-       ========================================================================== -->
-  <header class="app-header">
-    <div class="brand-section">
-      <div class="brand-logo">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-          <polyline points="2 17 12 22 22 17"></polyline>
-          <polyline points="2 12 12 17 22 12"></polyline>
-        </svg>
-      </div>
-      <div class="brand-titles">
-        <h1>La Trinidad</h1>
-        <p>Boundary & Comparison Dashboard</p>
-      </div>
+  <header>
+    <div class="brand">
+      <h1>La Trinidad</h1>
+      <span>Layer 1: Reconstructed Boundary</span>
+      <span class="badge" id="poly-badge">Loading...</span>
     </div>
-
-    <!-- Window & Panel Selector (Pill Container) -->
-    <div class="window-selector-group">
-      <label class="window-checkbox" title="Toggle Escritura 296 Display">
-        <input type="checkbox" id="chk-show-296" style="accent-color:var(--accent-purple);">
-        <span style="color:var(--accent-purple);font-weight:700;">Escritura 296</span>
+    <div class="header-controls">
+      <label class="btn" title="Load custom or updated DXF file">
+        📂 Load DXF
+        <input type="file" id="dxf-file-input" accept=".dxf" style="display:none;">
       </label>
-      <label class="window-checkbox" title="Toggle Escritura 1073 Display">
-        <input type="checkbox" id="chk-show-1073" style="accent-color:var(--accent-red);">
-        <span style="color:var(--accent-red);font-weight:700;">Escritura 1073</span>
-      </label>
-      <label class="window-checkbox" title="Toggle Escritura 196 Display">
-        <input type="checkbox" id="chk-show-196" style="accent-color:var(--accent-orange);">
-        <span style="color:var(--accent-orange);font-weight:700;">Escritura 196</span>
-      </label>
-      <label class="window-checkbox" title="Toggle Field Survey Display">
-        <input type="checkbox" id="chk-show-true" checked style="accent-color:var(--accent-green);">
-        <span style="color:var(--accent-green);font-weight:700;">Field</span>
-      </label>
-      <label class="window-checkbox" title="Toggle Sidebar Control Panel" style="margin-left:6px;border-left:1px solid rgba(255,255,255,0.2);padding-left:10px;">
-        <input type="checkbox" id="chk-show-sidebar" checked style="accent-color:var(--accent-cyan);">
-        <span style="color:var(--accent-cyan);font-weight:700;">Control Panel</span>
-      </label>
-    </div>
-
-    <!-- Header Actions -->
-    <div class="header-actions">
-      <button id="btn-toggle-snap" class="btn btn-secondary btn-sm" style="border-color:var(--accent-cyan); color:var(--accent-cyan);" title="Toggle Snapping">🧲 Snap: ON</button>
-      <button id="btn-export-dxf" class="btn btn-success btn-sm" title="Export Current Composite DXF">Export DXF</button>
-      <button id="btn-export-pdf" class="btn btn-primary btn-sm" title="Export High-Resolution PDF">Export PDF</button>
+      <button class="btn btn-cyan" id="btn-fit" title="Fit to polygon extents">⛶ Fit View</button>
     </div>
   </header>
 
-  <!-- ==========================================================================
-       WORKSPACE
-       ========================================================================== -->
-  <main class="app-workspace">
-    <!-- Split Viewports Area -->
-    <div class="split-viewport-area" id="viewport-area">
-      
-      <!-- Viewport Escritura 296 -->
-      <div class="viewport-card hidden" id="card-296">
-        <div class="viewport-header">
-          <span class="view-title title-296">📜 Escritura 296</span>
-          <div class="view-controls">
-            <button class="btn btn-accent btn-sm" id="btn-edit-296" title="Edit / Vectorize DXF for Escritura 296">✏️</button>
-            <label class="btn btn-secondary btn-sm" style="cursor:pointer;" title="Load custom DXF for Escritura 296">
-              Load DXF
-              <input type="file" id="file-dxf-296" accept=".dxf" style="display:none;">
-            </label>
-            <button class="btn btn-secondary btn-sm" id="btn-dl-dxf-296" title="Download DXF for Escritura 296">⬇️ DXF</button>
-            <span id="status-296" class="view-badge">DXF Ready</span>
-          </div>
-        </div>
-        <div class="canvas-container" id="container-296">
-          <canvas id="canvas-296"></canvas>
-        </div>
-        <div class="viewport-hint">
-          <button class="vp-tool-btn active" data-map="296" data-mode="pan" title="Pan Mode [P]">🖐️</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="296" data-mode="anchor" title="Anchor Mode [A]">🎯</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="296" data-mode="fit" title="Fit Extents">⛶</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="296" data-mode="measure" title="Measure">📏</button>
-        </div>
-      </div>
-
-      <!-- Viewport Escritura 1073 -->
-      <div class="viewport-card hidden" id="card-1073">
-        <div class="viewport-header">
-          <span class="view-title title-1073">📜 Escritura 1073</span>
-          <div class="view-controls">
-            <button class="btn btn-accent btn-sm" id="btn-edit-1073" title="Edit / Vectorize DXF for Escritura 1073">✏️</button>
-            <label class="btn btn-secondary btn-sm" style="cursor:pointer;" title="Load custom DXF for Escritura 1073">
-              Load DXF
-              <input type="file" id="file-dxf-1073" accept=".dxf" style="display:none;">
-            </label>
-            <button class="btn btn-secondary btn-sm" id="btn-dl-dxf-1073" title="Download DXF for Escritura 1073">⬇️ DXF</button>
-            <span id="status-1073" class="view-badge red">DXF Ready</span>
-          </div>
-        </div>
-        <div class="canvas-container" id="container-1073">
-          <canvas id="canvas-1073"></canvas>
-        </div>
-        <div class="viewport-hint">
-          <button class="vp-tool-btn active" data-map="1073" data-mode="pan" title="Pan Mode [P]">🖐️</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="1073" data-mode="anchor" title="Anchor Mode [A]">🎯</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="1073" data-mode="fit" title="Fit Extents">⛶</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="1073" data-mode="measure" title="Measure">📏</button>
-        </div>
-      </div>
-
-      <!-- Viewport Escritura 196 -->
-      <div class="viewport-card hidden" id="card-196">
-        <div class="viewport-header">
-          <span class="view-title title-196">📜 Escritura 196</span>
-          <div class="view-controls">
-            <button class="btn btn-accent btn-sm" id="btn-edit-196" title="Edit / Vectorize DXF for Escritura 196">✏️</button>
-            <label class="btn btn-secondary btn-sm" style="cursor:pointer;" title="Load custom DXF for Escritura 196">
-              Load DXF
-              <input type="file" id="file-dxf-196" accept=".dxf" style="display:none;">
-            </label>
-            <button class="btn btn-secondary btn-sm" id="btn-dl-dxf-196" title="Download DXF for Escritura 196">⬇️ DXF</button>
-            <span id="status-196" class="view-badge">DXF Ready</span>
-          </div>
-        </div>
-        <div class="canvas-container" id="container-196">
-          <canvas id="canvas-196"></canvas>
-        </div>
-        <div class="viewport-hint">
-          <button class="vp-tool-btn active" data-map="196" data-mode="pan" title="Pan Mode [P]">🖐️</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="196" data-mode="anchor" title="Anchor Mode [A]">🎯</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="196" data-mode="fit" title="Fit Extents">⛶</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="196" data-mode="measure" title="Measure">📏</button>
-        </div>
-      </div>
-
-      <!-- Field Survey Viewport (Main Stage) -->
-      <div class="viewport-card" id="card-true">
-        <div class="viewport-header">
-          <span class="view-title title-true">📍 Field Data (Composite)</span>
-          <div class="view-controls">
-            <label class="btn btn-secondary btn-sm" title="Load Drone GeoTIFF">
-              🗺️ GeoTIFF
-              <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff" style="display:none;">
-            </label>
-            <label class="window-checkbox" style="font-size:0.7rem;margin-right:2px;" title="Full native resolution toggle">
-              <input type="checkbox" id="chk-geotiff-fullres">
-              <span style="color:var(--accent-cyan);">Full Res</span>
-            </label>
-            <label class="btn btn-secondary btn-sm" title="Load Custom Field DXF">
-              Load Field DXF
-              <input type="file" id="true-dxf-input" accept=".dxf" style="display:none;">
-            </label>
-            <span id="status-true" class="view-badge green">Field Active</span>
-          </div>
-        </div>
-        <div class="canvas-container" id="container-true">
-          <canvas id="canvas-true"></canvas>
-        </div>
-        <div class="viewport-hint">
-          <button class="vp-tool-btn active" data-map="true" data-mode="pan" title="Pan Mode [P]">🖐️</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="true" data-mode="anchor" title="Anchor Mode [A]">🎯</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Fit Extents">⛶</button>
-          <div class="vp-tool-sep"></div>
-          <button class="vp-tool-btn" data-map="true" data-mode="measure" title="Measure">📏</button>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ==========================================================================
-         SIDEBAR: CONTROL PANEL
-         ========================================================================== -->
-    <aside class="sidebar" id="sidebar">
-
-      <!-- Panel 1: PowerPoint Mode Overlays & Opacity -->
-      <section class="panel-card" id="panel-overlays">
-        <div class="panel-header">
-          <h3>🎨 Overlays & Opacity (PowerPoint Mode)</h3>
-          <span id="geotiff-badge" class="view-badge">No TIF</span>
-        </div>
-
-        <!-- 1. Drone GeoTIFF -->
-        <div class="opacity-row" style="margin-bottom:8px;">
-          <label title="Drone Satellite / Orthophoto Background">🛸 Drone TIF</label>
-          <input type="range" class="opacity-slider" id="slider-tif-opacity" min="0" max="100" value="100">
-          <span class="opacity-val" id="val-tif-opacity">100%</span>
-        </div>
-
-        <!-- 2. Hero: Reconstructed Boundary (Optimized) -->
-        <div class="layer-control-block" style="border-color:rgba(0,229,255,0.4);background:rgba(0,229,255,0.04);">
-          <div class="opacity-row">
-            <label style="color:var(--accent-cyan);font-weight:700;" title="Optimized Boundary Polygon delivered by GeoRectifier">⭐ Reconstructed Boundary</label>
-            <input type="range" class="opacity-slider" id="slider-opt-opacity" min="0" max="100" value="100">
-            <span class="opacity-val" id="val-opt-opacity">100%</span>
-          </div>
-          <div class="style-row">
-            <div style="display:flex;align-items:center;gap:5px;">
-              <input type="color" id="style-opt-color" value="#00e5ff" class="color-picker-swatch" title="Line Color">
-              <select id="style-opt-dash" class="style-select" title="Line Style">
-                <option value="solid" selected>Solid ——</option>
-                <option value="dashed">Dashed — —</option>
-                <option value="dotted">Dotted · · ·</option>
-              </select>
-              <select id="style-opt-width" class="style-select" title="Line Width">
-                <option value="1">1px</option>
-                <option value="2">2px</option>
-                <option value="3" selected>3px</option>
-                <option value="4">4px</option>
-                <option value="6">6px</option>
-              </select>
-            </div>
-            <label class="chk-nodes-label">
-              <input type="checkbox" id="style-opt-nodes" checked style="accent-color:var(--accent-cyan);"> Nodes
-            </label>
-          </div>
-        </div>
-
-        <!-- 3. Escritura 1073 (Plan + DXF) -->
-        <div class="layer-control-block">
-          <div class="opacity-row">
-            <label title="Warped Deed PDF Background">📜 Plano 1073</label>
-            <input type="range" class="opacity-slider" id="slider-pdf-1073-opacity" min="0" max="100" value="60">
-            <span class="opacity-val" id="val-pdf-1073-opacity">60%</span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:0.7rem;">
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-muted);">
-              <input type="checkbox" id="chk-show-pdf-1073" checked style="accent-color:var(--accent-red);"> Show Plan on Field
-            </label>
-          </div>
-          <div class="opacity-row">
-            <label style="color:var(--accent-red);font-weight:600;" title="Escritura 1073 Polygon DXF">📐 Poligono 1073</label>
-            <input type="range" class="opacity-slider" id="slider-dxf-1073-opacity" min="0" max="100" value="90">
-            <span class="opacity-val" id="val-dxf-1073-opacity">90%</span>
-          </div>
-          <div class="style-row">
-            <div style="display:flex;align-items:center;gap:5px;">
-              <input type="color" id="style-1073-color" value="#ff1744" class="color-picker-swatch">
-              <select id="style-1073-dash" class="style-select">
-                <option value="solid">Solid ——</option>
-                <option value="dashed">Dashed — —</option>
-                <option value="dotted" selected>Dotted · · ·</option>
-              </select>
-              <select id="style-1073-width" class="style-select">
-                <option value="1">1px</option>
-                <option value="2">2px</option>
-                <option value="3" selected>3px</option>
-                <option value="4">4px</option>
-              </select>
-            </div>
-            <label class="chk-nodes-label">
-              <input type="checkbox" id="style-1073-nodes" style="accent-color:var(--accent-red);"> Nodes
-            </label>
-          </div>
-        </div>
-
-        <!-- 4. Escritura 296 (Plan + DXF) -->
-        <div class="layer-control-block">
-          <div class="opacity-row">
-            <label title="Warped Deed PDF Background">📜 Plano 296</label>
-            <input type="range" class="opacity-slider" id="slider-pdf-296-opacity" min="0" max="100" value="50">
-            <span class="opacity-val" id="val-pdf-296-opacity">50%</span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:0.7rem;">
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-muted);">
-              <input type="checkbox" id="chk-show-pdf-296" checked style="accent-color:var(--accent-purple);"> Show Plan on Field
-            </label>
-          </div>
-          <div class="opacity-row">
-            <label style="color:var(--accent-purple);font-weight:600;">📐 Poligono 296</label>
-            <input type="range" class="opacity-slider" id="slider-dxf-296-opacity" min="0" max="100" value="85">
-            <span class="opacity-val" id="val-dxf-296-opacity">85%</span>
-          </div>
-          <div class="style-row">
-            <div style="display:flex;align-items:center;gap:5px;">
-              <input type="color" id="style-296-color" value="#d500f9" class="color-picker-swatch">
-              <select id="style-296-dash" class="style-select">
-                <option value="solid" selected>Solid ——</option>
-                <option value="dashed">Dashed — —</option>
-                <option value="dotted">Dotted · · ·</option>
-              </select>
-              <select id="style-296-width" class="style-select">
-                <option value="1">1px</option>
-                <option value="2" selected>2px</option>
-                <option value="3">3px</option>
-              </select>
-            </div>
-            <label class="chk-nodes-label">
-              <input type="checkbox" id="style-296-nodes" style="accent-color:var(--accent-purple);"> Nodes
-            </label>
-          </div>
-        </div>
-
-        <!-- 5. Escritura 196 (Plan + DXF) -->
-        <div class="layer-control-block">
-          <div class="opacity-row">
-            <label title="Warped Deed PDF Background">📜 Plano 196</label>
-            <input type="range" class="opacity-slider" id="slider-pdf-196-opacity" min="0" max="100" value="50">
-            <span class="opacity-val" id="val-pdf-196-opacity">50%</span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:0.7rem;">
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-muted);">
-              <input type="checkbox" id="chk-show-pdf-196" checked style="accent-color:var(--accent-orange);"> Show Plan on Field
-            </label>
-          </div>
-          <div class="opacity-row">
-            <label style="color:var(--accent-orange);font-weight:600;">📐 Poligono 196</label>
-            <input type="range" class="opacity-slider" id="slider-dxf-196-opacity" min="0" max="100" value="85">
-            <span class="opacity-val" id="val-dxf-196-opacity">85%</span>
-          </div>
-          <div class="style-row">
-            <div style="display:flex;align-items:center;gap:5px;">
-              <input type="color" id="style-196-color" value="#ff9100" class="color-picker-swatch">
-              <select id="style-196-dash" class="style-select">
-                <option value="solid" selected>Solid ——</option>
-                <option value="dashed">Dashed — —</option>
-                <option value="dotted">Dotted · · ·</option>
-              </select>
-              <select id="style-196-width" class="style-select">
-                <option value="1">1px</option>
-                <option value="2" selected>2px</option>
-                <option value="3">3px</option>
-              </select>
-            </div>
-            <label class="chk-nodes-label">
-              <input type="checkbox" id="style-196-nodes" style="accent-color:var(--accent-orange);"> Nodes
-            </label>
-          </div>
-        </div>
-
-        <!-- 6. Cercos Field Survey (2019 & 2026) -->
-        <div class="layer-control-block">
-          <div class="opacity-row">
-            <label style="color:var(--accent-green);font-weight:600;">📍 Cercos 2019</label>
-            <input type="range" class="opacity-slider" id="slider-true-2019-opacity" min="0" max="100" value="80">
-            <span class="opacity-val" id="val-true-2019-opacity">80%</span>
-          </div>
-          <div class="style-row">
-            <div style="display:flex;align-items:center;gap:5px;">
-              <input type="color" id="style-2019-color" value="#00e676" class="color-picker-swatch">
-              <select id="style-2019-dash" class="style-select">
-                <option value="solid" selected>Solid ——</option>
-                <option value="dashed">Dashed — —</option>
-              </select>
-              <select id="style-2019-width" class="style-select"><option value="1">1px</option><option value="2" selected>2px</option></select>
-            </div>
-            <label class="chk-nodes-label"><input type="checkbox" id="style-2019-nodes" style="accent-color:var(--accent-green);"> Nodes</label>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- Panel 2: Anchor Control Point Pairs -->
-      <section class="panel-card" id="panel-anchors">
-        <div class="panel-header">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <h3>🎯 Control Point Pairs</h3>
-            <span id="rmse-display" class="badge-rmse" style="padding:2px 6px;font-size:0.68rem;">RMSE: 0.00</span>
-          </div>
-          <div style="display:flex;gap:4px;">
-            <button id="btn-save-all-anchors" class="btn btn-sm btn-success" title="Save All Anchors">Save</button>
-            <label class="btn btn-sm btn-secondary" style="cursor:pointer;" title="Load Anchors JSON">
-              Load
-              <input type="file" id="file-load-anchors" accept=".json" style="display:none;">
-            </label>
-          </div>
-        </div>
-
-        <!-- Transformation Method Selector -->
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:0.74rem;">
-          <label for="algorithm-select" style="color:var(--accent-cyan);font-weight:600;">Method:</label>
-          <select id="algorithm-select" class="style-select" style="flex:1;">
-            <option value="SIMILARITY" selected>Helmert Similarity (PowerPoint Rotate+Scale)</option>
-            <option value="AFFINE">Affine Transformation (6-Param)</option>
-            <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
-            <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
-          </select>
-        </div>
-
-        <!-- Constrain Option -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:0.7rem;">
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--accent-cyan);">
-            <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
-            Constrain to Vertices (±3.0m)
-          </label>
-          <span style="color:var(--text-muted);font-size:0.65rem;" id="anchor-total-count">0 anchors</span>
-        </div>
-
-        <!-- Consolidated Table: All Anchors Separated by Deed Divider -->
-        <div class="anchor-table-wrapper">
-          <table class="anchor-table">
-            <thead>
-              <tr>
-                <th style="width:28px;text-align:center;">Use</th>
-                <th style="width:24px;">#</th>
-                <th>Source (Hist X, Y)</th>
-                <th>Target (Field X, Y)</th>
-                <th style="text-align:right;">Err(m)</th>
-              </tr>
-            </thead>
-            <tbody id="anchor-table-body">
-              <!-- Dynamically populated rows for 1073, 296, 196 with dividers -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-    </aside>
+  <main id="canvas-container">
+    <canvas id="map-canvas"></canvas>
+    <div class="status-bar" id="status-bar">Cursor: — | Nodes: 0</div>
   </main>
 
-  <!-- ==========================================================================
-       VECTORIZER / EDIT MODAL (Streamlined)
-       ========================================================================== -->
-  <div class="vectorizer-modal-overlay" id="vec-modal">
-    <div class="vectorizer-modal">
-      <div class="modal-header">
-        <span class="modal-title" id="vec-modal-title">✏️ Vectorize & Edit Polygon</span>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <label class="btn btn-secondary btn-sm" style="cursor:pointer;" title="Load DXF file">
-            📂 Load DXF
-            <input type="file" id="vec-file-dxf" accept=".dxf" style="display:none;">
-          </label>
-          <button class="btn btn-primary btn-sm" id="btn-vec-download-dxf" title="Download current vector polygon as DXF">⬇️ Download DXF</button>
-          <button class="btn btn-secondary btn-sm" id="btn-vec-close" title="Close Vectorizer">✕ Close</button>
-        </div>
-      </div>
-      <div class="modal-body">
-        <div class="modal-canvas-area">
-          <canvas id="vec-canvas"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================================================
-       CORE APPLICATION JAVASCRIPT
-       ========================================================================== -->
   <script>
-    /* ==========================================================================
-       1. DATA STRUCTURES & STATE
-       ========================================================================== */
+    // Embedded default 49 vertices from LaTrinidadOptimized.dxf (ensures instant load even on file:// protocol)
+    const DEFAULT_VERTICES = [
+      { x: 1098077.13, y: 877078.7 },
+      { x: 1098130.83, y: 877073.26 },
+      { x: 1098148.88, y: 877134.63 },
+      { x: 1098167.46, y: 877173.35 },
+      { x: 1098170.92, y: 877221.25 },
+      { x: 1098188.42, y: 877239.38 },
+      { x: 1098236.42, y: 877233.15 },
+      { x: 1098256.09, y: 877218.42 },
+      { x: 1098285.34, y: 877228.61 },
+      { x: 1098314.92, y: 877221.94 },
+      { x: 1098327.91, y: 877203.22 },
+      { x: 1098357.6,  y: 877196.86 },
+      { x: 1098440.09, y: 877195.83 },
+      { x: 1098453.75, y: 877169.58 },
+      { x: 1098453.94, y: 877135.05 },
+      { x: 1098471.69, y: 877114.15 },
+      { x: 1098522.61, y: 877085.37 },
+      { x: 1098539.02, y: 877048.98 },
+      { x: 1098544.69, y: 877014.28 },
+      { x: 1098526.47, y: 876985.31 },
+      { x: 1098516.48, y: 876934.34 },
+      { x: 1098481.56, y: 876878.88 },
+      { x: 1098451.27, y: 876856.88 },
+      { x: 1098399.71, y: 876841.67 },
+      { x: 1098379.8,  y: 876822.42 },
+      { x: 1098348.65, y: 876767.14 },
+      { x: 1098343.83, y: 876722.9 },
+      { x: 1098305.88, y: 876673.84 },
+      { x: 1098254.49, y: 876622.68 },
+      { x: 1098197.6,  y: 876587.52 },
+      { x: 1098135.88, y: 876571.86 },
+      { x: 1098059.25, y: 876579.52 },
+      { x: 1097980.24, y: 876587.42 },
+      { x: 1097906.56, y: 876574.96 },
+      { x: 1097834.62, y: 876547.46 },
+      { x: 1097772.28, y: 876545.06 },
+      { x: 1097707.3,  y: 876670.74 },
+      { x: 1097720.69, y: 876793.68 },
+      { x: 1097754.47, y: 876911.36 },
+      { x: 1097783.3,  y: 876962.63 },
+      { x: 1097830.43, y: 877000.32 },
+      { x: 1097893.36, y: 877028.26 },
+      { x: 1097950.41, y: 877047.88 },
+      { x: 1098007.83, y: 877058.46 },
+      { x: 1098048.8,  y: 877059.98 },
+      { x: 1098059.18, y: 877058.43 },
+      { x: 1098068.73, y: 877057.48 },
+      { x: 1098076.01, y: 877056.11 }
+    ];
+
+    // App state: single polygon layer
     const state = {
-      // Visibility toggles
-      show296: false,
-      show1073: false,
-      show196: false,
-      showTrue: true,
-      showSidebar: true,
-
-      // Active Tool modes: 'pan', 'anchor', 'measure'
-      activeTool: 'pan',
-      snapping: true,
-
-      // Transformation Algorithm: 'SIMILARITY', 'AFFINE', 'TPS', 'PROJECTIVE'
-      algorithm: 'SIMILARITY',
-
-      // Layer Styles & Opacities
-      styles: {
-        tifOpacity: 1.0,
-        optOpacity: 1.0,
-        optColor: '#00e5ff',
-        optDash: 'solid',
-        optWidth: 3,
-        optNodes: true,
-
-        pdf1073Opacity: 0.60,
-        showPdf1073: true,
-        dxf1073Opacity: 0.90,
-        color1073: '#ff1744',
-        dash1073: 'dotted',
-        width1073: 3,
-        nodes1073: false,
-
-        pdf296Opacity: 0.50,
-        showPdf296: true,
-        dxf296Opacity: 0.85,
-        color296: '#d500f9',
-        dash296: 'solid',
-        width296: 2,
-        nodes296: false,
-
-        pdf196Opacity: 0.50,
-        showPdf196: true,
-        dxf196Opacity: 0.85,
-        color196: '#ff9100',
-        dash196: 'solid',
-        width196: 2,
-        nodes196: false,
-
-        true2019Opacity: 0.80,
-        color2019: '#00e676',
-        dash2019: 'solid',
-        width2019: 2,
-        nodes2019: false
+      polygon: {
+        layer: "LATRINIDAD_OPTIMIZED",
+        points: [...DEFAULT_VERTICES],
+        closed: true
       },
-
-      // Viewport Cameras (scale, offsetX, offsetY, bounding boxes)
-      viewports: {
-        '296':  { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
-        '1073': { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
-        '196':  { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
-        'true': { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null }
-      },
-
-      // Anchors per deed
-      anchors: {
-        '1073': [],
-        '296': [],
-        '196': []
-      },
-
-      // Loaded Vector Entities (Polylines / Polygons)
-      entities: {
-        'opt': [],   // Reconstructed Boundary (LaTrinidadOptimized.dxf)
-        '1073': [],
-        '296': [],
-        '196': [],
-        'true2019': []
-      },
-
-      // Rendered Background PDF Canvases (Offscreen)
-      pdfCanvases: {
-        '1073': null,
-        '296': null,
-        '196': null
-      },
-      pdfDimensions: {
-        '1073': { w: 0, h: 0 },
-        '296': { w: 0, h: 0 },
-        '196': { w: 0, h: 0 }
-      },
-
-      // GeoTIFF image object
-      geoTiff: null,
-      geoTiffFullRes: false
+      viewport: {
+        scale: 1.0,
+        offsetX: 0,
+        offsetY: 0,
+        bbox: null
+      }
     };
 
-    /* ==========================================================================
-       2. TRANSFORMATION MATH ENGINE
-       ========================================================================== */
-    class TransformMath {
-      static tpsKernel(r) {
-        if (r <= 1e-9) return 0;
-        return r * r * Math.log(r);
-      }
+    // Canvas references
+    const canvas = document.getElementById("map-canvas");
+    const ctx = canvas.getContext("2d");
+    const container = document.getElementById("canvas-container");
+    const statusBar = document.getElementById("status-bar");
+    const polyBadge = document.getElementById("poly-badge");
 
-      static buildTPSWarper(anchors) {
-        const N = anchors.length;
-        if (N < 3) return TransformMath.buildSimilarityWarper(anchors);
-        const sysSize = N + 3;
-        const M = Array.from({ length: sysSize }, () => new Array(sysSize).fill(0));
-        const bx = new Array(sysSize).fill(0);
-        const by = new Array(sysSize).fill(0);
-
-        for (let i = 0; i < N; i++) {
-          for (let j = 0; j < N; j++) {
-            if (i !== j) {
-              const dx = anchors[i].src.x - anchors[j].src.x;
-              const dy = anchors[i].src.y - anchors[j].src.y;
-              M[i][j] = TransformMath.tpsKernel(Math.hypot(dx, dy));
-            }
-          }
-          M[i][N] = 1; M[N][i] = 1;
-          M[i][N + 1] = anchors[i].src.x; M[N + 1][i] = anchors[i].src.x;
-          M[i][N + 2] = anchors[i].src.y; M[N + 2][i] = anchors[i].src.y;
-          bx[i] = anchors[i].dst.x;
-          by[i] = anchors[i].dst.y;
-        }
-
-        const solX = TransformMath.gaussianSolve(M, bx);
-        const solY = TransformMath.gaussianSolve(M, by);
-        if (!solX || !solY) return TransformMath.buildSimilarityWarper(anchors);
-
-        return (pt) => {
-          let xWarp = solX[N] + solX[N + 1] * pt.x + solX[N + 2] * pt.y;
-          let yWarp = solY[N] + solY[N + 1] * pt.x + solY[N + 2] * pt.y;
-          for (let i = 0; i < N; i++) {
-            const dx = pt.x - anchors[i].src.x;
-            const dy = pt.y - anchors[i].src.y;
-            const U = TransformMath.tpsKernel(Math.hypot(dx, dy));
-            xWarp += solX[i] * U;
-            yWarp += solY[i] * U;
-          }
-          return { x: xWarp, y: yWarp };
-        };
-      }
-
-      static buildSimilarityWarper(anchors) {
-        if (!anchors || anchors.length < 2) return (pt) => ({ ...pt });
-        function fit(isReflected) {
-          const A = Array.from({ length: 4 }, () => new Array(4).fill(0));
-          const Bx = new Array(4).fill(0);
-          const By = new Array(4).fill(0);
-          for (const a of anchors) {
-            const sx = a.src.x;
-            const sy = isReflected ? -a.src.y : a.src.y;
-            const row = [sx, -sy, 1, 0];
-            const rowY = [sy, sx, 0, 1];
-            for (let r = 0; r < 4; r++) {
-              for (let c = 0; c < 4; c++) {
-                A[r][c] += row[r] * row[c] + rowY[r] * rowY[c];
-              }
-              Bx[r] += row[r] * a.dst.x + rowY[r] * a.dst.y;
-            }
-          }
-          const p = TransformMath.gaussianSolve(A, Bx);
-          if (!p) return null;
-          return {
-            fn: (pt) => {
-              const sx = pt.x;
-              const sy = isReflected ? -pt.y : pt.y;
-              return { x: p[0] * sx - p[1] * sy + p[2], y: p[1] * sx + p[0] * sy + p[3] };
-            },
-            rmse: TransformMath.calcRMSE(anchors, (pt) => {
-              const sx = pt.x;
-              const sy = isReflected ? -pt.y : pt.y;
-              return { x: p[0] * sx - p[1] * sy + p[2], y: p[1] * sx + p[0] * sy + p[3] };
-            })
-          };
-        }
-        const w1 = fit(false);
-        const w2 = fit(true);
-        if (w1 && w2) return w1.rmse <= w2.rmse ? w1.fn : w2.fn;
-        return w1 ? w1.fn : (w2 ? w2.fn : (pt) => ({ ...pt }));
-      }
-
-      static buildAffineWarper(anchors) {
-        if (!anchors || anchors.length < 3) return TransformMath.buildSimilarityWarper(anchors);
-        const AtA = Array.from({ length: 3 }, () => new Array(3).fill(0));
-        const AtBx = new Array(3).fill(0);
-        const AtBy = new Array(3).fill(0);
-        for (const a of anchors) {
-          const row = [a.src.x, a.src.y, 1];
-          for (let r = 0; r < 3; r++) {
-            for (let c = 0; c < 3; c++) AtA[r][c] += row[r] * row[c];
-            AtBx[r] += row[r] * a.dst.x;
-            AtBy[r] += row[r] * a.dst.y;
-          }
-        }
-        const px = TransformMath.gaussianSolve(AtA, AtBx);
-        const py = TransformMath.gaussianSolve(AtA, AtBy);
-        if (!px || !py) return TransformMath.buildSimilarityWarper(anchors);
-        return (pt) => ({ x: px[0] * pt.x + px[1] * pt.y + px[2], y: py[0] * pt.x + py[1] * pt.y + py[2] });
-      }
-
-      static buildWarper(anchors, algo) {
-        const active = anchors.filter(a => a.active !== false);
-        if (active.length < 2) return null;
-        if (algo === 'TPS' && active.length >= 3) return TransformMath.buildTPSWarper(active);
-        if (algo === 'AFFINE' && active.length >= 3) return TransformMath.buildAffineWarper(active);
-        return TransformMath.buildSimilarityWarper(active);
-      }
-
-      static calcRMSE(anchors, warper) {
-        if (!anchors.length || !warper) return 0;
-        let sumSq = 0;
-        let count = 0;
-        for (const a of anchors) {
-          if (a.active === false) continue;
-          const pred = warper(a.src);
-          sumSq += Math.hypot(pred.x - a.dst.x, pred.y - a.dst.y) ** 2;
-          count++;
-        }
-        return count > 0 ? Math.sqrt(sumSq / count) : 0;
-      }
-
-      static gaussianSolve(AIn, bIn) {
-        const n = bIn.length;
-        const A = AIn.map(row => row.slice());
-        const b = bIn.slice();
-        for (let i = 0; i < n; i++) {
-          let maxRow = i;
-          for (let k = i + 1; k < n; k++) {
-            if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
-          }
-          const tmpA = A[i]; A[i] = A[maxRow]; A[maxRow] = tmpA;
-          const tmpB = b[i]; b[i] = b[maxRow]; b[maxRow] = tmpB;
-          if (Math.abs(A[i][i]) < 1e-12) continue;
-          for (let k = i + 1; k < n; k++) {
-            const factor = A[k][i] / A[i][i];
-            b[k] -= factor * b[i];
-            for (let j = i; j < n; j++) A[k][j] -= factor * A[i][j];
-          }
-        }
-        const x = new Array(n).fill(0);
-        for (let i = n - 1; i >= 0; i--) {
-          if (Math.abs(A[i][i]) < 1e-12) continue;
-          let sum = 0;
-          for (let j = i + 1; j < n; j++) sum += A[i][j] * x[j];
-          x[i] = (b[i] - sum) / A[i][i];
-        }
-        return x;
-      }
-    }
-
-    /* ==========================================================================
-       3. DXF PARSER & SERIALIZER
-       ========================================================================== */
-    class DXFParser {
-      static parse(dxfText) {
-        if (!dxfText) return [];
-        const lines = dxfText.split(/\r?\n/);
-        const entities = [];
-        let i = 0;
-        let inEntities = !dxfText.includes("ENTITIES");
-
-        let currEnt = null;
-        let currPoly = null;
-
-        while (i < lines.length - 1) {
-          const code = parseInt(lines[i].trim(), 10);
-          const val = lines[i + 1].trim();
-          i += 2;
-          if (isNaN(code)) continue;
-
-          if (code === 0) {
-            const uVal = val.toUpperCase();
-            if (uVal === "SECTION") {
-              if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 2) {
-                inEntities = (lines[i + 1].trim().toUpperCase() === "ENTITIES");
-                i += 2;
-              }
-            } else if (uVal === "ENDSEC") {
-              inEntities = false;
-            }
-
-            if (currPoly && currPoly.points.length > 0) {
-              entities.push(currPoly);
-              currPoly = null;
-            }
-            if (currEnt) {
-              entities.push(currEnt);
-              currEnt = null;
-            }
-
-            if (!inEntities) continue;
-
-            if (uVal === "POLYLINE" || uVal === "LWPOLYLINE") {
-              currPoly = { type: "POLYLINE", layer: "0", points: [], closed: false };
-            } else if (uVal === "LINE") {
-              currEnt = { type: "LINE", layer: "0", x1: 0, y1: 0, x2: 0, y2: 0 };
-            }
-          } else if (inEntities) {
-            if (currPoly) {
-              if (code === 8) currPoly.layer = val;
-              else if (code === 70) currPoly.closed = (parseInt(val, 10) & 1) === 1;
-              else if (code === 10) {
-                const pt = { x: parseFloat(val), y: 0 };
-                if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 20) {
-                  pt.y = parseFloat(lines[i + 1].trim());
-                  i += 2;
-                }
-                currPoly.points.push(pt);
-              }
-            } else if (currEnt && currEnt.type === "LINE") {
-              if (code === 8) currEnt.layer = val;
-              else if (code === 10) currEnt.x1 = parseFloat(val);
-              else if (code === 20) currEnt.y1 = parseFloat(val);
-              else if (code === 11) currEnt.x2 = parseFloat(val);
-              else if (code === 21) currEnt.y2 = parseFloat(val);
-            }
-          }
-        }
-        if (currPoly && currPoly.points.length > 0) entities.push(currPoly);
-        if (currEnt) entities.push(currEnt);
-        return entities;
-      }
-
-      static serialize(entities) {
-        let out = "0\nSECTION\n2\nENTITIES\n";
-        for (const ent of entities) {
-          if (ent.type === "POLYLINE" && ent.points && ent.points.length > 0) {
-            out += "0\nPOLYLINE\n8\n" + (ent.layer || "0") + "\n70\n" + (ent.closed ? "1" : "0") + "\n";
-            for (const p of ent.points) {
-              out += `0\nVERTEX\n8\n${ent.layer || "0"}\n10\n${p.x.toFixed(4)}\n20\n${p.y.toFixed(4)}\n30\n0.0\n`;
-            }
-            out += "0\nSEQEND\n";
-          }
-        }
-        out += "0\nENDSEC\n0\nEOF\n";
-        return out;
-      }
-    }
-
-    /* ==========================================================================
-       4. INITIALIZATION & DATA LOADING
-       ========================================================================== */
+    // Initialize
     window.addEventListener("DOMContentLoaded", async () => {
-      initLayoutHandlers();
-      initOpacityAndStyleHandlers();
-      initCanvasEngines();
+      resizeCanvas();
+      window.addEventListener("resize", () => { resizeCanvas(); draw(); });
 
-      // Load Anchors
-      await loadAnchorsData();
+      // Try fetching the local file dynamically, fallback to embedded DEFAULT_VERTICES
+      try {
+        const res = await fetch("LaTrinidadOptimized.dxf");
+        if (res.ok) {
+          const text = await res.text();
+          const parsed = parseDXF(text);
+          if (parsed && parsed.length > 0 && parsed[0].points.length > 0) {
+            state.polygon = parsed[0];
+          }
+        }
+      } catch (e) {
+        // file:// protocol CORS fallback - already using DEFAULT_VERTICES
+      }
 
-      // Auto-load Deeds, PDFs and Ground Truth Surveys
-      await autoLoadAllData();
-
-      redrawAll();
+      updateBBox();
+      fitExtents();
+      updateUI();
+      draw();
+      setupEvents();
     });
 
-    // Layout & Pill Toggle handlers
-    function initLayoutHandlers() {
-      const chk296 = document.getElementById("chk-show-296");
-      const chk1073 = document.getElementById("chk-show-1073");
-      const chk196 = document.getElementById("chk-show-196");
-      const chkTrue = document.getElementById("chk-show-true");
-      const chkSidebar = document.getElementById("chk-show-sidebar");
+    function updateUI() {
+      const count = state.polygon.points.length;
+      polyBadge.textContent = `${count} Vertices`;
+      statusBar.textContent = `Polygon: ${state.polygon.layer} | Nodes: ${count}`;
+    }
 
-      const card296 = document.getElementById("card-296");
-      const card1073 = document.getElementById("card-1073");
-      const card196 = document.getElementById("card-196");
-      const cardTrue = document.getElementById("card-true");
-      const sidebar = document.getElementById("sidebar");
-
-      function syncLayout() {
-        state.show296 = chk296.checked;
-        state.show1073 = chk1073.checked;
-        state.show196 = chk196.checked;
-        state.showTrue = chkTrue.checked;
-        state.showSidebar = chkSidebar.checked;
-
-        card296.classList.toggle("hidden", !state.show296);
-        card1073.classList.toggle("hidden", !state.show1073);
-        card196.classList.toggle("hidden", !state.show196);
-        cardTrue.classList.toggle("hidden", !state.showTrue);
-        sidebar.classList.toggle("collapsed", !state.showSidebar);
-
-        requestAnimationFrame(() => {
-          resizeCanvases();
-          redrawAll();
-        });
+    // Compute bounding box
+    function updateBBox() {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const p of state.polygon.points) {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
       }
-
-      [chk296, chk1073, chk196, chkTrue, chkSidebar].forEach(chk => chk.addEventListener("change", syncLayout));
-
-      // Snapping
-      const btnSnap = document.getElementById("btn-toggle-snap");
-      btnSnap.addEventListener("click", () => {
-        state.snapping = !state.snapping;
-        btnSnap.textContent = state.snapping ? "🧲 Snap: ON" : "🧲 Snap: OFF";
-        btnSnap.style.color = state.snapping ? "var(--accent-cyan)" : "var(--text-muted)";
-      });
-
-      // Algorithm Selector
-      const algoSelect = document.getElementById("algorithm-select");
-      algoSelect.addEventListener("change", (e) => {
-        state.algorithm = e.target.value;
-        renderAnchorTable();
-        redrawAll();
-      });
-
-      // Vectorizer Modal triggers
-      document.getElementById("btn-edit-296").addEventListener("click", () => openVectorizerModal("296"));
-      document.getElementById("btn-edit-1073").addEventListener("click", () => openVectorizerModal("1073"));
-      document.getElementById("btn-edit-196").addEventListener("click", () => openVectorizerModal("196"));
-      document.getElementById("btn-vec-close").addEventListener("click", () => {
-        document.getElementById("vec-modal").classList.remove("visible");
-      });
+      state.viewport.bbox = { minX, minY, maxX, maxY };
     }
 
-    // PowerPoint Opacity & Style Binding
-    function initOpacityAndStyleHandlers() {
-      function bindSlider(sliderId, valId, propKey, isPercent = true) {
-        const slider = document.getElementById(sliderId);
-        const valElem = document.getElementById(valId);
-        slider.addEventListener("input", (e) => {
-          const val = parseFloat(e.target.value);
-          state.styles[propKey] = isPercent ? (val / 100) : val;
-          valElem.textContent = `${Math.round(val)}%`;
-          redrawAll();
-        });
-      }
+    // Fit view to polygon
+    function fitExtents() {
+      const b = state.viewport.bbox;
+      if (!b) return;
+      const bw = b.maxX - b.minX;
+      const bh = b.maxY - b.minY;
+      if (bw <= 0 || bh <= 0) return;
 
-      bindSlider("slider-tif-opacity", "val-tif-opacity", "tifOpacity");
-      bindSlider("slider-opt-opacity", "val-opt-opacity", "optOpacity");
-      bindSlider("slider-pdf-1073-opacity", "val-pdf-1073-opacity", "pdf1073Opacity");
-      bindSlider("slider-dxf-1073-opacity", "val-dxf-1073-opacity", "dxf1073Opacity");
-      bindSlider("slider-pdf-296-opacity", "val-pdf-296-opacity", "pdf296Opacity");
-      bindSlider("slider-dxf-296-opacity", "val-dxf-296-opacity", "dxf296Opacity");
-      bindSlider("slider-pdf-196-opacity", "val-pdf-196-opacity", "pdf196Opacity");
-      bindSlider("slider-dxf-196-opacity", "val-dxf-196-opacity", "dxf196Opacity");
-      bindSlider("slider-true-2019-opacity", "val-true-2019-opacity", "true2019Opacity");
+      const cw = canvas.width;
+      const ch = canvas.height;
+      const pad = 0.85;
 
-      // Checkboxes & Pickers
-      document.getElementById("style-opt-color").addEventListener("input", e => { state.styles.optColor = e.target.value; redrawAll(); });
-      document.getElementById("style-opt-dash").addEventListener("change", e => { state.styles.optDash = e.target.value; redrawAll(); });
-      document.getElementById("style-opt-width").addEventListener("change", e => { state.styles.optWidth = parseInt(e.target.value, 10); redrawAll(); });
-      document.getElementById("style-opt-nodes").addEventListener("change", e => { state.styles.optNodes = e.target.checked; redrawAll(); });
-
-      document.getElementById("chk-show-pdf-1073").addEventListener("change", e => { state.styles.showPdf1073 = e.target.checked; redrawAll(); });
-      document.getElementById("chk-show-pdf-296").addEventListener("change", e => { state.styles.showPdf296 = e.target.checked; redrawAll(); });
-      document.getElementById("chk-show-pdf-196").addEventListener("change", e => { state.styles.showPdf196 = e.target.checked; redrawAll(); });
-
-      document.getElementById("style-1073-color").addEventListener("input", e => { state.styles.color1073 = e.target.value; redrawAll(); });
-      document.getElementById("style-1073-dash").addEventListener("change", e => { state.styles.dash1073 = e.target.value; redrawAll(); });
-      document.getElementById("style-1073-width").addEventListener("change", e => { state.styles.width1073 = parseInt(e.target.value, 10); redrawAll(); });
-      document.getElementById("style-1073-nodes").addEventListener("change", e => { state.styles.nodes1073 = e.target.checked; redrawAll(); });
+      const scaleX = (cw * pad) / bw;
+      const scaleY = (ch * pad) / bh;
+      state.viewport.scale = Math.min(scaleX, scaleY);
+      state.viewport.offsetX = b.minX - (cw / state.viewport.scale - bw) / 2;
+      state.viewport.offsetY = b.minY - (ch / state.viewport.scale - bh) / 2;
     }
 
-    // Auto-load data files
-    async function autoLoadAllData() {
-      // 1. Optimized Reconstructed Boundary
-      try {
-        const text = await fetchText("LaTrinidadOptimized.dxf");
-        state.entities['opt'] = DXFParser.parse(text);
-      } catch (err) { console.warn("LaTrinidadOptimized.dxf:", err.message); }
-
-      // 2. Deeds DXFs
-      try {
-        const t1073 = await fetchText("Polygon_Escritura1073_FerminSuarez.dxf");
-        state.entities['1073'] = DXFParser.parse(t1073);
-      } catch (err) { console.warn("1073 DXF:", err.message); }
-
-      try {
-        const t296 = await fetchText("Polygon_Escritura296.dxf");
-        state.entities['296'] = DXFParser.parse(t296);
-      } catch (err) { console.warn("296 DXF:", err.message); }
-
-      try {
-        const t196 = await fetchText("Polygon_Escritura196.dxf");
-        state.entities['196'] = DXFParser.parse(t196);
-      } catch (err) { console.warn("196 DXF:", err.message); }
-
-      // 3. True 2019 Survey
-      try {
-        const t2019 = await fetchText("Polygon_De_Campo_LaTrinidad(Cristian_2019).dxf");
-        state.entities['true2019'] = DXFParser.parse(t2019);
-      } catch (err) { console.warn("2019 DXF:", err.message); }
-
-      // Compute bounding boxes and auto-fit
-      computeAllBBoxes();
-      fitAllViewports();
-
-      // 4. Background PDFs
-      loadDeedPdf("1073", "Mapa1073_FerminSuarez.pdf");
-      loadDeedPdf("296", "Plano escritura 296 y predios de Fermin Suarez.pdf");
-      loadDeedPdf("196", "Mapa196_ErrorCasaDelSol.pdf");
-
-      // 5. GeoTIFF
-      try {
-        await loadGeoTiffFile("Trinidad_Dron_Resized.tif");
-      } catch (err) { console.warn("GeoTIFF auto-load:", err.message); }
+    function resizeCanvas() {
+      const rect = container.getBoundingClientRect();
+      canvas.width = rect.width * (window.devicePixelRatio || 1);
+      canvas.height = rect.height * (window.devicePixelRatio || 1);
     }
 
-    async function loadAnchorsData() {
-      try {
-        const res1073 = await fetchJson("anchors_georectifier.json");
-        state.anchors['1073'] = Array.isArray(res1073) ? res1073 : [];
-      } catch (e) { console.warn("anchors_georectifier.json:", e.message); }
-
-      try {
-        const res296 = await fetchJson("anchors_296.json");
-        state.anchors['296'] = Array.isArray(res296) ? res296 : [];
-      } catch (e) { console.warn("anchors_296.json:", e.message); }
-
-      try {
-        const res196 = await fetchJson("anchors_196.json");
-        state.anchors['196'] = Array.isArray(res196) ? res196 : [];
-      } catch (e) { console.warn("anchors_196.json:", e.message); }
-
-      renderAnchorTable();
+    // Coordinate conversions (GIS World <-> Canvas Screen)
+    function worldToScreen(wx, wy) {
+      return {
+        x: (wx - state.viewport.offsetX) * state.viewport.scale,
+        y: canvas.height - (wy - state.viewport.offsetY) * state.viewport.scale
+      };
+    }
+    function screenToWorld(sx, sy) {
+      return {
+        x: sx / state.viewport.scale + state.viewport.offsetX,
+        y: (canvas.height - sy) / state.viewport.scale + state.viewport.offsetY
+      };
     }
 
-    /* Render Combined Anchor Table with Deed Dividers */
-    function renderAnchorTable() {
-      const tbody = document.getElementById("anchor-table-body");
-      tbody.innerHTML = "";
-
-      let totalCount = 0;
-      let totalErrSq = 0;
-      let activeErrCount = 0;
-
-      const deedKeys = [
-        { key: "1073", label: "📜 Escritura 1073", color: "var(--accent-red)" },
-        { key: "296",  label: "📜 Escritura 296",  color: "var(--accent-purple)" },
-        { key: "196",  label: "📜 Escritura 196",  color: "var(--accent-orange)" }
-      ];
-
-      deedKeys.forEach(deed => {
-        const anchors = state.anchors[deed.key] || [];
-        totalCount += anchors.length;
-
-        // Build warper to compute errors
-        const warper = TransformMath.buildWarper(anchors, state.algorithm);
-
-        // Deed divider row
-        const divRow = document.createElement("tr");
-        divRow.className = "anchor-deed-divider";
-        divRow.innerHTML = `<td colspan="5" style="color:${deed.color};">${deed.label} <span style="font-weight:400;color:var(--text-muted);font-size:0.65rem;">(${anchors.length} pts)</span></td>`;
-        tbody.appendChild(divRow);
-
-        anchors.forEach((a, idx) => {
-          let errStr = "—";
-          if (warper && a.active !== false) {
-            const pred = warper(a.src);
-            const err = Math.hypot(pred.x - a.dst.x, pred.y - a.dst.y);
-            errStr = err.toFixed(2);
-            totalErrSq += err * err;
-            activeErrCount++;
-          }
-
-          const tr = document.createElement("tr");
-          const isAct = a.active !== false;
-          tr.innerHTML = `
-            <td style="text-align:center;"><input type="checkbox" ${isAct ? "checked" : ""} style="accent-color:${deed.color};cursor:pointer;"></td>
-            <td style="color:${a.color || deed.color};font-weight:700;">${idx + 1}</td>
-            <td>(${a.src.x.toFixed(1)}, ${a.src.y.toFixed(1)})</td>
-            <td>(${a.dst.x.toFixed(1)}, ${a.dst.y.toFixed(1)})</td>
-            <td style="text-align:right;color:${errStr !== '—' && parseFloat(errStr) > 5 ? 'var(--accent-red)' : 'var(--accent-green)'};">${errStr}</td>
-          `;
-
-          const chk = tr.querySelector("input[type='checkbox']");
-          chk.addEventListener("change", (e) => {
-            a.active = e.target.checked;
-            renderAnchorTable();
-            redrawAll();
-          });
-
-          tbody.appendChild(tr);
-        });
-      });
-
-      document.getElementById("anchor-total-count").textContent = `${totalCount} anchors`;
-      const overallRmse = activeErrCount > 0 ? Math.sqrt(totalErrSq / activeErrCount) : 0;
-      document.getElementById("rmse-display").textContent = `RMSE: ${overallRmse.toFixed(2)}m`;
-    }
-
-    /* ==========================================================================
-       5. RENDERING & CANVAS ENGINES
-       ========================================================================== */
-    function initCanvasEngines() {
-      window.addEventListener("resize", () => {
-        resizeCanvases();
-        redrawAll();
-      });
-      resizeCanvases();
-      setupMouseInteraction('true');
-      setupMouseInteraction('1073');
-      setupMouseInteraction('296');
-      setupMouseInteraction('196');
-    }
-
-    function resizeCanvases() {
-      ['296', '1073', '196', 'true'].forEach(key => {
-        const card = document.getElementById(`card-${key}`);
-        if (!card || card.classList.contains("hidden")) return;
-        const canvas = document.getElementById(`canvas-${key}`);
-        if (!canvas) return;
-        const rect = canvas.parentElement.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          canvas.width = rect.width * window.devicePixelRatio;
-          canvas.height = rect.height * window.devicePixelRatio;
-        }
-      });
-    }
-
-    function redrawAll() {
-      if (state.showTrue) drawFieldCanvas();
-      if (state.show1073) drawDeedCanvas('1073');
-      if (state.show296)  drawDeedCanvas('296');
-      if (state.show196)  drawDeedCanvas('196');
-    }
-
-    /* Draw Composite Field Canvas */
-    function drawFieldCanvas() {
-      const canvas = document.getElementById("canvas-true");
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
+    // Main Draw Function
+    function draw() {
+      const w = canvas.width;
+      const h = canvas.height;
       const dpr = window.devicePixelRatio || 1;
-      const w = canvas.width;
-      const h = canvas.height;
-      const vp = state.viewports['true'];
 
-      ctx.save();
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#03060a";
+      ctx.fillStyle = "#070a10";
       ctx.fillRect(0, 0, w, h);
 
-      // 1. Draw GeoTIFF Satellite Background
-      if (state.geoTiff && state.geoTiff.canvas && state.styles.tifOpacity > 0) {
-        ctx.save();
-        ctx.globalAlpha = state.styles.tifOpacity;
-        drawGeoTiffImage(ctx, state.geoTiff, vp, h);
-        ctx.restore();
+      // Subtle background grid
+      drawGrid();
+
+      const pts = state.polygon.points;
+      if (!pts || pts.length === 0) return;
+
+      // 1. Draw Polygon Fill
+      ctx.beginPath();
+      const p0 = worldToScreen(pts[0].x, pts[0].y);
+      ctx.moveTo(p0.x, p0.y);
+      for (let i = 1; i < pts.length; i++) {
+        const p = worldToScreen(pts[i].x, pts[i].y);
+        ctx.lineTo(p.x, p.y);
       }
+      ctx.closePath();
+      ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+      ctx.fill();
 
-      // 2. Draw Deed Background Plans (Warped)
-      ['1073', '296', '196'].forEach(key => {
-        const showPdf = state.styles[`showPdf${key}`];
-        const opacity = state.styles[`pdf${key}Opacity`];
-        const offCanvas = state.pdfCanvases[key];
-        const dims = state.pdfDimensions[key];
-        const warper = TransformMath.buildWarper(state.anchors[key], state.algorithm);
+      // 2. Draw Polygon Boundary Stroke
+      ctx.lineWidth = 2.5 * dpr;
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
 
-        if (showPdf && opacity > 0 && offCanvas && dims.w > 0 && warper) {
-          ctx.save();
-          ctx.globalAlpha = opacity;
-          drawWarpedImage(ctx, offCanvas, dims.w, dims.h, warper, vp, h);
-          ctx.restore();
-        }
-      });
+      // 3. Draw Vertex Nodes
+      for (let i = 0; i < pts.length; i++) {
+        const sp = worldToScreen(pts[i].x, pts[i].y);
 
-      // 3. Draw Historical Deeds DXFs (Warped)
-      ['1073', '296', '196'].forEach(key => {
-        const opacity = state.styles[`dxf${key}Opacity`];
-        const color = state.styles[`color${key}`];
-        const dash = state.styles[`dash${key}`];
-        const width = state.styles[`width${key}`];
-        const nodes = state.styles[`nodes${key}`];
-        const warper = TransformMath.buildWarper(state.anchors[key], state.algorithm);
-
-        if (opacity > 0 && state.entities[key] && state.entities[key].length > 0 && warper) {
-          ctx.save();
-          ctx.globalAlpha = opacity;
-          drawWarpedEntities(ctx, state.entities[key], warper, vp, h, color, width, dash, nodes);
-          ctx.restore();
-        }
-      });
-
-      // 4. Draw True 2019 Survey
-      if (state.styles.true2019Opacity > 0 && state.entities['true2019'].length > 0) {
-        ctx.save();
-        ctx.globalAlpha = state.styles.true2019Opacity;
-        drawDirectEntities(ctx, state.entities['true2019'], vp, h, state.styles.color2019, state.styles.width2019, state.styles.dash2019, state.styles.nodes2019);
-        ctx.restore();
-      }
-
-      // 5. Draw Hero: Reconstructed Boundary
-      if (state.styles.optOpacity > 0 && state.entities['opt'].length > 0) {
-        ctx.save();
-        ctx.globalAlpha = state.styles.optOpacity;
-        drawDirectEntities(ctx, state.entities['opt'], vp, h, state.styles.optColor, state.styles.optWidth, state.styles.optDash, state.styles.optNodes);
-        ctx.restore();
-      }
-
-      // 6. Draw Anchors (Target Points)
-      drawDestinationAnchors(ctx, vp, h);
-
-      ctx.restore();
-    }
-
-    /* Draw Individual Deed Viewports */
-    function drawDeedCanvas(key) {
-      const canvas = document.getElementById(`canvas-${key}`);
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      const w = canvas.width;
-      const h = canvas.height;
-      const vp = state.viewports[key];
-
-      ctx.save();
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#05080e";
-      ctx.fillRect(0, 0, w, h);
-
-      // Deed Background PDF
-      const offCanvas = state.pdfCanvases[key];
-      const dims = state.pdfDimensions[key];
-      if (offCanvas && dims.w > 0) {
-        const s0 = worldToScreen(0, 0, vp, h);
-        const s1 = worldToScreen(dims.w, 0, vp, h);
-        const s3 = worldToScreen(0, dims.h, vp, h);
-        const a = (s1.x - s0.x) / dims.w;
-        const b = (s1.y - s0.y) / dims.w;
-        const c = (s3.x - s0.x) / dims.h;
-        const d = (s3.y - s0.y) / dims.h;
-        ctx.save();
-        ctx.setTransform(a, b, c, d, s0.x, s0.y);
-        ctx.drawImage(offCanvas, 0, 0);
-        ctx.restore();
-      }
-
-      // Deed Raw DXF Entities
-      const ents = state.entities[key] || [];
-      const color = state.styles[`color${key}`];
-      drawDirectEntities(ctx, ents, vp, h, color, 2, "solid", true);
-
-      // Deed Source Anchors
-      const anchors = state.anchors[key] || [];
-      for (let i = 0; i < anchors.length; i++) {
-        const a = anchors[i];
-        const s = worldToScreen(a.src.x, a.src.y, vp, h);
+        // Outer glow
         ctx.beginPath();
-        ctx.arc(s.x, s.y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = a.color || color;
+        ctx.arc(sp.x, sp.y, 4 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = "#00e5ff";
         ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#fff";
-        ctx.stroke();
 
-        ctx.font = "bold 10px monospace";
-        ctx.fillStyle = "#fff";
-        ctx.fillText(`${i + 1}`, s.x + 8, s.y - 6);
-      }
+        // Inner core
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 2 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
 
-      ctx.restore();
-    }
-
-    /* Helper: Draw Direct Entities */
-    function drawDirectEntities(ctx, entities, vp, canvasH, color, width, dash, showNodes) {
-      ctx.lineWidth = width * (window.devicePixelRatio || 1);
-      ctx.strokeStyle = color;
-      if (dash === "dashed") ctx.setLineDash([8, 5]);
-      else if (dash === "dotted") ctx.setLineDash([3, 3]);
-      else ctx.setLineDash([]);
-
-      for (const ent of entities) {
-        if (ent.type === "POLYLINE" && ent.points && ent.points.length > 0) {
-          ctx.beginPath();
-          const p0 = worldToScreen(ent.points[0].x, ent.points[0].y, vp, canvasH);
-          ctx.moveTo(p0.x, p0.y);
-          for (let i = 1; i < ent.points.length; i++) {
-            const p = worldToScreen(ent.points[i].x, ent.points[i].y, vp, canvasH);
-            ctx.lineTo(p.x, p.y);
-          }
-          if (ent.closed) ctx.closePath();
-          ctx.stroke();
-
-          if (showNodes) {
-            ctx.fillStyle = color;
-            for (const pt of ent.points) {
-              const sp = worldToScreen(pt.x, pt.y, vp, canvasH);
-              ctx.beginPath();
-              ctx.arc(sp.x, sp.y, 3 * (window.devicePixelRatio || 1), 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-        }
+        // Node number label
+        ctx.font = `${9 * dpr}px monospace`;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+        ctx.fillText(`${i + 1}`, sp.x + 6 * dpr, sp.y - 4 * dpr);
       }
     }
 
-    /* Helper: Draw Warped Entities */
-    function drawWarpedEntities(ctx, entities, warper, vp, canvasH, color, width, dash, showNodes) {
-      ctx.lineWidth = width * (window.devicePixelRatio || 1);
-      ctx.strokeStyle = color;
-      if (dash === "dashed") ctx.setLineDash([8, 5]);
-      else if (dash === "dotted") ctx.setLineDash([3, 3]);
-      else ctx.setLineDash([]);
-
-      for (const ent of entities) {
-        if (ent.type === "POLYLINE" && ent.points && ent.points.length > 0) {
-          ctx.beginPath();
-          const w0 = warper(ent.points[0]);
-          const p0 = worldToScreen(w0.x, w0.y, vp, canvasH);
-          ctx.moveTo(p0.x, p0.y);
-          for (let i = 1; i < ent.points.length; i++) {
-            const wPt = warper(ent.points[i]);
-            const p = worldToScreen(wPt.x, wPt.y, vp, canvasH);
-            ctx.lineTo(p.x, p.y);
-          }
-          if (ent.closed) ctx.closePath();
-          ctx.stroke();
-
-          if (showNodes) {
-            ctx.fillStyle = color;
-            for (const pt of ent.points) {
-              const wPt = warper(pt);
-              const sp = worldToScreen(wPt.x, wPt.y, vp, canvasH);
-              ctx.beginPath();
-              ctx.arc(sp.x, sp.y, 3 * (window.devicePixelRatio || 1), 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-        }
+    function drawGrid() {
+      const dpr = window.devicePixelRatio || 1;
+      const step = 50 * dpr;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 0; x < canvas.width; x += step) {
+        ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
       }
+      for (let y = 0; y < canvas.height; y += step) {
+        ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+      }
+      ctx.stroke();
     }
 
-    /* Helper: Draw Warped Image */
-    function drawWarpedImage(ctx, offCanvas, pdfW, pdfH, warper, vp, canvasH) {
-      const p0 = warper({ x: 0, y: 0 });
-      const p1 = warper({ x: pdfW, y: 0 });
-      const p3 = warper({ x: 0, y: pdfH });
-
-      const s0 = worldToScreen(p0.x, p0.y, vp, canvasH);
-      const s1 = worldToScreen(p1.x, p1.y, vp, canvasH);
-      const s3 = worldToScreen(p3.x, p3.y, vp, canvasH);
-
-      const a = (s1.x - s0.x) / pdfW;
-      const b = (s1.y - s0.y) / pdfW;
-      const c = (s3.x - s0.x) / pdfH;
-      const d = (s3.y - s0.y) / pdfH;
-
-      ctx.save();
-      ctx.setTransform(a, b, c, d, s0.x, s0.y);
-      ctx.drawImage(offCanvas, 0, 0);
-      ctx.restore();
-    }
-
-    /* Helper: Draw Field GeoTIFF Image */
-    function drawGeoTiffImage(ctx, tiff, vp, canvasH) {
-      if (!tiff.bbox) return;
-      const s0 = worldToScreen(tiff.bbox.minX, tiff.bbox.maxY, vp, canvasH);
-      const s1 = worldToScreen(tiff.bbox.maxX, tiff.bbox.minY, vp, canvasH);
-      const w = s1.x - s0.x;
-      const h = s1.y - s0.y;
-      ctx.drawImage(tiff.canvas, s0.x, s0.y, w, h);
-    }
-
-    /* Helper: Draw Anchors on Field */
-    function drawDestinationAnchors(ctx, vp, canvasH) {
-      ['1073', '296', '196'].forEach(key => {
-        const anchors = state.anchors[key] || [];
-        anchors.forEach((a, idx) => {
-          if (a.active === false) return;
-          const s = worldToScreen(a.dst.x, a.dst.y, vp, canvasH);
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, 5 * (window.devicePixelRatio || 1), 0, Math.PI * 2);
-          ctx.fillStyle = a.color || "var(--accent-cyan)";
-          ctx.fill();
-          ctx.lineWidth = 1.5;
-          ctx.strokeStyle = "#fff";
-          ctx.stroke();
-
-          ctx.font = `bold ${9 * (window.devicePixelRatio || 1)}px monospace`;
-          ctx.fillStyle = "#fff";
-          ctx.fillText(`${idx + 1}`, s.x + 7, s.y - 5);
-        });
-      });
-    }
-
-    /* Coordinate transforms */
-    function worldToScreen(wx, wy, vp, canvasH) {
-      return {
-        x: (wx - vp.offsetX) * vp.scale,
-        y: canvasH - (wy - vp.offsetY) * vp.scale
-      };
-    }
-    function screenToWorld(sx, sy, vp, canvasH) {
-      return {
-        x: sx / vp.scale + vp.offsetX,
-        y: (canvasH - sy) / vp.scale + vp.offsetY
-      };
-    }
-
-    /* ==========================================================================
-       6. INTERACTIVITY & PAN/ZOOM
-       ========================================================================== */
-    function setupMouseInteraction(mapKey) {
-      const container = document.getElementById(`container-${mapKey}`);
-      const canvas = document.getElementById(`canvas-${mapKey}`);
-      if (!container || !canvas) return;
-
+    // Events: Pan & Zoom
+    function setupEvents() {
       let isDragging = false;
       let startX = 0, startY = 0;
 
@@ -1835,179 +385,98 @@
       });
 
       window.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (window.devicePixelRatio || 1);
+        const my = (e.clientY - rect.top) * (window.devicePixelRatio || 1);
+        const world = screenToWorld(mx, my);
+        statusBar.textContent = `X: ${world.x.toFixed(2)} | Y: ${world.y.toFixed(2)} | Nodes: ${state.polygon.points.length}`;
+
         if (!isDragging) return;
-        const dx = (e.clientX - startX) * window.devicePixelRatio;
-        const dy = (e.clientY - startY) * window.devicePixelRatio;
+        const dx = (e.clientX - startX) * (window.devicePixelRatio || 1);
+        const dy = (e.clientY - startY) * (window.devicePixelRatio || 1);
         startX = e.clientX;
         startY = e.clientY;
 
-        const vp = state.viewports[mapKey];
-        vp.offsetX -= dx / vp.scale;
-        vp.offsetY += dy / vp.scale;
-        redrawAll();
+        state.viewport.offsetX -= dx / state.viewport.scale;
+        state.viewport.offsetY += dy / state.viewport.scale;
+        draw();
       });
 
       window.addEventListener("mouseup", () => { isDragging = false; });
 
       container.addEventListener("wheel", (e) => {
         e.preventDefault();
-        const vp = state.viewports[mapKey];
         const rect = canvas.getBoundingClientRect();
-        const mouseX = (e.clientX - rect.left) * window.devicePixelRatio;
-        const mouseY = (e.clientY - rect.top) * window.devicePixelRatio;
+        const mx = (e.clientX - rect.left) * (window.devicePixelRatio || 1);
+        const my = (e.clientY - rect.top) * (window.devicePixelRatio || 1);
 
-        const worldBefore = screenToWorld(mouseX, mouseY, vp, canvas.height);
+        const worldBefore = screenToWorld(mx, my);
         const factor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
-        vp.scale *= factor;
-        const worldAfter = screenToWorld(mouseX, mouseY, vp, canvas.height);
+        state.viewport.scale *= factor;
+        const worldAfter = screenToWorld(mx, my);
 
-        vp.offsetX += (worldBefore.x - worldAfter.x);
-        vp.offsetY += (worldBefore.y - worldAfter.y);
-        redrawAll();
+        state.viewport.offsetX += (worldBefore.x - worldAfter.x);
+        state.viewport.offsetY += (worldBefore.y - worldAfter.y);
+        draw();
       }, { passive: false });
+
+      // Fit button
+      document.getElementById("btn-fit").addEventListener("click", () => {
+        fitExtents();
+        draw();
+      });
+
+      // Load custom DXF
+      const fileInput = document.getElementById("dxf-file-input");
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const parsed = parseDXF(evt.target.result);
+          if (parsed && parsed.length > 0 && parsed[0].points.length > 0) {
+            state.polygon = parsed[0];
+            updateBBox();
+            fitExtents();
+            updateUI();
+            draw();
+          }
+        };
+        reader.readAsText(file);
+      });
     }
 
-    /* Fit All Viewports Extents */
-    function computeAllBBoxes() {
-      // Field Viewport BBox
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      function expand(pts) {
-        for (const p of pts) {
-          if (p.x < minX) minX = p.x;
-          if (p.x > maxX) maxX = p.x;
-          if (p.y < minY) minY = p.y;
-          if (p.y > maxY) maxY = p.y;
-        }
-      }
-      for (const ent of state.entities['opt']) expand(ent.points);
-      for (const ent of state.entities['true2019']) expand(ent.points);
-      if (isFinite(minX)) state.viewports['true'].bbox = { minX, minY, maxX, maxY };
+    // Clean Minimal DXF Parser
+    function parseDXF(text) {
+      if (!text) return [];
+      const lines = text.split(/\r?\n/);
+      const points = [];
+      let layer = "RECONSTRUCTED";
+      let inEntities = false;
 
-      // Individual Deed BBoxes
-      ['1073', '296', '196'].forEach(key => {
-        let dMinX = Infinity, dMinY = Infinity, dMaxX = -Infinity, dMaxY = -Infinity;
-        for (const ent of (state.entities[key] || [])) {
-          for (const p of ent.points) {
-            if (p.x < dMinX) dMinX = p.x;
-            if (p.x > dMaxX) dMaxX = p.x;
-            if (p.y < dMinY) dMinY = p.y;
-            if (p.y > dMaxY) dMaxY = p.y;
+      for (let i = 0; i < lines.length - 1; i += 2) {
+        const code = parseInt(lines[i].trim(), 10);
+        const val = lines[i + 1].trim();
+
+        if (code === 0 && val.toUpperCase() === "SECTION") {
+          if (lines[i + 3]?.trim().toUpperCase() === "ENTITIES") inEntities = true;
+        }
+        if (code === 0 && val.toUpperCase() === "ENDSEC") inEntities = false;
+
+        if (inEntities) {
+          if (code === 8) layer = val;
+          if (code === 10) {
+            const x = parseFloat(val);
+            let y = 0;
+            if (parseInt(lines[i + 2]?.trim(), 10) === 20) {
+              y = parseFloat(lines[i + 3]?.trim());
+              i += 2;
+            }
+            if (!isNaN(x) && !isNaN(y)) points.push({ x, y });
           }
         }
-        if (isFinite(dMinX)) state.viewports[key].bbox = { minX: dMinX, minY: dMinY, maxX: dMaxX, maxY: dMaxY };
-      });
-    }
-
-    function fitAllViewports() {
-      ['true', '1073', '296', '196'].forEach(key => {
-        const vp = state.viewports[key];
-        const canvas = document.getElementById(`canvas-${key}`);
-        if (!vp || !vp.bbox || !canvas) return;
-
-        const bw = vp.bbox.maxX - vp.bbox.minX;
-        const bh = vp.bbox.maxY - vp.bbox.minY;
-        if (bw <= 0 || bh <= 0) return;
-
-        const cw = canvas.width || 800;
-        const ch = canvas.height || 600;
-        const scaleX = (cw * 0.85) / bw;
-        const scaleY = (ch * 0.85) / bh;
-        vp.scale = Math.min(scaleX, scaleY);
-        vp.offsetX = vp.bbox.minX - (cw / vp.scale - bw) / 2;
-        vp.offsetY = vp.bbox.minY - (ch / vp.scale - bh) / 2;
-      });
-    }
-
-    /* ==========================================================================
-       7. PDF & GEOTIFF LOADERS
-       ========================================================================== */
-    async function loadDeedPdf(mapKey, filename) {
-      if (!window.pdfjsLib) return;
-      try {
-        const blob = await fetchBlob(filename);
-        const arrayBuf = await blob.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuf }).promise;
-        const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 2.0 });
-
-        const offCanvas = document.createElement("canvas");
-        offCanvas.width = viewport.width;
-        offCanvas.height = viewport.height;
-        const ctx = offCanvas.getContext("2d");
-        await page.render({ canvasContext: ctx, viewport }).promise;
-
-        state.pdfCanvases[mapKey] = offCanvas;
-        state.pdfDimensions[mapKey] = { w: viewport.width / 2.0, h: viewport.height / 2.0 };
-        redrawAll();
-      } catch (err) {
-        console.warn(`PDF ${filename}:`, err.message);
       }
-    }
-
-    async function loadGeoTiffFile(filename) {
-      if (!window.GeoTIFF) return;
-      const badge = document.getElementById("geotiff-badge");
-      try {
-        badge.textContent = "Loading TIF...";
-        const blob = await fetchBlob(filename);
-        const arrayBuf = await blob.arrayBuffer();
-        const tiff = await GeoTIFF.fromArrayBuffer(arrayBuf);
-        const image = await tiff.getImage();
-
-        const [minX, minY, maxX, maxY] = image.getBoundingBox();
-        const rasters = await image.readRasters();
-        const w = image.getWidth();
-        const h = image.getHeight();
-
-        const offCanvas = document.createElement("canvas");
-        offCanvas.width = w;
-        offCanvas.height = h;
-        const ctx = offCanvas.getContext("2d");
-        const imgData = ctx.createImageData(w, h);
-        const r = rasters[0], g = rasters[1] || r, b = rasters[2] || r;
-
-        for (let i = 0; i < w * h; i++) {
-          const idx = i * 4;
-          imgData.data[idx] = r[i];
-          imgData.data[idx + 1] = g[i];
-          imgData.data[idx + 2] = b[i];
-          imgData.data[idx + 3] = 255;
-        }
-        ctx.putImageData(imgData, 0, 0);
-
-        state.geoTiff = { canvas: offCanvas, bbox: { minX, minY, maxX, maxY } };
-        badge.textContent = `${w}×${h} TIF`;
-        badge.classList.add("green");
-        redrawAll();
-      } catch (err) {
-        badge.textContent = "TIF error";
-        console.warn("GeoTIFF load:", err.message);
-      }
-    }
-
-    /* Vectorizer Modal */
-    function openVectorizerModal(mapKey) {
-      const modal = document.getElementById("vec-modal");
-      const title = document.getElementById("vec-modal-title");
-      title.textContent = `✏️ Vectorize & Edit Polygon — Escritura ${mapKey}`;
-      modal.classList.add("visible");
-    }
-
-    /* Network Fetch Helpers */
-    async function fetchText(url) {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.text();
-    }
-    async function fetchJson(url) {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    }
-    async function fetchBlob(url) {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.blob();
+      return [{ layer, points, closed: true }];
     }
   </script>
 </body>
