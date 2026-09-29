@@ -1098,13 +1098,15 @@
               <button class="btn-fit-view btn-measure" id="btn-measure-tool" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">📏 Measure</button>
               
               <div class="compact-tool-group group-deed" style="display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:4px;background:rgba(213,0,249,0.12);border:1px solid rgba(213,0,249,0.32);" title="PowerPoint-style Deed Aspect Squeeze (drag edge handles on field canvas to stretch X or Y)">
+                <label style="display:inline-flex;align-items:center;cursor:pointer;margin:0;" title="Toggle Squeeze Handles on/off">
+                  <input type="checkbox" id="chk-toggle-deed-handles" style="accent-color:#d500f9;width:13px;height:13px;cursor:pointer;">
+                </label>
                 <span style="font-size:0.67rem;color:#d500f9;font-weight:700;letter-spacing:0.3px;">📐 SQUEEZE:</span>
                 <span id="deed-scale-display" style="font-size:0.68rem;color:#f0f4f8;font-family:monospace;font-weight:600;">X:100% Y:100%</span>
                 <label style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;font-size:0.65rem;color:var(--accent-cyan);font-weight:600;margin-left:2px;" title="Link X & Y so scaling one axis equivalently scales the other">
                   <input type="checkbox" id="chk-lock-deed-aspect-hud" style="accent-color:var(--accent-cyan);width:12px;height:12px;"> 🔗 Link
                 </label>
                 <button id="btn-reset-deed-scale" class="btn-fit-view" style="padding:1px 6px;font-size:0.64rem;border-color:rgba(213,0,249,0.45);cursor:pointer;" title="Reset Deed Aspect Ratio to 100% (1:1)">↺ Reset</button>
-                <button id="btn-toggle-deed-handles" class="btn-fit-view active" style="padding:1px 6px;font-size:0.64rem;border-color:rgba(213,0,249,0.45);cursor:pointer;" title="Toggle Squeeze Handles on/off">🔲 Handles</button>
               </div>
               <button class="btn-fit-view btn-marker" id="btn-marker-tool" title="Add temporary reference markers on field canvas (Click to drop, drag to move, right-click to delete)">📍 Marker</button>
               
@@ -4475,7 +4477,7 @@ EOF`;
     const state = {
       deedScale: { x: 1.0, y: 1.0 },
       lockAspectEquivalent: false,
-      showDeedHandles: true,
+      showDeedHandles: false,
       activeDeedHandle: null,
       hoveredDeedHandle: null,
       deedDragStart: null,
@@ -5487,6 +5489,10 @@ EOF`;
 
     function toggleDeedHandles(force) {
       state.showDeedHandles = (force !== undefined) ? force : !state.showDeedHandles;
+      const chk = document.getElementById("chk-toggle-deed-handles");
+      if (chk && chk.checked !== state.showDeedHandles) {
+        chk.checked = state.showDeedHandles;
+      }
       const btn = document.getElementById("btn-toggle-deed-handles");
       if (btn) {
         btn.classList.toggle("active", state.showDeedHandles);
@@ -12329,6 +12335,8 @@ EOF`;
     if (btnToggleHud) btnToggleHud.addEventListener("click", () => toggleDeedHandles());
     const btnToggleDeedHandles = document.getElementById("btn-toggle-deed-handles");
     if (btnToggleDeedHandles) btnToggleDeedHandles.addEventListener("click", () => toggleDeedHandles());
+    const chkToggleDeedHandles = document.getElementById("chk-toggle-deed-handles");
+    if (chkToggleDeedHandles) chkToggleDeedHandles.addEventListener("change", (e) => toggleDeedHandles(e.target.checked));
 
     const chkLockAspect = document.getElementById("chk-lock-deed-aspect");
     if (chkLockAspect) chkLockAspect.addEventListener("change", (e) => toggleLinkDeedAspect(e.target.checked));
