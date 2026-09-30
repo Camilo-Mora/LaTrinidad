@@ -5921,6 +5921,23 @@ EOF`;
           const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
           const fullText = labelName + (isEnabled ? "" : " (off)");
 
+          const defDx = 10, defDy = -10;
+          const offX = (anc.labelOffsetSrc && typeof anc.labelOffsetSrc.dx === "number") ? anc.labelOffsetSrc.dx : defDx;
+          const offY = (anc.labelOffsetSrc && typeof anc.labelOffsetSrc.dy === "number") ? anc.labelOffsetSrc.dy : defDy;
+
+          // Draw leader line if label has been moved away from default anchor position
+          if (Math.hypot(offX - defDx, offY - defDy) > 10) {
+            histCtx.save();
+            histCtx.beginPath();
+            histCtx.moveTo(sp.x, sp.y);
+            histCtx.lineTo(sp.x + offX, sp.y + offY + 9);
+            histCtx.strokeStyle = isEnabled ? (anc.color || "#00e5ff") : "#888888";
+            histCtx.lineWidth = 1.3;
+            histCtx.setLineDash([3, 3]);
+            histCtx.stroke();
+            histCtx.restore();
+          }
+
           if (anc.image) {
             if (!anc._imgElement) {
               const img = new Image();
@@ -5940,8 +5957,8 @@ EOF`;
               const textWidth = histCtx.measureText(fullText).width;
               const cardW = Math.max(imgW + cardPad * 2, textWidth + 14);
               const cardH = imgH + cardPad * 2 + (fontSize + 6);
-              const cardX = sp.x + 10;
-              const cardY = sp.y - (cardH / 2);
+              const cardX = sp.x + offX;
+              const cardY = sp.y + offY - (cardH / 2) + 10;
 
               histCtx.save();
               // White background card with slight curvature and shadow
@@ -5987,8 +6004,8 @@ EOF`;
               histCtx.save();
               histCtx.font = "bold 11px sans-serif";
               const tw = histCtx.measureText(textWithIcon).width;
-              const bx = sp.x + 10;
-              const by = sp.y - 10;
+              const bx = sp.x + offX;
+              const by = sp.y + offY;
               const bw = tw + 12;
               const bh = 19;
 
@@ -6017,8 +6034,8 @@ EOF`;
             histCtx.save();
             histCtx.font = "bold 11px sans-serif";
             const tw = histCtx.measureText(fullText).width;
-            const bx = sp.x + 10;
-            const by = sp.y - 10;
+            const bx = sp.x + offX;
+            const by = sp.y + offY;
             const bw = tw + 12;
             const bh = 19;
 
@@ -6577,6 +6594,23 @@ EOF`;
           const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
           const fullText = labelName + (isEnabled ? "" : " (off)");
 
+          const defDx = 10, defDy = -10;
+          const offX = (anc.labelOffsetDst && typeof anc.labelOffsetDst.dx === "number") ? anc.labelOffsetDst.dx : defDx;
+          const offY = (anc.labelOffsetDst && typeof anc.labelOffsetDst.dy === "number") ? anc.labelOffsetDst.dy : defDy;
+
+          // Draw leader line if label has been moved away from default anchor position
+          if (Math.hypot(offX - defDx, offY - defDy) > 10) {
+            trueCtx.save();
+            trueCtx.beginPath();
+            trueCtx.moveTo(tp.x, tp.y);
+            trueCtx.lineTo(tp.x + offX, tp.y + offY + 9);
+            trueCtx.strokeStyle = isEnabled ? (anc.color || "#00e5ff") : "#888888";
+            trueCtx.lineWidth = 1.3;
+            trueCtx.setLineDash([3, 3]);
+            trueCtx.stroke();
+            trueCtx.restore();
+          }
+
           if (anc.image) {
             if (!anc._imgElement) {
               const img = new Image();
@@ -6596,8 +6630,8 @@ EOF`;
               const textWidth = trueCtx.measureText(fullText).width;
               const cardW = Math.max(imgW + cardPad * 2, textWidth + 14);
               const cardH = imgH + cardPad * 2 + (fontSize + 6);
-              const cardX = tp.x + 10;
-              const cardY = tp.y - (cardH / 2);
+              const cardX = tp.x + offX;
+              const cardY = tp.y + offY - (cardH / 2) + 10;
 
               trueCtx.save();
               // White background card with slight curvature and shadow
@@ -6643,8 +6677,8 @@ EOF`;
               trueCtx.save();
               trueCtx.font = "bold 11px sans-serif";
               const tw = trueCtx.measureText(textWithIcon).width;
-              const bx = tp.x + 10;
-              const by = tp.y - 10;
+              const bx = tp.x + offX;
+              const by = tp.y + offY;
               const bw = tw + 12;
               const bh = 19;
 
@@ -6673,8 +6707,8 @@ EOF`;
             trueCtx.save();
             trueCtx.font = "bold 11px sans-serif";
             const tw = trueCtx.measureText(fullText).width;
-            const bx = tp.x + 10;
-            const by = tp.y - 10;
+            const bx = tp.x + offX;
+            const by = tp.y + offY;
             const bw = tw + 12;
             const bh = 19;
 
@@ -11340,6 +11374,60 @@ EOF`;
     }
 
     let draggingAnchor = null; // { anc, isHist }
+    let draggingAnchorLabel = null; // { anc, isHist, startMouseX, startMouseY, origDx, origDy }
+
+    function hitTestAnchorLabel(sx, sy, isHist) {
+      const vp = isHist ? state.histViewport : state.trueViewport;
+      const h = isHist ? histCanvas.height : trueCanvas.height;
+      const ctx = isHist ? histCtx : trueCtx;
+      for (let i = state.anchors.length - 1; i >= 0; i--) {
+        const anc = state.anchors[i];
+        if (anc.showLabel === false) continue;
+        const pt = isHist ? worldToScreen(anc.src, vp, h) : worldToScreenGIS(anc.dst, vp, h);
+        if (!pt || !isFinite(pt.x) || !isFinite(pt.y)) continue;
+
+        const isEnabled = anc.enabled !== false;
+        const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+        const fullText = labelName + (isEnabled ? "" : " (off)");
+
+        const defDx = 10, defDy = -10;
+        const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
+        const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
+        const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
+
+        if (anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
+          const imgSize = state.anchorPhotoSize || 56;
+          const imgW = imgSize, imgH = imgSize;
+          const cardPad = 4;
+          const fontSize = imgSize > 140 ? 13 : (imgSize > 90 ? 12 : 11);
+          ctx.save();
+          ctx.font = "bold " + fontSize + "px sans-serif";
+          const tw = ctx.measureText(fullText).width;
+          ctx.restore();
+          const cardW = Math.max(imgW + cardPad * 2, tw + 14);
+          const cardH = imgH + cardPad * 2 + (fontSize + 6);
+          const cardX = pt.x + offX;
+          const cardY = pt.y + offY - (cardH / 2) + 10;
+          if (sx >= cardX && sx <= cardX + cardW && sy >= cardY && sy <= cardY + cardH) {
+            return { anc, isHist, offX, offY, cardX, cardY, cardW, cardH };
+          }
+        } else {
+          const textWithIcon = anc.image ? `📷 ${fullText}` : fullText;
+          ctx.save();
+          ctx.font = "bold 11px sans-serif";
+          const tw = ctx.measureText(textWithIcon).width;
+          ctx.restore();
+          const bx = pt.x + offX;
+          const by = pt.y + offY;
+          const bw = tw + 12;
+          const bh = 19;
+          if (sx >= bx && sx <= bx + bw && sy >= by && sy <= by + bh) {
+            return { anc, isHist, offX, offY, cardX: bx, cardY: by, cardW: bw, cardH: bh };
+          }
+        }
+      }
+      return null;
+    }
 
     function handleMouseDown(e, canvas, viewport, isHist) {
       if (state.activeDeedHandle !== null) return;
@@ -11365,6 +11453,38 @@ EOF`;
         }
       }
 
+      // Anchor landmark drag in anchor mode
+      if (state.toolMode === "anchor" && e.button === 0 && !spacePressed) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const hit = hitTestAnchor(sx, sy, isHist);
+        if (hit) {
+          draggingAnchor = { anc: hit, isHist };
+          canvas.style.cursor = "move";
+          return;
+        }
+      }
+
+      // Anchor Label dragging (available in all modes via left click)
+      if (e.button === 0 && !spacePressed) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const labelHit = hitTestAnchorLabel(sx, sy, isHist);
+        if (labelHit) {
+          e.preventDefault();
+          draggingAnchorLabel = {
+            anc: labelHit.anc,
+            isHist,
+            startMouseX: e.clientX,
+            startMouseY: e.clientY,
+            origDx: labelHit.offX,
+            origDy: labelHit.offY
+          };
+          canvas.style.cursor = "grabbing";
+          return;
+        }
+      }
+
       const isMeasuringOnTrue = (!isHist && state.measureTool && state.measureTool.active);
       const isMarkerOnTrue = (!isHist && state.markerToolActive);
       const isEditingFieldOnTrue = (!isHist && state.editFieldNodes);
@@ -11384,16 +11504,6 @@ EOF`;
         canvas.style.cursor = "grabbing";
         return;
       }
-
-      if (state.toolMode === "anchor" && e.button === 0) {
-        const rect = canvas.getBoundingClientRect();
-        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
-        const hit = hitTestAnchor(sx, sy, isHist);
-        if (hit) {
-          draggingAnchor = { anc: hit, isHist };
-          canvas.style.cursor = "move";
-        }
-      }
     }
 
     function handleMouseUp(e, canvas, viewport, isHist) {
@@ -11407,6 +11517,14 @@ EOF`;
                            (state.toolMode === "pan" ? "grab" : "crosshair"))));
         histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
         trueCanvas.style.cursor = trueCursor;
+      }
+
+      if (draggingAnchorLabel) {
+        const id = draggingAnchorLabel.anc.id;
+        draggingAnchorLabel = null;
+        updateStatus(`Anchor #${id} label position updated.`);
+        redrawAll();
+        return;
       }
 
       if (draggingAnchor) {
@@ -11499,6 +11617,26 @@ EOF`;
     }
 
     window.addEventListener("mousemove", e => {
+      // Anchor Label dragging
+      if (draggingAnchorLabel) {
+        const dx = e.clientX - draggingAnchorLabel.startMouseX;
+        const dy = e.clientY - draggingAnchorLabel.startMouseY;
+        const newOff = {
+          dx: draggingAnchorLabel.origDx + dx,
+          dy: draggingAnchorLabel.origDy + dy
+        };
+        if (draggingAnchorLabel.isHist) {
+          draggingAnchorLabel.anc.labelOffsetSrc = newOff;
+          histCanvas.style.cursor = "grabbing";
+          redrawHistoricalCanvas();
+        } else {
+          draggingAnchorLabel.anc.labelOffsetDst = newOff;
+          trueCanvas.style.cursor = "grabbing";
+          redrawTrueCanvas();
+        }
+        return;
+      }
+
       // 0. Smooth window-level drag for deed squeeze handles
       if (state.activeDeedHandle !== null && state.deedDragStart) {
         const r = trueCanvas.getBoundingClientRect();
@@ -11703,6 +11841,21 @@ EOF`;
     });
 
     window.addEventListener("mouseup", () => {
+      if (draggingAnchorLabel) {
+        const ancId = draggingAnchorLabel.anc.id;
+        const isHist = draggingAnchorLabel.isHist;
+        draggingAnchorLabel = null;
+        updateStatus(`Anchor #${ancId} label repositioned.`);
+        if (isHist) {
+          histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        } else {
+          trueCanvas.style.cursor = (state.customPolygon && state.customPolygon.drawMode) ? "crosshair" :
+                                    ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair"));
+        }
+        redrawAll();
+        return;
+      }
+
       // 0. Release Deed Handle Dragging & lock position
       if (state.activeDeedHandle !== null) {
         state.activeDeedHandle = null;
@@ -11783,6 +11936,13 @@ EOF`;
       if (state.toolMode === "anchor" && !isPanning && !draggingAnchor) {
         const hit = hitTestAnchor(e.clientX - r.left, e.clientY - r.top, true);
         histCanvas.style.cursor = hit ? "move" : "crosshair";
+      } else if (!isPanning && !draggingAnchor && !draggingAnchorLabel && !state.draggingDeedNodeHist) {
+        const labelHit = hitTestAnchorLabel(e.clientX - r.left, e.clientY - r.top, true);
+        if (labelHit) {
+          histCanvas.style.cursor = "grab";
+          coordsBar.textContent = `Anchor #${labelHit.anc.id} Label: Drag to reposition • Double-click to reset`;
+          return;
+        }
       } else if (state.editDeedNodes && !isPanning && !state.draggingDeedNodeHist) {
         const deedHit = findDeedNodeOnHistCanvas(e.clientX - r.left, e.clientY - r.top, state.histViewport, histCanvas.height);
         const prevHover = state.hoverDeedNode;
@@ -11806,6 +11966,18 @@ EOF`;
       // If actively dragging deed handle, window mousemove handles position
       if (state.activeDeedHandle !== null) {
         return;
+      }
+
+      // Anchor Label Hover detection (drag label or double-click to reset)
+      if (!isPanning && !draggingAnchor && !draggingAnchorLabel && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
+        const labelHit = hitTestAnchorLabel(mouseX, mouseY, false);
+        if (labelHit) {
+          trueCanvas.style.cursor = "grab";
+          coordsBar.textContent = `Anchor #${labelHit.anc.id} Label: Drag to reposition • Double-click to reset`;
+          const anchorTooltipEl = document.getElementById("anchor-photo-tooltip");
+          if (anchorTooltipEl && anchorTooltipEl.style.display !== "none") anchorTooltipEl.style.display = "none";
+          return;
+        }
       }
 
       // Deed Handle Hover detection
@@ -12292,6 +12464,17 @@ EOF`;
     histCanvas.addEventListener("mousedown", e => handleMouseDown(e, histCanvas, state.histViewport, true));
     histCanvas.addEventListener("mouseup",   e => handleMouseUp(e, histCanvas, state.histViewport, true));
     histCanvas.addEventListener("contextmenu", e => e.preventDefault());
+    histCanvas.addEventListener("dblclick", function(e) {
+      const rect = histCanvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const labelHit = hitTestAnchorLabel(sx, sy, true);
+      if (labelHit) {
+        e.preventDefault();
+        delete labelHit.anc.labelOffsetSrc;
+        updateStatus(`Anchor #${labelHit.anc.id} label position reset to default.`);
+        redrawAll();
+      }
+    });
     trueCanvas.addEventListener("mousedown", e => handleMouseDown(e, trueCanvas, state.trueViewport, false));
     trueCanvas.addEventListener("mouseup", e => {
       if (state.activeDeedHandle !== null) {
@@ -12320,6 +12503,19 @@ EOF`;
 
     // Double-click on polygon segment to insert a new vertex (or close measuring polygon)
     trueCanvas.addEventListener("dblclick", function(e) {
+      const rect = trueCanvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+
+      // Double-click on Anchor Label -> reset to default position
+      const labelHit = hitTestAnchorLabel(sx, sy, false);
+      if (labelHit) {
+        e.preventDefault();
+        delete labelHit.anc.labelOffsetDst;
+        updateStatus(`Anchor #${labelHit.anc.id} label position reset to default.`);
+        redrawAll();
+        return;
+      }
+
       if (state.measureTool && state.measureTool.active) {
         if (state.measureTool.points.length >= 3) {
           e.preventDefault();
@@ -12330,8 +12526,6 @@ EOF`;
         return;
       }
       if (state.toolMode === "anchor") return;
-      const rect = trueCanvas.getBoundingClientRect();
-      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
       const vp = state.trueViewport, h = trueCanvas.height;
 
       // Double-click while drawing custom polygon -> close polygon
