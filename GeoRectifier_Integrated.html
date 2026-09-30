@@ -368,8 +368,37 @@ Do NOT modify dormant/parked sections unless specifically requested.
     }
     .panel-card.flex-grow { flex: 1; }
 
-    .panel-header { display: flex; align-items: center; justify-content: space-between; }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+    .panel-header[data-target] {
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+    .panel-header[data-target]:hover {
+      opacity: 0.9;
+    }
     .panel-header h3 { font-size: 0.88rem; font-weight: 600; }
+    .btn-panel-toggle {
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.70rem;
+      padding: 2px 7px;
+      line-height: 1;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.08);
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .btn-panel-toggle:hover {
+      background: rgba(0, 229, 255, 0.18);
+      border-color: rgba(0, 229, 255, 0.55);
+      filter: brightness(1.2);
+    }
 
     .badge-rmse {
       font-size: 0.85rem;
@@ -1345,7 +1374,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
         <!-- Right Window: True Field Survey DXF + Live Transformed Overlay -->
         <div class="viewport-card" id="true-card">
           <div class="viewport-header">
-            <span class="view-title true-title">📍 True Field Survey & Live Rectification (Target)</span>
+            <span class="view-title true-title">📍 Canvas</span>
             <div class="view-controls">
               <button class="btn-fit-view" id="btn-fit-true" title="Fit & Center Display" style="display:inline-flex;align-items:center;justify-content:center;padding:4px 6px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
@@ -1507,11 +1536,14 @@ Do NOT modify dormant/parked sections unless specifically requested.
       <aside class="sidebar" id="sidebar">
         <!-- Layer Opacity & Overlays Card -->
         <section class="panel-card" id="panel-overlays-opacity">
-          <div class="panel-header">
-            <h3>🎨 Overlays & Opacity</h3>
-            <span class="geotiff-status" id="geotiff-status">No image loaded</span>
+          <div class="panel-header" data-target="body-overlays-opacity" title="Colapsar / Desplegar Overlays & Opacity">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h3>🎨 Overlays & Opacity</h3>
+              <span class="geotiff-status" id="geotiff-status">No image loaded</span>
+            </div>
+            <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-overlays" title="Colapsar / Desplegar">▶</button>
           </div>
-          <div class="geotiff-panel">
+          <div class="geotiff-panel" id="body-overlays-opacity" style="display:none;">
 
             <!-- Global Overlays Toggle (All Elements Except GeoTIFF) -->
             <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;margin-bottom:8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.22);border-radius:5px;font-size:0.72rem;">
@@ -1526,9 +1558,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div class="overlay-group-header" data-target="group-drone-body" style="margin-top:2px;margin-bottom:8px;" title="Colapsar / Desplegar Drone">
               <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:var(--accent-cyan);text-transform:uppercase;">🛸 Drone</span>
               <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(0,229,255,0.4), rgba(0,229,255,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-drone" title="Colapsar / Desplegar Drone" style="color:var(--accent-cyan);border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.08);">▼</button>
+              <button type="button" class="btn-group-toggle" id="btn-toggle-group-drone" title="Colapsar / Desplegar Drone" style="color:var(--accent-cyan);border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.08);">▶</button>
             </div>
-            <div id="group-drone-body" class="overlay-group-content">
+            <div id="group-drone-body" class="overlay-group-content" style="display:none;">
               <div class="opacity-row" style="margin-bottom:6px;">
                 <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Drone Satellite / Orthophoto Background (Trinidad_Dron_Resized.tif)">
                   <input type="checkbox" id="chk-show-geotiff" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
@@ -1543,9 +1575,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div class="overlay-group-header" data-target="group-escritura1073-body" style="margin-top:14px;margin-bottom:8px;" title="Colapsar / Desplegar Escritura 1073">
               <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#ff1744;text-transform:uppercase;">📜 Escritura 1073</span>
               <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(255,23,68,0.4), rgba(255,23,68,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-escritura1073" title="Colapsar / Desplegar Escritura 1073" style="color:#ff1744;border-color:rgba(255,23,68,0.3);background:rgba(255,23,68,0.08);">▼</button>
+              <button type="button" class="btn-group-toggle" id="btn-toggle-group-escritura1073" title="Colapsar / Desplegar Escritura 1073" style="color:#ff1744;border-color:rgba(255,23,68,0.3);background:rgba(255,23,68,0.08);">▶</button>
             </div>
-            <div id="group-escritura1073-body" class="overlay-group-content">
+            <div id="group-escritura1073-body" class="overlay-group-content" style="display:none;">
               <div class="opacity-row" style="margin-bottom:8px;">
                 <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
                   <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
@@ -1590,9 +1622,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div class="overlay-group-header" data-target="group-latrinidad-body" style="margin-top:14px;margin-bottom:8px;" title="Colapsar / Desplegar La Trinidad">
               <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#00e676;text-transform:uppercase;">📍 La Trinidad</span>
               <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(0,230,118,0.4), rgba(0,230,118,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-latrinidad" title="Colapsar / Desplegar La Trinidad" style="color:#00e676;border-color:rgba(0,230,118,0.3);background:rgba(0,230,118,0.08);">▼</button>
+              <button type="button" class="btn-group-toggle" id="btn-toggle-group-latrinidad" title="Colapsar / Desplegar La Trinidad" style="color:#00e676;border-color:rgba(0,230,118,0.3);background:rgba(0,230,118,0.08);">▶</button>
             </div>
-            <div id="group-latrinidad-body" class="overlay-group-content" style="display:flex;flex-direction:column;gap:8px;">
+            <div id="group-latrinidad-body" class="overlay-group-content" style="display:none;flex-direction:column;gap:8px;">
               <!-- 3A. MUESTREOS DE CAMPO (COLLAPSIBLE SUBHEADING) -->
               <div class="overlay-group-header" data-target="group-muestreos-body" style="position:relative;margin-top:2px;margin-bottom:2px;background:rgba(0,230,118,0.06);padding:4px 8px;border-radius:4px;border:1px solid rgba(0,230,118,0.18);" title="Colapsar / Desplegar Muestreos de campo">
                 <span style="font-size:0.71rem;font-weight:700;letter-spacing:0.3px;color:#00e676;display:flex;align-items:center;gap:5px;">
@@ -1606,11 +1638,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   </div>
                 </div>
                 <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(0,230,118,0.3), rgba(0,230,118,0.02));"></div>
-                <button type="button" class="btn-group-toggle" id="btn-toggle-group-muestreos" title="Colapsar / Desplegar Muestreos de campo" style="color:#00e676;border-color:rgba(0,230,118,0.3);background:rgba(0,230,118,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▼</button>
+                <button type="button" class="btn-group-toggle" id="btn-toggle-group-muestreos" title="Colapsar / Desplegar Muestreos de campo" style="color:#00e676;border-color:rgba(0,230,118,0.3);background:rgba(0,230,118,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▶</button>
               </div>
 
               <!-- MUESTREOS DE CAMPO BODY -->
-              <div id="group-muestreos-body" class="overlay-group-content" style="display:flex;flex-direction:column;gap:7px;margin-bottom:4px;padding-left:2px;">
+              <div id="group-muestreos-body" class="overlay-group-content" style="display:none;flex-direction:column;gap:7px;margin-bottom:4px;padding-left:2px;">
                 <!-- 1. In 2019 by Cristian Cortez -->
                 <div class="layer-control-block" style="background:rgba(0,0,0,0.2);border:1px solid rgba(0,230,118,0.15);border-radius:5px;padding:5px 7px;">
                   <div class="opacity-row" style="display:flex;align-items:center;gap:6px;">
@@ -1748,10 +1780,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 <div style="display:flex;align-items:center;gap:6px;">
                   <span id="ref-dxf-badge" style="font-size:0.65rem;color:var(--text-muted);font-weight:normal;">0 files</span>
                   <button class="btn-fit-view btn-add-ref" id="btn-add-ref-dxf-sidebar" style="font-size:0.65rem;padding:1px 6px;" title="Load reference DXF">+ Add</button>
-                  <button type="button" class="btn-group-toggle" id="btn-toggle-group-refdxf" title="Colapsar / Desplegar Reference DXFs" style="color:var(--accent-cyan);border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.08);">▼</button>
+                  <button type="button" class="btn-group-toggle" id="btn-toggle-group-refdxf" title="Colapsar / Desplegar Reference DXFs" style="color:var(--accent-cyan);border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.08);">▶</button>
                 </div>
               </div>
-              <div id="group-refdxf-body" class="overlay-group-content">
+              <div id="group-refdxf-body" class="overlay-group-content" style="display:none;">
                 <div id="ref-dxf-list" style="display:flex;flex-direction:column;gap:6px;"></div>
               </div>
             </div>
@@ -1760,75 +1792,81 @@ Do NOT modify dormant/parked sections unless specifically requested.
         </section>
 
         <!-- Anchor Pairs Manager -->
-        <section class="panel-card flex-grow">
-          <div class="panel-header">
+        <section class="panel-card" id="panel-anchors">
+          <div class="panel-header" data-target="body-anchors" title="Colapsar / Desplegar Control Point Pairs">
             <div style="display:flex;align-items:center;gap:8px;">
               <h3>Control Point Pairs (Anchors)</h3>
               <span id="rmse-display" class="badge-rmse" style="font-size:0.7rem;padding:2px 7px;">RMSE: 0.00</span>
             </div>
-            <div style="display:flex;gap:5px;align-items:center;">
-              <button id="btn-save-anchors" class="btn-sm btn-success" title="Download & save anchors to anchors_georectifier.json">💾 Save</button>
-              <label for="anchor-file-input" class="btn-sm btn-secondary" style="cursor:pointer;margin:0;" title="Load custom anchors JSON file">📂 Load</label>
-              <input type="file" id="anchor-file-input" accept=".json" style="display:none;">
-              <button id="btn-clear-anchors" class="btn-sm btn-secondary" title="Clear all anchor points">Clear All</button>
+            <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-anchors" title="Colapsar / Desplegar">▶</button>
+          </div>
+
+          <div id="body-anchors" style="display:none;flex-direction:column;gap:8px;">
+            <!-- Action buttons below title with same icon style as Boundary Reconstructed -->
+            <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+              <button id="btn-save-anchors" class="btn btn-sm" style="background:rgba(0,200,83,0.25);border:1px solid rgba(0,200,83,0.5);color:#00e676;" title="Download & save anchors to anchors_georectifier.json">💾 Save JSON</button>
+              <label for="anchor-file-input" id="btn-load-anchors-lbl" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:0.72rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;" title="Load custom anchors JSON file">
+                📂 Load File<input type="file" id="anchor-file-input" accept=".json" style="display:none;">
+              </label>
+              <button id="btn-clear-anchors" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear all anchor points">🗑 Clear All</button>
             </div>
-          </div>
 
-          <!-- Algorithm Selector (Original GeoRectifier Methods) -->
-          <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(0,229,255,0.2);">
-            <label for="algorithm-select" style="font-size:0.72rem;color:var(--accent-cyan);font-weight:700;white-space:nowrap;margin:0;">Algorithm:</label>
-            <select id="algorithm-select" class="select-dropdown" style="flex:1;background:rgba(15,20,32,0.95);border:1px solid rgba(0,229,255,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
-              <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
-              <option value="AFFINE">Affine Transformation (6-Param)</option>
-              <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
-              <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
-            </select>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging and simulation centers within the Pen Buffer Radius of Field vertices and Temporary Checkpoint Markers">
-              <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
-              🔒 Constrain to Vertices / Markers
-            </label>
-            <span id="anchor-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
-          </div>
+            <!-- Algorithm Selector (Original GeoRectifier Methods) -->
+            <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(0,229,255,0.2);">
+              <label for="algorithm-select" style="font-size:0.72rem;color:var(--accent-cyan);font-weight:700;white-space:nowrap;margin:0;">Algorithm:</label>
+              <select id="algorithm-select" class="select-dropdown" style="flex:1;background:rgba(15,20,32,0.95);border:1px solid rgba(0,229,255,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
+                <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
+                <option value="AFFINE">Affine Transformation (6-Param)</option>
+                <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
+                <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging and simulation centers within the Pen Buffer Radius of Field vertices and Temporary Checkpoint Markers">
+                <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
+                🔒 Constrain to Vertices / Markers
+              </label>
+              <span id="anchor-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
+            </div>
 
-          <div class="table-wrapper">
-            <table class="anchor-table">
-              <colgroup>
-                <col style="width: 24px;">
-                <col>
-                <col style="width: 28px;">
-                <col style="width: 30px;">
-                <col style="width: 46px;">
-                <col style="width: 26px;">
-              </colgroup>
-              <thead>
-                <tr>
-                  <th style="width:24px;text-align:center;" title="Enable / Disable all anchor points in transformation calculation">
-                    <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
-                  </th>
-                  <th style="text-align:left;">Name</th>
-                  <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
-                  <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
-                  <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
-                  <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
-                </tr>
-              </thead>
-              <tbody id="anchor-table-body">
-                <!-- Anchor rows dynamically added here -->
-              </tbody>
-            </table>
-          </div>
+            <div class="table-wrapper">
+              <table class="anchor-table">
+                <colgroup>
+                  <col style="width: 24px;">
+                  <col>
+                  <col style="width: 28px;">
+                  <col style="width: 30px;">
+                  <col style="width: 46px;">
+                  <col style="width: 26px;">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style="width:24px;text-align:center;" title="Enable / Disable all anchor points in transformation calculation">
+                      <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
+                    </th>
+                    <th style="text-align:left;">Name</th>
+                    <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
+                    <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
+                    <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
+                    <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
+                  </tr>
+                </thead>
+                <tbody id="anchor-table-body">
+                  <!-- Anchor rows dynamically added here -->
+                </tbody>
+              </table>
+            </div>
 
-          <!-- Anchor Photo Size Slider -->
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px 2px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
-            <label for="range-anchor-photo-size" style="display:flex;align-items:center;gap:4px;color:var(--accent-cyan);font-weight:600;white-space:nowrap;margin:0;" title="Adjust manual size of landmark photo cards shown on map">
-              <span>📷 Size:</span>
-              <span id="anchor-photo-size-val" style="font-family:monospace;color:var(--text-main);font-weight:bold;min-width:38px;">56px</span>
-            </label>
-            <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:190px;">
-              <input type="range" id="range-anchor-photo-size" min="40" max="280" step="4" value="56" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
-              <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (56px)">↺</button>
+            <!-- Anchor Photo Size Slider -->
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px 2px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+              <label for="range-anchor-photo-size" style="display:flex;align-items:center;gap:4px;color:var(--accent-cyan);font-weight:600;white-space:nowrap;margin:0;" title="Adjust manual size of landmark photo cards shown on map">
+                <span>📷 Size:</span>
+                <span id="anchor-photo-size-val" style="font-family:monospace;color:var(--text-main);font-weight:bold;min-width:38px;">56px</span>
+              </label>
+              <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:190px;">
+                <input type="range" id="range-anchor-photo-size" min="40" max="280" step="4" value="56" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
+                <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (56px)">↺</button>
+              </div>
             </div>
           </div>
         </section>
@@ -1838,18 +1876,14 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
         <!-- [SECTION: HTML_SIDEBAR_POLYGON] -->
         <section class="panel-card" id="panel-distance-area">
-          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="panel-header" data-target="body-distance-area" title="Colapsar / Desplegar Boundary Reconstructed" style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:8px;">
               <h3>📏 Boundary Reconstructed</h3>
-              <button id="btn-download-polygon-dxf" class="btn-icon-action" style="background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.35);color:var(--accent-cyan);width:26px;height:26px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s;" title="Download Polygon DXF (LaTrinidadOptimized.dxf)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                </svg>
-              </button>
+              <span id="distance-area-mode-badge" style="font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(0,230,118,0.12);color:#00e676;font-weight:600;">Active</span>
             </div>
-            <span id="distance-area-mode-badge" style="font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(0,230,118,0.12);color:#00e676;font-weight:600;">Active</span>
+            <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-polygon" title="Colapsar / Desplegar">▶</button>
           </div>
-          <div id="body-distance-area" style="display:flex;flex-direction:column;gap:8px;">
+          <div id="body-distance-area" style="display:none;flex-direction:column;gap:8px;">
             <!-- Action buttons -->
             <div style="display:flex;flex-wrap:wrap;gap:6px;">
               <button id="btn-create-polygon" class="btn btn-primary btn-sm" title="Start drawing a new polygon on the field canvas">+ Create new polygon</button>
@@ -2071,7 +2105,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
         <!-- [SECTION: HTML_CUSTOM_POLYGONS] -->
         <section class="panel-card" id="panel-custom-polygon">
-          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="panel-header" data-target="body-custom-polygon" title="Colapsar / Desplegar Custom Polygons" style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:8px;">
               <h3>📐 Custom Polygons</h3>
               <button id="btn-download-custom-poly-dxf" class="btn-icon-action" style="background:rgba(255,179,0,0.12);border:1px solid rgba(255,179,0,0.35);color:#ffb300;width:26px;height:26px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s;" title="Download Custom Polygons DXF (custom_polygons.dxf)">
@@ -2079,10 +2113,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                 </svg>
               </button>
+              <span id="custom-poly-mode-badge" style="font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(255,179,0,0.12);color:#ffb300;font-weight:600;">Idle</span>
             </div>
-            <span id="custom-poly-mode-badge" style="font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(255,179,0,0.12);color:#ffb300;font-weight:600;">Idle</span>
+            <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-custom-poly" title="Colapsar / Desplegar">▶</button>
           </div>
-          <div id="body-custom-polygon" style="display:flex;flex-direction:column;gap:8px;">
+          <div id="body-custom-polygon" style="display:none;flex-direction:column;gap:8px;">
             <!-- + New Polygon button -->
             <button id="btn-add-new-custom-poly" class="btn btn-primary btn-sm" style="background:linear-gradient(135deg,#00e5ff,#00b0ff);border-color:#00e5ff;color:#050d1a;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Create a new independent polygon on the field map and subpanel">
               ➕ New Polygon
@@ -12787,6 +12822,25 @@ EOF`;
         redrawTrueCanvas();
       });
     }
+
+    // Collapsible main panel cards (Overlays, Anchors, Boundary Reconstructed, Custom Polygons)
+    document.querySelectorAll(".panel-card > .panel-header[data-target]").forEach(header => {
+      header.addEventListener("click", e => {
+        if (e.target.closest("button:not(.btn-panel-toggle)") || e.target.closest("input") || e.target.closest("label") || e.target.closest("a")) return;
+        const targetId = header.getAttribute("data-target");
+        if (!targetId) return;
+        const body = document.getElementById(targetId);
+        const toggleBtn = header.querySelector(".btn-panel-toggle");
+        if (!body) return;
+
+        const isCollapsed = body.style.display === "none";
+        body.style.display = isCollapsed ? "flex" : "none";
+        if (toggleBtn) {
+          toggleBtn.textContent = isCollapsed ? "▼" : "▶";
+          toggleBtn.title = isCollapsed ? "Colapsar panel" : "Desplegar panel";
+        }
+      });
+    });
 
     // Collapsible group headers and v-buttons
     document.querySelectorAll(".overlay-group-header").forEach(header => {
