@@ -556,28 +556,35 @@ Do NOT modify dormant/parked sections unless specifically requested.
       flex: 1;
       max-height: 380px;
       overflow-y: auto;
+      overflow-x: hidden;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
     }
 
     .anchor-table {
       width: 100%;
+      table-layout: fixed;
       border-collapse: collapse;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
     }
 
     .anchor-table th {
       background: rgba(0, 0, 0, 0.4);
       color: var(--accent-cyan);
-      text-align: left;
-      padding: 6px 8px;
+      text-align: center;
+      padding: 5px 3px;
+      font-size: 0.68rem;
+      font-weight: 700;
       border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
     }
 
     .anchor-table td {
-      padding: 6px 8px;
+      padding: 4px 3px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       color: var(--text-main);
+      font-size: 0.71rem;
+      vertical-align: middle;
     }
 
     .anchor-row-disabled {
@@ -590,24 +597,26 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
     .anchor-badge {
       display: inline-block;
-      width: 18px;
-      height: 18px;
+      width: 17px;
+      height: 17px;
       border-radius: 50%;
       text-align: center;
-      line-height: 18px;
+      line-height: 17px;
       font-weight: bold;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: #000;
+      flex-shrink: 0;
     }
 
     .btn-del-anchor {
-      background: rgba(255, 23, 68, 0.2);
-      border: 1px solid rgba(255, 23, 68, 0.4);
+      background: rgba(255, 23, 68, 0.15);
+      border: 1px solid rgba(255, 23, 68, 0.35);
       color: var(--accent-red);
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 1px 4px;
+      border-radius: 3px;
       cursor: pointer;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
+      line-height: 1.2;
     }
     .btn-del-anchor:hover { background: var(--accent-red); color: #fff; }
 
@@ -616,11 +625,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
       border: 1px solid rgba(255, 255, 255, 0.18);
       color: var(--text-main);
       border-radius: 4px;
-      padding: 2px 6px;
-      font-size: 0.73rem;
-      width: 75px;
-      min-width: 50px;
-      max-width: 105px;
+      padding: 2px 4px;
+      font-size: 0.71rem;
+      width: 100%;
+      min-width: 35px;
+      box-sizing: border-box;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     .anchor-name-input:focus {
@@ -635,8 +644,8 @@ Do NOT modify dormant/parked sections unless specifically requested.
       border: 1px dashed rgba(0, 229, 255, 0.45);
       color: var(--accent-cyan);
       border-radius: 4px;
-      padding: 3px 6px;
-      font-size: 0.8rem;
+      padding: 2px 4px;
+      font-size: 0.72rem;
       cursor: pointer;
       line-height: 1;
       transition: all 0.15s;
@@ -648,10 +657,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
     }
 
     .anchor-thumb-preview {
-      width: 32px;
-      height: 32px;
+      width: 22px;
+      height: 22px;
       object-fit: cover;
-      border-radius: 4px;
+      border-radius: 3px;
       border: 1.5px solid var(--accent-cyan);
       cursor: pointer;
       background: #000;
@@ -659,7 +668,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
       transition: transform 0.15s, border-color 0.15s;
     }
     .anchor-thumb-preview:hover {
-      transform: scale(1.15);
+      transform: scale(1.2);
       border-color: #ffffff;
       box-shadow: 0 2px 8px rgba(0, 229, 255, 0.5);
     }
@@ -1785,19 +1794,24 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
           <div class="table-wrapper">
             <table class="anchor-table">
+              <colgroup>
+                <col style="width: 24px;">
+                <col>
+                <col style="width: 28px;">
+                <col style="width: 30px;">
+                <col style="width: 46px;">
+                <col style="width: 26px;">
+              </colgroup>
               <thead>
                 <tr>
-                  <th style="width:34px;text-align:center;" title="Enable / Disable anchor points in transformation calculation">
-                    <div style="display:flex;align-items:center;justify-content:center;gap:2px;">
-                      <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
-                      <span style="font-size:0.68rem;">Use</span>
-                    </div>
+                  <th style="width:24px;text-align:center;" title="Enable / Disable all anchor points in transformation calculation">
+                    <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
                   </th>
-                  <th>Name</th>
-                  <th style="width:34px;text-align:center;" title="Display / Hide anchor label on canvas">Label</th>
-                  <th style="width:44px;text-align:center;" title="Attach photo of landmark / control point">Photo</th>
-                  <th style="width:48px;text-align:right;">Error</th>
-                  <th style="width:34px;text-align:center;">Action</th>
+                  <th style="text-align:left;">Name</th>
+                  <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">Lbl</th>
+                  <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
+                  <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
+                  <th style="width:26px;text-align:center;" title="Delete anchor">Del</th>
                 </tr>
               </thead>
               <tbody id="anchor-table-body">
@@ -12813,31 +12827,31 @@ EOF`;
         const hasPhoto = !!anc.image;
 
         tr.innerHTML = `
-          <td style="text-align:center;width:34px;">
-            <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:14px;height:14px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
+          <td style="text-align:center;">
+            <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
           </td>
-          <td>
-            <div style="display:flex;align-items:center;gap:5px;">
+          <td style="overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:3px;min-width:0;">
               <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;">#${anc.id}</span>
               <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
             </div>
           </td>
-          <td style="text-align:center;width:34px;">
-            <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:14px;height:14px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
+          <td style="text-align:center;">
+            <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
           </td>
-          <td style="text-align:center;width:44px;">
+          <td style="text-align:center;">
             ${hasPhoto ? `
-              <div style="display:inline-flex;align-items:center;gap:2px;">
+              <div style="display:inline-flex;align-items:center;justify-content:center;">
                 <img src="${anc.image}" class="anchor-thumb-preview" data-id="${anc.id}" title="Click to view, change, or remove photo" alt="Photo">
               </div>
             ` : `
               <button class="btn-upload-anchor-photo" data-id="${anc.id}" title="Upload photo for this anchor">📷</button>
             `}
           </td>
-          <td style="text-align:right;color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)')}">
-            ${err}${err !== "—" ? "m" : ""}${!isEnabled && err !== "—" ? ' <span style="font-size:0.65rem;opacity:0.8;">(off)</span>' : ''}
+          <td style="text-align:right;font-family:monospace;white-space:nowrap;color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)')}">
+            ${err}${err !== "—" ? "m" : ""}
           </td>
-          <td style="text-align:center;width:34px;">
+          <td style="text-align:center;">
             <button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})" title="Delete Anchor #${anc.id}">✕</button>
           </td>`;
         anchorTableBody.appendChild(tr);
