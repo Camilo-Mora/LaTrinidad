@@ -1430,7 +1430,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
               <label class="toggle-overlay" title="Show or hide polygon segment length labels"><input type="checkbox" id="chk-show-seg-labels"> Labels</label>
               <label class="toggle-overlay"><input type="checkbox" id="chk-show-overlay" checked> Live Warped Overlay</label>
-              <span id="true-status" class="view-badge loading">⏳ Loading Drone…</span>
             </div>
           </div>
           <div class="canvas-container" id="true-container">
@@ -13434,7 +13433,7 @@ EOF`;
       r.onload = function() {
         state.trueFileName = f.name;
         state.trueEntities = DXFParser.parse(this.result);
-        trueStatus.textContent = `Field DXF: ${state.trueEntities.length} entities`;
+        if (trueStatus) trueStatus.textContent = `Field DXF: ${state.trueEntities.length} entities`;
         if (state.trueEntities.length > 0 && trueCanvas.width > 0) {
           state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
         }
@@ -14797,24 +14796,28 @@ EOF`;
         const text = await fetchText(fieldName);
         state.trueFileName = fieldName;
         state.trueEntities = DXFParser.parse(text);
-        if (!state.geoTiff) {
-          trueStatus.textContent = "⏳ Loading Drone Imagery…";
-          trueStatus.className = "view-badge loading";
-        } else {
-          trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
-          trueStatus.className = "view-badge green";
-        }
-      } catch(e) {
-        console.warn("Auto Field DXF:", e.message);
-        state.trueFileName = "CercoCampo_CristianCortes_Marz_2019.dxf";
-        if (typeof TRUE_FIELD_DXF_SAMPLE !== "undefined") {
-          state.trueEntities = DXFParser.parse(TRUE_FIELD_DXF_SAMPLE);
+        if (trueStatus) {
           if (!state.geoTiff) {
             trueStatus.textContent = "⏳ Loading Drone Imagery…";
             trueStatus.className = "view-badge loading";
           } else {
             trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
             trueStatus.className = "view-badge green";
+          }
+        }
+      } catch(e) {
+        console.warn("Auto Field DXF:", e.message);
+        state.trueFileName = "CercoCampo_CristianCortes_Marz_2019.dxf";
+        if (typeof TRUE_FIELD_DXF_SAMPLE !== "undefined") {
+          state.trueEntities = DXFParser.parse(TRUE_FIELD_DXF_SAMPLE);
+          if (trueStatus) {
+            if (!state.geoTiff) {
+              trueStatus.textContent = "⏳ Loading Drone Imagery…";
+              trueStatus.className = "view-badge loading";
+            } else {
+              trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
+              trueStatus.className = "view-badge green";
+            }
           }
         }
       }
