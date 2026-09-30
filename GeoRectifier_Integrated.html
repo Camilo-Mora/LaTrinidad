@@ -1159,21 +1159,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
         </div>
       </div>
 
-      <!-- File Loaders -->
-      <div class="header-inputs">
+      <!-- File Loaders (Hidden) -->
+      <div class="header-inputs" style="display:none;">
         <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff" style="display:none;">
-
-        <label for="hist-dxf-input" class="btn btn-secondary" title="Load Historical Deformed DXF">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-          Deed DXF
-        </label>
-        <input type="file" id="hist-dxf-input" accept=".dxf">
-
-        <label for="true-dxf-input" class="btn btn-primary" title="Load True Ground-Truth Field Survey DXF">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-          Field DXF
-        </label>
-        <input type="file" id="true-dxf-input" accept=".dxf">
+        <input type="file" id="hist-dxf-input" accept=".dxf" style="display:none;">
+        <input type="file" id="true-dxf-input" accept=".dxf" style="display:none;">
       </div>
 
       <!-- Tool Mode Selector (Pan vs Anchor) -->
@@ -1205,13 +1195,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
       <!-- Export Action -->
       <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
-        <button id="btn-export-dxf" class="btn btn-success">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Export Rectified DXF
-        </button>
-        <button id="btn-export-polygon-dxf" class="btn btn-success" disabled style="opacity:0.45;" title="Export the hand-crafted polygon as a DXF file (user_polygon.dxf)">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-          Export Polygon DXF
+        <button id="btn-export-polygon-dxf" class="btn btn-success" disabled style="opacity:0.45;" title="Download Rectified Polygon DXF (LaTrinidadOptimized.dxf)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          Download Rectified DXF
         </button>
       </div>
     </header>
@@ -8862,8 +8850,9 @@ EOF`;
       document.getElementById("btn-save-polygon").disabled = !hasPoly;
       const expBtn = document.getElementById("btn-export-polygon-dxf");
       if (expBtn) {
-        expBtn.disabled = !poly.closed;
-        expBtn.style.opacity = poly.closed ? "1" : "0.45";
+        expBtn.disabled = !hasPoly;
+        expBtn.style.opacity = hasPoly ? "1" : "0.45";
+        expBtn.style.cursor = hasPoly ? "pointer" : "not-allowed";
       }
       const dlBtnHeader = document.getElementById("btn-download-polygon-dxf");
       if (dlBtnHeader) {
@@ -13119,7 +13108,7 @@ EOF`;
     });
 
     // ── Export DXF ────────────────────────────────────────────────────
-    btnExportDxf.addEventListener("click", () => {
+    btnExportDxf?.addEventListener("click", () => {
       if (!state.histEntities.length) { alert("No deed DXF loaded."); return; }
       const activeAnchors = getActiveAnchors();
       if (!activeAnchors.length || activeAnchors.length < 2) { alert("Add or enable at least 2 anchor pairs before exporting."); return; }
