@@ -978,6 +978,30 @@
     .opt-hover-wrap.active .opt-hover-card.align-right {
       transform: translateY(0);
     }
+    .opt-hover-card.header-tooltip {
+      position: absolute;
+      top: calc(100% + 6px);
+      bottom: auto;
+      left: 6px;
+      right: 6px;
+      width: auto;
+      box-sizing: border-box;
+      transform: translateY(-4px);
+      z-index: 9999;
+    }
+    .opt-hover-card.header-tooltip::after {
+      top: auto;
+      bottom: 100%;
+      left: var(--arrow-pos, 50%);
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: transparent transparent rgba(11, 17, 30, 0.98) transparent;
+    }
+    .opt-hover-wrap:hover .opt-hover-card.header-tooltip,
+    .opt-hover-wrap.active .opt-hover-card.header-tooltip {
+      transform: translateY(0);
+    }
     .opt-hover-title {
       font-weight: 700;
       color: var(--accent-cyan);
@@ -1284,13 +1308,13 @@
             </div>
             <div id="group-latrinidad-body" class="overlay-group-content" style="display:flex;flex-direction:column;gap:8px;">
               <!-- 3A. MUESTREOS DE CAMPO (COLLAPSIBLE SUBHEADING) -->
-              <div class="overlay-group-header" data-target="group-muestreos-body" style="margin-top:2px;margin-bottom:2px;background:rgba(0,230,118,0.06);padding:4px 8px;border-radius:4px;border:1px solid rgba(0,230,118,0.18);" title="Colapsar / Desplegar Muestreos de campo">
+              <div class="overlay-group-header" data-target="group-muestreos-body" style="position:relative;margin-top:2px;margin-bottom:2px;background:rgba(0,230,118,0.06);padding:4px 8px;border-radius:4px;border:1px solid rgba(0,230,118,0.18);" title="Colapsar / Desplegar Muestreos de campo">
                 <span style="font-size:0.71rem;font-weight:700;letter-spacing:0.3px;color:#00e676;display:flex;align-items:center;gap:5px;">
                   <span>📁</span> Muestreos de campo
                 </span>
-                <div class="opt-hover-wrap" style="position:relative;display:inline-flex;align-items:center;" onclick="event.stopPropagation();">
+                <div class="opt-hover-wrap" style="position:static;display:inline-flex;align-items:center;" onclick="event.stopPropagation();">
                   <button type="button" class="btn-help-bubble" aria-label="Ayuda Muestreos de campo" title="Ayuda: Muestreos de campo" style="width:16px;height:16px;font-size:0.62rem;line-height:1;padding:0;">?</button>
-                  <div class="opt-hover-card" style="width:260px;left:0;transform:translateY(4px);z-index:9999;">
+                  <div class="opt-hover-card header-tooltip" style="--arrow-pos:146px;">
                     <div class="opt-hover-title" style="color:#00e676;font-size:0.72rem;margin-bottom:3px;">📍 Muestreos de campo</div>
                     <div class="opt-hover-body" style="font-size:0.68rem;line-height:1.35;color:var(--text-main);">Muestreos de campo realizados en La Trinidad, usando tecnología GPS RTK bajo el sistema de referencia MAGNA SIRGAS – Origen Nacional.</div>
                   </div>
@@ -1399,13 +1423,13 @@
               </div>
 
               <!-- 3B. LINDERO LA TRINIDAD RECONSTRUIDO (COLLAPSIBLE SUBHEADING) -->
-              <div class="overlay-group-header" data-target="group-lindero-reconstruido-body" style="margin-top:6px;margin-bottom:2px;background:rgba(0,229,255,0.06);padding:4px 8px;border-radius:4px;border:1px solid rgba(0,229,255,0.18);" title="Colapsar / Desplegar Lindero La Trinidad Reconstruido">
+              <div class="overlay-group-header" data-target="group-lindero-reconstruido-body" style="position:relative;margin-top:6px;margin-bottom:2px;background:rgba(0,229,255,0.06);padding:4px 8px;border-radius:4px;border:1px solid rgba(0,229,255,0.18);" title="Colapsar / Desplegar Lindero La Trinidad Reconstruido">
                 <span style="font-size:0.71rem;font-weight:700;letter-spacing:0.3px;color:var(--accent-cyan);display:flex;align-items:center;gap:5px;">
                   <span>🎨</span> Lindero La Trinidad Reconstruido
                 </span>
-                <div class="opt-hover-wrap" style="position:relative;display:inline-flex;align-items:center;" onclick="event.stopPropagation();">
+                <div class="opt-hover-wrap" style="position:static;display:inline-flex;align-items:center;" onclick="event.stopPropagation();">
                   <button type="button" class="btn-help-bubble" aria-label="Ayuda Lindero La Trinidad Reconstruido" title="Ayuda: Lindero La Trinidad Reconstruido" style="width:16px;height:16px;font-size:0.62rem;line-height:1;padding:0;">?</button>
-                  <div class="opt-hover-card" style="width:280px;left:0;transform:translateY(4px);z-index:9999;">
+                  <div class="opt-hover-card header-tooltip" style="--arrow-pos:198px;">
                     <div class="opt-hover-title" style="color:var(--accent-cyan);font-size:0.72rem;margin-bottom:3px;">🎨 Lindero La Trinidad Reconstruido</div>
                     <div class="opt-hover-body" style="font-size:0.68rem;line-height:1.35;color:var(--text-main);">Este es el poligono reconstruido usando el limite norte extraido directamente de la escritura 296 de 1976, la quebrada Los Naranjos, que es un atributo geofisico fijo, y la reconstrucion del lindero con casa del Sol, que se basa en la escritursa 1073.</div>
                   </div>
