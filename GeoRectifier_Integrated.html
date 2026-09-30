@@ -2256,6 +2256,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
         <span class="modal-title" id="vec-modal-title">✏️ Vectorize & Edit Polygon</span>
         <div style="display:flex; gap:8px; align-items:center;">
           <button class="btn btn-secondary btn-sm" id="btn-vec-toggle-snap" style="border-color:var(--accent-cyan); color:var(--accent-cyan);" title="Toggle Node Snapping (Hold Shift to invert)">🧲 Snap: ON</button>
+          <label class="btn btn-secondary btn-sm" id="btn-vec-upload-dxf" title="Upload matching DXF file to vectorize or edit" style="display:flex;align-items:center;gap:6px;cursor:pointer;margin:0;">
+            <input type="file" id="vec-dxf-file-input" accept=".dxf" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Upload DXF</span>
+          </label>
           <button class="btn btn-primary btn-sm" id="btn-vec-download-dxf" title="Download modified Deed DXF" style="display:flex;align-items:center;gap:6px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Download current DXF</span>
@@ -2268,16 +2273,22 @@ Do NOT modify dormant/parked sections unless specifically requested.
       <div class="modal-body">
         <aside class="vectorizer-sidebar">
           <section class="panel-card">
-            <h3>PDF Document Source</h3>
+            <h3>PDF & DXF Document Sources</h3>
             <div style="display:flex; align-items:center; justify-content:space-between; margin-top:4px;">
               <button id="btn-vec-prev-page" class="btn-sm btn-secondary">◀ Prev</button>
               <span id="vec-page-num" style="font-size:0.78rem;font-weight:600;">Page 1 of 1</span>
               <button id="btn-vec-next-page" class="btn-sm btn-secondary">Next ▶</button>
             </div>
-            <label style="margin-top:6px; cursor:pointer;" class="btn btn-secondary btn-sm">
-              <input type="file" id="vec-pdf-file-input" accept="application/pdf" style="display:none;">
-              📁 Browse PDF File
-            </label>
+            <div style="display:flex; gap:6px; margin-top:6px;">
+              <label style="flex:1; cursor:pointer; margin:0; text-align:center;" class="btn btn-secondary btn-sm" title="Upload matching PDF document">
+                <input type="file" id="vec-pdf-file-input" accept="application/pdf" style="display:none;">
+                📁 Browse PDF
+              </label>
+              <label style="flex:1; cursor:pointer; margin:0; text-align:center;" class="btn btn-secondary btn-sm" title="Upload matching DXF file">
+                <input type="file" id="vec-dxf-file-input-side" accept=".dxf" style="display:none;">
+                📐 Upload DXF
+              </label>
+            </div>
           </section>
 
           <section class="panel-card">
@@ -13761,6 +13772,61 @@ EOF`;
           vecState.pdfDoc = state.histPdfDoc;
           renderVecPdfPage(1);
         }
+      });
+    }
+
+    // DXF File Browse / Upload for Vectorizer
+    function handleVecDxfUpload(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const text = evt.target.result;
+          const ents = DXFParser.parse(text);
+          if (!ents || ents.length === 0) {
+            alert("No polygon entities found in the selected DXF file.");
+            return;
+          }
+          state.histEntities = ents;
+          state.histFileName = file.name;
+          if (histStatus) histStatus.textContent = `Deed DXF: ${ents.length} entities (${file.name})`;
+
+          vecState.polygons = ents.map((ent, idx) => ({
+            id: idx + 1,
+            name: ent.layer || `Polygon_${idx + 1}`,
+            color: anchorColors[idx % anchorColors.length] || "#ff1744",
+            points: (ent.points || []).map(p => ({ x: p.x, y: p.y }))
+          }));
+          if (vecState.polygons.length === 0) {
+            vecState.polygons.push({ id: 1, name: "Polygon_1", color: "#ff1744", points: [] });
+          }
+          vecState.activePolyIndex = 0;
+          renderVecPolygonList();
+          redrawVecDrawCanvas();
+          updateStatus(`📂 Uploaded DXF '${file.name}' into Vectorizer (${ents.length} entities loaded).`);
+        } catch (err) {
+          console.error("Error parsing DXF file:", err);
+          alert("Failed to parse DXF file: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    const vecDxfFileInput = document.getElementById("vec-dxf-file-input");
+    if (vecDxfFileInput) {
+      vecDxfFileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) handleVecDxfUpload(file);
+        e.target.value = "";
+      });
+    }
+
+    const vecDxfFileInputSide = document.getElementById("vec-dxf-file-input-side");
+    if (vecDxfFileInputSide) {
+      vecDxfFileInputSide.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) handleVecDxfUpload(file);
+        e.target.value = "";
       });
     }
 
