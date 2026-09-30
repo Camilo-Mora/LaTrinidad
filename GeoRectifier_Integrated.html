@@ -1248,7 +1248,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
           <div class="viewport-header">
             <span class="view-title historical-title">📜 Historical Deed (PDF + DXF)</span>
             <div style="display:flex;align-items:center;gap:6px;">
-              <button class="btn-fit-view" id="btn-fit-hist" title="Fit & Center Display">🎯 Center View</button>
+              <button class="btn-fit-view" id="btn-fit-hist" title="Fit & Center Display" style="display:inline-flex;align-items:center;gap:5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                <span>Center View</span>
+              </button>
               <div class="compact-tool-group group-deed" title="Deed DXF: Edit or Vectorize PDF (✏️) & Download DXF (📥)">
                 <span class="group-label">Deed</span>
                 <button class="btn-icon-action" id="btn-edit-deed-hist" title="Edit or Vectorize PDF for Deed DXF">
@@ -1272,7 +1275,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
           <div class="viewport-header">
             <span class="view-title true-title">📍 True Field Survey & Live Rectification (Target)</span>
             <div class="view-controls">
-              <button class="btn-fit-view" id="btn-fit-true" title="Fit & Center Display">🎯 Center View</button>
+              <button class="btn-fit-view" id="btn-fit-true" title="Fit & Center Display" style="display:inline-flex;align-items:center;gap:5px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                <span>Center View</span>
+              </button>
               <button class="btn-fit-view btn-add-ref" id="btn-add-ref-dxf" title="Load temporary reference DXF file (+)">➕ Ref DXF</button>
               <input type="file" id="ref-dxf-input" accept=".dxf" style="display:none;" multiple>
               <button class="btn-fit-view btn-measure" id="btn-measure-tool" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">📏 Measure</button>
@@ -5082,6 +5088,24 @@ EOF`;
     }
     function screenToWorldGIS(sx, sy, vp, canvasH) {
       return { x: Math.round((sx - vp.offsetX) / vp.scale * 100) / 100, y: Math.round((canvasH - sy - vp.offsetY) / vp.scale * 100) / 100 };
+    }
+
+    function fitHistoricalView() {
+      if (!histCanvas || histCanvas.width <= 0) return;
+      if (state.histPdfW > 0) {
+        state.histViewport = fitViewport(histCanvas, { minX: 0, minY: 0, maxX: state.histPdfW, maxY: state.histPdfH, width: state.histPdfW, height: state.histPdfH });
+      } else if (state.histEntities && state.histEntities.length > 0) {
+        state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+      }
+    }
+
+    function fitTrueFieldView() {
+      if (!trueCanvas || trueCanvas.width <= 0) return;
+      if (state.trueEntities && state.trueEntities.length > 0) {
+        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+      } else if (state.geoTiff && state.geoTiff.bbox) {
+        state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
+      }
     }
 
     // ── Canvas resize ─────────────────────────────────────────────────
@@ -10378,10 +10402,13 @@ EOF`;
       if (showControl) activeList.push("Control Panel");
       updateStatus(`Panels active: ${activeList.join(" + ")}.`);
 
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         resizeCanvases();
+        if (showDeed) {
+          fitHistoricalView();
+        }
         redrawAll();
-      });
+      }, 50);
     }
 
     if (chkShowDeed) {
@@ -11611,17 +11638,11 @@ EOF`;
 
     // Fit/center buttons
     document.getElementById("btn-fit-hist").addEventListener("click", () => {
-      if (state.histPdfW > 0)
-        state.histViewport = fitViewport(histCanvas, { minX: 0, minY: 0, maxX: state.histPdfW, maxY: state.histPdfH, width: state.histPdfW, height: state.histPdfH });
-      else if (state.histEntities.length > 0)
-        state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+      fitHistoricalView();
       redrawAll(); updateStatus("Centered deed map view.");
     });
     document.getElementById("btn-fit-true").addEventListener("click", () => {
-      if (state.trueEntities.length > 0)
-        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
-      else if (state.geoTiff)
-        state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
+      fitTrueFieldView();
       redrawAll(); updateStatus("Centered field survey view.");
     });
 
@@ -12917,7 +12938,9 @@ EOF`;
               <span style="font-size:0.65rem;color:var(--text-muted);white-space:nowrap;">(${ref.entities.length})</span>
             </div>
             <div style="display:flex;align-items:center;gap:4px;">
-              <button class="btn-fit-view" style="padding:1px 6px;font-size:0.65rem;" title="Center & fit field view on this DXF" id="btn-zoom-ref-${ref.id}">🎯</button>
+              <button class="btn-fit-view" style="padding:1px 6px;font-size:0.65rem;display:inline-flex;align-items:center;justify-content:center;" title="Center & fit field view on this DXF" id="btn-zoom-ref-${ref.id}">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </button>
               <button class="btn-fit-view" style="padding:1px 6px;font-size:0.65rem;color:#ff5252;border-color:rgba(255,82,82,0.3);" title="Remove reference DXF" id="btn-del-ref-${ref.id}">✕</button>
             </div>
           </div>
@@ -13277,10 +13300,11 @@ EOF`;
         state.histPdfW = origVp.width;
         state.histPdfH = origVp.height;
         histStatus.textContent = `PDF: ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts`;
-        // Fit historical viewport to PDF bounds if DXF not yet loaded
-        if (!state.histViewport.bbox) {
-          const pdfBbox={minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH};
-          state.histViewport = fitViewport(histCanvas, pdfBbox);
+        // Fit historical viewport to PDF bounds
+        if (state.showDeedPanel || (histCard && !histCard.classList.contains("hidden"))) {
+          fitHistoricalView();
+        } else if (!state.histViewport.bbox) {
+          fitHistoricalView();
         }
         updateStatus(`Deed PDF loaded — ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts. Drop anchors to align.`);
         redrawAll();
