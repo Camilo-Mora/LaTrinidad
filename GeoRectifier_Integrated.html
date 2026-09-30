@@ -270,6 +270,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
       overflow: hidden;
       background: #080b12;
     }
+    #true-container {
+      background: #ffffff;
+    }
 
     .canvas-container canvas {
       display: block;
@@ -5545,8 +5548,8 @@ EOF`;
       updateAnalyticsUI();
     }
 
-    function drawGrid(ctx, w, h) {
-      ctx.strokeStyle = "rgba(255,255,255,0.04)";
+    function drawGrid(ctx, w, h, isLight = false) {
+      ctx.strokeStyle = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.04)";
       ctx.lineWidth = 1;
       for (let x=0;x<w;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke(); }
       for (let y=0;y<h;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke(); }
@@ -6488,8 +6491,9 @@ EOF`;
 
     function redrawTrueCanvas() {
       const w = trueCanvas.width, h = trueCanvas.height;
-      trueCtx.clearRect(0,0,w,h);
-      drawGrid(trueCtx,w,h);
+      trueCtx.fillStyle = "#ffffff";
+      trueCtx.fillRect(0, 0, w, h);
+      drawGrid(trueCtx, w, h, true);
       const vp = state.trueViewport;
 
       // Layer 1: Drone GeoTIFF background
