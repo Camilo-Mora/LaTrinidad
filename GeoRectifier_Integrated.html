@@ -870,6 +870,26 @@ Do NOT modify dormant/parked sections unless specifically requested.
       color: #ffffff;
       box-shadow: 0 0 14px rgba(255, 179, 0, 0.55);
     }
+    .btn-squeeze {
+      background: rgba(213, 0, 249, 0.12);
+      border: 1px solid rgba(213, 0, 249, 0.45);
+      color: #d500f9;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-squeeze:hover {
+      background: rgba(213, 0, 249, 0.26);
+      border-color: #d500f9;
+      box-shadow: 0 0 10px rgba(213, 0, 249, 0.35);
+    }
+    .btn-squeeze.active {
+      background: rgba(213, 0, 249, 0.35);
+      border-color: #ea80fc;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(213, 0, 249, 0.55);
+    }
     .btn-marker {
       background: rgba(245, 158, 11, 0.12);
       border: 1px solid rgba(245, 158, 11, 0.45);
@@ -1344,17 +1364,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <input type="file" id="ref-dxf-input" accept=".dxf" style="display:none;" multiple>
               <button class="btn-fit-view btn-measure" id="btn-measure-tool" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">📏 Measure</button>
               
-              <div class="compact-tool-group group-deed" style="display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:4px;background:rgba(213,0,249,0.12);border:1px solid rgba(213,0,249,0.32);" title="PowerPoint-style Deed Aspect Squeeze (drag edge handles on field canvas to stretch X or Y)">
-                <label style="display:inline-flex;align-items:center;cursor:pointer;margin:0;" title="Toggle Squeeze Handles on/off">
-                  <input type="checkbox" id="chk-toggle-deed-handles" style="accent-color:#d500f9;width:13px;height:13px;cursor:pointer;">
-                </label>
-                <span style="font-size:0.67rem;color:#d500f9;font-weight:700;letter-spacing:0.3px;">📐 SQUEEZE:</span>
-                <span id="deed-scale-display" style="font-size:0.68rem;color:#f0f4f8;font-family:monospace;font-weight:600;">X:100% Y:100%</span>
-                <label style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;font-size:0.65rem;color:var(--accent-cyan);font-weight:600;margin-left:2px;" title="Link X & Y so scaling one axis equivalently scales the other">
-                  <input type="checkbox" id="chk-lock-deed-aspect-hud" style="accent-color:var(--accent-cyan);width:12px;height:12px;"> 🔗 Link
-                </label>
-                <button id="btn-reset-deed-scale" class="btn-fit-view" style="padding:1px 6px;font-size:0.64rem;border-color:rgba(213,0,249,0.45);cursor:pointer;" title="Reset Deed Aspect Ratio to 100% (1:1)">↺ Reset</button>
-              </div>
+              <button class="btn-fit-view btn-squeeze" id="btn-toggle-deed-handles" title="PowerPoint-style Deed Aspect Squeeze (drag edge handles on field canvas to stretch X or Y)">📐 Squeeze</button>
               <button class="btn-fit-view btn-marker" id="btn-marker-tool" title="Add temporary reference markers on field canvas (Click to drop, drag to move, right-click to delete)">📍 Marker</button>
               
               <div class="compact-tool-group group-deed" title="Deed DXF: Edit Nodes (✏️) & Download DXF (📥)">
@@ -1388,6 +1398,46 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div id="field-drone-loading-hud" style="display:flex;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(15,20,32,0.94);border:1.5px solid #ffb300;border-radius:24px;padding:8px 20px;font-size:0.8rem;font-weight:600;color:#ffb300;box-shadow:0 4px 24px rgba(0,0,0,0.8), 0 0 14px rgba(255,179,0,0.3);backdrop-filter:blur(8px);z-index:40;align-items:center;gap:10px;pointer-events:none;">
               <span style="display:inline-block;animation:spin-indicator 1.2s linear infinite;font-size:1rem;">⏳</span>
               <span id="field-drone-loading-text">Loading Drone Imagery (51.5 MB)… please wait</span>
+            </div>
+
+            <!-- Floating Deed Aspect Squeeze HUD Overlay -->
+            <div id="squeeze-hud" style="display:none;position:absolute;top:56px;left:14px;background:rgba(18,24,38,0.94);border:1.5px solid rgba(213,0,249,0.55);border-radius:7px;padding:8px 12px;font-size:0.75rem;color:var(--text-main);box-shadow:0 6px 20px rgba(0,0,0,0.7), 0 0 12px rgba(213,0,249,0.25);backdrop-filter:blur(10px);z-index:36;min-width:210px;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:4px;">
+                <span style="font-weight:700;color:#d500f9;display:flex;align-items:center;gap:5px;font-size:0.75rem;">
+                  📐 Deed Squeeze
+                </span>
+                <button id="btn-close-squeeze-hud" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;font-weight:bold;padding:0 3px;line-height:1;" title="Close Squeeze Mode">✕</button>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;padding:2px 0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                  <span style="color:#d500f9;font-weight:700;font-size:0.72rem;min-width:18px;">X:</span>
+                  <div style="display:flex;align-items:center;gap:3px;">
+                    <button type="button" id="btn-scale-x-dec" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Decrease X scale by 1%">−</button>
+                    <input type="number" id="input-scale-x" min="15" max="500" step="0.5" value="100.0" style="width:58px;background:rgba(0,0,0,0.45);border:1px solid rgba(213,0,249,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.72rem;text-align:right;padding:1px 4px;">
+                    <span style="font-size:0.7rem;color:var(--text-muted);">%</span>
+                    <button type="button" id="btn-scale-x-inc" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Increase X scale by 1%">+</button>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                  <span style="color:#d500f9;font-weight:700;font-size:0.72rem;min-width:18px;">Y:</span>
+                  <div style="display:flex;align-items:center;gap:3px;">
+                    <button type="button" id="btn-scale-y-dec" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Decrease Y scale by 1%">−</button>
+                    <input type="number" id="input-scale-y" min="15" max="500" step="0.5" value="100.0" style="width:58px;background:rgba(0,0,0,0.45);border:1px solid rgba(213,0,249,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.72rem;text-align:right;padding:1px 4px;">
+                    <span style="font-size:0.7rem;color:var(--text-muted);">%</span>
+                    <button type="button" id="btn-scale-y-inc" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Increase Y scale by 1%">+</button>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:2px;">
+                <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:0.7rem;color:var(--accent-cyan);font-weight:600;" title="Link X & Y so scaling one axis equivalently scales the other">
+                  <input type="checkbox" id="chk-lock-deed-aspect-hud" style="accent-color:var(--accent-cyan);width:13px;height:13px;cursor:pointer;">
+                  <span>🔗 Link X & Y</span>
+                </label>
+                <button id="btn-reset-deed-scale-hud" class="btn-fit-view" style="padding:2px 8px;font-size:0.67rem;border-color:rgba(213,0,249,0.45);cursor:pointer;" title="Reset Deed Aspect Ratio to 100% (1:1)">↺ Reset</button>
+              </div>
+              <div style="font-size:0.64rem;color:var(--text-muted);border-top:1px dashed rgba(255,255,255,0.08);padding-top:4px;line-height:1.25;">
+                Drag edge or corner handles on map, or use +/−
+              </div>
             </div>
 
             <!-- Floating Measurement HUD Overlay -->
@@ -1522,9 +1572,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     <input type="checkbox" id="style-deed-dxf-nodes" style="accent-color:var(--accent-cyan);"> Nodes
                   </label>
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm" id="btn-edit-vec-1073" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.75rem;" title="Edit or Vectorize PDF for Escritura 1073">
-                  ✏️ Edit or Vectorize PDF (1073)
-                </button>
               </div>
             </div>
 
@@ -1617,12 +1664,12 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   </div>
                 </div>
 
-                <!-- 3. In 2025 by Cristian Cortez -->
+                <!-- 3. In 2026 by Cristian Cortez -->
                 <div class="layer-control-block" style="background:rgba(0,0,0,0.2);border:1px solid rgba(0,229,255,0.18);border-radius:5px;padding:5px 7px;">
                   <div class="opacity-row" style="display:flex;align-items:center;gap:6px;">
                     <label style="flex:1;min-width:0;display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;font-size:0.71rem;" title="CercoCampo_CristianCortes_Sept_2026.dxf">
                       <input type="checkbox" id="chk-show-survey-cortez-2025" style="accent-color:#00e5ff;cursor:pointer;margin:0;flex-shrink:0;">
-                      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">In 2025 by Cristian Cortez</span>
+                      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">In 2026 by Cristian Cortez</span>
                     </label>
                     <input type="range" class="opacity-slider" id="survey-cortez-2025-opacity" min="0" max="100" value="50" style="width:65px;min-width:45px;max-width:75px;flex-shrink:0;">
                     <span class="opacity-val" id="survey-cortez-2025-opacity-val" style="min-width:28px;text-align:right;">50%</span>
@@ -2754,11 +2801,13 @@ Do NOT modify dormant/parked sections unless specifically requested.
         const active = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
         if (!active || active.length === 0) return (pt) => ({ ...pt });
 
+        const rawWarper = TransformMath._buildRawWarper(algorithm, active);
+
         const scale = deedScale || (typeof state !== "undefined" && state.deedScale) || { x: 1.0, y: 1.0 };
         const hasScale = Math.abs(scale.x - 1.0) > 1e-5 || Math.abs(scale.y - 1.0) > 1e-5;
 
         if (!hasScale) {
-          return TransformMath._buildRawWarper(algorithm, active);
+          return rawWarper;
         }
 
         const center = (typeof getDeedCenter === "function") ? getDeedCenter() : { x: 0, y: 0 };
@@ -2767,13 +2816,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
           y: center.y + (p.y - center.y) * scale.y
         });
 
-        // Scale anchor source coordinates in deed space
-        const scaledAnchors = active.map(a => ({
-          ...a,
-          src: transformPt(a.src)
-        }));
-
-        const rawWarper = TransformMath._buildRawWarper(algorithm, scaledAnchors);
         return (pt) => rawWarper(transformPt(pt));
       }
 
@@ -2782,44 +2824,32 @@ Do NOT modify dormant/parked sections unless specifically requested.
         const active = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
         if (!active || active.length < 2) return null;
 
+        const invAnchors = active.map(a => ({
+          id: a.id,
+          color: a.color,
+          src: { x: a.dst.x, y: a.dst.y },
+          dst: { x: a.src.x, y: a.src.y },
+          active: true,
+          enabled: true
+        }));
+        const rawInvWarper = TransformMath._buildRawWarper(algorithm, invAnchors);
+
         const scale = deedScale || (typeof state !== "undefined" && state.deedScale) || { x: 1.0, y: 1.0 };
         const hasScale = Math.abs(scale.x - 1.0) > 1e-5 || Math.abs(scale.y - 1.0) > 1e-5;
 
         if (!hasScale) {
-          const invAnchors = active.map(a => ({
-            id: a.id,
-            color: a.color,
-            src: { x: a.dst.x, y: a.dst.y },
-            dst: { x: a.src.x, y: a.src.y },
-            active: true,
-            enabled: true
-          }));
-          return TransformMath._buildRawWarper(algorithm, invAnchors);
+          return rawInvWarper;
         }
 
         const center = (typeof getDeedCenter === "function") ? getDeedCenter() : { x: 0, y: 0 };
-        const transformPt = (p) => ({
-          x: center.x + (p.x - center.x) * scale.x,
-          y: center.y + (p.y - center.y) * scale.y
-        });
         const unTransformPt = (p) => ({
           x: center.x + (p.x - center.x) / scale.x,
           y: center.y + (p.y - center.y) / scale.y
         });
 
-        const invAnchors = active.map(a => ({
-          id: a.id,
-          color: a.color,
-          src: { x: a.dst.x, y: a.dst.y },
-          dst: transformPt(a.src),
-          active: true,
-          enabled: true
-        }));
-
-        const rawInvWarper = TransformMath._buildRawWarper(algorithm, invAnchors);
         return (gisPt) => {
-          const scaledDeedPt = rawInvWarper(gisPt);
-          return unTransformPt(scaledDeedPt);
+          const rawDeedPt = rawInvWarper(gisPt);
+          return unTransformPt(rawDeedPt);
         };
       }
 
@@ -6227,10 +6257,38 @@ EOF`;
       const el3 = document.getElementById("deed-scale-display-sidebar");
       if (el3) el3.textContent = str;
 
+      const inputX = document.getElementById("input-scale-x");
+      if (inputX && document.activeElement !== inputX) {
+        inputX.value = (state.deedScale.x * 100).toFixed(1);
+      }
+      const inputY = document.getElementById("input-scale-y");
+      if (inputY && document.activeElement !== inputY) {
+        inputY.value = (state.deedScale.y * 100).toFixed(1);
+      }
+
       const chk1 = document.getElementById("chk-lock-deed-aspect");
       if (chk1 && chk1.checked !== isLinked) chk1.checked = isLinked;
       const chk2 = document.getElementById("chk-lock-deed-aspect-hud");
       if (chk2 && chk2.checked !== isLinked) chk2.checked = isLinked;
+    }
+
+    function applyDeedScaleChange(newX, newY) {
+      if (newX !== undefined && !isNaN(newX)) {
+        state.deedScale.x = Math.max(0.15, Math.min(5.0, newX));
+        if (state.lockAspectEquivalent && newY === undefined) {
+          state.deedScale.y = state.deedScale.x;
+        }
+      }
+      if (newY !== undefined && !isNaN(newY)) {
+        state.deedScale.y = Math.max(0.15, Math.min(5.0, newY));
+        if (state.lockAspectEquivalent && newX === undefined) {
+          state.deedScale.x = state.deedScale.y;
+        }
+      }
+      updateDeedScaleDisplay();
+      updateUserPolygonWarp();
+      updateCustomPolygonAnchors();
+      redrawAll();
     }
 
     function toggleLinkDeedAspect(val) {
@@ -6278,8 +6336,13 @@ EOF`;
       if (btn) {
         btn.classList.toggle("active", state.showDeedHandles);
       }
+      const hud = document.getElementById("squeeze-hud");
+      if (hud) {
+        hud.style.display = state.showDeedHandles ? "flex" : "none";
+      }
+      updateDeedScaleDisplay();
       redrawTrueCanvas();
-      updateStatus(state.showDeedHandles ? "🔲 Squeeze Handles enabled — drag edge handles on field canvas to stretch." : "🔲 Squeeze Handles hidden.");
+      updateStatus(state.showDeedHandles ? "📐 Squeeze Handles enabled — drag edge handles on field canvas to stretch." : "📐 Squeeze Handles hidden.");
     }
 
     function redrawTrueCanvas() {
@@ -6328,7 +6391,7 @@ EOF`;
       if (state.showSurveyValoy2025 !== false) {
         drawEntitiesGIS(trueCtx, state.surveyValoy2025Entities, vp, h, (state.styleSurveyValoy2025 && state.styleSurveyValoy2025.color) || "#ffb300", state.surveyValoy2025Opacity, state.styleSurveyValoy2025);
       }
-      // 4c. In 2025 by Cristian Cortez (CercoCampo_CristianCortes_Sept_2026.dxf)
+      // 4c. In 2026 by Cristian Cortez (CercoCampo_CristianCortes_Sept_2026.dxf)
       if (state.showSurveyCortez2025 !== false) {
         drawEntitiesGIS(trueCtx, state.surveyCortez2025Entities, vp, h, (state.styleSurveyCortez2025 && state.styleSurveyCortez2025.color) || "#00e5ff", state.surveyCortez2025Opacity, state.styleSurveyCortez2025);
       }
@@ -13627,14 +13690,6 @@ EOF`;
         openVectorizerModal("1073");
       });
     }
-
-    const btnEditVec1073 = document.getElementById("btn-edit-vec-1073");
-    if (btnEditVec1073) {
-      btnEditVec1073.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openVectorizerModal("1073");
-      });
-    }
     // [/SECTION: JS_VECTORIZER_LOGIC]
 
     // ============================================================================
@@ -14458,6 +14513,15 @@ EOF`;
     if (btnToggleDeedHandles) btnToggleDeedHandles.addEventListener("click", () => toggleDeedHandles());
     const chkToggleDeedHandles = document.getElementById("chk-toggle-deed-handles");
     if (chkToggleDeedHandles) chkToggleDeedHandles.addEventListener("change", (e) => toggleDeedHandles(e.target.checked));
+    const btnCloseSqueezeHud = document.getElementById("btn-close-squeeze-hud");
+    if (btnCloseSqueezeHud) btnCloseSqueezeHud.addEventListener("click", () => toggleDeedHandles(false));
+
+    document.getElementById("btn-scale-x-dec")?.addEventListener("click", () => applyDeedScaleChange(state.deedScale.x - 0.01));
+    document.getElementById("btn-scale-x-inc")?.addEventListener("click", () => applyDeedScaleChange(state.deedScale.x + 0.01));
+    document.getElementById("btn-scale-y-dec")?.addEventListener("click", () => applyDeedScaleChange(undefined, state.deedScale.y - 0.01));
+    document.getElementById("btn-scale-y-inc")?.addEventListener("click", () => applyDeedScaleChange(undefined, state.deedScale.y + 0.01));
+    document.getElementById("input-scale-x")?.addEventListener("change", (e) => applyDeedScaleChange(parseFloat(e.target.value) / 100));
+    document.getElementById("input-scale-y")?.addEventListener("change", (e) => applyDeedScaleChange(undefined, parseFloat(e.target.value) / 100));
 
     const chkLockAspect = document.getElementById("chk-lock-deed-aspect");
     if (chkLockAspect) chkLockAspect.addEventListener("change", (e) => toggleLinkDeedAspect(e.target.checked));
