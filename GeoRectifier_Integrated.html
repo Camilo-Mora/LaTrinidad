@@ -1509,6 +1509,17 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <button id="btn-clear-anchors" class="btn-sm btn-secondary" title="Clear all anchor points">Clear All</button>
             </div>
           </div>
+
+          <!-- Algorithm Selector (Original GeoRectifier Methods) -->
+          <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(0,229,255,0.2);">
+            <label for="algorithm-select" style="font-size:0.72rem;color:var(--accent-cyan);font-weight:700;white-space:nowrap;margin:0;">Algorithm:</label>
+            <select id="algorithm-select" class="select-dropdown" style="flex:1;background:rgba(15,20,32,0.95);border:1px solid rgba(0,229,255,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
+              <option value="SIMILARITY" selected>Helmert Similarity (PowerPoint Rotate+Scale)</option>
+              <option value="AFFINE">Affine Transformation (6-Param)</option>
+              <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
+              <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+            </select>
+          </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging and simulation centers within the Pen Buffer Radius of Field vertices and Temporary Checkpoint Markers">
               <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
@@ -1635,18 +1646,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <button id="btn-opt-legal-help" style="background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.4);color:var(--accent-cyan);width:19px;height:19px;border-radius:50%;font-size:0.70rem;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;" title="Fundamento Jurídico y Técnico del Buffer (Res. 388/2020 &amp; Res. 1101/2020)">?</button>
                   <span id="opt-status-badge" style="font-size:0.65rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-muted);">Ready</span>
                 </div>
-              </div>
-
-              <!-- Algorithm Selector -->
-              <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(0,0,0,0.25);padding:4px 6px;border-radius:4px;border:1px solid rgba(0,229,255,0.15);">
-                <label for="algorithm-select" style="font-size:0.71rem;color:var(--accent-cyan);font-weight:600;white-space:nowrap;margin:0;">Algorithm:</label>
-                <select id="algorithm-select" style="flex:1;background:rgba(15,20,32,0.9);border:1px solid rgba(0,229,255,0.3);color:#e2e8f0;font-size:0.70rem;border-radius:4px;padding:3px 5px;cursor:pointer;">
-                  <option value="affine">Affine (6-DOF)</option>
-                  <option value="similarity">Similarity (4-DOF)</option>
-                  <option value="projective">Projective (Homography)</option>
-                  <option value="polynomial">Polynomial (2nd Order)</option>
-                  <option value="tps" selected>Thin Plate Spline (TPS - Local Rubber-Sheeting)</option>
-                </select>
               </div>
 
               <div id="boundary-opt-buffer-controls" style="display:flex;flex-direction:column;gap:8px;">
@@ -2531,7 +2530,8 @@ Do NOT modify dormant/parked sections unless specifically requested.
       }
 
       static _buildRawWarper(algorithm, active) {
-        switch (algorithm) {
+        const algo = (algorithm || "").toUpperCase();
+        switch (algo) {
           case "TPS":
             return active.length >= 3 ? TransformMath.buildTPSWarper(active) : TransformMath.buildSimilarityWarper(active);
           case "AFFINE":
