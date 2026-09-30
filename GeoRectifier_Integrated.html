@@ -635,8 +635,8 @@ Do NOT modify dormant/parked sections unless specifically requested.
       border: 1px dashed rgba(0, 229, 255, 0.45);
       color: var(--accent-cyan);
       border-radius: 4px;
-      padding: 2px 5px;
-      font-size: 0.72rem;
+      padding: 3px 6px;
+      font-size: 0.8rem;
       cursor: pointer;
       line-height: 1;
       transition: all 0.15s;
@@ -644,14 +644,14 @@ Do NOT modify dormant/parked sections unless specifically requested.
     .btn-upload-anchor-photo:hover {
       background: rgba(0, 229, 255, 0.22);
       border-color: var(--accent-cyan);
-      transform: scale(1.06);
+      transform: scale(1.08);
     }
 
     .anchor-thumb-preview {
-      width: 22px;
-      height: 22px;
+      width: 32px;
+      height: 32px;
       object-fit: cover;
-      border-radius: 3px;
+      border-radius: 4px;
       border: 1.5px solid var(--accent-cyan);
       cursor: pointer;
       background: #000;
@@ -659,7 +659,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
       transition: transform 0.15s, border-color 0.15s;
     }
     .anchor-thumb-preview:hover {
-      transform: scale(1.18);
+      transform: scale(1.15);
       border-color: #ffffff;
       box-shadow: 0 2px 8px rgba(0, 229, 255, 0.5);
     }
@@ -1386,23 +1386,23 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div id="segment-label-tooltip" style="display:none;position:absolute;pointer-events:none;z-index:45;background:rgba(15,23,42,0.96);border:1.5px solid #00e5ff;box-shadow:0 6px 22px rgba(0,0,0,0.75), 0 0 12px rgba(0,229,255,0.25);border-radius:6px;padding:8px 12px;font-size:0.75rem;color:#f8fafc;line-height:1.55;backdrop-filter:blur(8px);white-space:nowrap;font-family:sans-serif;"></div>
 
             <!-- Floating Anchor Label & Photo Tooltip -->
-            <div id="anchor-photo-tooltip" style="display:none;position:absolute;pointer-events:none;z-index:46;background:rgba(15,23,42,0.97);border:1.5px solid #00e5ff;box-shadow:0 8px 24px rgba(0,0,0,0.8), 0 0 14px rgba(0,229,255,0.3);border-radius:7px;padding:8px 12px;font-size:0.75rem;color:#f8fafc;line-height:1.5;backdrop-filter:blur(10px);font-family:sans-serif;max-width:280px;"></div>
+            <div id="anchor-photo-tooltip" style="display:none;position:absolute;pointer-events:none;z-index:46;background:rgba(15,23,42,0.97);border:1.5px solid #00e5ff;box-shadow:0 8px 26px rgba(0,0,0,0.85), 0 0 16px rgba(0,229,255,0.35);border-radius:8px;padding:10px 14px;font-size:0.75rem;color:#f8fafc;line-height:1.5;backdrop-filter:blur(10px);font-family:sans-serif;max-width:380px;"></div>
 
             <!-- Anchor Photo Preview & Management Modal -->
-            <div id="modal-anchor-photo" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.78);z-index:9999;backdrop-filter:blur(4px);align-items:center;justify-content:center;">
-              <div style="background:#131d2e;border:1px solid rgba(0,229,255,0.4);box-shadow:0 14px 40px rgba(0,0,0,0.9);border-radius:8px;width:90%;max-width:440px;overflow:hidden;display:flex;flex-direction:column;">
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);">
-                  <span id="modal-anchor-photo-title" style="font-weight:700;color:var(--accent-cyan);font-size:0.85rem;">📷 Anchor Photo</span>
-                  <button id="btn-close-anchor-photo-modal" style="background:none;border:none;color:#94a3b8;font-size:1.1rem;cursor:pointer;line-height:1;">✕</button>
+            <div id="modal-anchor-photo" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:9999;backdrop-filter:blur(5px);align-items:center;justify-content:center;">
+              <div style="background:#131d2e;border:1px solid rgba(0,229,255,0.45);box-shadow:0 16px 48px rgba(0,0,0,0.95);border-radius:10px;width:92%;max-width:640px;overflow:hidden;display:flex;flex-direction:column;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.35);">
+                  <span id="modal-anchor-photo-title" style="font-weight:700;color:var(--accent-cyan);font-size:0.9rem;">📷 Anchor Photo</span>
+                  <button id="btn-close-anchor-photo-modal" style="background:none;border:none;color:#94a3b8;font-size:1.2rem;cursor:pointer;line-height:1;" title="Close">✕</button>
                 </div>
-                <div style="padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080c14;min-height:200px;">
-                  <img id="modal-anchor-photo-img" src="" alt="Anchor Photo Preview" style="max-width:100%;max-height:360px;object-fit:contain;border-radius:4px;border:1px solid rgba(255,255,255,0.15);" />
+                <div style="padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080c14;min-height:260px;">
+                  <img id="modal-anchor-photo-img" src="" alt="Anchor Photo Preview" style="max-width:100%;max-height:500px;object-fit:contain;border-radius:6px;border:1px solid rgba(255,255,255,0.15);box-shadow:0 4px 16px rgba(0,0,0,0.7);" />
                 </div>
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);">
-                  <button id="btn-modal-delete-photo" style="background:rgba(255,23,68,0.18);border:1px solid rgba(255,23,68,0.45);color:var(--accent-red);padding:5px 12px;border-radius:4px;font-size:0.75rem;cursor:pointer;font-weight:600;">🗑️ Remove Photo</button>
-                  <div style="display:flex;gap:8px;">
-                    <button id="btn-modal-change-photo" style="background:rgba(0,229,255,0.18);border:1px solid rgba(0,229,255,0.45);color:var(--accent-cyan);padding:5px 12px;border-radius:4px;font-size:0.75rem;cursor:pointer;font-weight:600;">🔄 Change</button>
-                    <button id="btn-modal-close-photo" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:5px 14px;border-radius:4px;font-size:0.75rem;cursor:pointer;">Close</button>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);">
+                  <button id="btn-modal-delete-photo" style="background:rgba(255,23,68,0.18);border:1px solid rgba(255,23,68,0.45);color:var(--accent-red);padding:6px 14px;border-radius:4px;font-size:0.75rem;cursor:pointer;font-weight:600;">🗑️ Remove Photo</button>
+                  <div style="display:flex;gap:10px;">
+                    <button id="btn-modal-change-photo" style="background:rgba(0,229,255,0.18);border:1px solid rgba(0,229,255,0.45);color:var(--accent-cyan);padding:6px 14px;border-radius:4px;font-size:0.75rem;cursor:pointer;font-weight:600;">🔄 Change</button>
+                    <button id="btn-modal-close-photo" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 16px;border-radius:4px;font-size:0.75rem;cursor:pointer;">Close</button>
                   </div>
                 </div>
               </div>
@@ -1619,7 +1619,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   </th>
                   <th>Name</th>
                   <th style="width:34px;text-align:center;" title="Display / Hide anchor label on canvas">Label</th>
-                  <th style="width:38px;text-align:center;" title="Attach photo of landmark / control point">Photo</th>
+                  <th style="width:44px;text-align:center;" title="Attach photo of landmark / control point">Photo</th>
                   <th style="width:48px;text-align:right;">Error</th>
                   <th style="width:34px;text-align:center;">Action</th>
                 </tr>
@@ -1694,7 +1694,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
               <!-- 6-Column Table Header: Opt Checkbox, Seg #, Seccion, Part, Deed (m), Err % -->
               <div style="display:grid;grid-template-columns:18px 58px 1fr 42px 48px 38px;gap:4px;font-size:0.67rem;color:var(--text-muted);font-weight:600;padding:2px 4px;border-bottom:1px solid rgba(255,255,255,0.08);align-items:center;">
-                <span style="display:flex;align-items:center;justify-content:center;"><input type="checkbox" id="chk-opt-all" title="Toggle all segments for optimization" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:13px;height:13px;"></span>
+                <span style="display:flex;align-items:center;justify-content:center;"><input type="checkbox" id="chk-opt-segments-all" title="Toggle all segments for optimization" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:13px;height:13px;"></span>
                 <span>Seg</span>
                 <span>Sección</span>
                 <span>Part</span>
@@ -5676,46 +5676,113 @@ EOF`;
               anc._imgElement = img;
             }
             if (anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
-              const tw = 24, th = 24;
-              const tx = sp.x + 9;
-              const ty = sp.y - 30;
-              histCtx.save();
-              histCtx.fillStyle = "#ffffff";
-              histCtx.shadowColor = "rgba(0,0,0,0.6)";
-              histCtx.shadowBlur = 4;
-              histCtx.shadowOffsetY = 1;
-              if (histCtx.roundRect) histCtx.roundRect(tx - 2, ty - 2, tw + 4, th + 4, 3);
-              else histCtx.rect(tx - 2, ty - 2, tw + 4, th + 4);
-              histCtx.fill();
-              histCtx.shadowColor = "transparent";
+              const imgW = 56, imgH = 56;
+              const cardPad = 4;
+              histCtx.font = "bold 11px sans-serif";
+              const textWidth = histCtx.measureText(fullText).width;
+              const cardW = Math.max(imgW + cardPad * 2, textWidth + 14);
+              const cardH = imgH + cardPad * 2 + 16;
+              const cardX = sp.x + 10;
+              const cardY = sp.y - (cardH / 2);
 
+              histCtx.save();
+              // White background card with slight curvature and shadow
+              histCtx.fillStyle = "#ffffff";
+              histCtx.shadowColor = "rgba(0, 0, 0, 0.45)";
+              histCtx.shadowBlur = 6;
+              histCtx.shadowOffsetY = 2;
+              histCtx.beginPath();
+              if (histCtx.roundRect) histCtx.roundRect(cardX, cardY, cardW, cardH, 4);
+              else histCtx.rect(cardX, cardY, cardW, cardH);
+              histCtx.fill();
+
+              // Subtle card border
+              histCtx.shadowColor = "transparent";
+              histCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+              histCtx.lineWidth = 1;
+              histCtx.stroke();
+
+              // Draw image centered in top of card
+              const imgDrawX = cardX + (cardW - imgW) / 2;
+              const imgDrawY = cardY + cardPad;
               histCtx.save();
               histCtx.beginPath();
-              if (histCtx.roundRect) histCtx.roundRect(tx, ty, tw, th, 2);
-              else histCtx.rect(tx, ty, tw, th);
+              if (histCtx.roundRect) histCtx.roundRect(imgDrawX, imgDrawY, imgW, imgH, 3);
+              else histCtx.rect(imgDrawX, imgDrawY, imgW, imgH);
               histCtx.clip();
-              histCtx.drawImage(anc._imgElement, tx, ty, tw, th);
+              histCtx.drawImage(anc._imgElement, imgDrawX, imgDrawY, imgW, imgH);
               histCtx.restore();
 
-              histCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
-              histCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
-              histCtx.shadowColor = "rgba(0,0,0,0.9)";
-              histCtx.shadowBlur = 3;
-              histCtx.fillText(fullText, tx + tw + 6, ty + 16);
+              histCtx.strokeStyle = "rgba(0, 0, 0, 0.15)";
+              histCtx.strokeRect(imgDrawX, imgDrawY, imgW, imgH);
+
+              // Black letters centered below image
+              histCtx.fillStyle = isEnabled ? "#000000" : "#555555";
+              histCtx.font = "bold 11px sans-serif";
+              histCtx.textAlign = "center";
+              histCtx.textBaseline = "middle";
+              histCtx.fillText(fullText, cardX + cardW / 2, cardY + imgH + cardPad + 9);
               histCtx.restore();
             } else {
-              histCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
-              histCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
-              histCtx.shadowColor = "rgba(0,0,0,0.9)";
-              histCtx.shadowBlur = 3;
-              histCtx.fillText(`📷 ${fullText}`, sp.x + 10, sp.y - 6);
+              // Loading fallback: white badge with camera icon & black text
+              const textWithIcon = `📷 ${fullText}`;
+              histCtx.save();
+              histCtx.font = "bold 11px sans-serif";
+              const tw = histCtx.measureText(textWithIcon).width;
+              const bx = sp.x + 10;
+              const by = sp.y - 10;
+              const bw = tw + 12;
+              const bh = 19;
+
+              histCtx.fillStyle = "#ffffff";
+              histCtx.shadowColor = "rgba(0, 0, 0, 0.35)";
+              histCtx.shadowBlur = 5;
+              histCtx.shadowOffsetY = 1;
+              histCtx.beginPath();
+              if (histCtx.roundRect) histCtx.roundRect(bx, by, bw, bh, 3.5);
+              else histCtx.rect(bx, by, bw, bh);
+              histCtx.fill();
+
+              histCtx.shadowColor = "transparent";
+              histCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+              histCtx.lineWidth = 1;
+              histCtx.stroke();
+
+              histCtx.fillStyle = isEnabled ? "#000000" : "#555555";
+              histCtx.textBaseline = "middle";
+              histCtx.textAlign = "left";
+              histCtx.fillText(textWithIcon, bx + 6, by + bh / 2);
+              histCtx.restore();
             }
           } else {
-            histCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
-            histCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
-            histCtx.shadowColor = "rgba(0,0,0,0.9)";
-            histCtx.shadowBlur = 3;
-            histCtx.fillText(fullText, sp.x + 10, sp.y - 6);
+            // No photo: clean white label badge with black text
+            histCtx.save();
+            histCtx.font = "bold 11px sans-serif";
+            const tw = histCtx.measureText(fullText).width;
+            const bx = sp.x + 10;
+            const by = sp.y - 10;
+            const bw = tw + 12;
+            const bh = 19;
+
+            histCtx.fillStyle = "#ffffff";
+            histCtx.shadowColor = "rgba(0, 0, 0, 0.35)";
+            histCtx.shadowBlur = 5;
+            histCtx.shadowOffsetY = 1;
+            histCtx.beginPath();
+            if (histCtx.roundRect) histCtx.roundRect(bx, by, bw, bh, 3.5);
+            else histCtx.rect(bx, by, bw, bh);
+            histCtx.fill();
+
+            histCtx.shadowColor = "transparent";
+            histCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+            histCtx.lineWidth = 1;
+            histCtx.stroke();
+
+            histCtx.fillStyle = isEnabled ? "#000000" : "#555555";
+            histCtx.textBaseline = "middle";
+            histCtx.textAlign = "left";
+            histCtx.fillText(fullText, bx + 6, by + bh / 2);
+            histCtx.restore();
           }
         }
         histCtx.restore();
@@ -6121,7 +6188,7 @@ EOF`;
       // Layer 4c: Temporary Reference Checkpoint Markers
       drawTempMarkersGIS(trueCtx, vp, h);
 
-      // Layer 5: Target anchor pins + residual lines
+      // Layer 5: Target anchor pen buffer disks & residual lines
       state.anchors.forEach(anc => {
         const isEnabled = anc.active !== false && anc.enabled !== false;
         const tp = worldToScreenGIS(anc.dst, vp, h);
@@ -6174,6 +6241,19 @@ EOF`;
             trueCtx.restore();
           }
         }
+      });
+
+      // Layer 6: Hand-crafted user polygon
+      drawUserPolygon(trueCtx, vp, h);
+
+      // Layer 6.5: Autonomous Custom Field Polygon
+      updateCustomPolygonAnchors();
+      drawCustomPolygon(trueCtx, vp, h);
+
+      // Layer 7: Target anchor pins + white label cards + photos (BRING TO VERY FRONT OVER POLYGON LINES)
+      state.anchors.forEach(anc => {
+        const isEnabled = anc.active !== false && anc.enabled !== false;
+        const tp = worldToScreenGIS(anc.dst, vp, h);
 
         trueCtx.save();
         if (!isEnabled) {
@@ -6202,59 +6282,119 @@ EOF`;
               anc._imgElement = img;
             }
             if (anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
-              const tw = 24, th = 24;
-              const tx = tp.x + 9;
-              const ty = tp.y - 30;
-              trueCtx.save();
-              trueCtx.fillStyle = "#ffffff";
-              trueCtx.shadowColor = "rgba(0,0,0,0.6)";
-              trueCtx.shadowBlur = 4;
-              trueCtx.shadowOffsetY = 1;
-              if (trueCtx.roundRect) trueCtx.roundRect(tx - 2, ty - 2, tw + 4, th + 4, 3);
-              else trueCtx.rect(tx - 2, ty - 2, tw + 4, th + 4);
-              trueCtx.fill();
-              trueCtx.shadowColor = "transparent";
+              const imgW = 56, imgH = 56;
+              const cardPad = 4;
+              trueCtx.font = "bold 11px sans-serif";
+              const textWidth = trueCtx.measureText(fullText).width;
+              const cardW = Math.max(imgW + cardPad * 2, textWidth + 14);
+              const cardH = imgH + cardPad * 2 + 16;
+              const cardX = tp.x + 10;
+              const cardY = tp.y - (cardH / 2);
 
+              trueCtx.save();
+              // White background card with slight curvature and shadow
+              trueCtx.fillStyle = "#ffffff";
+              trueCtx.shadowColor = "rgba(0, 0, 0, 0.45)";
+              trueCtx.shadowBlur = 6;
+              trueCtx.shadowOffsetY = 2;
+              trueCtx.beginPath();
+              if (trueCtx.roundRect) trueCtx.roundRect(cardX, cardY, cardW, cardH, 4);
+              else trueCtx.rect(cardX, cardY, cardW, cardH);
+              trueCtx.fill();
+
+              // Subtle card border
+              trueCtx.shadowColor = "transparent";
+              trueCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+              trueCtx.lineWidth = 1;
+              trueCtx.stroke();
+
+              // Draw image centered in top of card
+              const imgDrawX = cardX + (cardW - imgW) / 2;
+              const imgDrawY = cardY + cardPad;
               trueCtx.save();
               trueCtx.beginPath();
-              if (trueCtx.roundRect) trueCtx.roundRect(tx, ty, tw, th, 2);
-              else trueCtx.rect(tx, ty, tw, th);
+              if (trueCtx.roundRect) trueCtx.roundRect(imgDrawX, imgDrawY, imgW, imgH, 3);
+              else trueCtx.rect(imgDrawX, imgDrawY, imgW, imgH);
               trueCtx.clip();
-              trueCtx.drawImage(anc._imgElement, tx, ty, tw, th);
+              trueCtx.drawImage(anc._imgElement, imgDrawX, imgDrawY, imgW, imgH);
               trueCtx.restore();
 
-              trueCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
-              trueCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
-              trueCtx.shadowColor = "rgba(0,0,0,0.9)";
-              trueCtx.shadowBlur = 3;
-              trueCtx.fillText(fullText, tx + tw + 6, ty + 16);
+              trueCtx.strokeStyle = "rgba(0, 0, 0, 0.15)";
+              trueCtx.strokeRect(imgDrawX, imgDrawY, imgW, imgH);
+
+              // Black letters centered below image
+              trueCtx.fillStyle = isEnabled ? "#000000" : "#555555";
+              trueCtx.font = "bold 11px sans-serif";
+              trueCtx.textAlign = "center";
+              trueCtx.textBaseline = "middle";
+              trueCtx.fillText(fullText, cardX + cardW / 2, cardY + imgH + cardPad + 9);
               trueCtx.restore();
             } else {
-              trueCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
-              trueCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
-              trueCtx.shadowColor = "rgba(0,0,0,0.9)";
-              trueCtx.shadowBlur = 3;
-              trueCtx.fillText(`📷 ${fullText}`, tp.x + 10, tp.y - 6);
+              // Loading fallback: white badge with camera icon & black text
+              const textWithIcon = `📷 ${fullText}`;
+              trueCtx.save();
+              trueCtx.font = "bold 11px sans-serif";
+              const tw = trueCtx.measureText(textWithIcon).width;
+              const bx = tp.x + 10;
+              const by = tp.y - 10;
+              const bw = tw + 12;
+              const bh = 19;
+
+              trueCtx.fillStyle = "#ffffff";
+              trueCtx.shadowColor = "rgba(0, 0, 0, 0.35)";
+              trueCtx.shadowBlur = 5;
+              trueCtx.shadowOffsetY = 1;
+              trueCtx.beginPath();
+              if (trueCtx.roundRect) trueCtx.roundRect(bx, by, bw, bh, 3.5);
+              else trueCtx.rect(bx, by, bw, bh);
+              trueCtx.fill();
+
+              trueCtx.shadowColor = "transparent";
+              trueCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+              trueCtx.lineWidth = 1;
+              trueCtx.stroke();
+
+              trueCtx.fillStyle = isEnabled ? "#000000" : "#555555";
+              trueCtx.textBaseline = "middle";
+              trueCtx.textAlign = "left";
+              trueCtx.fillText(textWithIcon, bx + 6, by + bh / 2);
+              trueCtx.restore();
             }
           } else {
-            trueCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
-            trueCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
-            trueCtx.shadowColor = "rgba(0,0,0,0.9)";
-            trueCtx.shadowBlur = 3;
-            trueCtx.fillText(fullText, tp.x + 10, tp.y - 6);
+            // No photo: clean white label badge with black text
+            trueCtx.save();
+            trueCtx.font = "bold 11px sans-serif";
+            const tw = trueCtx.measureText(fullText).width;
+            const bx = tp.x + 10;
+            const by = tp.y - 10;
+            const bw = tw + 12;
+            const bh = 19;
+
+            trueCtx.fillStyle = "#ffffff";
+            trueCtx.shadowColor = "rgba(0, 0, 0, 0.35)";
+            trueCtx.shadowBlur = 5;
+            trueCtx.shadowOffsetY = 1;
+            trueCtx.beginPath();
+            if (trueCtx.roundRect) trueCtx.roundRect(bx, by, bw, bh, 3.5);
+            else trueCtx.rect(bx, by, bw, bh);
+            trueCtx.fill();
+
+            trueCtx.shadowColor = "transparent";
+            trueCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+            trueCtx.lineWidth = 1;
+            trueCtx.stroke();
+
+            trueCtx.fillStyle = isEnabled ? "#000000" : "#555555";
+            trueCtx.textBaseline = "middle";
+            trueCtx.textAlign = "left";
+            trueCtx.fillText(fullText, bx + 6, by + bh / 2);
+            trueCtx.restore();
           }
         }
         trueCtx.restore();
       });
 
-      // Layer 6: Hand-crafted user polygon
-      drawUserPolygon(trueCtx, vp, h);
-
-      // Layer 6.5: Autonomous Custom Field Polygon
-      updateCustomPolygonAnchors();
-      drawCustomPolygon(trueCtx, vp, h);
-
-      // Layer 7: Snap target ring indicator
+      // Layer 8: Snap target ring indicator
       if (state.currentSnapTarget) {
         drawSnapTargetOnCanvas(trueCtx, state.currentSnapTarget.screenPt);
       }
@@ -6262,7 +6402,7 @@ EOF`;
         drawCustomPolySnapTargetOnCanvas(trueCtx, state.customPolySnapTarget.screenPt, state.customPolySnapTarget.label);
       }
 
-      // Layer 8: Measuring Tool overlay
+      // Layer 9: Measuring Tool overlay
       drawMeasuringToolGIS(trueCtx, vp, h);
     }
 
@@ -8685,8 +8825,8 @@ EOF`;
       // Update Section Colors in Lindero La Trinidad Reconstruido panel
       updateSectionStyleControls();
 
-      // Synchronize header chk-opt-all state and listener
-      const chkAll = document.getElementById("chk-opt-all");
+      // Synchronize header chk-opt-segments-all state and listener
+      const chkAll = document.getElementById("chk-opt-segments-all");
       if (chkAll) {
         const allC = nSegs > 0 && poly.segmentOptimize.slice(0, nSegs).every(Boolean);
         const someC = poly.segmentOptimize.slice(0, nSegs).some(Boolean);
@@ -9559,10 +9699,10 @@ EOF`;
     }
 
     if (chkOptAll) {
-      chkOptAll.addEventListener("change", e => setSearchStrategy(e.target.checked));
+      chkOptAll.addEventListener("change", () => setSearchStrategy(true));
     }
     if (chkOptGenetic) {
-      chkOptGenetic.addEventListener("change", e => setSearchStrategy(!e.target.checked));
+      chkOptGenetic.addEventListener("change", () => setSearchStrategy(false));
     }
 
     if (btnRunOpt) {
@@ -11452,8 +11592,8 @@ EOF`;
             </div>
             <span style="font-size:0.68rem;font-weight:600;color:${isEnabled ? '#00e676' : '#ff5252'};">${isEnabled ? 'Active' : 'Disabled'}</span>
           </div>
-          ${hitAnchor.image ? `<div style="margin:6px 0;text-align:center;"><img src="${hitAnchor.image}" alt="Anchor Photo" style="max-width:100%;max-height:140px;border-radius:4px;border:1px solid rgba(0,229,255,0.5);object-fit:cover;display:block;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,0.6);" /></div>` : ''}
-          <div style="display:flex;flex-direction:column;gap:2px;font-size:0.71rem;">
+          ${hitAnchor.image ? `<div style="margin:8px 0;text-align:center;"><img src="${hitAnchor.image}" alt="Anchor Photo" style="max-width:100%;max-height:220px;border-radius:6px;border:1px solid rgba(0,229,255,0.55);object-fit:cover;display:block;margin:0 auto;box-shadow:0 3px 12px rgba(0,0,0,0.7);" /></div>` : ''}
+          <div style="display:flex;flex-direction:column;gap:3px;font-size:0.72rem;">
             <div><span style="color:#94a3b8;">Target UTM:</span> <strong style="color:#f8fafc;font-family:monospace;">(${hitAnchor.dst.x.toFixed(2)}, ${hitAnchor.dst.y.toFixed(2)})</strong></div>
             <div><span style="color:#94a3b8;">Deed CAD:</span> <strong style="color:#f8fafc;font-family:monospace;">(${hitAnchor.src.x.toFixed(2)}, ${hitAnchor.src.y.toFixed(2)})</strong></div>
             <div><span style="color:#94a3b8;">Residual:</span> <strong style="color:var(--accent-cyan);font-family:monospace;">${errStr}</strong></div>
@@ -11464,8 +11604,8 @@ EOF`;
         const ch = trueCanvas.height || trueCanvas.clientHeight;
         let leftPx = mouseX + 14;
         let topPx = mouseY + 14;
-        if (leftPx + 260 > cw) leftPx = mouseX - 270;
-        if (topPx + 200 > ch) topPx = mouseY - 210;
+        if (leftPx + 360 > cw) leftPx = mouseX - 370;
+        if (topPx + 280 > ch) topPx = mouseY - 290;
         anchorTooltipEl.style.left = `${Math.max(10, leftPx)}px`;
         anchorTooltipEl.style.top = `${Math.max(10, topPx)}px`;
         coordsBar.textContent = `Anchor ${ancName} | Residual: ${errStr} | UTM: (${hitAnchor.dst.x.toFixed(2)}, ${hitAnchor.dst.y.toFixed(2)})`;
@@ -12385,7 +12525,7 @@ EOF`;
           <td style="text-align:center;width:34px;">
             <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:14px;height:14px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
           </td>
-          <td style="text-align:center;width:38px;">
+          <td style="text-align:center;width:44px;">
             ${hasPhoto ? `
               <div style="display:inline-flex;align-items:center;gap:2px;">
                 <img src="${anc.image}" class="anchor-thumb-preview" data-id="${anc.id}" title="Click to view, change, or remove photo" alt="Photo">
