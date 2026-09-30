@@ -1328,6 +1328,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 Click to place points • Esc to clear
               </div>
             </div>
+
+            <!-- Floating Segment Label Tooltip (Deed vs Field vs Error) -->
+            <div id="segment-label-tooltip" style="display:none;position:absolute;pointer-events:none;z-index:45;background:rgba(15,23,42,0.96);border:1.5px solid #00e5ff;box-shadow:0 6px 22px rgba(0,0,0,0.75), 0 0 12px rgba(0,229,255,0.25);border-radius:6px;padding:8px 12px;font-size:0.75rem;color:#f8fafc;line-height:1.55;backdrop-filter:blur(8px);white-space:nowrap;font-family:sans-serif;"></div>
           </div>
           <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to pan field survey. Click '🎯 Anchor Mode' to drop points.</div>
         </div>
@@ -7157,6 +7160,7 @@ EOF`;
       }
 
       // 4. Segment length labels with error percentage (when Labels checkbox is active)
+      state.userPolyLabelBoxes = [];
       if (state.showSegmentLabels) {
         for (let i = 0; i < nSegs; i++) {
           const a = verts[i], b = verts[(i + 1) % verts.length];
@@ -7182,16 +7186,46 @@ EOF`;
           ctx.font = "bold 10px sans-serif";
           ctx.textAlign = "center";
           const tw = ctx.measureText(label).width;
-          const bw = tw + 10, bh = 15;
+          const bw = tw + 10, bh = 16;
+          const boxX = mid.x - bw / 2;
+          const boxY = mid.y - 10.5;
+          const radius = 3.5;
+
+          // Save bounding box for mouse hover detection and tooltip
+          state.userPolyLabelBoxes.push({
+            segIndex: i,
+            segDisplayName,
+            box: { x: boxX, y: boxY, w: bw, h: bh },
+            len,
+            deedLen,
+            errPct: meta.errPct,
+            secColor,
+            metaColor: meta.color
+          });
 
           const boxBorderCol = secColor || (isDeed ? state.stylePolyDeed.color : meta.color);
-          ctx.fillStyle = "rgba(6, 9, 15, 0.92)";
-          ctx.fillRect(mid.x - bw / 2, mid.y - 10, bw, bh);
-          ctx.strokeStyle = boxBorderCol;
-          ctx.lineWidth = secColor ? 1.8 : 1.2;
-          ctx.strokeRect(mid.x - bw / 2, mid.y - 10, bw, bh);
 
-          ctx.fillStyle = boxBorderCol;
+          ctx.beginPath();
+          if (typeof ctx.roundRect === "function") {
+            ctx.roundRect(boxX, boxY, bw, bh, radius);
+          } else {
+            ctx.moveTo(boxX + radius, boxY);
+            ctx.arcTo(boxX + bw, boxY, boxX + bw, boxY + bh, radius);
+            ctx.arcTo(boxX + bw, boxY + bh, boxX, boxY + bh, radius);
+            ctx.arcTo(boxX, boxY + bh, boxX, boxY, radius);
+            ctx.arcTo(boxX, boxY, boxX + bw, boxY, radius);
+            ctx.closePath();
+          }
+
+          // White background with subtle curvature
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+          ctx.strokeStyle = boxBorderCol;
+          ctx.lineWidth = secColor ? 1.8 : 1.3;
+          ctx.stroke();
+
+          // Dark sharp text on white background
+          ctx.fillStyle = "#0f172a";
           ctx.fillText(label, mid.x, mid.y + 2);
         }
       }
@@ -10456,6 +10490,10 @@ EOF`;
       state.showSegmentLabels = visible;
       if (chkShowSegLabels) chkShowSegLabels.checked = visible;
       if (chkShowSegLabelsSidebar) chkShowSegLabelsSidebar.checked = visible;
+      if (!visible) {
+        const tooltipEl = document.getElementById("segment-label-tooltip");
+        if (tooltipEl) tooltipEl.style.display = "none";
+      }
       redrawTrueCanvas();
       updateStatus(visible ? "Segment labels enabled on field canvas." : "Segment labels hidden.");
     }
@@ -11121,6 +11159,53 @@ EOF`;
           redrawTrueCanvas();
         }
       }
+
+      // Segment Label Hover & Tooltip detection
+      let hitSegLabel = null;
+      if (state.showSegmentLabels && state.userPolyLabelBoxes && state.userPolyLabelBoxes.length > 0 && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
+        hitSegLabel = state.userPolyLabelBoxes.find(b =>
+          mouseX >= b.box.x && mouseX <= b.box.x + b.box.w &&
+          mouseY >= b.box.y && mouseY <= b.box.y + b.box.h
+        );
+      }
+      const labelTooltipEl = document.getElementById("segment-label-tooltip");
+      if (hitSegLabel && labelTooltipEl) {
+        trueCanvas.style.cursor = "help";
+        const deedValStr = (hitSegLabel.deedLen != null && hitSegLabel.deedLen > 0)
+          ? `${Number(hitSegLabel.deedLen).toFixed(2)} m`
+          : "Sin dato en escritura";
+        const fieldValStr = `${hitSegLabel.len.toFixed(2)} m`;
+        const errValStr = hitSegLabel.errPct != null
+          ? `${hitSegLabel.errPct.toFixed(2)}%`
+          : "—";
+
+        const errColor = hitSegLabel.errPct == null ? "#94a3b8" : (hitSegLabel.errPct < 2 ? "#00e676" : (hitSegLabel.errPct <= 5 ? "#aeea00" : (hitSegLabel.errPct <= 10 ? "#ffd600" : "#ff1744")));
+
+        labelTooltipEl.innerHTML = `
+          <div style="font-weight:700;color:var(--accent-cyan);font-size:0.75rem;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span>📏 ${hitSegLabel.segDisplayName}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;font-size:0.73rem;">
+            <div><span style="color:#94a3b8;">Largo documentado en escritura:</span> <strong style="color:#f8fafc;font-family:monospace;">${deedValStr}</strong></div>
+            <div><span style="color:#94a3b8;">Valor observado en campo:</span> <strong style="color:#00e5ff;font-family:monospace;">${fieldValStr}</strong></div>
+            <div><span style="color:#94a3b8;">% error:</span> <strong style="color:${errColor};font-family:monospace;font-size:0.78rem;">${errValStr}</strong></div>
+          </div>
+        `;
+        labelTooltipEl.style.display = "block";
+        const cw = trueCanvas.width || trueCanvas.clientWidth;
+        const ch = trueCanvas.height || trueCanvas.clientHeight;
+        let leftPx = mouseX + 14;
+        let topPx = mouseY + 14;
+        if (leftPx + 280 > cw) leftPx = mouseX - 290;
+        if (topPx + 105 > ch) topPx = mouseY - 110;
+        labelTooltipEl.style.left = `${Math.max(10, leftPx)}px`;
+        labelTooltipEl.style.top = `${Math.max(10, topPx)}px`;
+        coordsBar.textContent = `${hitSegLabel.segDisplayName} | Largo doc: ${deedValStr} | Obs campo: ${fieldValStr} | % error: ${errValStr}`;
+        return;
+      } else if (labelTooltipEl && labelTooltipEl.style.display !== "none") {
+        labelTooltipEl.style.display = "none";
+      }
+
       const p = screenToWorldGIS(mouseX, mouseY, vp, h);
       coordsBar.textContent = `Field UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
 
@@ -11428,6 +11513,8 @@ EOF`;
     });
 
     trueCanvas.addEventListener("mouseleave", () => {
+      const labelTooltipEl = document.getElementById("segment-label-tooltip");
+      if (labelTooltipEl) labelTooltipEl.style.display = "none";
       if (state.measureTool && state.measureTool.active) {
         state.measureTool.cursorPt = null;
         state.currentSnapTarget = null;
