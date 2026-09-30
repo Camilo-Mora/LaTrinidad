@@ -1778,7 +1778,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
           <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(0,229,255,0.2);">
             <label for="algorithm-select" style="font-size:0.72rem;color:var(--accent-cyan);font-weight:700;white-space:nowrap;margin:0;">Algorithm:</label>
             <select id="algorithm-select" class="select-dropdown" style="flex:1;background:rgba(15,20,32,0.95);border:1px solid rgba(0,229,255,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
-              <option value="SIMILARITY" selected>Helmert Similarity (PowerPoint Rotate+Scale)</option>
+              <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
               <option value="AFFINE">Affine Transformation (6-Param)</option>
               <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
               <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
@@ -1818,6 +1818,18 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 <!-- Anchor rows dynamically added here -->
               </tbody>
             </table>
+          </div>
+
+          <!-- Anchor Photo Size Slider -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px 2px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+            <label for="range-anchor-photo-size" style="display:flex;align-items:center;gap:4px;color:var(--accent-cyan);font-weight:600;white-space:nowrap;margin:0;" title="Adjust manual size of landmark photo cards shown on map">
+              <span>📷 Size:</span>
+              <span id="anchor-photo-size-val" style="font-family:monospace;color:var(--text-main);font-weight:bold;min-width:38px;">56px</span>
+            </label>
+            <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:190px;">
+              <input type="range" id="range-anchor-photo-size" min="40" max="280" step="4" value="56" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
+              <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (56px)">↺</button>
+            </div>
           </div>
         </section>
 
@@ -5183,6 +5195,7 @@ EOF`;
       histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
       trueEntities: [],      // DXF from CercoCampo_CristianCortes_Marz_2019.dxf (GIS UTM coord space)
       anchors: [],
+      anchorPhotoSize: 56,
       pendingSource: null,
       algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
       toolMode: "pan",
@@ -5908,12 +5921,14 @@ EOF`;
               anc._imgElement = img;
             }
             if (anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
-              const imgW = 56, imgH = 56;
+              const imgSize = state.anchorPhotoSize || 56;
+              const imgW = imgSize, imgH = imgSize;
               const cardPad = 4;
-              histCtx.font = "bold 11px sans-serif";
+              const fontSize = imgSize > 140 ? 13 : (imgSize > 90 ? 12 : 11);
+              histCtx.font = "bold " + fontSize + "px sans-serif";
               const textWidth = histCtx.measureText(fullText).width;
               const cardW = Math.max(imgW + cardPad * 2, textWidth + 14);
-              const cardH = imgH + cardPad * 2 + 16;
+              const cardH = imgH + cardPad * 2 + (fontSize + 6);
               const cardX = sp.x + 10;
               const cardY = sp.y - (cardH / 2);
 
@@ -5950,10 +5965,10 @@ EOF`;
 
               // Black letters centered below image
               histCtx.fillStyle = isEnabled ? "#000000" : "#555555";
-              histCtx.font = "bold 11px sans-serif";
+              histCtx.font = "bold " + fontSize + "px sans-serif";
               histCtx.textAlign = "center";
               histCtx.textBaseline = "middle";
-              histCtx.fillText(fullText, cardX + cardW / 2, cardY + imgH + cardPad + 9);
+              histCtx.fillText(fullText, cardX + cardW / 2, cardY + imgH + cardPad + (fontSize / 2 + 3));
               histCtx.restore();
             } else {
               // Loading fallback: white badge with camera icon & black text
@@ -6562,12 +6577,14 @@ EOF`;
               anc._imgElement = img;
             }
             if (anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
-              const imgW = 56, imgH = 56;
+              const imgSize = state.anchorPhotoSize || 56;
+              const imgW = imgSize, imgH = imgSize;
               const cardPad = 4;
-              trueCtx.font = "bold 11px sans-serif";
+              const fontSize = imgSize > 140 ? 13 : (imgSize > 90 ? 12 : 11);
+              trueCtx.font = "bold " + fontSize + "px sans-serif";
               const textWidth = trueCtx.measureText(fullText).width;
               const cardW = Math.max(imgW + cardPad * 2, textWidth + 14);
-              const cardH = imgH + cardPad * 2 + 16;
+              const cardH = imgH + cardPad * 2 + (fontSize + 6);
               const cardX = tp.x + 10;
               const cardY = tp.y - (cardH / 2);
 
@@ -6604,10 +6621,10 @@ EOF`;
 
               // Black letters centered below image
               trueCtx.fillStyle = isEnabled ? "#000000" : "#555555";
-              trueCtx.font = "bold 11px sans-serif";
+              trueCtx.font = "bold " + fontSize + "px sans-serif";
               trueCtx.textAlign = "center";
               trueCtx.textBaseline = "middle";
-              trueCtx.fillText(fullText, cardX + cardW / 2, cardY + imgH + cardPad + 9);
+              trueCtx.fillText(fullText, cardX + cardW / 2, cardY + imgH + cardPad + (fontSize / 2 + 3));
               trueCtx.restore();
             } else {
               // Loading fallback: white badge with camera icon & black text
@@ -13068,6 +13085,28 @@ EOF`;
       chkToggleAllAnchors.addEventListener("change", e => {
         toggleAllAnchors(e.target.checked);
       });
+    }
+
+    // Anchor Photo Size Slider (for screenshots & high-resolution review)
+    const rangePhotoSize = document.getElementById("range-anchor-photo-size");
+    const valPhotoSize = document.getElementById("anchor-photo-size-val");
+    const btnResetPhotoSize = document.getElementById("btn-reset-anchor-photo-size");
+
+    function setAnchorPhotoSize(size) {
+      state.anchorPhotoSize = Math.max(30, Math.min(350, size));
+      if (rangePhotoSize) rangePhotoSize.value = state.anchorPhotoSize;
+      if (valPhotoSize) valPhotoSize.textContent = state.anchorPhotoSize + "px";
+      const hc = document.getElementById("hist-card");
+      const tc = document.getElementById("true-card");
+      if (!hc || !hc.classList.contains("hidden")) redrawHistoricalCanvas();
+      if (!tc || !tc.classList.contains("hidden")) redrawTrueCanvas();
+    }
+
+    if (rangePhotoSize) {
+      rangePhotoSize.addEventListener("input", e => setAnchorPhotoSize(parseInt(e.target.value, 10)));
+    }
+    if (btnResetPhotoSize) {
+      btnResetPhotoSize.addEventListener("click", () => setAnchorPhotoSize(56));
     }
 
     function updateAlgoComparePanel() {
