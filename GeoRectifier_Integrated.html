@@ -5905,6 +5905,244 @@ EOF`;
       ctx.restore();
     }
 
+    // ── Helper: Anchor Label Double-Framed Card & Aspect Ratio Bounds ──
+    function getAnchorCardBounds(anc, pt, isHist, ctx) {
+      const isEnabled = anc.active !== false && anc.enabled !== false;
+      const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+      const fullText = labelName + (isEnabled ? "" : " (off)");
+      const defDx = 10, defDy = -10;
+      const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
+      const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
+      const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
+
+      const hasImg = anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0;
+      if (hasImg) {
+        const natW = anc._imgElement.naturalWidth;
+        const natH = anc._imgElement.naturalHeight;
+        const baseW = Math.max(50, state.anchorPhotoSize || 80);
+        const maxH = Math.max(50, Math.round(baseW * 1.35));
+        const scale = Math.min(baseW / natW, maxH / natH);
+        const imgW = Math.max(35, Math.round(natW * scale));
+        const imgH = Math.max(35, Math.round(natH * scale));
+
+        const padX = 8, padTop = 7, padBottom = 8;
+        const headerH = 18;
+        const dividerGap = 5;
+        const imgGap = 6;
+        const fontSize = baseW > 140 ? 13 : (baseW > 95 ? 12 : 11);
+        const badgeR = 8.5;
+
+        ctx.save();
+        ctx.font = "bold " + fontSize + "px sans-serif";
+        const textW = ctx.measureText(fullText).width;
+        ctx.restore();
+
+        const cardInnerW = Math.max(imgW, (badgeR * 2) + 6 + textW + 4);
+        const cardW = cardInnerW + padX * 2;
+        const cardH = padTop + headerH + dividerGap + imgGap + imgH + padBottom;
+        const cardX = pt.x + offX;
+        const cardY = pt.y + offY - (cardH / 2) + 10;
+        return { cardX, cardY, cardW, cardH, offX, offY };
+      } else {
+        const padX = 8;
+        const cardH = 24;
+        const fontSize = 11;
+        const badgeR = 8;
+
+        ctx.save();
+        ctx.font = "bold " + fontSize + "px sans-serif";
+        const textWithIcon = (anc.image ? "📷 " : "") + fullText;
+        const textW = ctx.measureText(textWithIcon).width;
+        ctx.restore();
+
+        const cardW = (badgeR * 2) + 8 + textW + padX * 2;
+        const cardX = pt.x + offX;
+        const cardY = pt.y + offY;
+        return { cardX, cardY, cardW, cardH, offX, offY };
+      }
+    }
+
+    function drawAnchorLabelCard(ctx, anc, pt, isHist) {
+      const isEnabled = anc.active !== false && anc.enabled !== false;
+      const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+      const fullText = labelName + (isEnabled ? "" : " (off)");
+      const defDx = 10, defDy = -10;
+      const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
+      const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
+      const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
+
+      // Draw dashed leader line if moved away from default pin position
+      if (Math.hypot(offX - defDx, offY - defDy) > 10) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(pt.x, pt.y);
+        ctx.lineTo(pt.x + offX, pt.y + offY + 10);
+        ctx.strokeStyle = isEnabled ? (anc.color || "#00e5ff") : "#888888";
+        ctx.lineWidth = 1.3;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      if (anc.image && !anc._imgElement) {
+        const img = new Image();
+        img.onload = () => {
+          const c = isHist ? document.getElementById("hist-card") : document.getElementById("true-card");
+          if (!c || !c.classList.contains("hidden")) {
+            if (isHist) redrawHistoricalCanvas(); else redrawTrueCanvas();
+          }
+        };
+        img.src = anc.image;
+        anc._imgElement = img;
+      }
+
+      const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
+      const cardX = bounds.cardX;
+      const cardY = bounds.cardY;
+      const cardW = bounds.cardW;
+      const cardH = bounds.cardH;
+
+      const hasImg = anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0;
+
+      if (hasImg) {
+        const natW = anc._imgElement.naturalWidth;
+        const natH = anc._imgElement.naturalHeight;
+        const baseW = Math.max(50, state.anchorPhotoSize || 80);
+        const maxH = Math.max(50, Math.round(baseW * 1.35));
+        const scale = Math.min(baseW / natW, maxH / natH);
+        const imgW = Math.max(35, Math.round(natW * scale));
+        const imgH = Math.max(35, Math.round(natH * scale));
+
+        const padX = 8, padTop = 7;
+        const headerH = 18;
+        const dividerGap = 5;
+        const imgGap = 6;
+        const fontSize = baseW > 140 ? 13 : (baseW > 95 ? 12 : 11);
+        const badgeR = 8.5;
+
+        ctx.save();
+
+        // ── Outer Frame (Label Card with Rounded Curvature & Shadow) ──
+        ctx.fillStyle = "rgba(11, 20, 36, 0.95)";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+        ctx.shadowBlur = 9;
+        ctx.shadowOffsetY = 3;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(cardX, cardY, cardW, cardH, 9);
+        else ctx.rect(cardX, cardY, cardW, cardH);
+        ctx.fill();
+
+        // Outer Frame Cyan Border
+        ctx.shadowColor = "transparent";
+        ctx.strokeStyle = isEnabled ? "#00e5ff" : "#64748b";
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // ── Header Row ──
+        const badgeCenterX = cardX + padX + badgeR;
+        const badgeCenterY = cardY + padTop + badgeR;
+
+        // Circular Anchor Color Pin Badge
+        ctx.beginPath();
+        ctx.arc(badgeCenterX, badgeCenterY, badgeR, 0, Math.PI * 2);
+        ctx.fillStyle = anc.color || "#ff1744";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 9px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("#" + anc.id, badgeCenterX, badgeCenterY);
+
+        // Header Title in Bold Cyan
+        ctx.fillStyle = isEnabled ? "#00e5ff" : "#94a3b8";
+        ctx.font = "bold " + fontSize + "px sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(fullText, badgeCenterX + badgeR + 6, badgeCenterY);
+
+        // Header Divider Line
+        const divY = cardY + padTop + headerH + dividerGap;
+        ctx.beginPath();
+        ctx.moveTo(cardX + padX, divY);
+        ctx.lineTo(cardX + cardW - padX, divY);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // ── Inner Frame (Image Box with Rounded Curvature & Cyan Border) ──
+        const innerX = cardX + (cardW - imgW) / 2;
+        const innerY = divY + imgGap;
+        const innerR = 7;
+
+        // Draw clipped image inside inner frame (preserving natural aspect ratio)
+        ctx.save();
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(innerX, innerY, imgW, imgH, innerR);
+        else ctx.rect(innerX, innerY, imgW, imgH);
+        ctx.clip();
+        ctx.drawImage(anc._imgElement, innerX, innerY, imgW, imgH);
+        ctx.restore();
+
+        // Inner Frame Cyan Border
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(innerX, innerY, imgW, imgH, innerR);
+        else ctx.rect(innerX, innerY, imgW, imgH);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+
+        ctx.restore();
+      } else {
+        // ── Compact Badge without image (or loading fallback) ──
+        const padX = 8;
+        const fontSize = 11;
+        const badgeR = 8;
+        const textWithIcon = (anc.image ? "📷 " : "") + fullText;
+
+        ctx.save();
+        ctx.fillStyle = "rgba(11, 20, 36, 0.94)";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.55)";
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(cardX, cardY, cardW, cardH, 6);
+        else ctx.rect(cardX, cardY, cardW, cardH);
+        ctx.fill();
+
+        ctx.shadowColor = "transparent";
+        ctx.strokeStyle = isEnabled ? "#00e5ff" : "#64748b";
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+
+        const badgeCenterX = cardX + padX + badgeR;
+        const badgeCenterY = cardY + cardH / 2;
+        ctx.beginPath();
+        ctx.arc(badgeCenterX, badgeCenterY, badgeR, 0, Math.PI * 2);
+        ctx.fillStyle = anc.color || "#ff1744";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 9px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("#" + anc.id, badgeCenterX, badgeCenterY);
+
+        ctx.fillStyle = isEnabled ? "#00e5ff" : "#94a3b8";
+        ctx.font = "bold " + fontSize + "px sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(textWithIcon, badgeCenterX + badgeR + 6, badgeCenterY);
+        ctx.restore();
+      }
+    }
+
     // ── Historical Canvas ──────────────────────────────────────────────
     function redrawHistoricalCanvas() {
       const w = histCanvas.width, h = histCanvas.height;
@@ -5938,7 +6176,7 @@ EOF`;
         histCtx.fillStyle="#00e5ff"; histCtx.fill();
       }
 
-      // Layer 4: Source anchor pins
+      // Layer 4: Source anchor pins + double-framed cards
       state.anchors.forEach(anc => {
         const isEnabled = anc.active !== false && anc.enabled !== false;
         const sp = worldToScreen(anc.src, vp, h);
@@ -5955,147 +6193,7 @@ EOF`;
         histCtx.setLineDash([]);
 
         if (anc.showLabel !== false) {
-          const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
-          const fullText = labelName + (isEnabled ? "" : " (off)");
-
-          const defDx = 10, defDy = -10;
-          const offX = (anc.labelOffsetSrc && typeof anc.labelOffsetSrc.dx === "number") ? anc.labelOffsetSrc.dx : defDx;
-          const offY = (anc.labelOffsetSrc && typeof anc.labelOffsetSrc.dy === "number") ? anc.labelOffsetSrc.dy : defDy;
-
-          // Draw leader line if label has been moved away from default anchor position
-          if (Math.hypot(offX - defDx, offY - defDy) > 10) {
-            histCtx.save();
-            histCtx.beginPath();
-            histCtx.moveTo(sp.x, sp.y);
-            histCtx.lineTo(sp.x + offX, sp.y + offY + 9);
-            histCtx.strokeStyle = isEnabled ? (anc.color || "#00e5ff") : "#888888";
-            histCtx.lineWidth = 1.3;
-            histCtx.setLineDash([3, 3]);
-            histCtx.stroke();
-            histCtx.restore();
-          }
-
-          if (anc.image) {
-            if (!anc._imgElement) {
-              const img = new Image();
-              img.onload = () => {
-                const hc = document.getElementById("hist-card");
-                if (!hc || !hc.classList.contains("hidden")) redrawHistoricalCanvas();
-              };
-              img.src = anc.image;
-              anc._imgElement = img;
-            }
-            if (anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
-              const imgSize = state.anchorPhotoSize || 56;
-              const imgW = imgSize, imgH = imgSize;
-              const cardPad = 4;
-              const fontSize = imgSize > 140 ? 13 : (imgSize > 90 ? 12 : 11);
-              histCtx.font = "bold " + fontSize + "px sans-serif";
-              const textWidth = histCtx.measureText(fullText).width;
-              const cardW = Math.max(imgW + cardPad * 2, textWidth + 14);
-              const cardH = imgH + cardPad * 2 + (fontSize + 6);
-              const cardX = sp.x + offX;
-              const cardY = sp.y + offY - (cardH / 2) + 10;
-
-              histCtx.save();
-              // White background card with slight curvature and shadow
-              histCtx.fillStyle = "#ffffff";
-              histCtx.shadowColor = "rgba(0, 0, 0, 0.45)";
-              histCtx.shadowBlur = 6;
-              histCtx.shadowOffsetY = 2;
-              histCtx.beginPath();
-              if (histCtx.roundRect) histCtx.roundRect(cardX, cardY, cardW, cardH, 4);
-              else histCtx.rect(cardX, cardY, cardW, cardH);
-              histCtx.fill();
-
-              // Subtle card border
-              histCtx.shadowColor = "transparent";
-              histCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-              histCtx.lineWidth = 1;
-              histCtx.stroke();
-
-              // Draw image centered in top of card
-              const imgDrawX = cardX + (cardW - imgW) / 2;
-              const imgDrawY = cardY + cardPad;
-              histCtx.save();
-              histCtx.beginPath();
-              if (histCtx.roundRect) histCtx.roundRect(imgDrawX, imgDrawY, imgW, imgH, 3);
-              else histCtx.rect(imgDrawX, imgDrawY, imgW, imgH);
-              histCtx.clip();
-              histCtx.drawImage(anc._imgElement, imgDrawX, imgDrawY, imgW, imgH);
-              histCtx.restore();
-
-              histCtx.strokeStyle = "rgba(0, 0, 0, 0.15)";
-              histCtx.strokeRect(imgDrawX, imgDrawY, imgW, imgH);
-
-              // Black letters centered below image
-              histCtx.fillStyle = isEnabled ? "#000000" : "#555555";
-              histCtx.font = "bold " + fontSize + "px sans-serif";
-              histCtx.textAlign = "center";
-              histCtx.textBaseline = "middle";
-              histCtx.fillText(fullText, cardX + cardW / 2, cardY + imgH + cardPad + (fontSize / 2 + 3));
-              histCtx.restore();
-            } else {
-              // Loading fallback: white badge with camera icon & black text
-              const textWithIcon = `📷 ${fullText}`;
-              histCtx.save();
-              histCtx.font = "bold 11px sans-serif";
-              const tw = histCtx.measureText(textWithIcon).width;
-              const bx = sp.x + offX;
-              const by = sp.y + offY;
-              const bw = tw + 12;
-              const bh = 19;
-
-              histCtx.fillStyle = "#ffffff";
-              histCtx.shadowColor = "rgba(0, 0, 0, 0.35)";
-              histCtx.shadowBlur = 5;
-              histCtx.shadowOffsetY = 1;
-              histCtx.beginPath();
-              if (histCtx.roundRect) histCtx.roundRect(bx, by, bw, bh, 3.5);
-              else histCtx.rect(bx, by, bw, bh);
-              histCtx.fill();
-
-              histCtx.shadowColor = "transparent";
-              histCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-              histCtx.lineWidth = 1;
-              histCtx.stroke();
-
-              histCtx.fillStyle = isEnabled ? "#000000" : "#555555";
-              histCtx.textBaseline = "middle";
-              histCtx.textAlign = "left";
-              histCtx.fillText(textWithIcon, bx + 6, by + bh / 2);
-              histCtx.restore();
-            }
-          } else {
-            // No photo: clean white label badge with black text
-            histCtx.save();
-            histCtx.font = "bold 11px sans-serif";
-            const tw = histCtx.measureText(fullText).width;
-            const bx = sp.x + offX;
-            const by = sp.y + offY;
-            const bw = tw + 12;
-            const bh = 19;
-
-            histCtx.fillStyle = "#ffffff";
-            histCtx.shadowColor = "rgba(0, 0, 0, 0.35)";
-            histCtx.shadowBlur = 5;
-            histCtx.shadowOffsetY = 1;
-            histCtx.beginPath();
-            if (histCtx.roundRect) histCtx.roundRect(bx, by, bw, bh, 3.5);
-            else histCtx.rect(bx, by, bw, bh);
-            histCtx.fill();
-
-            histCtx.shadowColor = "transparent";
-            histCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-            histCtx.lineWidth = 1;
-            histCtx.stroke();
-
-            histCtx.fillStyle = isEnabled ? "#000000" : "#555555";
-            histCtx.textBaseline = "middle";
-            histCtx.textAlign = "left";
-            histCtx.fillText(fullText, bx + 6, by + bh / 2);
-            histCtx.restore();
-          }
+          drawAnchorLabelCard(histCtx, anc, sp, true);
         }
         histCtx.restore();
       });
@@ -6629,147 +6727,7 @@ EOF`;
         trueCtx.setLineDash([]);
 
         if (anc.showLabel !== false) {
-          const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
-          const fullText = labelName + (isEnabled ? "" : " (off)");
-
-          const defDx = 10, defDy = -10;
-          const offX = (anc.labelOffsetDst && typeof anc.labelOffsetDst.dx === "number") ? anc.labelOffsetDst.dx : defDx;
-          const offY = (anc.labelOffsetDst && typeof anc.labelOffsetDst.dy === "number") ? anc.labelOffsetDst.dy : defDy;
-
-          // Draw leader line if label has been moved away from default anchor position
-          if (Math.hypot(offX - defDx, offY - defDy) > 10) {
-            trueCtx.save();
-            trueCtx.beginPath();
-            trueCtx.moveTo(tp.x, tp.y);
-            trueCtx.lineTo(tp.x + offX, tp.y + offY + 9);
-            trueCtx.strokeStyle = isEnabled ? (anc.color || "#00e5ff") : "#888888";
-            trueCtx.lineWidth = 1.3;
-            trueCtx.setLineDash([3, 3]);
-            trueCtx.stroke();
-            trueCtx.restore();
-          }
-
-          if (anc.image) {
-            if (!anc._imgElement) {
-              const img = new Image();
-              img.onload = () => {
-                const tc = document.getElementById("true-card");
-                if (!tc || !tc.classList.contains("hidden")) redrawTrueCanvas();
-              };
-              img.src = anc.image;
-              anc._imgElement = img;
-            }
-            if (anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
-              const imgSize = state.anchorPhotoSize || 56;
-              const imgW = imgSize, imgH = imgSize;
-              const cardPad = 4;
-              const fontSize = imgSize > 140 ? 13 : (imgSize > 90 ? 12 : 11);
-              trueCtx.font = "bold " + fontSize + "px sans-serif";
-              const textWidth = trueCtx.measureText(fullText).width;
-              const cardW = Math.max(imgW + cardPad * 2, textWidth + 14);
-              const cardH = imgH + cardPad * 2 + (fontSize + 6);
-              const cardX = tp.x + offX;
-              const cardY = tp.y + offY - (cardH / 2) + 10;
-
-              trueCtx.save();
-              // White background card with slight curvature and shadow
-              trueCtx.fillStyle = "#ffffff";
-              trueCtx.shadowColor = "rgba(0, 0, 0, 0.45)";
-              trueCtx.shadowBlur = 6;
-              trueCtx.shadowOffsetY = 2;
-              trueCtx.beginPath();
-              if (trueCtx.roundRect) trueCtx.roundRect(cardX, cardY, cardW, cardH, 4);
-              else trueCtx.rect(cardX, cardY, cardW, cardH);
-              trueCtx.fill();
-
-              // Subtle card border
-              trueCtx.shadowColor = "transparent";
-              trueCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-              trueCtx.lineWidth = 1;
-              trueCtx.stroke();
-
-              // Draw image centered in top of card
-              const imgDrawX = cardX + (cardW - imgW) / 2;
-              const imgDrawY = cardY + cardPad;
-              trueCtx.save();
-              trueCtx.beginPath();
-              if (trueCtx.roundRect) trueCtx.roundRect(imgDrawX, imgDrawY, imgW, imgH, 3);
-              else trueCtx.rect(imgDrawX, imgDrawY, imgW, imgH);
-              trueCtx.clip();
-              trueCtx.drawImage(anc._imgElement, imgDrawX, imgDrawY, imgW, imgH);
-              trueCtx.restore();
-
-              trueCtx.strokeStyle = "rgba(0, 0, 0, 0.15)";
-              trueCtx.strokeRect(imgDrawX, imgDrawY, imgW, imgH);
-
-              // Black letters centered below image
-              trueCtx.fillStyle = isEnabled ? "#000000" : "#555555";
-              trueCtx.font = "bold " + fontSize + "px sans-serif";
-              trueCtx.textAlign = "center";
-              trueCtx.textBaseline = "middle";
-              trueCtx.fillText(fullText, cardX + cardW / 2, cardY + imgH + cardPad + (fontSize / 2 + 3));
-              trueCtx.restore();
-            } else {
-              // Loading fallback: white badge with camera icon & black text
-              const textWithIcon = `📷 ${fullText}`;
-              trueCtx.save();
-              trueCtx.font = "bold 11px sans-serif";
-              const tw = trueCtx.measureText(textWithIcon).width;
-              const bx = tp.x + offX;
-              const by = tp.y + offY;
-              const bw = tw + 12;
-              const bh = 19;
-
-              trueCtx.fillStyle = "#ffffff";
-              trueCtx.shadowColor = "rgba(0, 0, 0, 0.35)";
-              trueCtx.shadowBlur = 5;
-              trueCtx.shadowOffsetY = 1;
-              trueCtx.beginPath();
-              if (trueCtx.roundRect) trueCtx.roundRect(bx, by, bw, bh, 3.5);
-              else trueCtx.rect(bx, by, bw, bh);
-              trueCtx.fill();
-
-              trueCtx.shadowColor = "transparent";
-              trueCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-              trueCtx.lineWidth = 1;
-              trueCtx.stroke();
-
-              trueCtx.fillStyle = isEnabled ? "#000000" : "#555555";
-              trueCtx.textBaseline = "middle";
-              trueCtx.textAlign = "left";
-              trueCtx.fillText(textWithIcon, bx + 6, by + bh / 2);
-              trueCtx.restore();
-            }
-          } else {
-            // No photo: clean white label badge with black text
-            trueCtx.save();
-            trueCtx.font = "bold 11px sans-serif";
-            const tw = trueCtx.measureText(fullText).width;
-            const bx = tp.x + offX;
-            const by = tp.y + offY;
-            const bw = tw + 12;
-            const bh = 19;
-
-            trueCtx.fillStyle = "#ffffff";
-            trueCtx.shadowColor = "rgba(0, 0, 0, 0.35)";
-            trueCtx.shadowBlur = 5;
-            trueCtx.shadowOffsetY = 1;
-            trueCtx.beginPath();
-            if (trueCtx.roundRect) trueCtx.roundRect(bx, by, bw, bh, 3.5);
-            else trueCtx.rect(bx, by, bw, bh);
-            trueCtx.fill();
-
-            trueCtx.shadowColor = "transparent";
-            trueCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-            trueCtx.lineWidth = 1;
-            trueCtx.stroke();
-
-            trueCtx.fillStyle = isEnabled ? "#000000" : "#555555";
-            trueCtx.textBaseline = "middle";
-            trueCtx.textAlign = "left";
-            trueCtx.fillText(fullText, bx + 6, by + bh / 2);
-            trueCtx.restore();
-          }
+          drawAnchorLabelCard(trueCtx, anc, tp, false);
         }
         trueCtx.restore();
       });
@@ -11433,35 +11391,9 @@ EOF`;
         const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
         const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
 
-        if (anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
-          const imgSize = state.anchorPhotoSize || 56;
-          const imgW = imgSize, imgH = imgSize;
-          const cardPad = 4;
-          const fontSize = imgSize > 140 ? 13 : (imgSize > 90 ? 12 : 11);
-          ctx.save();
-          ctx.font = "bold " + fontSize + "px sans-serif";
-          const tw = ctx.measureText(fullText).width;
-          ctx.restore();
-          const cardW = Math.max(imgW + cardPad * 2, tw + 14);
-          const cardH = imgH + cardPad * 2 + (fontSize + 6);
-          const cardX = pt.x + offX;
-          const cardY = pt.y + offY - (cardH / 2) + 10;
-          if (sx >= cardX && sx <= cardX + cardW && sy >= cardY && sy <= cardY + cardH) {
-            return { anc, isHist, offX, offY, cardX, cardY, cardW, cardH };
-          }
-        } else {
-          const textWithIcon = anc.image ? `📷 ${fullText}` : fullText;
-          ctx.save();
-          ctx.font = "bold 11px sans-serif";
-          const tw = ctx.measureText(textWithIcon).width;
-          ctx.restore();
-          const bx = pt.x + offX;
-          const by = pt.y + offY;
-          const bw = tw + 12;
-          const bh = 19;
-          if (sx >= bx && sx <= bx + bw && sy >= by && sy <= by + bh) {
-            return { anc, isHist, offX, offY, cardX: bx, cardY: by, cardW: bw, cardH: bh };
-          }
+        const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
+        if (sx >= bounds.cardX && sx <= bounds.cardX + bounds.cardW && sy >= bounds.cardY && sy <= bounds.cardY + bounds.cardH) {
+          return { anc, isHist, offX: bounds.offX, offY: bounds.offY, cardX: bounds.cardX, cardY: bounds.cardY, cardW: bounds.cardW, cardH: bounds.cardH };
         }
       }
       return null;
