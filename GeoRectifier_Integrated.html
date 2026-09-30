@@ -1401,42 +1401,44 @@ Do NOT modify dormant/parked sections unless specifically requested.
             </div>
 
             <!-- Floating Deed Aspect Squeeze HUD Overlay -->
-            <div id="squeeze-hud" style="display:none;position:absolute;top:56px;left:14px;background:rgba(18,24,38,0.94);border:1.5px solid rgba(213,0,249,0.55);border-radius:7px;padding:8px 12px;font-size:0.75rem;color:var(--text-main);box-shadow:0 6px 20px rgba(0,0,0,0.7), 0 0 12px rgba(213,0,249,0.25);backdrop-filter:blur(10px);z-index:36;min-width:210px;flex-direction:column;gap:6px;">
+            <div id="squeeze-hud" style="display:none;position:absolute;top:56px;left:14px;background:rgba(18,24,38,0.95);border:1.5px solid rgba(213,0,249,0.55);border-radius:7px;padding:8px 12px;font-size:0.75rem;color:var(--text-main);box-shadow:0 6px 20px rgba(0,0,0,0.7), 0 0 12px rgba(213,0,249,0.25);backdrop-filter:blur(10px);z-index:36;min-width:235px;flex-direction:column;gap:6px;">
               <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:4px;">
                 <span style="font-weight:700;color:#d500f9;display:flex;align-items:center;gap:5px;font-size:0.75rem;">
                   📐 Deed Squeeze
                 </span>
                 <button id="btn-close-squeeze-hud" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;font-weight:bold;padding:0 3px;line-height:1;" title="Close Squeeze Mode">✕</button>
               </div>
-              <div style="display:flex;flex-direction:column;gap:4px;padding:2px 0;">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-                  <span style="color:#d500f9;font-weight:700;font-size:0.72rem;min-width:18px;">X:</span>
-                  <div style="display:flex;align-items:center;gap:3px;">
-                    <button type="button" id="btn-scale-x-dec" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Decrease X scale by 1%">−</button>
-                    <input type="number" id="input-scale-x" min="15" max="500" step="0.5" value="100.0" style="width:58px;background:rgba(0,0,0,0.45);border:1px solid rgba(213,0,249,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.72rem;text-align:right;padding:1px 4px;">
-                    <span style="font-size:0.7rem;color:var(--text-muted);">%</span>
-                    <button type="button" id="btn-scale-x-inc" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Increase X scale by 1%">+</button>
-                  </div>
+              <div style="font-size:0.67rem;color:#10b981;background:rgba(16,185,129,0.15);padding:3px 7px;border-radius:4px;display:flex;align-items:center;gap:5px;border:1px solid rgba(16,185,129,0.3);font-weight:600;">
+                <span style="font-size:0.8rem;">⚓</span> Anchors 1 & 2 Fixed (0.0 m drift)
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:5px;padding:2px 0;">
+                <span style="color:#d500f9;font-weight:700;font-size:0.72rem;">Ratio:</span>
+                <div style="display:flex;align-items:center;gap:3px;">
+                  <button type="button" id="btn-scale-ratio-dec5" class="btn-fit-view" style="padding:1px 5px;font-size:0.7rem;font-weight:bold;line-height:1;" title="Decrease Squeeze Ratio by 5%">−5%</button>
+                  <button type="button" id="btn-scale-ratio-dec" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Decrease Squeeze Ratio by 1%">−</button>
+                  <input type="number" id="input-scale-ratio" min="20" max="300" step="0.5" value="100.0" style="width:58px;background:rgba(0,0,0,0.45);border:1px solid rgba(213,0,249,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.74rem;text-align:right;padding:1px 4px;">
+                  <span style="font-size:0.72rem;color:var(--text-muted);">%</span>
+                  <button type="button" id="btn-scale-ratio-inc" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Increase Squeeze Ratio by 1%">+</button>
+                  <button type="button" id="btn-scale-ratio-inc5" class="btn-fit-view" style="padding:1px 5px;font-size:0.7rem;font-weight:bold;line-height:1;" title="Increase Squeeze Ratio by 5%">+5%</button>
                 </div>
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-                  <span style="color:#d500f9;font-weight:700;font-size:0.72rem;min-width:18px;">Y:</span>
-                  <div style="display:flex;align-items:center;gap:3px;">
-                    <button type="button" id="btn-scale-y-dec" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Decrease Y scale by 1%">−</button>
-                    <input type="number" id="input-scale-y" min="15" max="500" step="0.5" value="100.0" style="width:58px;background:rgba(0,0,0,0.45);border:1px solid rgba(213,0,249,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.72rem;text-align:right;padding:1px 4px;">
-                    <span style="font-size:0.7rem;color:var(--text-muted);">%</span>
-                    <button type="button" id="btn-scale-y-inc" class="btn-fit-view" style="padding:1px 6px;font-size:0.75rem;font-weight:bold;line-height:1;" title="Increase Y scale by 1%">+</button>
-                  </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:3px;">
+                <span style="font-size:0.67rem;color:var(--text-muted);font-weight:600;">Presets:</span>
+                <div style="display:flex;gap:3px;">
+                  <button type="button" class="btn-scale-preset btn-fit-view" data-val="85" style="padding:1px 4px;font-size:0.68rem;" title="Squeeze inward to 85%">85%</button>
+                  <button type="button" class="btn-scale-preset btn-fit-view" data-val="90" style="padding:1px 4px;font-size:0.68rem;" title="Squeeze inward to 90%">90%</button>
+                  <button type="button" class="btn-scale-preset btn-fit-view" data-val="95" style="padding:1px 4px;font-size:0.68rem;" title="Squeeze inward to 95%">95%</button>
+                  <button type="button" class="btn-scale-preset btn-fit-view" data-val="100" style="padding:1px 4px;font-size:0.68rem;" title="Reset to 100% (Original)">100%</button>
+                  <button type="button" class="btn-scale-preset btn-fit-view" data-val="105" style="padding:1px 4px;font-size:0.68rem;" title="Stretch outward to 105%">105%</button>
+                  <button type="button" class="btn-scale-preset btn-fit-view" data-val="110" style="padding:1px 4px;font-size:0.68rem;" title="Stretch outward to 110%">110%</button>
                 </div>
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:2px;">
-                <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:0.7rem;color:var(--accent-cyan);font-weight:600;" title="Link X & Y so scaling one axis equivalently scales the other">
-                  <input type="checkbox" id="chk-lock-deed-aspect-hud" style="accent-color:var(--accent-cyan);width:13px;height:13px;cursor:pointer;">
-                  <span>🔗 Link X & Y</span>
-                </label>
+                <span style="font-size:0.64rem;color:var(--text-muted);">Opposite side moves inward / outward</span>
                 <button id="btn-reset-deed-scale-hud" class="btn-fit-view" style="padding:2px 8px;font-size:0.67rem;border-color:rgba(213,0,249,0.45);cursor:pointer;" title="Reset Deed Aspect Ratio to 100% (1:1)">↺ Reset</button>
               </div>
               <div style="font-size:0.64rem;color:var(--text-muted);border-top:1px dashed rgba(255,255,255,0.08);padding-top:4px;line-height:1.25;">
-                Drag edge or corner handles on map, or use +/−
+                Drag edge handles on map, or use presets &amp; steppers
               </div>
             </div>
 
@@ -2803,18 +2805,40 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
         const rawWarper = TransformMath._buildRawWarper(algorithm, active);
 
-        const scale = deedScale || (typeof state !== "undefined" && state.deedScale) || { x: 1.0, y: 1.0 };
-        const hasScale = Math.abs(scale.x - 1.0) > 1e-5 || Math.abs(scale.y - 1.0) > 1e-5;
+        const scale = deedScale || (typeof state !== "undefined" && state.deedScale) || { x: 1.0, y: 1.0, ratio: 1.0 };
+        const ratio = (scale.ratio !== undefined) ? scale.ratio : (scale.x || 1.0);
+        const hasScale = Math.abs(ratio - 1.0) > 1e-5;
 
-        if (!hasScale) {
+        if (!hasScale || active.length < 2) {
           return rawWarper;
         }
 
-        const center = (typeof getDeedCenter === "function") ? getDeedCenter() : { x: 0, y: 0 };
-        const transformPt = (p) => ({
-          x: center.x + (p.x - center.x) * scale.x,
-          y: center.y + (p.y - center.y) * scale.y
-        });
+        // Baseline-Anchored Perpendicular Squeeze:
+        // Anchors active[0].src (Mojón 1) & active[1].src (Mojón 2) define the fixed baseline.
+        // Points on the baseline have dPerp = 0 and stay 100% pinned (0.00 m drift).
+        // Points away from the baseline scale their perpendicular distance by ratio R.
+        const p1 = active[0].src;
+        const p2 = active[1].src;
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const len = Math.hypot(dx, dy);
+        if (len < 1e-9) return rawWarper;
+
+        const uParX = dx / len;
+        const uParY = dy / len;
+        const uPerpX = -uParY;
+        const uPerpY = uParX;
+
+        const transformPt = (p) => {
+          const rx = p.x - p1.x;
+          const ry = p.y - p1.y;
+          const dPar = rx * uParX + ry * uParY;
+          const dPerp = rx * uPerpX + ry * uPerpY;
+          return {
+            x: p1.x + dPar * uParX + (ratio * dPerp) * uPerpX,
+            y: p1.y + dPar * uParY + (ratio * dPerp) * uPerpY
+          };
+        };
 
         return (pt) => rawWarper(transformPt(pt));
       }
@@ -2834,18 +2858,37 @@ Do NOT modify dormant/parked sections unless specifically requested.
         }));
         const rawInvWarper = TransformMath._buildRawWarper(algorithm, invAnchors);
 
-        const scale = deedScale || (typeof state !== "undefined" && state.deedScale) || { x: 1.0, y: 1.0 };
-        const hasScale = Math.abs(scale.x - 1.0) > 1e-5 || Math.abs(scale.y - 1.0) > 1e-5;
+        const scale = deedScale || (typeof state !== "undefined" && state.deedScale) || { x: 1.0, y: 1.0, ratio: 1.0 };
+        const ratio = (scale.ratio !== undefined) ? scale.ratio : (scale.x || 1.0);
+        const hasScale = Math.abs(ratio - 1.0) > 1e-5;
 
         if (!hasScale) {
           return rawInvWarper;
         }
 
-        const center = (typeof getDeedCenter === "function") ? getDeedCenter() : { x: 0, y: 0 };
-        const unTransformPt = (p) => ({
-          x: center.x + (p.x - center.x) / scale.x,
-          y: center.y + (p.y - center.y) / scale.y
-        });
+        const p1 = active[0].src;
+        const p2 = active[1].src;
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const len = Math.hypot(dx, dy);
+        if (len < 1e-9) return rawInvWarper;
+
+        const uParX = dx / len;
+        const uParY = dy / len;
+        const uPerpX = -uParY;
+        const uPerpY = uParX;
+
+        const unTransformPt = (p) => {
+          const rx = p.x - p1.x;
+          const ry = p.y - p1.y;
+          const dPar = rx * uParX + ry * uParY;
+          const dPerpSqueezed = rx * uPerpX + ry * uPerpY;
+          const dPerpOriginal = dPerpSqueezed / ratio;
+          return {
+            x: p1.x + dPar * uParX + dPerpOriginal * uPerpX,
+            y: p1.y + dPar * uParY + dPerpOriginal * uPerpY
+          };
+        };
 
         return (gisPt) => {
           const rawDeedPt = rawInvWarper(gisPt);
@@ -5117,7 +5160,7 @@ EOF`;
        4. APPLICATION LOGIC & DUAL-CANVAS RENDERING ENGINE
        ========================================================================== */
     const state = {
-      deedScale: { x: 1.0, y: 1.0 },
+      deedScale: { x: 1.0, y: 1.0, ratio: 1.0 },
       lockAspectEquivalent: false,
       showDeedHandles: false,
       activeDeedHandle: null,
@@ -6077,6 +6120,9 @@ EOF`;
       const lenH = Math.max(1, Math.hypot(dxH, dyH));
       const uHeight = { x: dxH / lenH, y: dyH / lenH };
 
+      const sA1 = worldToScreenGIS(warper(activeAnchors[0].src), vp, canvasH);
+      const sA2 = worldToScreenGIS(warper(activeAnchors[1].src), vp, canvasH);
+
       return {
         corners: { tl: sTL, tr: sTR, br: sBR, bl: sBL },
         midpoints: { top: midTop, bottom: midBottom, left: midLeft, right: midRight },
@@ -6086,7 +6132,9 @@ EOF`;
         uWidth,
         uHeight,
         angleWidth: Math.atan2(dyW, dxW),
-        angleHeight: Math.atan2(dyH, dxH)
+        angleHeight: Math.atan2(dyH, dxH),
+        sA1,
+        sA2
       };
     }
 
@@ -6117,7 +6165,7 @@ EOF`;
       const gizmo = getDeedBoundingGizmo(vp, canvasH);
       if (!gizmo) return;
 
-      const { corners, midpoints, angleWidth, angleHeight } = gizmo;
+      const { corners, midpoints, angleWidth, angleHeight, sA1, sA2 } = gizmo;
 
       ctx.save();
 
@@ -6134,6 +6182,44 @@ EOF`;
       ctx.stroke();
       ctx.setLineDash([]);
 
+      // 2. Fixed Anchor Baseline Indicator (Mojón 1 to Mojón 2)
+      if (sA1 && sA2) {
+        ctx.save();
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 3.5;
+        ctx.shadowColor = "rgba(16, 185, 129, 0.6)";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(sA1.x, sA1.y);
+        ctx.lineTo(sA2.x, sA2.y);
+        ctx.stroke();
+
+        const midAnchorX = (sA1.x + sA2.x) / 2;
+        const midAnchorY = (sA1.y + sA2.y) / 2;
+        ctx.font = "bold 11px sans-serif";
+        const badgeText = "⚓ Fixed Baseline (0.0 m drift)";
+        const btm = ctx.measureText(badgeText);
+        const bw = btm.width + 14, bh = 22;
+
+        ctx.fillStyle = "rgba(10, 26, 20, 0.94)";
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 1.5;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(midAnchorX - bw/2, midAnchorY - bh/2, bw, bh, 4);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(midAnchorX - bw/2, midAnchorY - bh/2, bw, bh);
+          ctx.strokeRect(midAnchorX - bw/2, midAnchorY - bh/2, bw, bh);
+        }
+        ctx.fillStyle = "#10b981";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(badgeText, midAnchorX, midAnchorY);
+        ctx.restore();
+      }
+
       // Helper for edge pill handle
       function drawPill(x, y, angle, isHighlighted) {
         ctx.save();
@@ -6144,7 +6230,7 @@ EOF`;
         ctx.lineWidth = 2;
         ctx.shadowColor = "rgba(0,0,0,0.6)";
         ctx.shadowBlur = 4;
-        const pw = 16, ph = 8;
+        const pw = 18, ph = 9;
         if (typeof ctx.roundRect === "function") {
           ctx.beginPath();
           ctx.roundRect(-pw/2, -ph/2, pw, ph, 3);
@@ -6178,36 +6264,22 @@ EOF`;
         ctx.restore();
       }
 
-      // 2. Draw 4 Edge Handles (highlighted if active or hovered)
-      drawPill(midpoints.left.x, midpoints.left.y, angleHeight, state.activeDeedHandle === "left" || state.hoveredDeedHandle === "left");
+      // 3. Draw Edge Handles
       drawPill(midpoints.right.x, midpoints.right.y, angleHeight, state.activeDeedHandle === "right" || state.hoveredDeedHandle === "right");
       drawPill(midpoints.top.x, midpoints.top.y, angleWidth, state.activeDeedHandle === "top" || state.hoveredDeedHandle === "top");
       drawPill(midpoints.bottom.x, midpoints.bottom.y, angleWidth, state.activeDeedHandle === "bottom" || state.hoveredDeedHandle === "bottom");
 
-      // 3. Draw 4 Corner Handles (highlighted if active or hovered)
+      // 4. Draw Corner Handles
       drawCorner(corners.tl.x, corners.tl.y, state.activeDeedHandle === "tl" || state.hoveredDeedHandle === "tl");
       drawCorner(corners.tr.x, corners.tr.y, state.activeDeedHandle === "tr" || state.hoveredDeedHandle === "tr");
       drawCorner(corners.br.x, corners.br.y, state.activeDeedHandle === "br" || state.hoveredDeedHandle === "br");
       drawCorner(corners.bl.x, corners.bl.y, state.activeDeedHandle === "bl" || state.hoveredDeedHandle === "bl");
 
-      // 4. Live Tooltip badge next to active handle while dragging, or informative tooltip on hover
+      // 5. Live Tooltip badge next to active handle while dragging, or informative tooltip on hover
       const targetHandle = state.activeDeedHandle || state.hoveredDeedHandle;
       if (targetHandle && state.deedScale) {
-        const isDragging = !!state.activeDeedHandle;
-        let text = "";
-        if (isDragging) {
-          text = (targetHandle === "left" || targetHandle === "right")
-            ? `↔ Width: ${(state.deedScale.x * 100).toFixed(1)}%`
-            : (targetHandle === "top" || targetHandle === "bottom")
-            ? `↕ Height: ${(state.deedScale.y * 100).toFixed(1)}%`
-            : `↔ X: ${(state.deedScale.x * 100).toFixed(1)}% | ↕ Y: ${(state.deedScale.y * 100).toFixed(1)}%`;
-        } else {
-          text = (targetHandle === "left" || targetHandle === "right")
-            ? `↔ Squeeze Width (${(state.deedScale.x * 100).toFixed(1)}%)`
-            : (targetHandle === "top" || targetHandle === "bottom")
-            ? `↕ Squeeze Height (${(state.deedScale.y * 100).toFixed(1)}%)`
-            : `⤡ Resize Aspect (X:${(state.deedScale.x * 100).toFixed(1)}% Y:${(state.deedScale.y * 100).toFixed(1)}%)`;
-        }
+        const ratio = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
+        const text = `↔ Deed Squeeze: ${(ratio * 100).toFixed(1)}% | ⚓ Anchors Fixed (0.0 m drift)`;
 
         let activePos = corners.br;
         if (targetHandle in midpoints) activePos = midpoints[targetHandle];
@@ -6216,8 +6288,8 @@ EOF`;
         ctx.save();
         ctx.font = "bold 12px sans-serif";
         const tm = ctx.measureText(text);
-        const pw = tm.width + 16, ph = 24;
-        const px = activePos.x + 16, py = activePos.y - 12;
+        const pw = tm.width + 18, ph = 26;
+        const px = activePos.x + 16, py = activePos.y - 13;
 
         ctx.fillStyle = "rgba(10, 14, 23, 0.94)";
         ctx.strokeStyle = "#d500f9";
@@ -6236,7 +6308,7 @@ EOF`;
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(text, px + 8, py);
+        ctx.fillText(text, px + 9, py);
         ctx.restore();
       }
 
@@ -6245,45 +6317,40 @@ EOF`;
 
     function updateDeedScaleDisplay() {
       if (!state.deedScale) return;
-      const xPct = (state.deedScale.x * 100).toFixed(1) + "%";
-      const yPct = (state.deedScale.y * 100).toFixed(1) + "%";
-      const isLinked = !!state.lockAspectEquivalent;
-      const linkTag = isLinked ? " [🔗 Linked]" : "";
-      const str = `X: ${xPct} | Y: ${yPct}${linkTag}`;
-      const el1 = document.getElementById("deed-scale-display");
-      if (el1) el1.textContent = `X:${xPct} Y:${yPct}${isLinked ? " 🔗" : ""}`;
-      const el2 = document.getElementById("deed-scale-display-hud");
-      if (el2) el2.textContent = str;
-      const el3 = document.getElementById("deed-scale-display-sidebar");
-      if (el3) el3.textContent = str;
+      const ratio = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
+      const pctStr = (ratio * 100).toFixed(1) + "%";
 
+      const el1 = document.getElementById("deed-scale-display");
+      if (el1) el1.textContent = `Squeeze: ${pctStr}`;
+      const el2 = document.getElementById("deed-scale-display-hud");
+      if (el2) el2.textContent = `Squeeze: ${pctStr} (Anchors Fixed)`;
+      const el3 = document.getElementById("deed-scale-display-sidebar");
+      if (el3) el3.textContent = `Squeeze: ${pctStr}`;
+
+      const inputRatio = document.getElementById("input-scale-ratio");
+      if (inputRatio && document.activeElement !== inputRatio) {
+        inputRatio.value = (ratio * 100).toFixed(1);
+      }
       const inputX = document.getElementById("input-scale-x");
       if (inputX && document.activeElement !== inputX) {
-        inputX.value = (state.deedScale.x * 100).toFixed(1);
+        inputX.value = (ratio * 100).toFixed(1);
       }
       const inputY = document.getElementById("input-scale-y");
       if (inputY && document.activeElement !== inputY) {
-        inputY.value = (state.deedScale.y * 100).toFixed(1);
+        inputY.value = (ratio * 100).toFixed(1);
       }
-
-      const chk1 = document.getElementById("chk-lock-deed-aspect");
-      if (chk1 && chk1.checked !== isLinked) chk1.checked = isLinked;
-      const chk2 = document.getElementById("chk-lock-deed-aspect-hud");
-      if (chk2 && chk2.checked !== isLinked) chk2.checked = isLinked;
     }
 
-    function applyDeedScaleChange(newX, newY) {
-      if (newX !== undefined && !isNaN(newX)) {
-        state.deedScale.x = Math.max(0.15, Math.min(5.0, newX));
-        if (state.lockAspectEquivalent && newY === undefined) {
-          state.deedScale.y = state.deedScale.x;
-        }
+    function applyDeedScaleChange(newRatio, optionalY) {
+      let r = newRatio;
+      if (r === undefined && optionalY !== undefined) {
+        r = optionalY;
       }
-      if (newY !== undefined && !isNaN(newY)) {
-        state.deedScale.y = Math.max(0.15, Math.min(5.0, newY));
-        if (state.lockAspectEquivalent && newX === undefined) {
-          state.deedScale.x = state.deedScale.y;
-        }
+      if (typeof r === "number" && !isNaN(r)) {
+        const clamped = Math.max(0.20, Math.min(3.0, r));
+        state.deedScale.ratio = clamped;
+        state.deedScale.x = clamped;
+        state.deedScale.y = clamped;
       }
       updateDeedScaleDisplay();
       updateUserPolygonWarp();
@@ -6292,38 +6359,20 @@ EOF`;
     }
 
     function toggleLinkDeedAspect(val) {
+      // Kept for backward compatibility
       state.lockAspectEquivalent = !!val;
-      if (state.lockAspectEquivalent) {
-        // Equivalent compensation: if one axis was adjusted away from 1.0, adjust the other to match that same factor
-        const xDiff = Math.abs(state.deedScale.x - 1.0);
-        const yDiff = Math.abs(state.deedScale.y - 1.0);
-        if (xDiff > 1e-4 && yDiff <= 1e-4) {
-          state.deedScale.y = state.deedScale.x;
-        } else if (yDiff > 1e-4 && xDiff <= 1e-4) {
-          state.deedScale.x = state.deedScale.y;
-        } else {
-          // If both differ, link to Y (primary alignment axis)
-          state.deedScale.x = state.deedScale.y;
-        }
-        updateDeedScaleDisplay();
-        updateUserPolygonWarp();
-        updateCustomPolygonAnchors();
-        redrawAll();
-        updateStatus(`🔗 Deed aspect locked: X and Y matched to ${(state.deedScale.x * 100).toFixed(1)}%.`);
-      } else {
-        updateDeedScaleDisplay();
-        updateStatus("🔗 Deed aspect unlinked: X and Y can be adjusted independently.");
-      }
+      updateDeedScaleDisplay();
     }
 
     function resetDeedScale() {
+      state.deedScale.ratio = 1.0;
       state.deedScale.x = 1.0;
       state.deedScale.y = 1.0;
       updateDeedScaleDisplay();
       updateUserPolygonWarp();
       updateCustomPolygonAnchors();
       redrawAll();
-      updateStatus("📐 Deed Aspect Ratio reset to 100% (1:1).");
+      updateStatus("📐 Deed Squeeze reset to 100.0% (Original deed proportions).");
     }
 
     function toggleDeedHandles(force) {
@@ -10598,10 +10647,11 @@ EOF`;
             sx, sy,
             initScaleX: state.deedScale.x,
             initScaleY: state.deedScale.y,
+            initRatio: (state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0)),
             gizmo: handleHit.gizmo
           };
           trueCanvas.style.cursor = handleHit.cursor;
-          updateStatus(`📐 Squeezing Deed (${handleHit.handle.toUpperCase()}) — drag to stretch/squeeze aspect ratio.`);
+          updateStatus(`📐 Squeezing Deed (${handleHit.handle.toUpperCase()}) — drag inward or outward to adjust ratio.`);
           return;
         }
       }
@@ -11418,44 +11468,23 @@ EOF`;
 
         if (gizmo) {
           const h = state.activeDeedHandle;
-          const halfW = Math.max(10, gizmo.widthScreen / 2);
-          const halfH = Math.max(10, gizmo.heightScreen / 2);
+          const halfW = Math.max(15, gizmo.widthScreen / 2);
+          const currentRatio = start.initRatio !== undefined ? start.initRatio : (start.initScaleX || 1.0);
 
-          if (h === "right") {
-            const proj = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
-            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + proj / halfW)));
-            if (state.lockAspectEquivalent) state.deedScale.y = state.deedScale.x;
-          } else if (h === "left") {
-            const proj = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
-            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + proj / halfW)));
-            if (state.lockAspectEquivalent) state.deedScale.y = state.deedScale.x;
-          } else if (h === "bottom") {
-            const proj = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
-            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + proj / halfH)));
-            if (state.lockAspectEquivalent) state.deedScale.x = state.deedScale.y;
+          let proj = 0;
+          if (h === "right" || h === "tr" || h === "br") {
+            proj = dx * gizmo.uWidth.x + dy * gizmo.uWidth.y;
+          } else if (h === "left" || h === "tl" || h === "bl") {
+            proj = -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
           } else if (h === "top") {
-            const proj = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
-            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + proj / halfH)));
-            if (state.lockAspectEquivalent) state.deedScale.x = state.deedScale.y;
-          } else if (h === "br" || h === "tl" || h === "tr" || h === "bl") {
-            const isRight = (h === "br" || h === "tr");
-            const isBottom = (h === "br" || h === "bl");
-            const projX = isRight ? (dx * gizmo.uWidth.x + dy * gizmo.uWidth.y) : -(dx * gizmo.uWidth.x + dy * gizmo.uWidth.y);
-            const projY = isBottom ? (dx * gizmo.uHeight.x + dy * gizmo.uHeight.y) : -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
-            state.deedScale.x = Math.max(0.15, Math.min(5.0, start.initScaleX * (1 + projX / halfW)));
-            state.deedScale.y = Math.max(0.15, Math.min(5.0, start.initScaleY * (1 + projY / halfH)));
-            if (state.lockAspectEquivalent) {
-              const avg = (state.deedScale.x + state.deedScale.y) / 2;
-              state.deedScale.x = avg;
-              state.deedScale.y = avg;
-            }
+            proj = -(dx * gizmo.uHeight.x + dy * gizmo.uHeight.y);
+          } else if (h === "bottom") {
+            proj = dx * gizmo.uHeight.x + dy * gizmo.uHeight.y;
           }
-        }
 
-        updateDeedScaleDisplay();
-        updateUserPolygonWarp();
-        updateCustomPolygonAnchors();
-        redrawTrueCanvas();
+          const newRatio = Math.max(0.20, Math.min(3.0, currentRatio * (1 + proj / halfW)));
+          applyDeedScaleChange(newRatio);
+        }
         return;
       }
 
@@ -11642,8 +11671,8 @@ EOF`;
         updateDeedScaleDisplay();
         updateUserPolygonWarp();
         updateCustomPolygonAnchors();
-        redrawAll();
-        updateStatus(`📐 Deed Squeeze adjusted: X ${(state.deedScale.x * 100).toFixed(1)}%, Y ${(state.deedScale.y * 100).toFixed(1)}%. Position locked.`);
+        const ratioVal = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
+        updateStatus(`📐 Deed Squeeze adjusted: ${(ratioVal * 100).toFixed(1)}%. Anchors 1 & 2 locked (0.0 m drift).`);
         return;
       }
       if (state.draggingTempMarker) {
@@ -12230,8 +12259,8 @@ EOF`;
         updateDeedScaleDisplay();
         updateUserPolygonWarp();
         updateCustomPolygonAnchors();
-        redrawAll();
-        updateStatus(`📐 Deed Squeeze adjusted: X ${(state.deedScale.x * 100).toFixed(1)}%, Y ${(state.deedScale.y * 100).toFixed(1)}%. Position locked.`);
+        const ratioVal = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
+        updateStatus(`📐 Deed Squeeze adjusted: ${(ratioVal * 100).toFixed(1)}%. Anchors 1 & 2 locked (0.0 m drift).`);
         return;
       }
       handleMouseUp(e, trueCanvas, state.trueViewport, false);
@@ -14516,12 +14545,40 @@ EOF`;
     const btnCloseSqueezeHud = document.getElementById("btn-close-squeeze-hud");
     if (btnCloseSqueezeHud) btnCloseSqueezeHud.addEventListener("click", () => toggleDeedHandles(false));
 
-    document.getElementById("btn-scale-x-dec")?.addEventListener("click", () => applyDeedScaleChange(state.deedScale.x - 0.01));
-    document.getElementById("btn-scale-x-inc")?.addEventListener("click", () => applyDeedScaleChange(state.deedScale.x + 0.01));
-    document.getElementById("btn-scale-y-dec")?.addEventListener("click", () => applyDeedScaleChange(undefined, state.deedScale.y - 0.01));
-    document.getElementById("btn-scale-y-inc")?.addEventListener("click", () => applyDeedScaleChange(undefined, state.deedScale.y + 0.01));
+    // Deed Squeeze Steppers & Presets
+    document.getElementById("btn-scale-ratio-dec5")?.addEventListener("click", () => {
+      const cur = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
+      applyDeedScaleChange(cur - 0.05);
+    });
+    document.getElementById("btn-scale-ratio-dec")?.addEventListener("click", () => {
+      const cur = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
+      applyDeedScaleChange(cur - 0.01);
+    });
+    document.getElementById("btn-scale-ratio-inc")?.addEventListener("click", () => {
+      const cur = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
+      applyDeedScaleChange(cur + 0.01);
+    });
+    document.getElementById("btn-scale-ratio-inc5")?.addEventListener("click", () => {
+      const cur = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
+      applyDeedScaleChange(cur + 0.05);
+    });
+    document.getElementById("input-scale-ratio")?.addEventListener("change", (e) => {
+      applyDeedScaleChange(parseFloat(e.target.value) / 100);
+    });
+    document.querySelectorAll(".btn-scale-preset").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const val = parseFloat(btn.getAttribute("data-val"));
+        if (!isNaN(val)) applyDeedScaleChange(val / 100);
+      });
+    });
+
+    // Backward-compatibility listeners
+    document.getElementById("btn-scale-x-dec")?.addEventListener("click", () => applyDeedScaleChange((state.deedScale.ratio || state.deedScale.x || 1.0) - 0.01));
+    document.getElementById("btn-scale-x-inc")?.addEventListener("click", () => applyDeedScaleChange((state.deedScale.ratio || state.deedScale.x || 1.0) + 0.01));
+    document.getElementById("btn-scale-y-dec")?.addEventListener("click", () => applyDeedScaleChange((state.deedScale.ratio || state.deedScale.y || 1.0) - 0.01));
+    document.getElementById("btn-scale-y-inc")?.addEventListener("click", () => applyDeedScaleChange((state.deedScale.ratio || state.deedScale.y || 1.0) + 0.01));
     document.getElementById("input-scale-x")?.addEventListener("change", (e) => applyDeedScaleChange(parseFloat(e.target.value) / 100));
-    document.getElementById("input-scale-y")?.addEventListener("change", (e) => applyDeedScaleChange(undefined, parseFloat(e.target.value) / 100));
+    document.getElementById("input-scale-y")?.addEventListener("change", (e) => applyDeedScaleChange(parseFloat(e.target.value) / 100));
 
     const chkLockAspect = document.getElementById("chk-lock-deed-aspect");
     if (chkLockAspect) chkLockAspect.addEventListener("change", (e) => toggleLinkDeedAspect(e.target.checked));
