@@ -1968,8 +1968,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
         <span class="modal-title" id="vec-modal-title">✏️ Vectorize & Edit Polygon</span>
         <div style="display:flex; gap:8px; align-items:center;">
           <button class="btn btn-secondary btn-sm" id="btn-vec-toggle-snap" style="border-color:var(--accent-cyan); color:var(--accent-cyan);" title="Toggle Node Snapping (Hold Shift to invert)">🧲 Snap: ON</button>
-          <button class="btn btn-primary btn-sm" id="btn-vec-export-dxf" title="Save georeferenced DXF file with field coordinates (matching the main page)">💾 Save Rectified DXF</button>
-          <button class="btn btn-secondary btn-sm" id="btn-vec-export-raw-dxf" title="Save local unrectified DXF file (PDF page coordinates)">📥 Save Raw DXF</button>
+          <button class="btn btn-primary btn-sm" id="btn-vec-download-dxf" title="Download modified Deed DXF" style="display:flex;align-items:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Download current DXF</span>
+          </button>
           <button class="btn btn-success btn-sm" id="btn-vec-apply">✓ Apply Edits to GeoRectifier</button>
           <button class="btn btn-warning btn-sm" id="btn-vec-reset">↺ Reset Defaults</button>
           <button class="btn btn-secondary btn-sm" id="btn-vec-close">✕ Close</button>
@@ -12531,9 +12533,9 @@ EOF`;
       });
     }
 
-    const btnVecExportRaw = document.getElementById("btn-vec-export-raw-dxf");
-    if (btnVecExportRaw) {
-      btnVecExportRaw.addEventListener("click", () => {
+    const btnVecDownloadDxf = document.getElementById("btn-vec-download-dxf");
+    if (btnVecDownloadDxf) {
+      btnVecDownloadDxf.addEventListener("click", () => {
         const entitiesToExport = vecState.polygons.map((p) => ({
           type: "POLYLINE",
           layer: p.name,
@@ -12541,56 +12543,21 @@ EOF`;
           points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
         }));
 
+        // Keep state.histEntities in sync with latest vectorized polygons
+        state.histEntities = entitiesToExport;
+        if (histStatus) histStatus.textContent = `Deed DXF: ${state.histEntities.length} entities (vectorized)`;
+
+        const filename = state.histFileName || (vecState.activeMapKey === "296" ? "Polygon_Escritura296.dxf" : "Polygon_Escritura1073_FerminSuarez.dxf");
         const dxfContent = DXFParser.serialize(entitiesToExport);
         const blob = new Blob([dxfContent], { type: "application/dxf" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "Escritura_Vectorized_Raw.dxf";
+        a.download = filename;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(a.href);
-      });
-    }
-
-    const btnVecExportDxf = document.getElementById("btn-vec-export-dxf");
-    if (btnVecExportDxf) {
-      btnVecExportDxf.addEventListener("click", () => {
-        const activeAnc = getActiveAnchors();
-        let entitiesToExport;
-        if (activeAnc && activeAnc.length >= 2) {
-          try {
-            const warper = TransformMath.createWarper(state.algorithm, activeAnc);
-            entitiesToExport = vecState.polygons.map((p) => ({
-              type: "POLYLINE",
-              layer: p.name,
-              closed: true,
-              points: p.points.map(pt => warper(pt))
-            }));
-          } catch (err) {
-            console.warn("Warping error, falling back to raw coordinates:", err);
-            entitiesToExport = vecState.polygons.map((p) => ({
-              type: "POLYLINE",
-              layer: p.name,
-              closed: true,
-              points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
-            }));
-          }
-        } else {
-          alert("⚠️ At least 2 active anchor points are required to georeference into Field coordinates. Exporting raw PDF coordinates instead.");
-          entitiesToExport = vecState.polygons.map((p) => ({
-            type: "POLYLINE",
-            layer: p.name,
-            closed: true,
-            points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
-          }));
-        }
-
-        const dxfContent = DXFParser.serialize(entitiesToExport);
-        const blob = new Blob([dxfContent], { type: "application/dxf" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "Escritura_Vectorized_Rectified.dxf";
-        a.click();
-        URL.revokeObjectURL(a.href);
+        updateStatus(`💾 Downloaded modified Deed DXF to '${filename}'.`);
       });
     }
 
