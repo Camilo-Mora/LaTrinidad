@@ -1812,9 +1812,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
             </div>
 
             <!-- Algorithm Selector (Original GeoRectifier Methods) -->
-            <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(0,229,255,0.2);">
-              <label for="algorithm-select" style="font-size:0.72rem;color:var(--accent-cyan);font-weight:700;white-space:nowrap;margin:0;">Algorithm:</label>
-              <select id="algorithm-select" class="select-dropdown" style="flex:1;background:rgba(15,20,32,0.95);border:1px solid rgba(0,229,255,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
+            <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(0,229,255,0.2);min-width:0;box-sizing:border-box;">
+              <label for="algorithm-select" style="font-size:0.72rem;color:var(--accent-cyan);font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm:</label>
+              <select id="algorithm-select" class="select-dropdown" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(0,229,255,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
                 <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
                 <option value="AFFINE">Affine Transformation (6-Param)</option>
                 <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
