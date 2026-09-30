@@ -611,6 +611,59 @@ Do NOT modify dormant/parked sections unless specifically requested.
     }
     .btn-del-anchor:hover { background: var(--accent-red); color: #fff; }
 
+    .anchor-name-input {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text-main);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 0.73rem;
+      width: 75px;
+      min-width: 50px;
+      max-width: 105px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .anchor-name-input:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 6px rgba(0, 229, 255, 0.35);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .btn-upload-anchor-photo {
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px dashed rgba(0, 229, 255, 0.45);
+      color: var(--accent-cyan);
+      border-radius: 4px;
+      padding: 2px 5px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.15s;
+    }
+    .btn-upload-anchor-photo:hover {
+      background: rgba(0, 229, 255, 0.22);
+      border-color: var(--accent-cyan);
+      transform: scale(1.06);
+    }
+
+    .anchor-thumb-preview {
+      width: 22px;
+      height: 22px;
+      object-fit: cover;
+      border-radius: 3px;
+      border: 1.5px solid var(--accent-cyan);
+      cursor: pointer;
+      background: #000;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .anchor-thumb-preview:hover {
+      transform: scale(1.18);
+      border-color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 229, 255, 0.5);
+    }
+
     /* Info Card */
     .info-card h4 { font-size: 0.82rem; color: var(--accent-cyan); }
     .info-card ol { padding-left: 16px; font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
@@ -1331,6 +1384,32 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
             <!-- Floating Segment Label Tooltip (Deed vs Field vs Error) -->
             <div id="segment-label-tooltip" style="display:none;position:absolute;pointer-events:none;z-index:45;background:rgba(15,23,42,0.96);border:1.5px solid #00e5ff;box-shadow:0 6px 22px rgba(0,0,0,0.75), 0 0 12px rgba(0,229,255,0.25);border-radius:6px;padding:8px 12px;font-size:0.75rem;color:#f8fafc;line-height:1.55;backdrop-filter:blur(8px);white-space:nowrap;font-family:sans-serif;"></div>
+
+            <!-- Floating Anchor Label & Photo Tooltip -->
+            <div id="anchor-photo-tooltip" style="display:none;position:absolute;pointer-events:none;z-index:46;background:rgba(15,23,42,0.97);border:1.5px solid #00e5ff;box-shadow:0 8px 24px rgba(0,0,0,0.8), 0 0 14px rgba(0,229,255,0.3);border-radius:7px;padding:8px 12px;font-size:0.75rem;color:#f8fafc;line-height:1.5;backdrop-filter:blur(10px);font-family:sans-serif;max-width:280px;"></div>
+
+            <!-- Anchor Photo Preview & Management Modal -->
+            <div id="modal-anchor-photo" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.78);z-index:9999;backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+              <div style="background:#131d2e;border:1px solid rgba(0,229,255,0.4);box-shadow:0 14px 40px rgba(0,0,0,0.9);border-radius:8px;width:90%;max-width:440px;overflow:hidden;display:flex;flex-direction:column;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);">
+                  <span id="modal-anchor-photo-title" style="font-weight:700;color:var(--accent-cyan);font-size:0.85rem;">📷 Anchor Photo</span>
+                  <button id="btn-close-anchor-photo-modal" style="background:none;border:none;color:#94a3b8;font-size:1.1rem;cursor:pointer;line-height:1;">✕</button>
+                </div>
+                <div style="padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080c14;min-height:200px;">
+                  <img id="modal-anchor-photo-img" src="" alt="Anchor Photo Preview" style="max-width:100%;max-height:360px;object-fit:contain;border-radius:4px;border:1px solid rgba(255,255,255,0.15);" />
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);">
+                  <button id="btn-modal-delete-photo" style="background:rgba(255,23,68,0.18);border:1px solid rgba(255,23,68,0.45);color:var(--accent-red);padding:5px 12px;border-radius:4px;font-size:0.75rem;cursor:pointer;font-weight:600;">🗑️ Remove Photo</button>
+                  <div style="display:flex;gap:8px;">
+                    <button id="btn-modal-change-photo" style="background:rgba(0,229,255,0.18);border:1px solid rgba(0,229,255,0.45);color:var(--accent-cyan);padding:5px 12px;border-radius:4px;font-size:0.75rem;cursor:pointer;font-weight:600;">🔄 Change</button>
+                    <button id="btn-modal-close-photo" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:5px 14px;border-radius:4px;font-size:0.75rem;cursor:pointer;">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hidden file input for anchor photo uploads -->
+            <input type="file" id="anchor-photo-file-input" accept="image/*" style="display:none;">
           </div>
           <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to pan field survey. Click '🎯 Anchor Mode' to drop points.</div>
         </div>
@@ -1532,17 +1611,17 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <table class="anchor-table">
               <thead>
                 <tr>
-                  <th style="width:36px;text-align:center;" title="Enable / Disable anchor points in transformation calculation">
-                    <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
+                  <th style="width:34px;text-align:center;" title="Enable / Disable anchor points in transformation calculation">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:2px;">
                       <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
-                      <span style="font-size:0.7rem;">Use</span>
+                      <span style="font-size:0.68rem;">Use</span>
                     </div>
                   </th>
-                  <th>#</th>
-                  <th>Source (Hist X, Y)</th>
-                  <th>Target (True X, Y)</th>
-                  <th>Error</th>
-                  <th>Action</th>
+                  <th>Name</th>
+                  <th style="width:34px;text-align:center;" title="Display / Hide anchor label on canvas">Label</th>
+                  <th style="width:38px;text-align:center;" title="Attach photo of landmark / control point">Photo</th>
+                  <th style="width:48px;text-align:right;">Error</th>
+                  <th style="width:34px;text-align:center;">Action</th>
                 </tr>
               </thead>
               <tbody id="anchor-table-body">
@@ -4554,14 +4633,32 @@ EOF`;
 
     function applyAnchors(list) {
       if (!Array.isArray(list) || list.length === 0) return;
-      state.anchors = list.map((a, i) => ({
-        id: a.id || i + 1,
-        color: a.color || anchorColors[i % anchorColors.length],
-        src: { x: a.src.x, y: a.src.y },
-        dst: { x: a.dst.x, y: a.dst.y },
-        active: a.active !== false && a.enabled !== false,
-        enabled: a.active !== false && a.enabled !== false
-      }));
+      state.anchors = list.map((a, i) => {
+        const id = a.id || (i + 1);
+        const anc = {
+          id: id,
+          name: a.name || (`#${id}`),
+          showLabel: a.showLabel !== false,
+          image: a.image || null,
+          color: a.color || anchorColors[i % anchorColors.length],
+          src: { x: a.src.x, y: a.src.y },
+          dst: { x: a.dst.x, y: a.dst.y },
+          active: a.active !== false && a.enabled !== false,
+          enabled: a.active !== false && a.enabled !== false
+        };
+        if (anc.image) {
+          const img = new Image();
+          img.onload = () => {
+            const histCard = document.getElementById("hist-card");
+            const trueCard = document.getElementById("true-card");
+            if (!histCard || !histCard.classList.contains("hidden")) redrawHistoricalCanvas();
+            if (!trueCard || !trueCard.classList.contains("hidden")) redrawTrueCanvas();
+          };
+          img.src = anc.image;
+          anc._imgElement = img;
+        }
+        return anc;
+      });
       updateAnalyticsUI();
     }
 
@@ -5563,9 +5660,64 @@ EOF`;
         if (!isEnabled) histCtx.setLineDash([2, 2]);
         histCtx.stroke();
         histCtx.setLineDash([]);
-        histCtx.fillStyle = isEnabled ? "#fff" : "#aaa";
-        histCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
-        histCtx.fillText(`#${anc.id}${isEnabled ? "" : " (off)"}`,sp.x+10,sp.y-6);
+
+        if (anc.showLabel !== false) {
+          const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+          const fullText = labelName + (isEnabled ? "" : " (off)");
+
+          if (anc.image) {
+            if (!anc._imgElement) {
+              const img = new Image();
+              img.onload = () => {
+                const hc = document.getElementById("hist-card");
+                if (!hc || !hc.classList.contains("hidden")) redrawHistoricalCanvas();
+              };
+              img.src = anc.image;
+              anc._imgElement = img;
+            }
+            if (anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
+              const tw = 24, th = 24;
+              const tx = sp.x + 9;
+              const ty = sp.y - 30;
+              histCtx.save();
+              histCtx.fillStyle = "#ffffff";
+              histCtx.shadowColor = "rgba(0,0,0,0.6)";
+              histCtx.shadowBlur = 4;
+              histCtx.shadowOffsetY = 1;
+              if (histCtx.roundRect) histCtx.roundRect(tx - 2, ty - 2, tw + 4, th + 4, 3);
+              else histCtx.rect(tx - 2, ty - 2, tw + 4, th + 4);
+              histCtx.fill();
+              histCtx.shadowColor = "transparent";
+
+              histCtx.save();
+              histCtx.beginPath();
+              if (histCtx.roundRect) histCtx.roundRect(tx, ty, tw, th, 2);
+              else histCtx.rect(tx, ty, tw, th);
+              histCtx.clip();
+              histCtx.drawImage(anc._imgElement, tx, ty, tw, th);
+              histCtx.restore();
+
+              histCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
+              histCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
+              histCtx.shadowColor = "rgba(0,0,0,0.9)";
+              histCtx.shadowBlur = 3;
+              histCtx.fillText(fullText, tx + tw + 6, ty + 16);
+              histCtx.restore();
+            } else {
+              histCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
+              histCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
+              histCtx.shadowColor = "rgba(0,0,0,0.9)";
+              histCtx.shadowBlur = 3;
+              histCtx.fillText(`📷 ${fullText}`, sp.x + 10, sp.y - 6);
+            }
+          } else {
+            histCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
+            histCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
+            histCtx.shadowColor = "rgba(0,0,0,0.9)";
+            histCtx.shadowBlur = 3;
+            histCtx.fillText(fullText, sp.x + 10, sp.y - 6);
+          }
+        }
         histCtx.restore();
       });
     }
@@ -6034,9 +6186,64 @@ EOF`;
         if (!isEnabled) trueCtx.setLineDash([2, 2]);
         trueCtx.stroke();
         trueCtx.setLineDash([]);
-        trueCtx.fillStyle = isEnabled ? "#fff" : "#aaa";
-        trueCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
-        trueCtx.fillText(`#${anc.id}${isEnabled ? "" : " (off)"}`,tp.x+10,tp.y-6);
+
+        if (anc.showLabel !== false) {
+          const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+          const fullText = labelName + (isEnabled ? "" : " (off)");
+
+          if (anc.image) {
+            if (!anc._imgElement) {
+              const img = new Image();
+              img.onload = () => {
+                const tc = document.getElementById("true-card");
+                if (!tc || !tc.classList.contains("hidden")) redrawTrueCanvas();
+              };
+              img.src = anc.image;
+              anc._imgElement = img;
+            }
+            if (anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0) {
+              const tw = 24, th = 24;
+              const tx = tp.x + 9;
+              const ty = tp.y - 30;
+              trueCtx.save();
+              trueCtx.fillStyle = "#ffffff";
+              trueCtx.shadowColor = "rgba(0,0,0,0.6)";
+              trueCtx.shadowBlur = 4;
+              trueCtx.shadowOffsetY = 1;
+              if (trueCtx.roundRect) trueCtx.roundRect(tx - 2, ty - 2, tw + 4, th + 4, 3);
+              else trueCtx.rect(tx - 2, ty - 2, tw + 4, th + 4);
+              trueCtx.fill();
+              trueCtx.shadowColor = "transparent";
+
+              trueCtx.save();
+              trueCtx.beginPath();
+              if (trueCtx.roundRect) trueCtx.roundRect(tx, ty, tw, th, 2);
+              else trueCtx.rect(tx, ty, tw, th);
+              trueCtx.clip();
+              trueCtx.drawImage(anc._imgElement, tx, ty, tw, th);
+              trueCtx.restore();
+
+              trueCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
+              trueCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
+              trueCtx.shadowColor = "rgba(0,0,0,0.9)";
+              trueCtx.shadowBlur = 3;
+              trueCtx.fillText(fullText, tx + tw + 6, ty + 16);
+              trueCtx.restore();
+            } else {
+              trueCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
+              trueCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
+              trueCtx.shadowColor = "rgba(0,0,0,0.9)";
+              trueCtx.shadowBlur = 3;
+              trueCtx.fillText(`📷 ${fullText}`, tp.x + 10, tp.y - 6);
+            }
+          } else {
+            trueCtx.fillStyle = isEnabled ? "#ffffff" : "#aaaaaa";
+            trueCtx.font = isEnabled ? "bold 11px sans-serif" : "italic 10px sans-serif";
+            trueCtx.shadowColor = "rgba(0,0,0,0.9)";
+            trueCtx.shadowBlur = 3;
+            trueCtx.fillText(fullText, tp.x + 10, tp.y - 6);
+          }
+        }
         trueCtx.restore();
       });
 
@@ -10799,9 +11006,14 @@ EOF`;
         const color = anchorColors[(nextId - 1) % anchorColors.length];
         state.anchors.push({
           id: nextId,
+          name: `#${nextId}`,
+          showLabel: true,
+          image: null,
           color: color,
           src: { ...state.pendingSource },
-          dst: worldPt
+          dst: worldPt,
+          active: true,
+          enabled: true
         });
         state.pendingSource = null;
         redrawAll();
@@ -11206,6 +11418,62 @@ EOF`;
         labelTooltipEl.style.display = "none";
       }
 
+      // Anchor Pin Hover detection (shows photo, custom name, coords, residual)
+      let hitAnchor = null;
+      if (!isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
+        for (const anc of (state.anchors || [])) {
+          const tp = worldToScreenGIS(anc.dst, vp, h);
+          if (Math.hypot(mouseX - tp.x, mouseY - tp.y) <= 14) {
+            hitAnchor = anc;
+            break;
+          }
+        }
+      }
+      const anchorTooltipEl = document.getElementById("anchor-photo-tooltip");
+      if (hitAnchor && anchorTooltipEl) {
+        trueCanvas.style.cursor = "pointer";
+        const isEnabled = hitAnchor.active !== false && hitAnchor.enabled !== false;
+        let errStr = "—";
+        const activeAnchors = getActiveAnchors();
+        if (activeAnchors.length >= 2) {
+          try {
+            const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
+            const warped = warper(hitAnchor.src);
+            errStr = `${Math.hypot(warped.x - hitAnchor.dst.x, warped.y - hitAnchor.dst.y).toFixed(2)} m`;
+          } catch(_) {}
+        }
+        const ancName = hitAnchor.name || (`#${hitAnchor.id}`);
+        const safeName = (ancName + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        anchorTooltipEl.innerHTML = `
+          <div style="font-weight:700;color:var(--accent-cyan);font-size:0.76rem;margin-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="anchor-badge" style="background:${hitAnchor.color};width:16px;height:16px;line-height:16px;font-size:0.65rem;">#${hitAnchor.id}</span>
+              <span>${safeName}</span>
+            </div>
+            <span style="font-size:0.68rem;font-weight:600;color:${isEnabled ? '#00e676' : '#ff5252'};">${isEnabled ? 'Active' : 'Disabled'}</span>
+          </div>
+          ${hitAnchor.image ? `<div style="margin:6px 0;text-align:center;"><img src="${hitAnchor.image}" alt="Anchor Photo" style="max-width:100%;max-height:140px;border-radius:4px;border:1px solid rgba(0,229,255,0.5);object-fit:cover;display:block;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,0.6);" /></div>` : ''}
+          <div style="display:flex;flex-direction:column;gap:2px;font-size:0.71rem;">
+            <div><span style="color:#94a3b8;">Target UTM:</span> <strong style="color:#f8fafc;font-family:monospace;">(${hitAnchor.dst.x.toFixed(2)}, ${hitAnchor.dst.y.toFixed(2)})</strong></div>
+            <div><span style="color:#94a3b8;">Deed CAD:</span> <strong style="color:#f8fafc;font-family:monospace;">(${hitAnchor.src.x.toFixed(2)}, ${hitAnchor.src.y.toFixed(2)})</strong></div>
+            <div><span style="color:#94a3b8;">Residual:</span> <strong style="color:var(--accent-cyan);font-family:monospace;">${errStr}</strong></div>
+          </div>
+        `;
+        anchorTooltipEl.style.display = "block";
+        const cw = trueCanvas.width || trueCanvas.clientWidth;
+        const ch = trueCanvas.height || trueCanvas.clientHeight;
+        let leftPx = mouseX + 14;
+        let topPx = mouseY + 14;
+        if (leftPx + 260 > cw) leftPx = mouseX - 270;
+        if (topPx + 200 > ch) topPx = mouseY - 210;
+        anchorTooltipEl.style.left = `${Math.max(10, leftPx)}px`;
+        anchorTooltipEl.style.top = `${Math.max(10, topPx)}px`;
+        coordsBar.textContent = `Anchor ${ancName} | Residual: ${errStr} | UTM: (${hitAnchor.dst.x.toFixed(2)}, ${hitAnchor.dst.y.toFixed(2)})`;
+        return;
+      } else if (anchorTooltipEl && anchorTooltipEl.style.display !== "none") {
+        anchorTooltipEl.style.display = "none";
+      }
+
       const p = screenToWorldGIS(mouseX, mouseY, vp, h);
       coordsBar.textContent = `Field UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
 
@@ -11515,6 +11783,8 @@ EOF`;
     trueCanvas.addEventListener("mouseleave", () => {
       const labelTooltipEl = document.getElementById("segment-label-tooltip");
       if (labelTooltipEl) labelTooltipEl.style.display = "none";
+      const anchorTooltipEl = document.getElementById("anchor-photo-tooltip");
+      if (anchorTooltipEl) anchorTooltipEl.style.display = "none";
       if (state.measureTool && state.measureTool.active) {
         state.measureTool.cursorPt = null;
         state.currentSnapTarget = null;
@@ -11870,7 +12140,18 @@ EOF`;
           updateStatus("⚠️ No anchors to save. Place anchor pairs first using 🎯 Anchor Mode.");
           return;
         }
-        const jsonStr = JSON.stringify(state.anchors, null, 2);
+        const toSave = state.anchors.map(a => ({
+          id: a.id,
+          name: a.name || (`#${a.id}`),
+          showLabel: a.showLabel !== false,
+          image: a.image || null,
+          color: a.color,
+          src: { x: a.src.x, y: a.src.y },
+          dst: { x: a.dst.x, y: a.dst.y },
+          active: a.active !== false && a.enabled !== false,
+          enabled: a.active !== false && a.enabled !== false
+        }));
+        const jsonStr = JSON.stringify(toSave, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -11895,14 +12176,7 @@ EOF`;
             const data = JSON.parse(ev.target.result);
             const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
             if (list.length > 0) {
-              state.anchors = list.map((a, i) => ({
-                id: a.id || i + 1,
-                color: a.color || anchorColors[i % anchorColors.length],
-                src: { x: a.src.x, y: a.src.y },
-                dst: { x: a.dst.x, y: a.dst.y },
-                active: a.active !== false && a.enabled !== false,
-                enabled: a.active !== false && a.enabled !== false
-              }));
+              applyAnchors(list);
               state.pendingSource = null;
               redrawAll();
               updateStatus(`✅ Loaded ${state.anchors.length} anchors (${getActiveAnchors().length} active) from ${file.name}`);
@@ -12093,14 +12367,39 @@ EOF`;
         if (!isEnabled) {
           tr.className = "anchor-row-disabled";
         }
-        tr.innerHTML = `<td style="text-align:center;width:36px;">
+        const ancName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+        const safeName = (ancName + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        const showLabel = anc.showLabel !== false;
+        const hasPhoto = !!anc.image;
+
+        tr.innerHTML = `
+          <td style="text-align:center;width:34px;">
             <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:14px;height:14px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
           </td>
-          <td><span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'}">#${anc.id}</span></td>
-          <td style="${isEnabled ? '' : 'color:var(--text-muted);'}">(${anc.src.x.toFixed(1)},${anc.src.y.toFixed(1)})</td>
-          <td style="${isEnabled ? '' : 'color:var(--text-muted);'}">(${anc.dst.x.toFixed(1)},${anc.dst.y.toFixed(1)})</td>
-          <td style="color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)')}">${err}${!isEnabled && err !== "—" ? ' <span style="font-size:0.65rem;opacity:0.8;">(off)</span>' : ''}</td>
-          <td><button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})" title="Delete Anchor #${anc.id}">✕</button></td>`;
+          <td>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;">#${anc.id}</span>
+              <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
+            </div>
+          </td>
+          <td style="text-align:center;width:34px;">
+            <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:14px;height:14px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
+          </td>
+          <td style="text-align:center;width:38px;">
+            ${hasPhoto ? `
+              <div style="display:inline-flex;align-items:center;gap:2px;">
+                <img src="${anc.image}" class="anchor-thumb-preview" data-id="${anc.id}" title="Click to view, change, or remove photo" alt="Photo">
+              </div>
+            ` : `
+              <button class="btn-upload-anchor-photo" data-id="${anc.id}" title="Upload photo for this anchor">📷</button>
+            `}
+          </td>
+          <td style="text-align:right;color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)')}">
+            ${err}${err !== "—" ? "m" : ""}${!isEnabled && err !== "—" ? ' <span style="font-size:0.65rem;opacity:0.8;">(off)</span>' : ''}
+          </td>
+          <td style="text-align:center;width:34px;">
+            <button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})" title="Delete Anchor #${anc.id}">✕</button>
+          </td>`;
         anchorTableBody.appendChild(tr);
       });
       updateAlgoComparePanel();
@@ -12134,12 +12433,181 @@ EOF`;
     }
     window.toggleAllAnchors = toggleAllAnchors;
 
+    // Anchor table interactions: name editing, label toggling, photo upload/modal
+    let currentPhotoAnchorId = null;
+
+    anchorTableBody.addEventListener("input", e => {
+      if (e.target && e.target.classList.contains("anchor-name-input")) {
+        const id = parseInt(e.target.dataset.id, 10);
+        const anc = (state.anchors || []).find(a => a.id === id);
+        if (anc) {
+          anc.name = e.target.value;
+          const histCard = document.getElementById("hist-card");
+          const trueCard = document.getElementById("true-card");
+          if (!histCard || !histCard.classList.contains("hidden")) redrawHistoricalCanvas();
+          if (!trueCard || !trueCard.classList.contains("hidden")) redrawTrueCanvas();
+        }
+      }
+    });
+
+    anchorTableBody.addEventListener("blur", e => {
+      if (e.target && e.target.classList.contains("anchor-name-input")) {
+        const id = parseInt(e.target.dataset.id, 10);
+        const anc = (state.anchors || []).find(a => a.id === id);
+        if (anc) {
+          const val = e.target.value.trim();
+          anc.name = val.length > 0 ? val : (`#${anc.id}`);
+          e.target.value = anc.name;
+          redrawAll();
+        }
+      }
+    }, true);
+
+    anchorTableBody.addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target && e.target.classList.contains("anchor-name-input")) {
+        e.target.blur();
+      }
+    });
+
     anchorTableBody.addEventListener("change", e => {
       if (e.target && e.target.classList.contains("chk-anchor-active")) {
         const id = parseInt(e.target.dataset.id || e.target.getAttribute("data-id"), 10);
         toggleAnchor(id, e.target.checked);
+      } else if (e.target && e.target.classList.contains("chk-anchor-showlabel")) {
+        const id = parseInt(e.target.dataset.id, 10);
+        const anc = (state.anchors || []).find(a => a.id === id);
+        if (anc) {
+          anc.showLabel = e.target.checked;
+          redrawAll();
+        }
       }
     });
+
+    anchorTableBody.addEventListener("click", e => {
+      const uploadBtn = e.target.closest(".btn-upload-anchor-photo");
+      if (uploadBtn) {
+        const id = parseInt(uploadBtn.dataset.id, 10);
+        currentPhotoAnchorId = id;
+        const photoFileInput = document.getElementById("anchor-photo-file-input");
+        if (photoFileInput) {
+          photoFileInput.value = "";
+          photoFileInput.click();
+        }
+        return;
+      }
+
+      const thumbImg = e.target.closest(".anchor-thumb-preview");
+      if (thumbImg) {
+        const id = parseInt(thumbImg.dataset.id, 10);
+        const anc = (state.anchors || []).find(a => a.id === id);
+        if (anc && anc.image) {
+          openAnchorPhotoModal(anc);
+        }
+        return;
+      }
+    });
+
+    function openAnchorPhotoModal(anc) {
+      currentPhotoAnchorId = anc.id;
+      const modal = document.getElementById("modal-anchor-photo");
+      const modalImg = document.getElementById("modal-anchor-photo-img");
+      const modalTitle = document.getElementById("modal-anchor-photo-title");
+      if (!modal || !modalImg) return;
+      modalTitle.textContent = `📷 Anchor ${anc.name || ('#' + anc.id)} Photo`;
+      modalImg.src = anc.image;
+      modal.style.display = "flex";
+    }
+
+    function closeAnchorPhotoModal() {
+      const modal = document.getElementById("modal-anchor-photo");
+      if (modal) modal.style.display = "none";
+    }
+
+    const btnCloseModal = document.getElementById("btn-close-anchor-photo-modal");
+    const btnModalClose = document.getElementById("btn-modal-close-photo");
+    const btnModalChange = document.getElementById("btn-modal-change-photo");
+    const btnModalDelete = document.getElementById("btn-modal-delete-photo");
+    const modalAnchorPhoto = document.getElementById("modal-anchor-photo");
+
+    if (btnCloseModal) btnCloseModal.addEventListener("click", closeAnchorPhotoModal);
+    if (btnModalClose) btnModalClose.addEventListener("click", closeAnchorPhotoModal);
+    if (modalAnchorPhoto) {
+      modalAnchorPhoto.addEventListener("click", e => {
+        if (e.target === modalAnchorPhoto) closeAnchorPhotoModal();
+      });
+    }
+    if (btnModalChange) {
+      btnModalChange.addEventListener("click", () => {
+        const photoFileInput = document.getElementById("anchor-photo-file-input");
+        if (photoFileInput) {
+          photoFileInput.value = "";
+          photoFileInput.click();
+        }
+      });
+    }
+    if (btnModalDelete) {
+      btnModalDelete.addEventListener("click", () => {
+        const anc = (state.anchors || []).find(a => a.id === currentPhotoAnchorId);
+        if (anc) {
+          anc.image = null;
+          delete anc._imgElement;
+          closeAnchorPhotoModal();
+          redrawAll();
+          updateStatus(`Removed photo from Anchor ${anc.name || ('#' + anc.id)}.`);
+        }
+      });
+    }
+
+    const photoFileInput = document.getElementById("anchor-photo-file-input");
+    if (photoFileInput) {
+      photoFileInput.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const anc = (state.anchors || []).find(a => a.id === currentPhotoAnchorId);
+        if (!anc) return;
+
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const rawUrl = ev.target.result;
+          const tempImg = new Image();
+          tempImg.onload = () => {
+            let w = tempImg.width, h = tempImg.height;
+            const maxDim = 800;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const cvs = document.createElement("canvas");
+            cvs.width = w;
+            cvs.height = h;
+            const ctx = cvs.getContext("2d");
+            ctx.drawImage(tempImg, 0, 0, w, h);
+            const compressedUrl = cvs.toDataURL("image/jpeg", 0.82);
+
+            anc.image = compressedUrl;
+            const displayImg = new Image();
+            displayImg.onload = () => redrawAll();
+            displayImg.src = compressedUrl;
+            anc._imgElement = displayImg;
+
+            const modalImg = document.getElementById("modal-anchor-photo-img");
+            if (modalImg && modalAnchorPhoto && modalAnchorPhoto.style.display !== "none") {
+              modalImg.src = compressedUrl;
+            }
+            redrawAll();
+            updateStatus(`📷 Photo attached to Anchor ${anc.name || ('#' + anc.id)}.`);
+          };
+          tempImg.src = rawUrl;
+        };
+        reader.readAsDataURL(file);
+        e.target.value = "";
+      });
+    }
 
     const chkToggleAllAnchors = document.getElementById("chk-toggle-all-anchors");
     if (chkToggleAllAnchors) {
