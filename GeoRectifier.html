@@ -2060,6 +2060,13 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     </label>
                     <span id="opt-axis-count-badge" style="font-size:0.62rem;font-family:monospace;color:var(--text-muted);">0 axes</span>
                   </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(255,179,0,0.06);border:1px solid rgba(255,179,0,0.25);margin-top:2px;">
+                    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.70rem;color:#ffb300;font-weight:600;margin:0;" title="Optimiza exclusivamente el error de área de los lotes de Casa del Sol (ignora distancias perimetrales y área master de La Trinidad)">
+                      <input type="checkbox" id="chk-opt-casa-del-sol-only" style="accent-color:#ffb300;">
+                      <span>☀️ Optimize Casa del Sol Area Only</span>
+                    </label>
+                    <span id="opt-cds-count-badge" style="font-size:0.62rem;font-family:monospace;color:var(--text-muted);">0 lotes</span>
+                  </div>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:6px;">
                   <div style="display:flex;gap:6px;align-items:center;">
@@ -5476,6 +5483,7 @@ EOF`;
       hoverTestAxisHandle: null,   // { axisId, handle: 'p1'|'p2' }
       snapNewAnchorsToAxis: true,
       optAlongAxisOnly: false,
+      optCasaDelSolOnly: false,
       // Layer & Polygon Visual Styles
       styleDeedDxf: {
         color: "#ff1744",
@@ -8406,6 +8414,12 @@ EOF`;
 
         container.appendChild(row);
       });
+
+      const optCdsBadge = document.getElementById("opt-cds-count-badge");
+      if (optCdsBadge) {
+        const optCount = polys.filter(p => p.optArea !== false && p.targetArea > 0 && p.closed && p.vertices && p.vertices.length >= 3).length;
+        optCdsBadge.textContent = `${optCount} ${optCount === 1 ? 'lote' : 'lotes'}`;
+      }
     }
 
     /** Ray-casting point in polygon test */
@@ -10668,10 +10682,21 @@ EOF`;
       const chkOptAlongAxis = document.getElementById("chk-opt-along-axis");
       const useAxisOnly = chkOptAlongAxis ? chkOptAlongAxis.checked : (state.optAlongAxisOnly || false);
 
+      const chkOptCdsOnly = document.getElementById("chk-opt-casa-del-sol-only");
+      const useCdsOnly = chkOptCdsOnly ? chkOptCdsOnly.checked : (state.optCasaDelSolOnly || false);
+
       if (useAxisOnly) {
         const boundAxisAnchors = state.anchors.filter(anc => anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId));
         if (boundAxisAnchors.length === 0) {
           alert("1D Test Axis Constraint is enabled, but no active anchors are linked to a Test Axis.\n\nPlease snap at least one anchor to a Test Axis or untick '1D Test Axis Constraint'.");
+          return;
+        }
+      }
+
+      if (useCdsOnly) {
+        const activeCdsPolys = (state.customPolygons || []).filter(cp => cp.optArea !== false && cp.targetArea > 0 && cp.closed && cp.vertices && cp.vertices.length >= 3);
+        if (activeCdsPolys.length === 0) {
+          alert("Optimize for Casa del Sol Area is enabled, but no custom polygons with a Target Area are active.\n\nPlease define/enable Casa del Sol parcels with target areas or untick 'Optimize Casa del Sol Area Only'.");
           return;
         }
       }
@@ -10904,6 +10929,7 @@ EOF`;
               }
             }
 
+            const avgCdsErr = countOptPolys > 0 ? (customAreaErrSum / countOptPolys) : 0;
             const combinedAreaDiffPct = (countOptPolys > 0)
               ? (trinidadAreaDiffPct + customAreaErrSum) / (1 + countOptPolys)
               : trinidadAreaDiffPct;
@@ -10921,18 +10947,25 @@ EOF`;
             }
             const avgSegErr = countSegs > 0 ? (segErrSum / countSegs) : 0;
 
-            const b = Math.max(0, Math.min(100, state.optBalance));
-            const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
-            const wArea = b >= 50 ? 1.0 : b / 50;
-            const compositeLoss = (wDist * avgSegErr + wArea * combinedAreaDiffPct) / (wDist + wArea);
-            const overallErr = countSegs > 0 ? (avgSegErr + combinedAreaDiffPct) / 2 : combinedAreaDiffPct;
+            let compositeLoss, overallErr;
+            if (useCdsOnly) {
+              compositeLoss = avgCdsErr;
+              overallErr = avgCdsErr;
+            } else {
+              const b = Math.max(0, Math.min(100, state.optBalance));
+              const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
+              const wArea = b >= 50 ? 1.0 : b / 50;
+              compositeLoss = (wDist * avgSegErr + wArea * combinedAreaDiffPct) / (wDist + wArea);
+              overallErr = countSegs > 0 ? (avgSegErr + combinedAreaDiffPct) / 2 : combinedAreaDiffPct;
+            }
 
             return {
               loss: compositeLoss,
               overallErr,
               optRes,
               candAnchors,
-              areaDiffPct: combinedAreaDiffPct,
+              areaDiffPct: useCdsOnly ? avgCdsErr : combinedAreaDiffPct,
+              avgCdsErr,
               trinidadAreaDiffPct,
               avgSegErr,
               radius: currentR,
@@ -11010,7 +11043,12 @@ EOF`;
               redrawTrueCanvas();
 
               if (optStatusBadge) {
-                const prefix = useAxisOnly ? `1D Axis` : (isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Combos`);
+                let prefix = "";
+                if (useCdsOnly && useAxisOnly) prefix = "1D+CdS";
+                else if (useCdsOnly) prefix = "CdS Area";
+                else if (useAxisOnly) prefix = "1D Axis";
+                else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
+                else prefix = "Combos";
                 optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (Best: ${globalBest.loss.toFixed(2)}%)`;
                 optStatusBadge.style.color = "#ffb300";
                 optStatusBadge.style.background = "rgba(255, 179, 0, 0.15)";
@@ -11168,7 +11206,12 @@ EOF`;
               redrawTrueCanvas();
 
               if (optStatusBadge) {
-                const prefix = useAxisOnly ? `1D Axis Gen ${gen}/${MAX_GEN}` : (isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`);
+                let prefix = "";
+                if (useCdsOnly && useAxisOnly) prefix = `1D+CdS ${gen}/${MAX_GEN}`;
+                else if (useCdsOnly) prefix = `CdS ${gen}/${MAX_GEN}`;
+                else if (useAxisOnly) prefix = `1D Axis Gen ${gen}/${MAX_GEN}`;
+                else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
+                else prefix = `Tune ${gen}/${MAX_GEN}`;
                 optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
                 optStatusBadge.style.color = "var(--accent-cyan)";
                 optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
@@ -11248,14 +11291,16 @@ EOF`;
 
         const finalOverall = document.getElementById("overall-error")?.textContent || globalOverallBest.loss.toFixed(2);
         if (optStatusBadge) {
-          const badgeText = useAxisOnly
-            ? `✓ 1D Axis Fitted (${finalOverall}%)`
-            : (isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`);
+          const badgeText = useCdsOnly
+            ? `✓ CdS Area Fitted (${globalOverallBest.loss.toFixed(2)}%)`
+            : (useAxisOnly
+                ? `✓ 1D Axis Fitted (${finalOverall}%)`
+                : (isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`));
           optStatusBadge.textContent = badgeText;
           optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
           optStatusBadge.style.color = "#00e676";
         }
-        updateStatus(`⚡ Auto-Tune finalizado: solución óptima ${useAxisOnly ? 'a lo largo de ejes de prueba' : `con radio ±${winningR.toFixed(1)}m`}, error = ${finalOverall}%.`);
+        updateStatus(`⚡ Auto-Tune finalizado: solución óptima ${useCdsOnly ? 'para áreas Casa del Sol' : (useAxisOnly ? 'a lo largo de ejes de prueba' : `con radio ±${winningR.toFixed(1)}m`)}, error = ${(useCdsOnly ? globalOverallBest.loss.toFixed(2) : finalOverall)}%.`);
       }
 
       // Cleanup state & UI
@@ -15361,6 +15406,31 @@ EOF`;
     if (chkOptAlongAxis) {
       chkOptAlongAxis.addEventListener("change", e => {
         state.optAlongAxisOnly = e.target.checked;
+      });
+    }
+    const chkOptCdsOnly = document.getElementById("chk-opt-casa-del-sol-only");
+    if (chkOptCdsOnly) {
+      chkOptCdsOnly.addEventListener("change", e => {
+        state.optCasaDelSolOnly = e.target.checked;
+        const balanceSlider = document.getElementById("opt-balance-slider");
+        const balanceVal = document.getElementById("opt-balance-val");
+        if (balanceSlider) {
+          balanceSlider.disabled = e.target.checked;
+          balanceSlider.style.opacity = e.target.checked ? "0.45" : "1.0";
+        }
+        if (balanceVal) {
+          if (e.target.checked) {
+            balanceVal.textContent = "☀️ Casa del Sol Area Only (100%)";
+            balanceVal.style.color = "#ffb300";
+          } else {
+            const val = state.optBalance;
+            if (val === 50) balanceVal.textContent = "Balanced (50/50)";
+            else if (val < 50) balanceVal.textContent = `Dist Focus (${100 - val}% / ${val}%)`;
+            else balanceVal.textContent = `Area Focus (${100 - val}% / ${val}%)`;
+            balanceVal.style.color = "";
+          }
+        }
+        updateStatus(`Optimización de áreas Casa del Sol: ${e.target.checked ? "ACTIVADA (100% peso a lotes Casa del Sol, 0% a distancias y master)" : "DESACTIVADA (ponderación estándar balanceada)"}.`);
       });
     }
     // [/SECTION: JS_TEST_AXIS_ENGINE]
