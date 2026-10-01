@@ -1397,6 +1397,14 @@ Do NOT modify dormant/parked sections unless specifically requested.
         </label>
       </div>
 
+      <!-- Master Display Selector (Deeds, Anchors, Polygons) -->
+      <div class="master-layers-toggle-group" style="display:flex;align-items:center;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.28);border-radius:6px;padding:3px 10px;margin-left:4px;" title="Display / Deselect all deeds, anchors, and polygons at once">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin:0;user-select:none;">
+          <input type="checkbox" id="chk-toggle-all-master" checked style="accent-color:var(--accent-cyan);cursor:pointer;width:14px;height:14px;margin:0;">
+          <span style="color:var(--accent-cyan);font-weight:700;font-size:0.75rem;letter-spacing:0.3px;white-space:nowrap;">🌐 All (Deeds · Anchors · Polygons)</span>
+        </label>
+      </div>
+
       <!-- Export Action -->
       <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
         <button id="btn-export-polygon-dxf" class="btn btn-success" disabled style="opacity:0.45;" title="Download Rectified Polygon DXF (LaTrinidadOptimized.dxf)">
@@ -5601,6 +5609,7 @@ EOF`;
       showOverlay196: true,
       showOverlay296: true,
       showGeoTiff: true,
+      showAnchors: true,
       showWarpedPdf: true,
       showWarpedDxf: true,
       showWarpedPdf196: true,
@@ -6778,23 +6787,25 @@ EOF`;
       }
 
       // Layer 4: Source anchor pins + cards for 296
-      (state.anchors296 || []).forEach(anc => {
-        const isEnabled = anc.active !== false && anc.enabled !== false;
-        const sp = worldToScreen(anc.src, vp, h);
-        ctx296.save();
-        if (!isEnabled) ctx296.globalAlpha = 0.35;
-        ctx296.beginPath(); ctx296.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
-        ctx296.fillStyle = anc.color || "#d500f9"; ctx296.fill();
-        ctx296.strokeStyle = isEnabled ? "#fff" : "#999";
-        ctx296.lineWidth = 2;
-        if (!isEnabled) ctx296.setLineDash([2, 2]);
-        ctx296.stroke();
-        ctx296.setLineDash([]);
-        if (anc.showLabel !== false) {
-          drawAnchorLabelCard(ctx296, anc, sp, true);
-        }
-        ctx296.restore();
-      });
+      if (state.showAnchors !== false) {
+        (state.anchors296 || []).forEach(anc => {
+          const isEnabled = anc.active !== false && anc.enabled !== false;
+          const sp = worldToScreen(anc.src, vp, h);
+          ctx296.save();
+          if (!isEnabled) ctx296.globalAlpha = 0.35;
+          ctx296.beginPath(); ctx296.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
+          ctx296.fillStyle = anc.color || "#d500f9"; ctx296.fill();
+          ctx296.strokeStyle = isEnabled ? "#fff" : "#999";
+          ctx296.lineWidth = 2;
+          if (!isEnabled) ctx296.setLineDash([2, 2]);
+          ctx296.stroke();
+          ctx296.setLineDash([]);
+          if (anc.showLabel !== false) {
+            drawAnchorLabelCard(ctx296, anc, sp, true);
+          }
+          ctx296.restore();
+        });
+      }
     }
 
     // ── Historical Canvas (Escritura 1073) ─────────────────────────────
@@ -6832,26 +6843,28 @@ EOF`;
       }
 
       // Layer 4: Source anchor pins + double-framed cards
-      (state.anchors1073 || state.anchors || []).forEach(anc => {
-        const isEnabled = anc.active !== false && anc.enabled !== false;
-        const sp = worldToScreen(anc.src, vp, h);
-        histCtx.save();
-        if (!isEnabled) {
-          histCtx.globalAlpha = 0.35;
-        }
-        histCtx.beginPath(); histCtx.arc(sp.x,sp.y,7,0,Math.PI*2);
-        histCtx.fillStyle=anc.color; histCtx.fill();
-        histCtx.strokeStyle = isEnabled ? "#fff" : "#999";
-        histCtx.lineWidth=2;
-        if (!isEnabled) histCtx.setLineDash([2, 2]);
-        histCtx.stroke();
-        histCtx.setLineDash([]);
+      if (state.showAnchors !== false) {
+        (state.anchors1073 || state.anchors || []).forEach(anc => {
+          const isEnabled = anc.active !== false && anc.enabled !== false;
+          const sp = worldToScreen(anc.src, vp, h);
+          histCtx.save();
+          if (!isEnabled) {
+            histCtx.globalAlpha = 0.35;
+          }
+          histCtx.beginPath(); histCtx.arc(sp.x,sp.y,7,0,Math.PI*2);
+          histCtx.fillStyle=anc.color; histCtx.fill();
+          histCtx.strokeStyle = isEnabled ? "#fff" : "#999";
+          histCtx.lineWidth=2;
+          if (!isEnabled) histCtx.setLineDash([2, 2]);
+          histCtx.stroke();
+          histCtx.setLineDash([]);
 
-        if (anc.showLabel !== false) {
-          drawAnchorLabelCard(histCtx, anc, sp, true);
-        }
-        histCtx.restore();
-      });
+          if (anc.showLabel !== false) {
+            drawAnchorLabelCard(histCtx, anc, sp, true);
+          }
+          histCtx.restore();
+        });
+      }
     }
 
     // ── Escritura 196 Canvas ───────────────────────────────────────────
@@ -6889,23 +6902,25 @@ EOF`;
       }
 
       // Layer 4: Source anchor pins + cards for 196
-      (state.anchors196 || []).forEach(anc => {
-        const isEnabled = anc.active !== false && anc.enabled !== false;
-        const sp = worldToScreen(anc.src, vp, h);
-        ctx196.save();
-        if (!isEnabled) ctx196.globalAlpha = 0.35;
-        ctx196.beginPath(); ctx196.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
-        ctx196.fillStyle = anc.color || "#ff9100"; ctx196.fill();
-        ctx196.strokeStyle = isEnabled ? "#fff" : "#999";
-        ctx196.lineWidth = 2;
-        if (!isEnabled) ctx196.setLineDash([2, 2]);
-        ctx196.stroke();
-        ctx196.setLineDash([]);
-        if (anc.showLabel !== false) {
-          drawAnchorLabelCard(ctx196, anc, sp, true);
-        }
-        ctx196.restore();
-      });
+      if (state.showAnchors !== false) {
+        (state.anchors196 || []).forEach(anc => {
+          const isEnabled = anc.active !== false && anc.enabled !== false;
+          const sp = worldToScreen(anc.src, vp, h);
+          ctx196.save();
+          if (!isEnabled) ctx196.globalAlpha = 0.35;
+          ctx196.beginPath(); ctx196.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
+          ctx196.fillStyle = anc.color || "#ff9100"; ctx196.fill();
+          ctx196.strokeStyle = isEnabled ? "#fff" : "#999";
+          ctx196.lineWidth = 2;
+          if (!isEnabled) ctx196.setLineDash([2, 2]);
+          ctx196.stroke();
+          ctx196.setLineDash([]);
+          if (anc.showLabel !== false) {
+            drawAnchorLabelCard(ctx196, anc, sp, true);
+          }
+          ctx196.restore();
+        });
+      }
     }
 
     // ── True Field Canvas ──────────────────────────────────────────────
@@ -7449,9 +7464,11 @@ EOF`;
         });
       };
 
-      drawAnchorResiduals(state.anchors296, warper296, "#d500f9");
-      drawAnchorResiduals(state.anchors1073 || state.anchors, warper1073, "#ff1744");
-      drawAnchorResiduals(state.anchors196, warper196, "#ff9100");
+      if (state.showAnchors !== false) {
+        drawAnchorResiduals(state.anchors296, warper296, "#d500f9");
+        drawAnchorResiduals(state.anchors1073 || state.anchors, warper1073, "#ff1744");
+        drawAnchorResiduals(state.anchors196, warper196, "#ff9100");
+      }
 
       // Layer 6: Hand-crafted user polygon
       drawUserPolygon(trueCtx, vp, h);
@@ -7487,9 +7504,11 @@ EOF`;
         });
       };
 
-      drawAnchorPins(state.anchors296, "#d500f9");
-      drawAnchorPins(state.anchors1073 || state.anchors, "#ff1744");
-      drawAnchorPins(state.anchors196, "#ff9100");
+      if (state.showAnchors !== false) {
+        drawAnchorPins(state.anchors296, "#d500f9");
+        drawAnchorPins(state.anchors1073 || state.anchors, "#ff1744");
+        drawAnchorPins(state.anchors196, "#ff9100");
+      }
 
       // Layer 8: Snap target ring indicator
       if (state.currentSnapTarget) {
@@ -13499,6 +13518,10 @@ EOF`;
       const overlayChecks = [
         document.getElementById("chk-show-warped-pdf"),
         document.getElementById("chk-show-warped-dxf"),
+        document.getElementById("chk-show-warped-pdf-196"),
+        document.getElementById("chk-show-warped-dxf-196"),
+        document.getElementById("chk-show-warped-pdf-296"),
+        document.getElementById("chk-show-warped-dxf-296"),
         document.getElementById("chk-show-true-dxf"),
         document.getElementById("chk-show-survey-valoy-2025"),
         document.getElementById("chk-show-survey-cortez-2025"),
@@ -13524,6 +13547,7 @@ EOF`;
         globalChk.checked = false;
         globalChk.indeterminate = true;
       }
+      if (typeof syncMasterToggleCheckbox === "function") syncMasterToggleCheckbox();
     }
 
     const chkShowGeoTiff = document.getElementById("chk-show-geotiff");
@@ -13613,7 +13637,115 @@ EOF`;
         });
 
         redrawTrueCanvas();
+        if (typeof syncMasterToggleCheckbox === "function") syncMasterToggleCheckbox();
       });
+    }
+
+    // ── Master Display Selector (Deeds, Anchors, Polygons) ────────────
+    function toggleAllMaster(show) {
+      // 1. DEEDS (Escritura 1073, 196, 296 PDF & DXF overlays)
+      state.showWarpedPdf = show;
+      state.showWarpedDxf = show;
+      state.showWarpedPdf196 = show;
+      state.showWarpedDxf196 = show;
+      state.showWarpedPdf296 = show;
+      state.showWarpedDxf296 = show;
+
+      const chkPdf1073 = document.getElementById("chk-show-warped-pdf");
+      if (chkPdf1073) chkPdf1073.checked = show;
+      const chkDxf1073 = document.getElementById("chk-show-warped-dxf");
+      if (chkDxf1073) chkDxf1073.checked = show;
+
+      const chkPdf196 = document.getElementById("chk-show-warped-pdf-196");
+      if (chkPdf196) chkPdf196.checked = show;
+      const chkDxf196 = document.getElementById("chk-show-warped-dxf-196");
+      if (chkDxf196) chkDxf196.checked = show;
+
+      const chkPdf296 = document.getElementById("chk-show-warped-pdf-296");
+      if (chkPdf296) chkPdf296.checked = show;
+      const chkDxf296 = document.getElementById("chk-show-warped-dxf-296");
+      if (chkDxf296) chkDxf296.checked = show;
+
+      // 2. ANCHORS (Controls anchor pins & label rendering across all views)
+      state.showAnchors = show;
+      ["1073", "196", "296"].forEach(dKey => {
+        let list = (dKey === "1073") ? (state.anchors1073 || state.anchors) :
+                   (dKey === "196")  ? state.anchors196 : state.anchors296;
+        (list || []).forEach(a => { a.showLabel = show; });
+      });
+
+      // 3. POLYGONS (User polygon, Custom polygons, Survey DXFs, Vector layers)
+      if (state.userPolygon) state.userPolygon.show = show;
+      const chkUserPoly = document.getElementById("chk-show-user-polygon");
+      if (chkUserPoly) chkUserPoly.checked = show;
+
+      (state.customPolygons || []).forEach(p => { p.visible = show; });
+      if (typeof renderCustomPolyList === "function") renderCustomPolyList();
+
+      state.showTrueDxf = show;
+      state.showSurveyValoy2025 = show;
+      state.showSurveyCortez2025 = show;
+      (state.refDxfFiles || []).forEach(ref => {
+        ref.visible = show;
+        const chkRef = document.getElementById(`chk-ref-vis-${ref.id}`);
+        if (chkRef) chkRef.checked = show;
+      });
+      (state.vectorLayers || []).forEach(vl => { vl.visible = show; });
+
+      const chkTrueDxf = document.getElementById("chk-show-true-dxf");
+      if (chkTrueDxf) chkTrueDxf.checked = show;
+      const chkValoy = document.getElementById("chk-show-survey-valoy-2025");
+      if (chkValoy) chkValoy.checked = show;
+      const chkCortez = document.getElementById("chk-show-survey-cortez-2025");
+      if (chkCortez) chkCortez.checked = show;
+
+      const globalChk = document.getElementById("chk-toggle-all-overlays");
+      if (globalChk) {
+        globalChk.checked = show;
+        globalChk.indeterminate = false;
+      }
+
+      updateStatus(show ? "🌐 All deeds, anchors, and polygons displayed." : "🌐 All deeds, anchors, and polygons deselected / hidden.");
+      redrawAll();
+      syncMasterToggleCheckbox();
+    }
+    window.toggleAllMaster = toggleAllMaster;
+
+    function syncMasterToggleCheckbox() {
+      const masterChk = document.getElementById("chk-toggle-all-master");
+      if (!masterChk) return;
+
+      const checks = [
+        state.showWarpedPdf !== false,
+        state.showWarpedDxf !== false,
+        state.showWarpedPdf196 !== false,
+        state.showWarpedDxf196 !== false,
+        state.showWarpedPdf296 !== false,
+        state.showWarpedDxf296 !== false,
+        state.showAnchors !== false,
+        state.userPolygon ? state.userPolygon.show !== false : true
+      ];
+      if (state.customPolygons && state.customPolygons.length > 0) {
+        checks.push(state.customPolygons.some(p => p.visible !== false));
+      }
+
+      const numChecked = checks.filter(Boolean).length;
+      if (numChecked === checks.length) {
+        masterChk.checked = true;
+        masterChk.indeterminate = false;
+      } else if (numChecked === 0) {
+        masterChk.checked = false;
+        masterChk.indeterminate = false;
+      } else {
+        masterChk.checked = false;
+        masterChk.indeterminate = true;
+      }
+    }
+    window.syncMasterToggleCheckbox = syncMasterToggleCheckbox;
+
+    const chkToggleAllMaster = document.getElementById("chk-toggle-all-master");
+    if (chkToggleAllMaster) {
+      chkToggleAllMaster.addEventListener("change", e => toggleAllMaster(e.target.checked));
     }
 
     // Collapsible main panel cards (Overlays, Anchors, Boundary Reconstructed, Custom Polygons)
@@ -14151,6 +14283,7 @@ EOF`;
       }
 
       updateAlgoComparePanel();
+      if (typeof syncMasterToggleCheckbox === "function") syncMasterToggleCheckbox();
     }
 
     function toggleAnchor(id, active, deedKey) {
