@@ -5511,36 +5511,36 @@ EOF`;
       if (!trueCanvas || trueCanvas.width <= 0) return;
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
-      // 1. Include field survey entities
-      if (state.trueEntities && state.trueEntities.length > 0) {
-        const bb = computeBoundingBox(state.trueEntities);
-        if (bb && bb.minX !== Infinity) {
-          minX = Math.min(minX, bb.minX);
-          minY = Math.min(minY, bb.minY);
-          maxX = Math.max(maxX, bb.maxX);
-          maxY = Math.max(maxY, bb.maxY);
-        }
-      }
-
-      // 2. Include all active/enabled anchor field locations (SW Entrada & NE Lindero)
-      const activeAnchors = (state.anchors || []).filter(a => a.active !== false && a.enabled !== false && a.dst);
-      activeAnchors.forEach(a => {
-        if (typeof a.dst.x === "number" && typeof a.dst.y === "number") {
-          minX = Math.min(minX, a.dst.x);
-          minY = Math.min(minY, a.dst.y);
-          maxX = Math.max(maxX, a.dst.x);
-          maxY = Math.max(maxY, a.dst.y);
-        }
-      });
-
-      // 3. Include user reconstructed polygon vertices
-      if (state.userPolygon && state.userPolygon.vertices && state.userPolygon.vertices.length > 0) {
+      // 1. Focus / center primarily on user reconstructed polygon
+      if (state.userPolygon && state.userPolygon.vertices && state.userPolygon.vertices.length >= 3) {
         state.userPolygon.vertices.forEach(v => {
           if (typeof v.x === "number" && typeof v.y === "number") {
             minX = Math.min(minX, v.x);
             minY = Math.min(minY, v.y);
             maxX = Math.max(maxX, v.x);
             maxY = Math.max(maxY, v.y);
+          }
+        });
+      } else {
+        // Fallback 1: Include field survey entities
+        if (state.trueEntities && state.trueEntities.length > 0) {
+          const bb = computeBoundingBox(state.trueEntities);
+          if (bb && bb.minX !== Infinity) {
+            minX = Math.min(minX, bb.minX);
+            minY = Math.min(minY, bb.minY);
+            maxX = Math.max(maxX, bb.maxX);
+            maxY = Math.max(maxY, bb.maxY);
+          }
+        }
+
+        // Fallback 2: Include all active/enabled anchor field locations
+        const activeAnchors = (state.anchors || []).filter(a => a.active !== false && a.enabled !== false && a.dst);
+        activeAnchors.forEach(a => {
+          if (typeof a.dst.x === "number" && typeof a.dst.y === "number") {
+            minX = Math.min(minX, a.dst.x);
+            minY = Math.min(minY, a.dst.y);
+            maxX = Math.max(maxX, a.dst.x);
+            maxY = Math.max(maxY, a.dst.y);
           }
         });
       }
@@ -5555,12 +5555,12 @@ EOF`;
       }
 
       const bbox = { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
-      // Canvas-proportional clearance for 180px anchor cards (governed strictly by canvas dimensions, not image)
-      const pL = Math.round(Math.min(trueCanvas.width * 0.28, 245));
-      const pR = Math.round(Math.min(trueCanvas.width * 0.28, 245));
-      const pT = Math.round(Math.min(trueCanvas.height * 0.28, 230));
-      const pB = Math.round(Math.min(trueCanvas.height * 0.28, 230));
-      state.trueViewport = fitViewport(trueCanvas, bbox, { left: pL, right: pR, top: pT, bottom: pB });
+
+      // 5% buffer from the side (left/right) and 5% buffer at top and bottom, centered in the X axis
+      const pSide = Math.round(trueCanvas.width * 0.05);
+      const pTop = Math.round(trueCanvas.height * 0.05);
+      const pBottom = Math.round(trueCanvas.height * 0.05);
+      state.trueViewport = fitViewport(trueCanvas, bbox, { left: pSide, right: pSide, top: pTop, bottom: pBottom });
     }
 
     // ── Canvas resize ─────────────────────────────────────────────────
@@ -5586,10 +5586,7 @@ EOF`;
           state.histViewport = fitViewport(histCanvas, {minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH});
       }
       if ((!state.trueViewport.bbox || state.trueViewport.scale <= 0) && trueCanvas.width > 0) {
-        if (state.trueEntities.length > 0)
-          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
-        else if (state.geoTiff)
-          state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
+        fitTrueFieldView();
       }
       redrawAll();
     }
