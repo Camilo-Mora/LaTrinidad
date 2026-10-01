@@ -10897,10 +10897,7 @@ EOF`;
       const useCdsOnly = chkOptCdsOnly ? chkOptCdsOnly.checked : (state.optCasaDelSolOnly || false);
 
       const optimizableAnchors = state.anchors.filter(anc => anc.active !== false && anc.enabled !== false && anc.optimize === true);
-      if (optimizableAnchors.length === 0) {
-        alert("All active anchors are currently Fixed (🔒) or Floating Guides (🌊).\n\nPlease click '🔒 Fixed' or '🌊 Float' in the Anchors table to turn on '🎯 Tune' mode on the anchor(s) you wish to optimize.");
-        return;
-      }
+      const isAllAnchorsFixed = optimizableAnchors.length === 0;
 
       if (useCdsOnly) {
         const activeCdsPolys = (state.customPolygons || []).filter(cp => cp.optArea !== false && cp.targetArea > 0 && cp.closed && cp.vertices && cp.vertices.length >= 3);
@@ -10945,8 +10942,8 @@ EOF`;
       if (btnRunOpt) btnRunOpt.disabled = true;
       if (btnResetOpt) btnResetOpt.disabled = true;
 
-      const POP_SIZE = 16;
-      const MAX_GEN = isAutoMin ? 10 : 22;
+      const POP_SIZE = isAllAnchorsFixed ? 2 : 16;
+      const MAX_GEN = isAllAnchorsFixed ? 1 : (isAutoMin ? 10 : 22);
 
       function sampleCandidateOffset(ancIdx) {
         const anc = state.anchors[ancIdx];
@@ -11303,7 +11300,8 @@ EOF`;
 
               if (optStatusBadge) {
                 let prefix = "";
-                if (useCdsOnly) prefix = "CdS Area";
+                if (isAllAnchorsFixed) prefix = isAutoMin ? `Fixed MinR ±${currentR.toFixed(1)}m` : `Fixed ±${currentR.toFixed(1)}m`;
+                else if (useCdsOnly) prefix = "CdS Area";
                 else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
                 else prefix = "Combos";
                 optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (Best: ${globalBest.loss.toFixed(2)}%)`;
@@ -11428,7 +11426,8 @@ EOF`;
 
               if (optStatusBadge) {
                 let prefix = "";
-                if (useCdsOnly && useAxisOnly) prefix = `1D+CdS ${gen}/${MAX_GEN}`;
+                if (isAllAnchorsFixed) prefix = isAutoMin ? `Fixed MinR ±${currentR.toFixed(1)}m` : `Fixed ±${currentR.toFixed(1)}m`;
+                else if (useCdsOnly && useAxisOnly) prefix = `1D+CdS ${gen}/${MAX_GEN}`;
                 else if (useCdsOnly) prefix = `CdS ${gen}/${MAX_GEN}`;
                 else if (useAxisOnly) prefix = `1D Axis Gen ${gen}/${MAX_GEN}`;
                 else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
@@ -11514,16 +11513,18 @@ EOF`;
 
         const finalOverall = document.getElementById("overall-error")?.textContent || globalOverallBest.loss.toFixed(2);
         if (optStatusBadge) {
-          const badgeText = useCdsOnly
-            ? `✓ CdS Area Fitted (${globalOverallBest.loss.toFixed(2)}%)`
-            : (useAxisOnly
-                ? `✓ 1D Axis Fitted (${finalOverall}%)`
-                : (isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`));
+          const badgeText = isAllAnchorsFixed
+            ? (isAutoMin ? `✓ Fixed Anchors: Min R ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Fixed Anchors Fitted (${finalOverall}%)`)
+            : (useCdsOnly
+                ? `✓ CdS Area Fitted (${globalOverallBest.loss.toFixed(2)}%)`
+                : (useAxisOnly
+                    ? `✓ 1D Axis Fitted (${finalOverall}%)`
+                    : (isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`)));
           optStatusBadge.textContent = badgeText;
           optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
           optStatusBadge.style.color = "#00e676";
         }
-        updateStatus(`⚡ Auto-Tune finalizado: solución óptima ${useCdsOnly ? 'para áreas Casa del Sol' : (useAxisOnly ? 'a lo largo de ejes de prueba' : `con radio ±${winningR.toFixed(1)}m`)}, error = ${(useCdsOnly ? globalOverallBest.loss.toFixed(2) : finalOverall)}%.`);
+        updateStatus(`⚡ Auto-Tune finalizado: solución óptima ${isAllAnchorsFixed ? 'con anclajes fijos (optimizando buffers de nodos)' : (useCdsOnly ? 'para áreas Casa del Sol' : (useAxisOnly ? 'a lo largo de ejes de prueba' : `con radio ±${winningR.toFixed(1)}m`))}, error = ${(useCdsOnly ? globalOverallBest.loss.toFixed(2) : finalOverall)}%.`);
       }
 
       // Cleanup state & UI
