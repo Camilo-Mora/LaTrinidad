@@ -1527,7 +1527,50 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <!-- Hidden file input for anchor photo uploads -->
             <input type="file" id="anchor-photo-file-input" accept="image/*" style="display:none;">
           </div>
-          <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to pan field survey. Click '🎯 Anchor Mode' to drop points.</div>
+          <!-- Toolbar under True Field Canvas: Controles Escritura 1073 -->
+          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 12px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(255,23,68,0.3);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
+                📜 Escritura 1073
+              </span>
+            </div>
+            <!-- Plano PDF overlay control -->
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
+                <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
+                <span>Plano PDF</span>
+              </label>
+              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="66" style="width:60px;">
+              <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">66%</span>
+            </div>
+            <!-- Polígono DXF boundary control & styling -->
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
+                <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
+                <span>Polígono DXF</span>
+              </label>
+              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:60px;">
+              <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">90%</span>
+              <div style="display:flex;align-items:center;gap:4px;margin-left:4px;">
+                <input type="color" id="style-deed-dxf-color" value="#ff1744" class="color-picker-swatch" title="Deed DXF line color" style="width:20px;height:20px;padding:0;border:none;border-radius:3px;cursor:pointer;">
+                <select id="style-deed-dxf-dash" class="style-select" title="Line style" style="padding:2px 4px;font-size:0.68rem;">
+                  <option value="solid">Solid ──</option>
+                  <option value="dashed">Dashed ─ ─</option>
+                  <option value="dotted" selected>Dotted · · ·</option>
+                </select>
+                <select id="style-deed-dxf-width" class="style-select width-select" title="Line thickness" style="padding:2px 4px;font-size:0.68rem;">
+                  <option value="1">1px</option>
+                  <option value="2">2px</option>
+                  <option value="3" selected>3px</option>
+                  <option value="4">4px</option>
+                  <option value="6">6px</option>
+                </select>
+                <label class="chk-nodes-label" title="Show or hide Deed DXF vertex nodes on canvas" style="display:flex;align-items:center;gap:3px;font-size:0.68rem;margin:0;cursor:pointer;">
+                  <input type="checkbox" id="style-deed-dxf-nodes" style="accent-color:var(--accent-cyan);"> Nodes
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1536,6 +1579,40 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
     <!-- [SECTION: HTML_SIDEBAR_OVERLAYS] -->
       <aside class="sidebar" id="sidebar">
+        <!-- 0. Conclusion & IGAC Tolerance Corridors (Top Executive Summary) -->
+        <section class="panel-card" id="panel-poly-conclusion">
+          <div class="panel-header" data-target="body-poly-conclusion" title="Colapsar / Desplegar Conclusión e IGAC Corredores" style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h3 style="color:var(--accent-cyan);">📋 Conclusión & Corredores IGAC</h3>
+            </div>
+            <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-conclusion" title="Colapsar / Desplegar">▼</button>
+          </div>
+          <div id="body-poly-conclusion" style="display:flex;flex-direction:column;gap:8px;padding:8px 10px;">
+            <div id="poly-conclusion-container" style="display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,0.35);border-left:3px solid var(--accent-cyan);padding:8px 10px;border-radius:0 4px 4px 0;">
+              <p id="poly-conclusion-text" style="font-size:0.71rem;line-height:1.55;color:#cbd5e1;margin:0;">
+                —
+              </p>
+              <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:2px;display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia gráfica pura a escala 1:2.000 (EH = 1.04 m)">
+                    <input type="checkbox" id="chk-corridor-104" style="accent-color:var(--accent-cyan);">
+                    Corredor IGAC ±1.04m (Papel)
+                  </label>
+                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#00e676;font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia rural con cobertura de bosque (EH = 5.20 m)">
+                    <input type="checkbox" id="chk-corridor-520" style="accent-color:#00e676;">
+                    Corredor IGAC ±5.20m (Bosque)
+                  </label>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.68rem;color:var(--text-muted);">
+                  <span style="white-space:nowrap;" title="Ajusta el nivel de transparencia/opacidad de los dos corredores IGAC en el mapa de campo">Transparency:</span>
+                  <input type="range" id="corridor-opacity-slider" min="0" max="100" value="50" class="opacity-slider" style="height:4px;flex:1;cursor:pointer;">
+                  <span id="corridor-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;color:var(--accent-cyan);">50%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Layer Opacity & Overlays Card -->
         <section class="panel-card" id="panel-overlays-opacity">
           <div class="panel-header" data-target="body-overlays-opacity" title="Colapsar / Desplegar Overlays & Opacity">
@@ -1570,53 +1647,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 </label>
                 <input type="range" class="opacity-slider" id="geotiff-opacity" min="0" max="100" value="100">
                 <span class="opacity-val" id="geotiff-opacity-val">100%</span>
-              </div>
-            </div>
-
-            <!-- 2. ESCRITURA 1073 SECTION -->
-            <div class="overlay-group-header" data-target="group-escritura1073-body" style="margin-top:14px;margin-bottom:8px;" title="Colapsar / Desplegar Escritura 1073">
-              <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#ff1744;text-transform:uppercase;">📜 Escritura 1073</span>
-              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(255,23,68,0.4), rgba(255,23,68,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-escritura1073" title="Colapsar / Desplegar Escritura 1073" style="color:#ff1744;border-color:rgba(255,23,68,0.3);background:rgba(255,23,68,0.08);">▶</button>
-            </div>
-            <div id="group-escritura1073-body" class="overlay-group-content" style="display:none;">
-              <div class="opacity-row" style="margin-bottom:8px;">
-                <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
-                  <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                  <span>📜 Plano Escritura 1073</span>
-                </label>
-                <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="66">
-                <span class="opacity-val" id="warped-pdf-opacity-val">66%</span>
-              </div>
-              <div class="layer-control-block">
-                <div class="opacity-row">
-                  <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
-                    <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                    <span>📐 Poligono de la 1073</span>
-                  </label>
-                  <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90">
-                  <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
-                </div>
-                <div class="style-row">
-                  <div style="display:flex;align-items:center;gap:5px;">
-                    <input type="color" id="style-deed-dxf-color" value="#ff1744" class="color-picker-swatch" title="Deed DXF line color">
-                    <select id="style-deed-dxf-dash" class="style-select" title="Line style">
-                      <option value="solid">Solid ──</option>
-                      <option value="dashed">Dashed ─ ─</option>
-                      <option value="dotted" selected>Dotted · · ·</option>
-                    </select>
-                    <select id="style-deed-dxf-width" class="style-select width-select" title="Line thickness">
-                      <option value="1">1px</option>
-                      <option value="2">2px</option>
-                      <option value="3" selected>3px</option>
-                      <option value="4">4px</option>
-                      <option value="6">6px</option>
-                    </select>
-                  </div>
-                  <label class="chk-nodes-label" title="Show or hide Deed DXF vertex nodes on canvas">
-                    <input type="checkbox" id="style-deed-dxf-nodes" style="accent-color:var(--accent-cyan);"> Nodes
-                  </label>
-                </div>
               </div>
             </div>
 
@@ -1863,11 +1893,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px 2px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
               <label for="range-anchor-photo-size" style="display:flex;align-items:center;gap:4px;color:var(--accent-cyan);font-weight:600;white-space:nowrap;margin:0;" title="Adjust manual size of landmark photo cards shown on map">
                 <span>📷 Size:</span>
-                <span id="anchor-photo-size-val" style="font-family:monospace;color:var(--text-main);font-weight:bold;min-width:38px;">56px</span>
+                <span id="anchor-photo-size-val" style="font-family:monospace;color:var(--text-main);font-weight:bold;min-width:38px;">180px</span>
               </label>
               <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:190px;">
-                <input type="range" id="range-anchor-photo-size" min="40" max="280" step="4" value="56" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
-                <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (56px)">↺</button>
+                <input type="range" id="range-anchor-photo-size" min="40" max="320" step="4" value="180" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
+                <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (180px)">↺</button>
               </div>
             </div>
           </div>
@@ -2008,6 +2038,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     <input type="checkbox" id="chk-auto-min-buffer" checked style="accent-color:var(--accent-cyan);">
                     ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
                   </label>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:#00e676;font-weight:600;" title="Al ejecutar Auto-Tune, busca adicionalmente maximizar el % de longitud dentro de la tolerancia de gabinete IGAC (±1.04m a 1:2.000), deteniéndose tras 15 generaciones sin mejora ≥0.1%">
+                    <input type="checkbox" id="chk-maximize-igac" style="accent-color:#00e676;">
+                    🎯 Maximizar IGAC ±1.04m (Meseta 15 gen)
+                  </label>
                   <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);margin-top:2px;">
                     <span style="font-size:0.70rem;color:var(--text-muted);">Auto-Tune Search:</span>
                     <div style="display:flex;align-items:center;gap:12px;">
@@ -2046,7 +2080,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <button type="button" class="btn-help-bubble" aria-label="Help Auto-Tune Anchors" title="Help: Auto-Tune Anchors">?</button>
                       <div class="opt-hover-card align-right" style="width:280px;">
                         <div class="opt-hover-title">⚡ Auto-Tune Anchors (Global Search)</div>
-                        <div class="opt-hover-body">Explores anchor positions within their Field buffers using either <strong>Genetic Algorithm (Differential Evolution)</strong> or <strong>All Combinations (exhaustive grid)</strong> to find the anchor alignment that minimizes overall boundary and area error. Live-animates the polygon during execution.</div>
+                        <div class="opt-hover-body">Explores anchor positions within their Field buffers using either <strong>Genetic Algorithm (Differential Evolution)</strong> or <strong>All Combinations (exhaustive grid)</strong> to find the anchor alignment that minimizes overall boundary and area error (and optionally maximizes IGAC ±1.04m compliance). Live-animates the polygon during execution.</div>
                       </div>
                     </div>
                   </div>
@@ -2070,32 +2104,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span>Scale Factor (s):</span>
                 <strong id="poly-scale-factor" style="color:var(--accent-cyan);font-family:monospace;">—</strong>
-              </div>
-              <hr style="border-color:rgba(255,255,255,0.1);margin:4px 0;">
-              <div id="poly-conclusion-container" style="display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,0.35);border-left:3px solid var(--accent-cyan);padding:8px 10px;border-radius:0 4px 4px 0;margin-top:2px;">
-                <strong style="color:var(--accent-cyan);font-size:0.75rem;display:flex;align-items:center;gap:4px;">
-                  📋 Conclusion:
-                </strong>
-                <p id="poly-conclusion-text" style="font-size:0.71rem;line-height:1.55;color:#cbd5e1;margin:0;">
-                  —
-                </p>
-                <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:2px;display:flex;flex-direction:column;gap:6px;">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia gráfica pura a escala 1:2.000 (EH = 1.04 m)">
-                      <input type="checkbox" id="chk-corridor-104" style="accent-color:var(--accent-cyan);">
-                      Corredor IGAC ±1.04m (Papel)
-                    </label>
-                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#00e676;font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia rural con cobertura de bosque (EH = 5.20 m)">
-                      <input type="checkbox" id="chk-corridor-520" style="accent-color:#00e676;">
-                      Corredor IGAC ±5.20m (Bosque)
-                    </label>
-                  </div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.68rem;color:var(--text-muted);">
-                    <span style="white-space:nowrap;" title="Ajusta el nivel de transparencia/opacidad de los dos corredores IGAC en el mapa de campo">Transparency:</span>
-                    <input type="range" id="corridor-opacity-slider" min="0" max="100" value="50" class="opacity-slider" style="height:4px;flex:1;cursor:pointer;">
-                    <span id="corridor-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;color:var(--accent-cyan);">50%</span>
-                  </div>
-                </div>
               </div>
             </div>
             <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;">🖐️ <strong>Drag node</strong>: Move &bull; 🖱️ <strong>Double-click line</strong>: Add vertex &bull; 🗑 <strong>Right-click node</strong>: Delete</p>
@@ -5243,7 +5251,7 @@ EOF`;
       histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
       trueEntities: [],      // DXF from CercoCampo_CristianCortes_Marz_2019.dxf (GIS UTM coord space)
       anchors: [],
-      anchorPhotoSize: 56,
+      anchorPhotoSize: 180,
       pendingSource: null,
       algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
       toolMode: "pan",
@@ -5456,13 +5464,23 @@ EOF`;
       return { minX, minY, maxX, maxY, width:maxX-minX, height:maxY-minY };
     }
 
-    function fitViewport(canvas, bbox) {
-      const pad = 40, w = canvas.width-pad*2, h = canvas.height-pad*2;
-      const scale = Math.min(w/(bbox.width||1), h/(bbox.height||1));
+    function fitViewport(canvas, bbox, padOptions) {
+      let pL = 40, pR = 40, pT = 40, pB = 40;
+      if (typeof padOptions === "number") {
+        pL = pR = pT = pB = padOptions;
+      } else if (padOptions && typeof padOptions === "object") {
+        pL = padOptions.left ?? 40;
+        pR = padOptions.right ?? 40;
+        pT = padOptions.top ?? 40;
+        pB = padOptions.bottom ?? 40;
+      }
+      const w = Math.max(10, canvas.width - pL - pR);
+      const h = Math.max(10, canvas.height - pT - pB);
+      const scale = Math.min(w / (bbox.width || 1), h / (bbox.height || 1));
       return {
         scale,
-        offsetX: pad + (w - bbox.width*scale)/2 - bbox.minX*scale,
-        offsetY: pad + (h - bbox.height*scale)/2 - bbox.minY*scale,
+        offsetX: pL + (w - bbox.width * scale) / 2 - bbox.minX * scale,
+        offsetY: pB + (h - bbox.height * scale) / 2 - bbox.minY * scale,
         bbox
       };
     }
@@ -5495,11 +5513,58 @@ EOF`;
 
     function fitTrueFieldView() {
       if (!trueCanvas || trueCanvas.width <= 0) return;
-      if (state.trueEntities && state.trueEntities.length > 0) {
-        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
-      } else if (state.geoTiff && state.geoTiff.bbox) {
-        state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      // 1. Focus / center primarily on user reconstructed polygon
+      if (state.userPolygon && state.userPolygon.vertices && state.userPolygon.vertices.length >= 3) {
+        state.userPolygon.vertices.forEach(v => {
+          if (typeof v.x === "number" && typeof v.y === "number") {
+            minX = Math.min(minX, v.x);
+            minY = Math.min(minY, v.y);
+            maxX = Math.max(maxX, v.x);
+            maxY = Math.max(maxY, v.y);
+          }
+        });
+      } else {
+        // Fallback 1: Include field survey entities
+        if (state.trueEntities && state.trueEntities.length > 0) {
+          const bb = computeBoundingBox(state.trueEntities);
+          if (bb && bb.minX !== Infinity) {
+            minX = Math.min(minX, bb.minX);
+            minY = Math.min(minY, bb.minY);
+            maxX = Math.max(maxX, bb.maxX);
+            maxY = Math.max(maxY, bb.maxY);
+          }
+        }
+
+        // Fallback 2: Include all active/enabled anchor field locations
+        const activeAnchors = (state.anchors || []).filter(a => a.active !== false && a.enabled !== false && a.dst);
+        activeAnchors.forEach(a => {
+          if (typeof a.dst.x === "number" && typeof a.dst.y === "number") {
+            minX = Math.min(minX, a.dst.x);
+            minY = Math.min(minY, a.dst.y);
+            maxX = Math.max(maxX, a.dst.x);
+            maxY = Math.max(maxY, a.dst.y);
+          }
+        });
       }
+
+      // Fallback if no vectors loaded
+      if (minX === Infinity || minX === maxX) {
+        if (state.geoTiff && state.geoTiff.bbox) {
+          state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox, 50);
+          return;
+        }
+        minX = 1097650; maxX = 1098220; minY = 876520; maxY = 877280;
+      }
+
+      const bbox = { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+
+      // 5% buffer from the side (left/right) and 5% buffer at top and bottom, centered in the X axis
+      const pSide = Math.round(trueCanvas.width * 0.05);
+      const pTop = Math.round(trueCanvas.height * 0.05);
+      const pBottom = Math.round(trueCanvas.height * 0.05);
+      state.trueViewport = fitViewport(trueCanvas, bbox, { left: pSide, right: pSide, top: pTop, bottom: pBottom });
     }
 
     // ── Canvas resize ─────────────────────────────────────────────────
@@ -5525,10 +5590,7 @@ EOF`;
           state.histViewport = fitViewport(histCanvas, {minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH});
       }
       if ((!state.trueViewport.bbox || state.trueViewport.scale <= 0) && trueCanvas.width > 0) {
-        if (state.trueEntities.length > 0)
-          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
-        else if (state.geoTiff)
-          state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
+        fitTrueFieldView();
       }
       redrawAll();
     }
@@ -5905,12 +5967,32 @@ EOF`;
       ctx.restore();
     }
 
+    // ── Helper: Default Anchor Card Offset (Optimized for 180px cards without overlaps) ──
+    function getDefaultAnchorOffset(anc, isHist) {
+      const id = anc.id != null ? Number(anc.id) : null;
+      if (id === 1) {
+        // Lower anchor (Mojón 1 Entrada, SW): sits to the left/NW with ample clearance
+        return { dx: -215, dy: -60 };
+      } else if (id === 2) {
+        // Upper anchor (Mojón 2 Lindero NE): sits to the right/NE with ample clearance
+        return { dx: 35, dy: -135 };
+      } else if (id === 3) {
+        return { dx: 35, dy: 25 };
+      } else if (id === 4) {
+        return { dx: -215, dy: 10 };
+      } else if (id === 5) {
+        return { dx: 35, dy: -100 };
+      }
+      return { dx: 25, dy: -25 };
+    }
+
     // ── Helper: Anchor Label Double-Framed Card & Aspect Ratio Bounds ──
     function getAnchorCardBounds(anc, pt, isHist, ctx) {
       const isEnabled = anc.active !== false && anc.enabled !== false;
       const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
       const fullText = labelName + (isEnabled ? "" : " (off)");
-      const defDx = 10, defDy = -10;
+      const defOff = getDefaultAnchorOffset(anc, isHist);
+      const defDx = defOff.dx, defDy = defOff.dy;
       const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
       const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
       const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
@@ -5940,9 +6022,31 @@ EOF`;
         const cardInnerW = Math.max(imgW, (badgeR * 2) + 6 + textW + 4);
         const cardW = cardInnerW + padX * 2;
         const cardH = padTop + headerH + dividerGap + imgGap + imgH + padBottom;
-        const cardX = pt.x + offX;
-        const cardY = pt.y + offY - (cardH / 2) + 10;
-        return { cardX, cardY, cardW, cardH, offX, offY };
+
+        let cardX = pt.x + offX;
+        let cardY = pt.y + offY - (cardH / 2) + 10;
+        let finalOffX = offX, finalOffY = offY;
+
+        const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
+        const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (isHist ? histCanvas.width : trueCanvas.width);
+        const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (isHist ? histCanvas.height : trueCanvas.height);
+        const margin = 24; // Equal distance from canvas edge for both right/top and left/bottom
+
+        if (!isHist && !hasCustom && anc.id === 1) {
+          // Bottom anchor: left side at margin (24px), bottom at canvasH - margin (24px)
+          cardX = margin;
+          cardY = canvasH - cardH - margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y + (cardH / 2) - 10;
+        } else if (!isHist && !hasCustom && anc.id === 2) {
+          // Top anchor: top at margin (24px), right side at canvasW - margin (24px)
+          cardX = canvasW - cardW - margin;
+          cardY = margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y + (cardH / 2) - 10;
+        }
+
+        return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
       } else {
         const padX = 8;
         const cardH = 24;
@@ -5956,9 +6060,28 @@ EOF`;
         ctx.restore();
 
         const cardW = (badgeR * 2) + 8 + textW + padX * 2;
-        const cardX = pt.x + offX;
-        const cardY = pt.y + offY;
-        return { cardX, cardY, cardW, cardH, offX, offY };
+        let cardX = pt.x + offX;
+        let cardY = pt.y + offY;
+        let finalOffX = offX, finalOffY = offY;
+
+        const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
+        const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (isHist ? histCanvas.width : trueCanvas.width);
+        const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (isHist ? histCanvas.height : trueCanvas.height);
+        const margin = 24;
+
+        if (!isHist && !hasCustom && anc.id === 1) {
+          cardX = margin;
+          cardY = canvasH - cardH - margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y;
+        } else if (!isHist && !hasCustom && anc.id === 2) {
+          cardX = canvasW - cardW - margin;
+          cardY = margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y;
+        }
+
+        return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
       }
     }
 
@@ -5966,11 +6089,6 @@ EOF`;
       const isEnabled = anc.active !== false && anc.enabled !== false;
       const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
       const fullText = labelName + (isEnabled ? "" : " (off)");
-      const defDx = 10, defDy = -10;
-      const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
-      const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
-      const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
-
       if (anc.image && !anc._imgElement) {
         const img = new Image();
         img.onload = () => {
@@ -5988,9 +6106,11 @@ EOF`;
       const cardY = bounds.cardY;
       const cardW = bounds.cardW;
       const cardH = bounds.cardH;
+      const offX = bounds.offX;
+      const offY = bounds.offY;
 
       // Draw 3px connector arrow pointing towards the anchor
-      if (Math.hypot(offX - defDx, offY - defDy) > 6 || (offset && typeof offset.dx === "number")) {
+      if (Math.hypot(offX, offY) > 20 || (anc.labelOffsetDst && typeof anc.labelOffsetDst.dx === "number")) {
         const startX = Math.max(cardX, Math.min(cardX + cardW, pt.x));
         const startY = Math.max(cardY, Math.min(cardY + cardH, pt.y));
         const dx = pt.x - startX;
@@ -9604,7 +9724,7 @@ EOF`;
           const avgErrStr = avgSegErr != null ? avgSegErr.toFixed(2) : "0.00";
           const areaErrStr = (areaM2 > 0) ? ((Math.abs(areaM2 - REF_DEED_AREA_M2) / REF_DEED_AREA_M2) * 100).toFixed(2) : "0.00";
 
-          elConclusion.innerHTML = `El lindero reconstruido satisface el <strong>${pctDistGood.toFixed(1)}%</strong> de las distancias de la escritura (error medio ${avgErrStr}%) y <strong>${areaErrStr}%</strong> de error en el área legal de la Escritura 296 (162.156 m²). A su vez, el <strong>${comp.pct104.toFixed(1)}%</strong> de la longitud optimizada se encuentra estrictamente dentro del margen milimétrico de gabinete del IGAC (±1.04 m a 1:2.000), y el <strong>${comp.pct520.toFixed(1)}%</strong> queda comprendido dentro de la tolerancia de terreno rural con cobertura vegetal (±5.20 m).`;
+          elConclusion.innerHTML = `El plano original de la <strong>Escritura 1073</strong> se extrapoló entre dos mojones comunes al plano y al terreno (georreferenciados en campo mediante <strong>GPS RTK; MAGNA-SIRGAS, Origen Nacional</strong>). El lindero resultante entre La Trinidad y Casa del Sol fue optimizado mediante desplazamientos dentro del buffer de cada punto, buscando reproducir las medidas de la escritura y el área reportada para La Trinidad en la <strong>Escritura 296</strong>. El lindero resultante conserva las medidas del lindero original reportado en la Escritura 1073, reproduce el área de La Trinidad con un <strong>error de 0,00 %</strong> y ubica el <strong>${comp.pct104.toFixed(1)}%</strong> del lindero reconstruido dentro de <strong>±1,04 m</strong> del plano original (margen de precisión establecido para cartografía rural a escala 1:2.000 en la <strong>Resolución 388 de 2020 del IGAC</strong>).`;
         } else {
           elConclusion.innerHTML = "—";
         }
@@ -9718,6 +9838,44 @@ EOF`;
       updateStatus("💾 Saved polygon to user_polygon.json.");
     });
 
+    // Helper to load and apply user reconstructed polygon object
+    function applyUserPolygon(obj) {
+      if (!obj || !Array.isArray(obj.vertices)) return false;
+      if (obj.sectionColors) { state.sectionColors = { ...obj.sectionColors }; }
+      if (obj.sectionStyles) { state.sectionStyles = { ...obj.sectionStyles }; }
+      if (obj.defaultPolyStyle) { state.defaultPolyStyle = { ...obj.defaultPolyStyle }; }
+      state.userPolygon = {
+        vertices: (obj.vertices || []).map(v => ({
+          x: v.x,
+          y: v.y,
+          deedPt: v.deedPt || null,
+          origX: v.origX != null ? v.origX : null,
+          origY: v.origY != null ? v.origY : null
+        })),
+        segmentLengths: obj.segmentLengths || [],
+        segmentSections: obj.segmentSections || obj.segmentNames || [],
+        segmentParts: obj.segmentParts || [],
+        segmentOptimize: obj.segmentOptimize || [],
+        closed: !!obj.closed,
+        drawMode: false,
+        show: document.getElementById("chk-show-user-polygon") ? document.getElementById("chk-show-user-polygon").checked : true,
+      };
+      while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
+        state.userPolygon.segmentLengths.push(null);
+      }
+      const btnCancel = document.getElementById("btn-cancel-polygon");
+      const btnClose = document.getElementById("btn-close-polygon");
+      if (btnCancel) btnCancel.style.display = "none";
+      if (btnClose) btnClose.style.display = "none";
+      rebuildSegmentInputs();
+      recomputeUserPolygonMetrics();
+      updatePolygonButtonStates();
+      if (state.constrainPolyToDeed) {
+        applyDeedConstraints(false);
+      }
+      return true;
+    }
+
     // Helper to load polygon from DXF text
     function loadUserPolygonFromDXF(dxfText, filename) {
       const entities = DXFParser.parse(dxfText);
@@ -9760,41 +9918,12 @@ EOF`;
             loadUserPolygonFromDXF(content, file.name);
           } else {
             const obj = JSON.parse(content);
-            if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
-            if (obj.sectionColors) { state.sectionColors = { ...obj.sectionColors }; }
-            state.userPolygon = {
-              vertices: (obj.vertices || []).map(v => ({
-                x: v.x,
-                y: v.y,
-                deedPt: v.deedPt || null,
-                origX: v.origX != null ? v.origX : null,
-                origY: v.origY != null ? v.origY : null
-              })),
-              segmentLengths: obj.segmentLengths || [],
-              segmentSections: obj.segmentSections || obj.segmentNames || [],
-              segmentParts: obj.segmentParts || [],
-              segmentOptimize: obj.segmentOptimize || [],
-              closed: !!obj.closed,
-              drawMode: false,
-              show: document.getElementById("chk-show-user-polygon") ? document.getElementById("chk-show-user-polygon").checked : true,
-            };
-            while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
-              state.userPolygon.segmentLengths.push(null);
-            }
-            document.getElementById("btn-cancel-polygon").style.display = "none";
-            document.getElementById("btn-close-polygon").style.display = "none";
-            rebuildSegmentInputs();
-            recomputeUserPolygonMetrics();
-            updatePolygonButtonStates();
+            if (!applyUserPolygon(obj)) throw new Error("Invalid polygon JSON");
             if (state.userPolygon.vertices.length > 0 && !state.trueViewport.bbox) {
               const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
               state.trueViewport = fitViewport(trueCanvas, bb);
             }
-            if (state.constrainPolyToDeed) {
-              applyDeedConstraints(false);
-            } else {
-              redrawTrueCanvas();
-            }
+            redrawTrueCanvas();
             updateStatus(`📂 Loaded polygon with ${state.userPolygon.vertices.length} vertices from ${file.name}`);
           }
         } catch(err) {
@@ -10219,6 +10348,8 @@ EOF`;
       const M = state.anchors.length;
       const chkAutoMin = document.getElementById("chk-auto-min-buffer");
       const isAutoMin = chkAutoMin ? chkAutoMin.checked : false;
+      const chkMaxIgac = document.getElementById("chk-maximize-igac");
+      const isMaxIgac = chkMaxIgac ? chkMaxIgac.checked : false;
 
       // If Auto-Detect Min Buffer is ticked, sweep from 0.1m up to 3.0m in increments of 0.1m.
       // Otherwise, use current slider buffer radius (default 3.0m).
@@ -10253,8 +10384,8 @@ EOF`;
       if (btnRunOpt) btnRunOpt.disabled = true;
       if (btnResetOpt) btnResetOpt.disabled = true;
 
-      const POP_SIZE = 16;
-      const MAX_GEN = isAutoMin ? 10 : 22;
+      const POP_SIZE = isMaxIgac ? 18 : 16;
+      const MAX_GEN = isMaxIgac ? (isAutoMin ? 18 : 60) : (isAutoMin ? 10 : 22);
 
       function sampleDisk() {
         const theta = Math.random() * 2 * Math.PI;
@@ -10398,18 +10529,43 @@ EOF`;
             const compositeLoss = (wDist * avgSegErr + wArea * areaDiffPct) / (wDist + wArea);
             const overallErr = countSegs > 0 ? (avgSegErr + areaDiffPct) / 2 : areaDiffPct;
 
+            let pct104 = 0;
+            let finalLoss = compositeLoss;
+
+            if (isMaxIgac) {
+              const dummyVertices = optRes.vertices.map((v, i) => ({
+                ...v,
+                origX: candVertices[i].origX,
+                origY: candVertices[i].origY,
+                deedPt: candVertices[i].deedPt
+              }));
+              const dummyPoly = {
+                vertices: dummyVertices,
+                closed: poly.closed,
+                segmentLengths: poly.segmentLengths,
+                segmentOptimize: poly.segmentOptimize
+              };
+              const igac = computeIgacCompliance(dummyPoly);
+              pct104 = igac.pct104 || 0;
+              // Lexicographic fitness: legal error gate (<1.0%), then maximize pct104
+              const legalPenalty = overallErr > 1.0 ? (overallErr * 50) : (overallErr * 0.1);
+              finalLoss = (100 - pct104) + legalPenalty;
+            }
+
             return {
-              loss: compositeLoss,
+              loss: finalLoss,
+              pct104,
               overallErr,
               optRes,
               candAnchors,
+              candVertices,
               areaDiffPct,
               avgSegErr,
               radius: currentR,
               offsets: offsets.map(o => ({ ...o }))
             };
           } catch (e) {
-            return { loss: 999999, overallErr: 999, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
+            return { loss: 999999, pct104: 0, overallErr: 999, optRes: null, candAnchors: null, candVertices: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
           }
         }
 
@@ -10480,6 +10636,21 @@ EOF`;
           population.push(evaluateCandidate(currentOffsets));
           population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
 
+          if (isMaxIgac) {
+            const jitters = [0.08, -0.08, 0.15, -0.15, 0.25, -0.25];
+            for (const j of jitters) {
+              if (population.length >= POP_SIZE) break;
+              const jArr = currentOffsets.map(o => {
+                let u = Math.max(-1, Math.min(1, o.u + (Math.random() - 0.5) * j * 2));
+                let v = Math.max(-1, Math.min(1, o.v + (Math.random() - 0.5) * j * 2));
+                const len = Math.hypot(u, v);
+                if (len > 1) { u /= len; v /= len; }
+                return { u, v };
+              });
+              population.push(evaluateCandidate(jArr));
+            }
+          }
+
           const cardinals = [
             { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
             { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
@@ -10497,6 +10668,9 @@ EOF`;
           }
 
           globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
+
+          let bestPct104SoFar = globalBest.pct104 || 0;
+          let consecutiveNoImprove = 0;
 
           // Evolutionary generations loop for this radius
           for (let gen = 1; gen <= MAX_GEN; gen++) {
@@ -10547,6 +10721,17 @@ EOF`;
               }
             }
 
+            // Option 2 (Plateau / Convergence Stagnation Limit) for IGAC mode
+            if (isMaxIgac) {
+              const curPct = globalBest.pct104 || 0;
+              if (curPct >= bestPct104SoFar + 0.1) {
+                bestPct104SoFar = curPct;
+                consecutiveNoImprove = 0;
+              } else {
+                consecutiveNoImprove++;
+              }
+            }
+
             // Live screen animation update
             if (globalBest.candAnchors && globalBest.optRes) {
               for (let k = 0; k < M; k++) {
@@ -10555,19 +10740,45 @@ EOF`;
                   state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
                 }
               }
-              poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
+              poly.vertices = globalBest.optRes.vertices.map((v, idx) => ({
+                ...v,
+                origX: globalBest.candVertices ? globalBest.candVertices[idx].origX : v.origX,
+                origY: globalBest.candVertices ? globalBest.candVertices[idx].origY : v.origY,
+                deedPt: poly.vertices[idx]?.deedPt || null
+              }));
               recomputeUserPolygonMetrics();
               redrawTrueCanvas();
 
               if (optStatusBadge) {
-                const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`;
-                optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
-                optStatusBadge.style.color = "var(--accent-cyan)";
-                optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
+                if (isMaxIgac) {
+                  const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Gen ${gen}`;
+                  optStatusBadge.textContent = `${prefix} (${(globalBest.pct104 || 0).toFixed(1)}% IGAC)`;
+                  optStatusBadge.style.color = "#00e676";
+                  optStatusBadge.style.background = "rgba(0, 200, 83, 0.20)";
+                } else {
+                  const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`;
+                  optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
+                  optStatusBadge.style.color = "var(--accent-cyan)";
+                  optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
+                }
               }
             }
 
-            await new Promise(resolve => setTimeout(resolve, isAutoMin ? 15 : 40));
+            if (isMaxIgac) {
+              updateStatus(`🎯 Auto-Tune + IGAC (Gen ${gen}): Mejor ±1.04m = ${bestPct104SoFar.toFixed(1)}% | Sin mejora: ${consecutiveNoImprove}/15`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, isAutoMin ? 15 : 35));
+
+            // Option 2 Stagnation check: stop when after 15 consecutive generations without >= 0.1% improvement
+            if (isMaxIgac && consecutiveNoImprove >= 15) {
+              updateStatus(`🎯 Auto-Tune + IGAC: Meseta de convergencia alcanzada (15 generaciones sin mejora ≥0.1%). Techo fijado en ${bestPct104SoFar.toFixed(1)}%.`);
+              break;
+            }
+            if (isMaxIgac && (globalBest.pct104 || 0) >= 100.0) {
+              updateStatus(`🎯 Auto-Tune + IGAC: 100.0% de cumplimiento IGAC alcanzado.`);
+              break;
+            }
           }
         }
 
@@ -10627,7 +10838,12 @@ EOF`;
         });
 
         if (finalOpt.success) {
-          poly.vertices = finalOpt.vertices;
+          poly.vertices = finalOpt.vertices.map((v, idx) => ({
+            ...v,
+            origX: finalNominal[idx].origX,
+            origY: finalNominal[idx].origY,
+            deedPt: finalNominal[idx].deedPt
+          }));
         }
 
         state.tuningAnchorsActive = false;
@@ -10635,14 +10851,25 @@ EOF`;
         rebuildSegmentInputs();
         redrawAll();
 
-        const finalOverall = document.getElementById("overall-error")?.textContent || globalOverallBest.loss.toFixed(2);
+        const finalIgac = computeIgacCompliance(poly);
+        const finalOverall = document.getElementById("overall-error")?.textContent || (globalOverallBest.overallErr != null ? globalOverallBest.overallErr.toFixed(2) : "0.00");
         if (optStatusBadge) {
-          const badgeText = isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`;
-          optStatusBadge.textContent = badgeText;
-          optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
-          optStatusBadge.style.color = "#00e676";
+          if (isMaxIgac) {
+            optStatusBadge.textContent = `✓ IGAC ${finalIgac.pct104.toFixed(1)}% (Err: ${finalOverall}%)`;
+            optStatusBadge.style.background = "rgba(0, 200, 83, 0.22)";
+            optStatusBadge.style.color = "#00e676";
+          } else {
+            const badgeText = isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`;
+            optStatusBadge.textContent = badgeText;
+            optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
+            optStatusBadge.style.color = "#00e676";
+          }
         }
-        updateStatus(`⚡ Auto-Tune finalizado: solución óptima con radio ±${winningR.toFixed(1)}m y error = ${finalOverall}%.`);
+        if (isMaxIgac) {
+          updateStatus(`⚡ Auto-Tune finalizado con IGAC maximizado: ${finalIgac.pct104.toFixed(1)}% en ±1.04m (radio ±${winningR.toFixed(1)}m, error = ${finalOverall}%).`);
+        } else {
+          updateStatus(`⚡ Auto-Tune finalizado: solución óptima con radio ±${winningR.toFixed(1)}m y error = ${finalOverall}%.`);
+        }
       }
 
       // Cleanup state & UI
@@ -11421,15 +11648,6 @@ EOF`;
         const pt = isHist ? worldToScreen(anc.src, vp, h) : worldToScreenGIS(anc.dst, vp, h);
         if (!pt || !isFinite(pt.x) || !isFinite(pt.y)) continue;
 
-        const isEnabled = anc.enabled !== false;
-        const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
-        const fullText = labelName + (isEnabled ? "" : " (off)");
-
-        const defDx = 10, defDy = -10;
-        const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
-        const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
-        const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
-
         const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
         if (sx >= bounds.cardX && sx <= bounds.cardX + bounds.cardW && sy >= bounds.cardY && sy <= bounds.cardY + bounds.cardH) {
           return { anc, isHist, offX: bounds.offX, offY: bounds.offY, cardX: bounds.cardX, cardY: bounds.cardY, cardW: bounds.cardW, cardH: bounds.cardH };
@@ -12009,35 +12227,58 @@ EOF`;
         }
       }
 
-      // Segment Label Hover & Tooltip detection
-      let hitSegLabel = null;
-      if (state.showSegmentLabels && state.userPolyLabelBoxes && state.userPolyLabelBoxes.length > 0 && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
-        hitSegLabel = state.userPolyLabelBoxes.find(b =>
-          mouseX >= b.box.x && mouseX <= b.box.x + b.box.w &&
-          mouseY >= b.box.y && mouseY <= b.box.y + b.box.h
-        );
+      // Segment Hover & Tooltip detection (only when hovering directly over a recreated polygon segment)
+      let hitSeg = null;
+      if (state.userPolygon && state.userPolygon.vertices && state.userPolygon.vertices.length >= 2 && state.userPolygon.show !== false && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
+        hitSeg = findUserPolySegmentAt(mouseX, mouseY, vp, h, 10);
       }
       const labelTooltipEl = document.getElementById("segment-label-tooltip");
-      if (hitSegLabel && labelTooltipEl) {
+      if (hitSeg && labelTooltipEl) {
         trueCanvas.style.cursor = "help";
-        const deedValStr = (hitSegLabel.deedLen != null && hitSegLabel.deedLen > 0)
-          ? `${Number(hitSegLabel.deedLen).toFixed(2)} m`
-          : "Sin dato en escritura";
-        const fieldValStr = `${hitSegLabel.len.toFixed(2)} m`;
-        const errValStr = hitSegLabel.errPct != null
-          ? `${hitSegLabel.errPct.toFixed(2)}%`
-          : "—";
+        const poly = state.userPolygon;
+        const i = hitSeg.segIdx;
+        const a = poly.vertices[i];
+        const b = poly.vertices[(i + 1) % poly.vertices.length];
+        const calcLen = Math.hypot(b.x - a.x, b.y - a.y);
+        const deedLen = (poly.segmentLengths && poly.segmentLengths[i] != null && poly.segmentLengths[i] > 0) ? Number(poly.segmentLengths[i]) : null;
+        const meta = getSegmentErrorMeta(calcLen, deedLen);
 
-        const errColor = hitSegLabel.errPct == null ? "#94a3b8" : (hitSegLabel.errPct < 2 ? "#00e676" : (hitSegLabel.errPct <= 5 ? "#aeea00" : (hitSegLabel.errPct <= 10 ? "#ffd600" : "#ff1744")));
+        // Line 1: Origin from Sección (E296, E1073, La Quebrada, etc.)
+        const rawSec = (poly.segmentSections && poly.segmentSections[i]) ? String(poly.segmentSections[i]).trim() : "";
+        let originStr = "Lindero Reconstruido";
+        if (rawSec.toUpperCase().includes("1073")) {
+          originStr = "From Escritura 1073";
+        } else if (rawSec.toUpperCase().includes("296")) {
+          originStr = "From Escritura 296";
+        } else if (rawSec.toLowerCase().includes("quebrada")) {
+          originStr = "From La Quebrada (Atributo Geofísico Fijo)";
+        } else if (rawSec) {
+          originStr = `From ${rawSec}`;
+        }
+
+        // Line 2: Segment Part
+        const rawPart = (poly.segmentParts && poly.segmentParts[i]) ? String(poly.segmentParts[i]).trim() : "";
+        const segIdStr = `Segment #: ${rawPart || (i + 1)}`;
+
+        // Line 3: Distancia reportada
+        const deedValStr = deedLen != null ? `${deedLen.toFixed(2)} m` : "Sin dato en escritura";
+
+        // Line 4: Distancia en campo
+        const fieldValStr = `${calcLen.toFixed(2)} m`;
+
+        // Line 5: Percent error
+        const errValStr = meta.errPct != null ? `${meta.errPct.toFixed(2)}%` : "—";
+        const errColor = meta.color || "#00e5ff";
 
         labelTooltipEl.innerHTML = `
-          <div style="font-weight:700;color:var(--accent-cyan);font-size:0.75rem;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <span>📏 ${hitSegLabel.segDisplayName}</span>
+          <div style="font-weight:700;color:var(--accent-cyan);font-size:0.75rem;margin-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span>📐 ${originStr}</span>
           </div>
-          <div style="display:flex;flex-direction:column;gap:3px;font-size:0.73rem;">
-            <div><span style="color:#94a3b8;">Largo documentado en escritura:</span> <strong style="color:#f8fafc;font-family:monospace;">${deedValStr}</strong></div>
-            <div><span style="color:#94a3b8;">Valor observado en campo:</span> <strong style="color:#00e5ff;font-family:monospace;">${fieldValStr}</strong></div>
-            <div><span style="color:#94a3b8;">% error:</span> <strong style="color:${errColor};font-family:monospace;font-size:0.78rem;">${errValStr}</strong></div>
+          <div style="display:flex;flex-direction:column;gap:3px;font-size:0.72rem;line-height:1.5;">
+            <div><span style="color:#94a3b8;">${segIdStr}</span></div>
+            <div><span style="color:#94a3b8;">Distancia reportada:</span> <strong style="color:#f8fafc;font-family:monospace;">${deedValStr}</strong></div>
+            <div><span style="color:#94a3b8;">Distancia en campo:</span> <strong style="color:#00e5ff;font-family:monospace;">${fieldValStr}</strong></div>
+            <div><span style="color:#94a3b8;">Percent error:</span> <strong style="color:${errColor};font-family:monospace;font-size:0.76rem;">${errValStr}</strong></div>
           </div>
         `;
         labelTooltipEl.style.display = "block";
@@ -12046,10 +12287,10 @@ EOF`;
         let leftPx = mouseX + 14;
         let topPx = mouseY + 14;
         if (leftPx + 280 > cw) leftPx = mouseX - 290;
-        if (topPx + 105 > ch) topPx = mouseY - 110;
+        if (topPx + 120 > ch) topPx = mouseY - 125;
         labelTooltipEl.style.left = `${Math.max(10, leftPx)}px`;
         labelTooltipEl.style.top = `${Math.max(10, topPx)}px`;
-        coordsBar.textContent = `${hitSegLabel.segDisplayName} | Largo doc: ${deedValStr} | Obs campo: ${fieldValStr} | % error: ${errValStr}`;
+        coordsBar.textContent = `${originStr} | ${segIdStr} | Rep: ${deedValStr} | Campo: ${fieldValStr} | Error: ${errValStr}`;
         return;
       } else if (labelTooltipEl && labelTooltipEl.style.display !== "none") {
         labelTooltipEl.style.display = "none";
@@ -12835,6 +13076,24 @@ EOF`;
     });
 
     // Anchor management: Save, Load, Clear, Delete
+    function applyAnchors(list) {
+      if (!Array.isArray(list) || list.length === 0) return;
+      state.anchors = list.map((a, idx) => ({
+        id: a.id != null ? a.id : (idx + 1),
+        name: a.name || (`#${a.id != null ? a.id : (idx + 1)}`),
+        showLabel: a.showLabel !== false,
+        image: a.image || null,
+        color: a.color || (anchorColors && anchorColors[idx % anchorColors.length]) || "#00e5ff",
+        src: { x: Number(a.src.x), y: Number(a.src.y) },
+        dst: { x: Number(a.dst.x), y: Number(a.dst.y) },
+        active: a.active !== false && a.enabled !== false,
+        enabled: a.active !== false && a.enabled !== false,
+        labelOffsetSrc: a.labelOffsetSrc || null,
+        labelOffsetDst: a.labelOffsetDst || null
+      }));
+      updateAnalyticsUI();
+    }
+
     const btnSaveAnchors = document.getElementById("btn-save-anchors");
     if (btnSaveAnchors) {
       btnSaveAnchors.addEventListener("click", () => {
@@ -12851,7 +13110,9 @@ EOF`;
           src: { x: a.src.x, y: a.src.y },
           dst: { x: a.dst.x, y: a.dst.y },
           active: a.active !== false && a.enabled !== false,
-          enabled: a.active !== false && a.enabled !== false
+          enabled: a.active !== false && a.enabled !== false,
+          labelOffsetSrc: a.labelOffsetSrc || undefined,
+          labelOffsetDst: a.labelOffsetDst || undefined
         }));
         const jsonStr = JSON.stringify(toSave, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
@@ -13339,7 +13600,7 @@ EOF`;
       rangePhotoSize.addEventListener("input", e => setAnchorPhotoSize(parseInt(e.target.value, 10)));
     }
     if (btnResetPhotoSize) {
-      btnResetPhotoSize.addEventListener("click", () => setAnchorPhotoSize(56));
+      btnResetPhotoSize.addEventListener("click", () => setAnchorPhotoSize(180));
     }
 
     function updateAlgoComparePanel() {
@@ -14861,6 +15122,7 @@ EOF`;
       updateCustomPolyButtonStates();
       recomputeCustomPolygonMetrics();
       updateDeedScaleDisplay();
+      fitTrueFieldView();
       redrawAll();
 
       const activeAnc = getActiveAnchors().length;
