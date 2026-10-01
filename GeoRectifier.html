@@ -456,6 +456,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
       font-size: 0.73rem;
       font-weight: 600;
       width: 75px;
+      min-width: 40px;
       flex: 1;
       padding: 1px 3px;
       border-radius: 3px;
@@ -2163,7 +2164,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
             </div>
 
             <!-- Area & Metrics display -->
-            <div id="custom-poly-metrics" style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,179,0,0.25);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+            <div id="custom-poly-metrics" style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,179,0,0.25);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;box-sizing:border-box;max-width:100%;overflow:hidden;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span id="custom-poly-selected-name" style="font-size:0.72rem;font-weight:700;color:#ffb300;display:flex;align-items:center;gap:5px;">
                   <span id="custom-poly-selected-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffb300;"></span>
@@ -2208,7 +2209,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <!-- Visual Styling Controls (Color, Dash, Thickness, Opacity) -->
               <div style="border-top:1px dashed rgba(255,255,255,0.12);padding-top:5px;margin-top:2px;display:flex;flex-direction:column;gap:5px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
-                  <span style="color:var(--text-muted);">Color &amp; Line:</span>
+                  <span style="color:var(--text-muted);flex-shrink:0;">Color &amp; Line:</span>
                   <div style="display:flex;align-items:center;gap:6px;">
                     <input type="color" id="custom-poly-style-color" class="color-picker-swatch" style="width:24px;height:20px;padding:0;border:1px solid rgba(255,255,255,0.25);border-radius:3px;cursor:pointer;background:transparent;" title="Polygon border &amp; fill color">
                     <select id="custom-poly-style-dash" class="style-select" style="font-size:0.68rem;padding:1px 4px;height:22px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,255,255,0.15);color:var(--text-main);border-radius:3px;cursor:pointer;" title="Line style">
@@ -2218,18 +2219,18 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     </select>
                   </div>
                 </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;">
-                  <span style="color:var(--text-muted);">Thickness:</span>
-                  <div style="display:flex;align-items:center;gap:6px;width:125px;">
-                    <input type="range" id="custom-poly-style-width" min="1.0" max="8.0" step="0.5" value="2.5" class="opacity-slider" style="height:3px;flex:1;">
-                    <span id="custom-poly-style-width-val" style="font-family:monospace;color:var(--accent-cyan);min-width:32px;text-align:right;">2.5px</span>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;gap:6px;">
+                  <span style="color:var(--text-muted);flex-shrink:0;">Thickness:</span>
+                  <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:115px;min-width:0;">
+                    <input type="range" id="custom-poly-style-width" min="1.0" max="8.0" step="0.5" value="2.5" class="opacity-slider" style="height:3px;flex:1;min-width:0;width:100%;">
+                    <span id="custom-poly-style-width-val" style="font-family:monospace;color:var(--accent-cyan);min-width:28px;text-align:right;flex-shrink:0;">2.5px</span>
                   </div>
                 </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;">
-                  <span style="color:var(--text-muted);">Fill Opacity:</span>
-                  <div style="display:flex;align-items:center;gap:6px;width:125px;">
-                    <input type="range" id="custom-poly-style-opacity" min="0" max="100" step="5" value="20" class="opacity-slider" style="height:3px;flex:1;">
-                    <span id="custom-poly-style-opacity-val" style="font-family:monospace;color:var(--accent-cyan);min-width:32px;text-align:right;">20%</span>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;gap:6px;">
+                  <span style="color:var(--text-muted);flex-shrink:0;">Fill Opacity:</span>
+                  <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:115px;min-width:0;">
+                    <input type="range" id="custom-poly-style-opacity" min="0" max="100" step="5" value="20" class="opacity-slider" style="height:3px;flex:1;min-width:0;width:100%;">
+                    <span id="custom-poly-style-opacity-val" style="font-family:monospace;color:var(--accent-cyan);min-width:28px;text-align:right;flex-shrink:0;">20%</span>
                   </div>
                 </div>
               </div>
@@ -8264,6 +8265,24 @@ EOF`;
           redrawTrueCanvas();
         });
 
+        // Visibility Checkbox directly beside lote number (Show or not in main canvas)
+        const chkVis = document.createElement("input");
+        chkVis.type = "checkbox";
+        chkVis.checked = (p.visible !== false);
+        chkVis.title = p.visible !== false ? "Visible on main canvas (uncheck to hide)" : "Hidden on main canvas (check to show)";
+        chkVis.style.accentColor = p.color || "var(--accent-cyan)";
+        chkVis.style.cursor = "pointer";
+        chkVis.style.margin = "0 1px 0 0";
+        chkVis.style.flexShrink = "0";
+        chkVis.addEventListener("click", e => e.stopPropagation());
+        chkVis.addEventListener("change", () => {
+          toggleCustomPolyVisibility(idx);
+        });
+
+        if (p.visible === false) {
+          row.style.opacity = "0.55";
+        }
+
         // Opt Checkbox (Tickmark to include in optimization)
         const lblOpt = document.createElement("label");
         lblOpt.style.display = "inline-flex";
@@ -8311,16 +8330,6 @@ EOF`;
         meta.style.color = p.closed ? (isActive ? p.color : "var(--text-muted)") : "#ff9100";
         meta.innerHTML = areaStr + deltaHtml;
 
-        const btnVis = document.createElement("button");
-        btnVis.type = "button";
-        btnVis.className = "custom-poly-btn-icon";
-        btnVis.title = p.visible !== false ? "Hide on map" : "Show on map";
-        btnVis.innerHTML = p.visible !== false ? "👁️" : "<span style='opacity:0.35;'>👁️</span>";
-        btnVis.addEventListener("click", e => {
-          e.stopPropagation();
-          toggleCustomPolyVisibility(idx);
-        });
-
         const btnDel = document.createElement("button");
         btnDel.type = "button";
         btnDel.className = "custom-poly-btn-icon custom-poly-btn-del";
@@ -8332,10 +8341,10 @@ EOF`;
         });
 
         row.appendChild(dot);
+        row.appendChild(chkVis);
         row.appendChild(inp);
         row.appendChild(lblOpt);
         row.appendChild(meta);
-        row.appendChild(btnVis);
         row.appendChild(btnDel);
 
         row.addEventListener("click", () => {

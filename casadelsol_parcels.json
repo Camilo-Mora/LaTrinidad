@@ -2,9 +2,9 @@
   {
     "id": "poly_casadelsol_lote_7",
     "name": "Lote 7",
-    "color": "#76ff03",
+    "color": "#ff0000",
     "targetArea": 20004,
-    "optArea": true,
+    "optArea": false,
     "closed": true,
     "visible": true,
     "showNodes": true,
@@ -102,16 +102,16 @@
         }
       }
     ],
-    "dash": "solid",
-    "width": 2.5,
-    "fillOpacity": 20
+    "dash": "dotted",
+    "width": 1.5,
+    "fillOpacity": 0
   },
   {
     "id": "poly_casadelsol_lote_6",
     "name": "Lote 6",
-    "color": "#00e5ff",
+    "color": "#ff0000",
     "targetArea": 4800,
-    "optArea": true,
+    "optArea": false,
     "closed": true,
     "visible": true,
     "showNodes": true,
@@ -179,16 +179,16 @@
         }
       }
     ],
-    "dash": "solid",
-    "width": 2.5,
-    "fillOpacity": 20
+    "dash": "dotted",
+    "width": 1.5,
+    "fillOpacity": 0
   },
   {
     "id": "poly_casadelsol_lote_5",
     "name": "Lote 5",
-    "color": "#ffb300",
+    "color": "#ff0000",
     "targetArea": 10604,
-    "optArea": true,
+    "optArea": false,
     "closed": true,
     "visible": true,
     "showNodes": true,
@@ -361,16 +361,16 @@
         }
       }
     ],
-    "dash": "solid",
-    "width": 2.5,
-    "fillOpacity": 20
+    "dash": "dotted",
+    "width": 1.5,
+    "fillOpacity": 0
   },
   {
     "id": "poly_casadelsol_lote_8",
     "name": "Lote 8",
-    "color": "#e040fb",
+    "color": "#ff0000",
     "targetArea": 20955,
-    "optArea": true,
+    "optArea": false,
     "closed": true,
     "visible": true,
     "showNodes": true,
@@ -498,8 +498,8 @@
         }
       }
     ],
-    "dash": "solid",
-    "width": 2.5,
-    "fillOpacity": 20
+    "dash": "dotted",
+    "width": 1.5,
+    "fillOpacity": 0
   }
 ]
