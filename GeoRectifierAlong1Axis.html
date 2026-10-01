@@ -1896,11 +1896,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px 2px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
               <label for="range-anchor-photo-size" style="display:flex;align-items:center;gap:4px;color:var(--accent-cyan);font-weight:600;white-space:nowrap;margin:0;" title="Adjust manual size of landmark photo cards shown on map">
                 <span>📷 Size:</span>
-                <span id="anchor-photo-size-val" style="font-family:monospace;color:var(--text-main);font-weight:bold;min-width:38px;">56px</span>
+                <span id="anchor-photo-size-val" style="font-family:monospace;color:var(--text-main);font-weight:bold;min-width:38px;">180px</span>
               </label>
               <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:190px;">
-                <input type="range" id="range-anchor-photo-size" min="40" max="280" step="4" value="56" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
-                <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (56px)">↺</button>
+                <input type="range" id="range-anchor-photo-size" min="40" max="320" step="4" value="180" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
+                <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (180px)">↺</button>
               </div>
             </div>
 
@@ -5446,7 +5446,7 @@ EOF`;
       histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
       trueEntities: [],      // DXF from CercoCampo_CristianCortes_Marz_2019.dxf (GIS UTM coord space)
       anchors: [],
-      anchorPhotoSize: 56,
+      anchorPhotoSize: 180,
       pendingSource: null,
       algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
       toolMode: "pan",
@@ -6158,12 +6158,32 @@ EOF`;
       ctx.restore();
     }
 
+    // ── Helper: Default Anchor Card Offset (Optimized for 180px cards without overlaps) ──
+    function getDefaultAnchorOffset(anc, isHist) {
+      const id = anc.id != null ? Number(anc.id) : null;
+      if (id === 1) {
+        // Lower anchor (Mojón 1 Entrada, SW): sits to the left/NW with ample clearance
+        return { dx: -215, dy: -60 };
+      } else if (id === 2) {
+        // Upper anchor (Mojón 2 Lindero NE): sits to the right/NE with ample clearance
+        return { dx: 35, dy: -135 };
+      } else if (id === 3) {
+        return { dx: 35, dy: 25 };
+      } else if (id === 4) {
+        return { dx: -215, dy: 10 };
+      } else if (id === 5) {
+        return { dx: 35, dy: -100 };
+      }
+      return { dx: 25, dy: -25 };
+    }
+
     // ── Helper: Anchor Label Double-Framed Card & Aspect Ratio Bounds ──
     function getAnchorCardBounds(anc, pt, isHist, ctx) {
       const isEnabled = anc.active !== false && anc.enabled !== false;
       const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
       const fullText = labelName + (isEnabled ? "" : " (off)");
-      const defDx = 10, defDy = -10;
+      const defOff = getDefaultAnchorOffset(anc, isHist);
+      const defDx = defOff.dx, defDy = defOff.dy;
       const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
       const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
       const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
@@ -6193,9 +6213,31 @@ EOF`;
         const cardInnerW = Math.max(imgW, (badgeR * 2) + 6 + textW + 4);
         const cardW = cardInnerW + padX * 2;
         const cardH = padTop + headerH + dividerGap + imgGap + imgH + padBottom;
-        const cardX = pt.x + offX;
-        const cardY = pt.y + offY - (cardH / 2) + 10;
-        return { cardX, cardY, cardW, cardH, offX, offY };
+
+        let cardX = pt.x + offX;
+        let cardY = pt.y + offY - (cardH / 2) + 10;
+        let finalOffX = offX, finalOffY = offY;
+
+        const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
+        const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (isHist ? histCanvas.width : trueCanvas.width);
+        const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (isHist ? histCanvas.height : trueCanvas.height);
+        const margin = 24; // Equal distance from canvas edge for both right/top and left/bottom
+
+        if (!isHist && !hasCustom && anc.id === 1) {
+          // Bottom anchor: left side at margin (24px), bottom at canvasH - margin (24px)
+          cardX = margin;
+          cardY = canvasH - cardH - margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y + (cardH / 2) - 10;
+        } else if (!isHist && !hasCustom && anc.id === 2) {
+          // Top anchor: top at margin (24px), right side at canvasW - margin (24px)
+          cardX = canvasW - cardW - margin;
+          cardY = margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y + (cardH / 2) - 10;
+        }
+
+        return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
       } else {
         const padX = 8;
         const cardH = 24;
@@ -6209,9 +6251,28 @@ EOF`;
         ctx.restore();
 
         const cardW = (badgeR * 2) + 8 + textW + padX * 2;
-        const cardX = pt.x + offX;
-        const cardY = pt.y + offY;
-        return { cardX, cardY, cardW, cardH, offX, offY };
+        let cardX = pt.x + offX;
+        let cardY = pt.y + offY;
+        let finalOffX = offX, finalOffY = offY;
+
+        const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
+        const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (isHist ? histCanvas.width : trueCanvas.width);
+        const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (isHist ? histCanvas.height : trueCanvas.height);
+        const margin = 24;
+
+        if (!isHist && !hasCustom && anc.id === 1) {
+          cardX = margin;
+          cardY = canvasH - cardH - margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y;
+        } else if (!isHist && !hasCustom && anc.id === 2) {
+          cardX = canvasW - cardW - margin;
+          cardY = margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y;
+        }
+
+        return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
       }
     }
 
@@ -6219,11 +6280,6 @@ EOF`;
       const isEnabled = anc.active !== false && anc.enabled !== false;
       const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
       const fullText = labelName + (isEnabled ? "" : " (off)");
-      const defDx = 10, defDy = -10;
-      const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
-      const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
-      const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
-
       if (anc.image && !anc._imgElement) {
         const img = new Image();
         img.onload = () => {
@@ -6241,9 +6297,11 @@ EOF`;
       const cardY = bounds.cardY;
       const cardW = bounds.cardW;
       const cardH = bounds.cardH;
+      const offX = bounds.offX;
+      const offY = bounds.offY;
 
       // Draw 3px connector arrow pointing towards the anchor
-      if (Math.hypot(offX - defDx, offY - defDy) > 6 || (offset && typeof offset.dx === "number")) {
+      if (Math.hypot(offX, offY) > 20 || (anc.labelOffsetDst && typeof anc.labelOffsetDst.dx === "number")) {
         const startX = Math.max(cardX, Math.min(cardX + cardW, pt.x));
         const startY = Math.max(cardY, Math.min(cardY + cardH, pt.y));
         const dx = pt.x - startX;
@@ -14401,7 +14459,7 @@ EOF`;
       rangePhotoSize.addEventListener("input", e => setAnchorPhotoSize(parseInt(e.target.value, 10)));
     }
     if (btnResetPhotoSize) {
-      btnResetPhotoSize.addEventListener("click", () => setAnchorPhotoSize(56));
+      btnResetPhotoSize.addEventListener("click", () => setAnchorPhotoSize(180));
     }
 
     function updateAlgoComparePanel() {
