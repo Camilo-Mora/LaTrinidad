@@ -1848,6 +1848,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
                     </th>
                     <th style="text-align:left;">Name</th>
+                    <th style="width:52px;text-align:center;" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth or 🌊 Floating guide on axis">Mode</th>
                     <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
                     <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
                     <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
@@ -5555,6 +5556,44 @@ EOF`;
       return anchors.filter(a => a.active !== false && a.enabled !== false);
     }
 
+    /**
+     * Auto-relaxes floating guide anchors (anchors snapped to an axis with optimize:false).
+     * Solves as a zero-force "bead on a wire" (orthogonal projection onto the axis).
+     */
+    function updateFloatingGuideAnchors() {
+      if (!state.anchors || state.anchors.length === 0) return false;
+      const active = getActiveAnchors();
+      const floating = active.filter(a => a.axisId != null && a.optimize !== true);
+      if (floating.length === 0) return false;
+
+      // Base anchors: active anchors that are NOT floating guides
+      const base = active.filter(a => !(a.axisId != null && a.optimize !== true));
+      let warper = null;
+      if (base.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, base); } catch (_) {}
+      }
+      if (!warper && active.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, active); } catch (_) {}
+      }
+      if (!warper) return false;
+
+      let anyChanged = false;
+      floating.forEach(anc => {
+        const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+        if (ax) {
+          const pNat = warper(anc.src);
+          const pr = projectPointOnAxis(pNat, ax);
+          const clampedT = Math.max(0.0, Math.min(1.0, pr.t));
+          if (anc.axisT !== clampedT || Math.hypot(anc.dst.x - pr.projPt.x, anc.dst.y - pr.projPt.y) > 0.001) {
+            anc.axisT = clampedT;
+            anc.dst = { x: pr.projPt.x, y: pr.projPt.y };
+            anyChanged = true;
+          }
+        }
+      });
+      return anyChanged;
+    }
+
     const histCanvas = document.getElementById("hist-canvas");
     const histCtx    = histCanvas.getContext("2d");
     const trueCanvas = document.getElementById("true-canvas");
@@ -5679,6 +5718,7 @@ EOF`;
 
     // ── Redraw ────────────────────────────────────────────────────────
     function redrawAll() {
+      updateFloatingGuideAnchors();
       const histCard = document.getElementById("hist-card");
       const trueCard = document.getElementById("true-card");
       if (!histCard || !histCard.classList.contains("hidden")) {
@@ -6912,6 +6952,27 @@ EOF`;
         if (!isEnabled) trueCtx.setLineDash([2, 2]);
         trueCtx.stroke();
         trueCtx.setLineDash([]);
+
+        // Distinct visual aura/indicator based on anchor mode
+        if (isEnabled) {
+          if (anc.axisId != null && anc.optimize !== true) {
+            // Floating Guide (Rubber band on axis): cyan dotted rail ring
+            trueCtx.beginPath();
+            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+            trueCtx.strokeStyle = "#00e5ff";
+            trueCtx.lineWidth = 1.6;
+            trueCtx.setLineDash([3, 3]);
+            trueCtx.stroke();
+            trueCtx.setLineDash([]);
+          } else if (anc.optimize === true) {
+            // Actively optimized: glowing target ring
+            trueCtx.beginPath();
+            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+            trueCtx.strokeStyle = (anc.axisId != null) ? "#e040fb" : "#76ff03";
+            trueCtx.lineWidth = 1.6;
+            trueCtx.stroke();
+          }
+        }
 
         if (anc.showLabel !== false) {
           drawAnchorLabelCard(trueCtx, anc, tp, false);
@@ -10685,12 +10746,10 @@ EOF`;
       const chkOptCdsOnly = document.getElementById("chk-opt-casa-del-sol-only");
       const useCdsOnly = chkOptCdsOnly ? chkOptCdsOnly.checked : (state.optCasaDelSolOnly || false);
 
-      if (useAxisOnly) {
-        const boundAxisAnchors = state.anchors.filter(anc => anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId));
-        if (boundAxisAnchors.length === 0) {
-          alert("1D Test Axis Constraint is enabled, but no active anchors are linked to a Test Axis.\n\nPlease snap at least one anchor to a Test Axis or untick '1D Test Axis Constraint'.");
-          return;
-        }
+      const optimizableAnchors = state.anchors.filter(anc => anc.active !== false && anc.enabled !== false && anc.optimize === true);
+      if (optimizableAnchors.length === 0) {
+        alert("All active anchors are currently Fixed (🔒) or Floating Guides (🌊).\n\nPlease click '🔒 Fixed' or '🌊 Float' in the Anchors table to turn on '🎯 Tune' mode on the anchor(s) you wish to optimize.");
+        return;
       }
 
       if (useCdsOnly) {
@@ -10740,12 +10799,16 @@ EOF`;
       const MAX_GEN = isAutoMin ? 10 : 22;
 
       function sampleCandidateOffset(ancIdx) {
-        if (useAxisOnly) {
-          const anc = state.anchors[ancIdx];
-          if (anc && anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
-            return { t: Math.random(), u: 0, v: 0 };
+        const anc = state.anchors[ancIdx];
+        if (!anc) return { u: 0, v: 0, t: 0.5 };
+        if (anc.optimize !== true) {
+          if (anc.axisId != null) {
+            return { isFloating: true, t: anc.axisT ?? 0.5, u: 0, v: 0 };
           }
-          return { t: 0.5, u: 0, v: 0 }; // Locked!
+          return { isFixed: true, u: 0, v: 0, t: 0.5 };
+        }
+        if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+          return { t: Math.random(), u: 0, v: 0 };
         }
         const theta = Math.random() * 2 * Math.PI;
         const rad = Math.sqrt(Math.random());
@@ -10820,7 +10883,7 @@ EOF`;
 
         // Current normalized offsets inside unit disk or full-axis parameter t
         const currentOffsets = state.anchors.map((anc, idx) => {
-          if (useAxisOnly && anc.axisId != null) {
+          if (anc.axisId != null) {
             const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
             if (ax) {
               let t = anc.axisT;
@@ -10829,8 +10892,11 @@ EOF`;
                 t = pr.t;
               }
               t = Math.max(0.0, Math.min(1.0, t));
-              return { t, u: 0, v: 0 };
+              return { t, u: 0, v: 0, isFloating: (anc.optimize !== true) };
             }
+          }
+          if (anc.optimize !== true) {
+            return { u: 0, v: 0, t: 0.5, isFixed: true };
           }
           const center = anchorCenters[idx];
           let du = (anc.dst.x - center.x) / currentR;
@@ -10844,33 +10910,80 @@ EOF`;
         function evaluateCandidate(offsets) {
           try {
             const candAnchors = state.anchors.map((anc, idx) => {
-              if (useAxisOnly && anc.axisId != null) {
+              const off = offsets[idx] || {};
+              // 1. If anchor is on an axis:
+              if (anc.axisId != null) {
                 const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
                 if (ax) {
-                  let t = offsets[idx].t !== undefined
-                    ? offsets[idx].t
-                    : (offsets[idx].u !== undefined ? (offsets[idx].u + 1) / 2 : 0.5);
-                  t = Math.max(0.0, Math.min(1.0, t));
-                  return {
-                    ...anc,
-                    axisT: t,
-                    dst: {
-                      x: ax.p1.x + t * (ax.p2.x - ax.p1.x),
-                      y: ax.p1.y + t * (ax.p2.y - ax.p1.y)
-                    }
-                  };
+                  if (anc.optimize === true) {
+                    let t = off.t !== undefined ? off.t : (off.u !== undefined ? (off.u + 1) / 2 : 0.5);
+                    t = Math.max(0.0, Math.min(1.0, t));
+                    return {
+                      ...anc,
+                      axisT: t,
+                      dst: {
+                        x: ax.p1.x + t * (ax.p2.x - ax.p1.x),
+                        y: ax.p1.y + t * (ax.p2.y - ax.p1.y)
+                      }
+                    };
+                  }
+                  // Otherwise: Floating Guide (relaxed below)
+                  return { ...anc, isFloatingGuide: true };
                 }
               }
-              const u = offsets[idx].u || 0;
-              const v = offsets[idx].v || 0;
+              // 2. Normal anchor with optimization enabled:
+              if (anc.optimize === true) {
+                const u = off.u || 0;
+                const v = off.v || 0;
+                return {
+                  ...anc,
+                  dst: {
+                    x: anchorCenters[idx].x + u * currentR,
+                    y: anchorCenters[idx].y + v * currentR
+                  }
+                };
+              }
+              // 3. Fixed anchor (0 DOF):
               return {
                 ...anc,
-                dst: {
-                  x: anchorCenters[idx].x + u * currentR,
-                  y: anchorCenters[idx].y + v * currentR
-                }
+                dst: { x: anc.dst.x, y: anc.dst.y }
               };
             });
+
+            // Relax floating guide anchors to orthogonal projection of current candidate warper
+            const hasFloating = candAnchors.some(a => a.isFloatingGuide);
+            if (hasFloating) {
+              const nonFloating = candAnchors.filter(a => !a.isFloatingGuide && a.active !== false && a.enabled !== false);
+              let tempWarper = null;
+              if (nonFloating.length >= 2) {
+                try { tempWarper = TransformMath.createWarper(state.algorithm, nonFloating); } catch(_) {}
+              }
+              if (!tempWarper) {
+                const allActive = candAnchors.filter(a => a.active !== false && a.enabled !== false);
+                if (allActive.length >= 2) {
+                  try { tempWarper = TransformMath.createWarper(state.algorithm, allActive); } catch(_) {}
+                }
+              }
+              candAnchors.forEach((ca, ci) => {
+                if (ca.isFloatingGuide) {
+                  const ax = (state.testAxes || []).find(a => a.id === ca.axisId);
+                  if (ax) {
+                    let pNat = ca.dst;
+                    if (tempWarper) {
+                      try { pNat = tempWarper(ca.src); } catch(_) {}
+                    }
+                    const pr = projectPointOnAxis(pNat, ax);
+                    const clampedT = Math.max(0.0, Math.min(1.0, pr.t));
+                    candAnchors[ci] = {
+                      ...ca,
+                      axisT: clampedT,
+                      dst: { x: pr.projPt.x, y: pr.projPt.y },
+                      isFloatingGuide: false
+                    };
+                  }
+                }
+              });
+            }
 
             const candWarper = TransformMath.createWarper(state.algorithm, candAnchors);
 
@@ -10980,32 +11093,26 @@ EOF`;
 
         if (useAllCombos) {
           // ── STRATEGY A: ALL COMBINATIONS (ORDERED GRID SEARCH) ──────────────
-          let pointSets;
-          if (useAxisOnly) {
-            // Full-length 1D Axis grid: sweep parameter t from 0.0 (Point 1) to 1.0 (Point 2)
-            const axisAnchors = state.anchors.filter(anc => anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId));
-            const axisAnchorCount = axisAnchors.length;
-            let nSteps = 51; // 1 anchor -> 51 steps (0.00 to 1.00 at 0.02 intervals)
-            if (axisAnchorCount === 2) nSteps = 25; // 2 anchors -> 25*25 = 625 combos
-            else if (axisAnchorCount === 3) nSteps = 11; // 3 anchors -> 11^3 = 1331 combos
-            else if (axisAnchorCount === 4) nSteps = 6;  // 4 anchors -> 6^4 = 1296 combos
-            else if (axisAnchorCount > 4) nSteps = 5;
+          const optAnchors = state.anchors.filter(a => a.active !== false && a.enabled !== false && a.optimize === true);
+          const optCount = Math.max(1, optAnchors.length);
+          const baseGrid = getGridOffsetsForM(optCount);
 
-            const tVals = [];
-            for (let s = 0; s < nSteps; s++) {
-              tVals.push(+(s / (nSteps - 1)).toFixed(4));
+          let pointSets = state.anchors.map((anc, idx) => {
+            if (anc.optimize !== true) {
+              return [{ u: 0, v: 0, t: anc.axisT ?? 0.5, isFixed: anc.axisId == null, isFloating: anc.axisId != null }];
             }
-
-            pointSets = state.anchors.map((anc, idx) => {
-              if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
-                return tVals.map(t => ({ t, u: 0, v: 0 }));
+            if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+              let nSteps = 25;
+              if (optCount >= 3) nSteps = 11;
+              if (optCount >= 4) nSteps = 6;
+              const tVals = [];
+              for (let s = 0; s < nSteps; s++) {
+                tVals.push(+(s / (nSteps - 1)).toFixed(4));
               }
-              return [{ t: 0.5, u: 0, v: 0 }]; // Unbound anchors stay locked!
-            });
-          } else {
-            const baseGrid = getGridOffsetsForM(M);
-            pointSets = anchorCenters.map(() => [...baseGrid]);
-          }
+              return tVals.map(t => ({ t, u: 0, v: 0 }));
+            }
+            return [...baseGrid];
+          });
 
           const allCombos = cartesianProduct(pointSets);
           globalBest = evaluateCandidate(currentOffsets);
@@ -11044,9 +11151,7 @@ EOF`;
 
               if (optStatusBadge) {
                 let prefix = "";
-                if (useCdsOnly && useAxisOnly) prefix = "1D+CdS";
-                else if (useCdsOnly) prefix = "CdS Area";
-                else if (useAxisOnly) prefix = "1D Axis";
+                if (useCdsOnly) prefix = "CdS Area";
                 else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
                 else prefix = "Combos";
                 optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (Best: ${globalBest.loss.toFixed(2)}%)`;
@@ -11077,43 +11182,9 @@ EOF`;
           const population = [];
           population.push(evaluateCandidate(currentOffsets));
 
-          if (useAxisOnly) {
-            // Seed key stations along the full axis [0.0, 1.0]: 0.0 (p1), 1.0 (p2), 0.5 (mid), 0.25, 0.75, etc.
-            const tSeeds = [0.0, 1.0, 0.5, 0.25, 0.75, 0.1, 0.9, 0.35, 0.65];
-            for (let s = 0; s < tSeeds.length && population.length < POP_SIZE; s++) {
-              const offsetArr = state.anchors.map(anc => {
-                if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
-                  return { t: tSeeds[s], u: 0, v: 0 };
-                }
-                return { t: 0.5, u: 0, v: 0 };
-              });
-              population.push(evaluateCandidate(offsetArr));
-            }
-            while (population.length < POP_SIZE) {
-              const offsetArr = state.anchors.map(anc => {
-                if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
-                  return { t: Math.random(), u: 0, v: 0 };
-                }
-                return { t: 0.5, u: 0, v: 0 };
-              });
-              population.push(evaluateCandidate(offsetArr));
-            }
-          } else {
-            population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0, t: 0.5 }))));
-            const cardinals = [
-              { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
-              { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
-              { u: 0.55, v: 0.55 }, { u: -0.55, v: 0.55 },
-              { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
-            ];
-            for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
-              const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i], t: 0.5 }));
-              population.push(evaluateCandidate(offsetArr));
-            }
-            while (population.length < POP_SIZE) {
-              const offsetArr = Array.from({ length: M }, (_, k) => sampleCandidateOffset(k));
-              population.push(evaluateCandidate(offsetArr));
-            }
+          while (population.length < POP_SIZE) {
+            const offsetArr = Array.from({ length: M }, (_, k) => sampleCandidateOffset(k));
+            population.push(evaluateCandidate(offsetArr));
           }
 
           globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
@@ -11136,28 +11207,48 @@ EOF`;
 
               for (let k = 0; k < M; k++) {
                 const anc = state.anchors[k];
-                if (useAxisOnly) {
-                  if (anc && anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
-                    let t;
-                    if (Math.random() < CR || k === 0) {
-                      const t1 = population[r1].offsets[k].t ?? 0.5;
-                      const t2 = population[r2].offsets[k].t ?? 0.5;
-                      const t3 = population[r3].offsets[k].t ?? 0.5;
-                      const tBest = globalBest.offsets[k].t ?? 0.5;
-                      const tCur = population[i].offsets[k].t ?? 0.5;
-                      t = t1 + F * (t2 - t3) + 0.15 * (tBest - tCur);
-                      if (Math.random() < 0.15) {
-                        t += (Math.random() - 0.5) * 0.12;
-                      }
-                    } else {
-                      t = population[i].offsets[k].t ?? 0.5;
+                if (anc.optimize !== true) {
+                  trialOffsets.push(sampleCandidateOffset(k));
+                } else if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+                  let t;
+                  if (Math.random() < CR || k === 0) {
+                    const t1 = population[r1].offsets[k].t ?? 0.5;
+                    const t2 = population[r2].offsets[k].t ?? 0.5;
+                    const t3 = population[r3].offsets[k].t ?? 0.5;
+                    const tBest = globalBest.offsets[k].t ?? 0.5;
+                    const tCur = population[i].offsets[k].t ?? 0.5;
+                    t = t1 + F * (t2 - t3) + 0.15 * (tBest - tCur);
+                    if (Math.random() < 0.15) {
+                      t += (Math.random() - 0.5) * 0.12;
                     }
-                    t = Math.max(0.0, Math.min(1.0, t));
-                    trialOffsets.push({ t, u: 0, v: 0 });
                   } else {
-                    trialOffsets.push({ t: 0.5, u: 0, v: 0 });
+                    t = population[i].offsets[k].t ?? 0.5;
                   }
+                  t = Math.max(0.0, Math.min(1.0, t));
+                  trialOffsets.push({ t, u: 0, v: 0 });
                 } else {
+                  let u, v;
+                  if (Math.random() < CR || k === 0) {
+                    u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
+                        + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
+                    v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
+                        + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
+                    if (Math.random() < 0.12) {
+                      u += (Math.random() - 0.5) * 0.18;
+                      v += (Math.random() - 0.5) * 0.18;
+                    }
+                  } else {
+                    u = population[i].offsets[k].u;
+                    v = population[i].offsets[k].v;
+                  }
+                  const dist = Math.hypot(u, v);
+                  if (dist > 1.0) {
+                    u /= dist;
+                    v /= dist;
+                  }
+                  trialOffsets.push({ u, v, t: 0.5 });
+                }
+              }
                   let u, v;
                   if (Math.random() < CR || k === 0) {
                     u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
@@ -13861,6 +13952,22 @@ EOF`;
           }
         }
 
+        const isOpt = anc.optimize === true;
+        let modeBtnHtml = "";
+        if (anc.axisId != null) {
+          if (isOpt) {
+            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #e040fb;background:rgba(224,64,251,0.22);color:#e040fb;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="1D Auto-Tune active: optimizer actively sweeps along axis. Click to switch to Floating Guide (zero-force rubber band).">🎯 Tune</button>`;
+          } else {
+            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #00e5ff;background:rgba(0,229,255,0.18);color:#00e5ff;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Floating Guide active: slides freely along axis to natural projection (rubber band). Click to enable 1D Auto-Tune.">🌊 Float</button>`;
+          }
+        } else {
+          if (isOpt) {
+            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #76ff03;background:rgba(118,255,3,0.20);color:#76ff03;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="2D Auto-Tune active: optimizer searches in buffer. Click to lock anchor as Fixed Ground Truth.">🎯 Tune</button>`;
+          } else {
+            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #78909c;background:rgba(120,144,156,0.20);color:#b0bec5;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Fixed Ground Truth: anchor coordinate is locked (0 movement). Click to enable 2D Auto-Tune.">🔒 Fixed</button>`;
+          }
+        }
+
         tr.innerHTML = `
           <td style="text-align:center;">
             <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
@@ -13871,6 +13978,9 @@ EOF`;
               <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
               ${axisBadgeHtml}
             </div>
+          </td>
+          <td style="text-align:center;">
+            ${modeBtnHtml}
           </td>
           <td style="text-align:center;">
             <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
@@ -13891,6 +14001,22 @@ EOF`;
             <button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})" title="Delete Anchor #${anc.id}">✕</button>
           </td>`;
         anchorTableBody.appendChild(tr);
+      });
+
+      // Toggle anchor optimize mode listener
+      anchorTableBody.querySelectorAll(".btn-toggle-anchor-opt").forEach(btn => {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          const ancId = parseInt(btn.getAttribute("data-id"), 10);
+          const anc = (state.anchors || []).find(a => a.id === ancId);
+          if (anc) {
+            anc.optimize = !anc.optimize;
+            updateAnalyticsUI();
+            redrawAll();
+            const modeText = anc.optimize ? (anc.axisId != null ? "1D Auto-Tune" : "2D Auto-Tune") : (anc.axisId != null ? "Floating Guide (Rubber Band)" : "Fixed Ground Truth");
+            updateStatus(`Anchor #${ancId} mode set to: ${modeText}`);
+          }
+        });
       });
 
       // Detach anchor from axis click listener
