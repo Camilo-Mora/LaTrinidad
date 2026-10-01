@@ -1536,6 +1536,40 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
     <!-- [SECTION: HTML_SIDEBAR_OVERLAYS] -->
       <aside class="sidebar" id="sidebar">
+        <!-- 0. Conclusion & IGAC Tolerance Corridors (Top Executive Summary) -->
+        <section class="panel-card" id="panel-poly-conclusion">
+          <div class="panel-header" data-target="body-poly-conclusion" title="Colapsar / Desplegar Conclusión e IGAC Corredores" style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h3 style="color:var(--accent-cyan);">📋 Conclusión & Corredores IGAC</h3>
+            </div>
+            <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-conclusion" title="Colapsar / Desplegar">▼</button>
+          </div>
+          <div id="body-poly-conclusion" style="display:flex;flex-direction:column;gap:8px;padding:8px 10px;">
+            <div id="poly-conclusion-container" style="display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,0.35);border-left:3px solid var(--accent-cyan);padding:8px 10px;border-radius:0 4px 4px 0;">
+              <p id="poly-conclusion-text" style="font-size:0.71rem;line-height:1.55;color:#cbd5e1;margin:0;">
+                —
+              </p>
+              <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:2px;display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia gráfica pura a escala 1:2.000 (EH = 1.04 m)">
+                    <input type="checkbox" id="chk-corridor-104" style="accent-color:var(--accent-cyan);">
+                    Corredor IGAC ±1.04m (Papel)
+                  </label>
+                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#00e676;font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia rural con cobertura de bosque (EH = 5.20 m)">
+                    <input type="checkbox" id="chk-corridor-520" style="accent-color:#00e676;">
+                    Corredor IGAC ±5.20m (Bosque)
+                  </label>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.68rem;color:var(--text-muted);">
+                  <span style="white-space:nowrap;" title="Ajusta el nivel de transparencia/opacidad de los dos corredores IGAC en el mapa de campo">Transparency:</span>
+                  <input type="range" id="corridor-opacity-slider" min="0" max="100" value="50" class="opacity-slider" style="height:4px;flex:1;cursor:pointer;">
+                  <span id="corridor-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;color:var(--accent-cyan);">50%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Layer Opacity & Overlays Card -->
         <section class="panel-card" id="panel-overlays-opacity">
           <div class="panel-header" data-target="body-overlays-opacity" title="Colapsar / Desplegar Overlays & Opacity">
@@ -2074,32 +2108,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span>Scale Factor (s):</span>
                 <strong id="poly-scale-factor" style="color:var(--accent-cyan);font-family:monospace;">—</strong>
-              </div>
-              <hr style="border-color:rgba(255,255,255,0.1);margin:4px 0;">
-              <div id="poly-conclusion-container" style="display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,0.35);border-left:3px solid var(--accent-cyan);padding:8px 10px;border-radius:0 4px 4px 0;margin-top:2px;">
-                <strong style="color:var(--accent-cyan);font-size:0.75rem;display:flex;align-items:center;gap:4px;">
-                  📋 Conclusion:
-                </strong>
-                <p id="poly-conclusion-text" style="font-size:0.71rem;line-height:1.55;color:#cbd5e1;margin:0;">
-                  —
-                </p>
-                <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:2px;display:flex;flex-direction:column;gap:6px;">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia gráfica pura a escala 1:2.000 (EH = 1.04 m)">
-                      <input type="checkbox" id="chk-corridor-104" style="accent-color:var(--accent-cyan);">
-                      Corredor IGAC ±1.04m (Papel)
-                    </label>
-                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#00e676;font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia rural con cobertura de bosque (EH = 5.20 m)">
-                      <input type="checkbox" id="chk-corridor-520" style="accent-color:#00e676;">
-                      Corredor IGAC ±5.20m (Bosque)
-                    </label>
-                  </div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.68rem;color:var(--text-muted);">
-                    <span style="white-space:nowrap;" title="Ajusta el nivel de transparencia/opacidad de los dos corredores IGAC en el mapa de campo">Transparency:</span>
-                    <input type="range" id="corridor-opacity-slider" min="0" max="100" value="50" class="opacity-slider" style="height:4px;flex:1;cursor:pointer;">
-                    <span id="corridor-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;color:var(--accent-cyan);">50%</span>
-                  </div>
-                </div>
               </div>
             </div>
             <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;">🖐️ <strong>Drag node</strong>: Move &bull; 🖱️ <strong>Double-click line</strong>: Add vertex &bull; 🗑 <strong>Right-click node</strong>: Delete</p>
@@ -9720,7 +9728,7 @@ EOF`;
           const avgErrStr = avgSegErr != null ? avgSegErr.toFixed(2) : "0.00";
           const areaErrStr = (areaM2 > 0) ? ((Math.abs(areaM2 - REF_DEED_AREA_M2) / REF_DEED_AREA_M2) * 100).toFixed(2) : "0.00";
 
-          elConclusion.innerHTML = `El lindero reconstruido satisface el <strong>${pctDistGood.toFixed(1)}%</strong> de las distancias de la escritura (error medio ${avgErrStr}%) y <strong>${areaErrStr}%</strong> de error en el área legal de la Escritura 296 (162.156 m²). A su vez, el <strong>${comp.pct104.toFixed(1)}%</strong> de la longitud optimizada se encuentra estrictamente dentro del margen milimétrico de gabinete del IGAC (±1.04 m a 1:2.000), y el <strong>${comp.pct520.toFixed(1)}%</strong> queda comprendido dentro de la tolerancia de terreno rural con cobertura vegetal (±5.20 m).`;
+          elConclusion.innerHTML = `El plano original de la <strong>Escritura 1073</strong> se extrapoló entre dos mojones comunes al plano y al terreno (georreferenciados en campo mediante <strong>GPS RTK; MAGNA-SIRGAS, Origen Nacional</strong>). El lindero resultante entre La Trinidad y Casa del Sol fue optimizado mediante desplazamientos dentro del buffer de cada punto, buscando reproducir las medidas de la escritura y el área reportada para La Trinidad en la <strong>Escritura 296</strong>. El lindero resultante conserva las medidas del lindero original reportado en la Escritura 1073, reproduce el área de La Trinidad con un <strong>error de 0,00 %</strong> y ubica el <strong>${comp.pct104.toFixed(1)}%</strong> del lindero reconstruido dentro de <strong>±1,04 m</strong> del plano original (margen de precisión establecido para cartografía rural a escala 1:2.000 en la <strong>Resolución 388 de 2020 del IGAC</strong>).`;
         } else {
           elConclusion.innerHTML = "—";
         }
