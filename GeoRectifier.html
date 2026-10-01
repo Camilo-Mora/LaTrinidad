@@ -12256,10 +12256,9 @@ EOF`;
           originStr = `From ${rawSec}`;
         }
 
-        // Line 2: Segment # and Part
+        // Line 2: Segment Part
         const rawPart = (poly.segmentParts && poly.segmentParts[i]) ? String(poly.segmentParts[i]).trim() : "";
-        const partSuffix = rawPart ? ` - ${rawPart}` : "";
-        const segIdStr = `Segment #: ${i + 1}${partSuffix}`;
+        const segIdStr = `Segment #: ${rawPart || (i + 1)}`;
 
         // Line 3: Distancia reportada
         const deedValStr = deedLen != null ? `${deedLen.toFixed(2)} m` : "Sin dato en escritura";
