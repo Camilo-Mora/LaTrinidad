@@ -222,12 +222,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
       border-bottom: 1px solid var(--border-color);
     }
 
-    .view-title { font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
-    .historical-title { color: var(--accent-red); }
-    .title-296 { color: var(--accent-purple); }
-    .title-1073 { color: var(--accent-red); }
-    .title-196 { color: var(--accent-orange); }
-    .title-true { color: var(--accent-green); }
+    .view-title { font-size: 0.85rem; font-weight: 700; }
+    .historical-title { color: var(--accent-purple); }
+    .true-title { color: var(--accent-green); }
 
     .view-badge {
       font-size: 0.7rem;
@@ -237,9 +234,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
       color: var(--accent-purple);
       border: 1px solid rgba(213, 0, 249, 0.3);
     }
-    .view-badge.red { background: rgba(255, 23, 68, 0.15); color: var(--accent-red); border-color: rgba(255, 23, 68, 0.3); }
-    .view-badge.orange { background: rgba(255, 145, 0, 0.15); color: var(--accent-orange); border-color: rgba(255, 145, 0, 0.3); }
-    .view-badge.purple { background: rgba(213, 0, 249, 0.15); color: var(--accent-purple); border-color: rgba(213, 0, 249, 0.3); }
     .view-badge.loading {
       background: rgba(255, 179, 0, 0.18);
       color: #ffb300;
@@ -328,42 +322,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
       display: none !important;
     }
 
-    /* Subwindow Display Selector & Panel Controls */
-    .window-selector-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(0, 0, 0, 0.45);
-      padding: 4px 10px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-color);
-      font-size: 0.78rem;
-    }
-
-    .window-selector-group label {
-      font-weight: 600;
-      color: var(--accent-cyan);
-    }
-
-    .window-checkbox {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-      font-size: 0.75rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      transition: var(--transition-fast);
-      user-select: none;
-    }
-
-    .window-checkbox:hover { background: rgba(255, 255, 255, 0.08); }
-
-    .window-checkbox input[type="checkbox"] {
-      accent-color: var(--accent-cyan);
-      cursor: pointer;
-    }
-
+    /* Panel Layout Display Controls (Tickboxes) */
     .panel-layout-group {
       display: flex;
       align-items: center;
@@ -679,24 +638,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
       font-size: 0.65rem;
       color: #000;
       flex-shrink: 0;
-    }
-
-    .btn-toggle-all-labels {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 0.92rem;
-      padding: 0;
-      line-height: 1;
-      vertical-align: middle;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.15s ease, opacity 0.2s ease, filter 0.15s ease;
-    }
-    .btn-toggle-all-labels:hover {
-      transform: scale(1.25);
-      filter: drop-shadow(0 0 4px var(--accent-cyan));
     }
 
     .btn-del-anchor {
@@ -1373,43 +1314,20 @@ Do NOT modify dormant/parked sections unless specifically requested.
         </button>
       </div>
 
-      <!-- Subwindow Display Selector -->
-      <div class="window-selector-group">
-        <label class="window-checkbox" title="Toggle Escritura 296 Window">
-          <input type="checkbox" id="chk-show-296">
-          <span style="color:var(--accent-purple);font-weight:600;">Escritura 296</span>
+      <!-- Panel Display / Layout Options: Three Tickboxes -->
+      <div class="panel-layout-group" title="Toggle visible workspace panels">
+        <span style="font-size:0.67rem;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.5px;margin-right:2px;">Panels:</span>
+        <label class="panel-tick-item" title="Show or hide Historical Deed (Deep) Map Panel">
+          <input type="checkbox" id="chk-show-deed">
+          <span>📜 Deed</span>
         </label>
-        <label class="window-checkbox" title="Toggle Escritura 1073 Window">
-          <input type="checkbox" id="chk-show-1073">
-          <span style="color:var(--accent-red);font-weight:600;">Escritura 1073</span>
+        <label class="panel-tick-item" title="Show or hide True Field Survey &amp; Drone Map Panel">
+          <input type="checkbox" id="chk-show-field" checked>
+          <span>📍 Field</span>
         </label>
-        <label class="window-checkbox" title="Toggle Escritura 196 Window">
-          <input type="checkbox" id="chk-show-196">
-          <span style="color:var(--accent-orange);font-weight:600;">Escritura 196</span>
-        </label>
-        <label class="window-checkbox" title="Toggle Field Window">
-          <input type="checkbox" id="chk-show-true" checked>
-          <span style="color:var(--accent-green);font-weight:600;">Field</span>
-        </label>
-        <label class="window-checkbox" title="Show or hide Control Panel Sidebar" style="border-left:1px solid rgba(255,255,255,0.18);padding-left:8px;margin-left:4px;">
+        <label class="panel-tick-item" title="Show or hide Control Panel Sidebar">
           <input type="checkbox" id="chk-show-control-panel" checked>
-          <span style="color:var(--accent-cyan);font-weight:600;">⚡ Panel</span>
-        </label>
-      </div>
-
-      <!-- Global Controls: All Deeds, All Anchors, All Polygons -->
-      <div class="global-layers-toolbar-group" style="display:flex;align-items:center;background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:2px 8px;gap:10px;margin-left:4px;">
-        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;user-select:none;" title="Display / Hide all 3 Deeds (Escritura 1073, 196, 296 PDF & DXF)">
-          <input type="checkbox" id="chk-global-deeds" checked style="accent-color:#ff9100;cursor:pointer;width:13px;height:13px;margin:0;">
-          <span style="color:#ff9100;font-weight:700;font-size:0.73rem;white-space:nowrap;">📜 Deeds</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;user-select:none;border-left:1px solid rgba(255,255,255,0.12);padding-left:8px;" title="Display / Hide all Anchor control points & labels across all deeds">
-          <input type="checkbox" id="chk-global-anchors" checked style="accent-color:#00e5ff;cursor:pointer;width:13px;height:13px;margin:0;">
-          <span style="color:#00e5ff;font-weight:700;font-size:0.73rem;white-space:nowrap;">🎯 Anchors</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;user-select:none;border-left:1px solid rgba(255,255,255,0.12);padding-left:8px;" title="Display / Hide all Polygons (Reconstructed, Custom, Survey DXFs)">
-          <input type="checkbox" id="chk-global-polygons" checked style="accent-color:#00e676;cursor:pointer;width:13px;height:13px;margin:0;">
-          <span style="color:#00e676;font-weight:700;font-size:0.73rem;white-space:nowrap;">📐 Polygons</span>
+          <span>⚡ Control Panel</span>
         </label>
       </div>
 
@@ -1430,76 +1348,30 @@ Do NOT modify dormant/parked sections unless specifically requested.
     <main class="app-workspace">
       <!-- Split Canvases Area -->
       <div class="split-viewport-area">
-        <!-- Escritura 296 Viewport -->
-        <div class="viewport-card hidden" id="card-296">
+        <!-- Left Window: Historical Deed (PDF + DXF) -->
+        <div class="viewport-card hidden" id="hist-card">
           <div class="viewport-header">
-            <span class="view-title title-296">📜 Escritura 296</span>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button class="btn-fit-view" id="btn-fit-296" title="Fit & Center Display" style="display:inline-flex;align-items:center;justify-content:center;padding:4px 6px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-              </button>
-              <div class="compact-tool-group group-deed" title="Deed 296 DXF: Download (📥)">
-                <span class="group-label" style="color:var(--accent-purple);">296</span>
-                <button class="btn-icon-action btn-save-deed-296" id="btn-save-deed-296" title="Download modified Deed 296 DXF">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                </button>
-              </div>
-              <span id="status-296" class="view-badge purple">Preloaded DXF</span>
-            </div>
-          </div>
-          <div class="canvas-container" id="container-296">
-            <canvas id="canvas-296"></canvas>
-          </div>
-          <div class="viewport-hint" id="hint-296">🖐️ Pan & Drag Deed 296 map. Click '🎯 Anchor Mode' to drop points.</div>
-        </div>
-
-        <!-- Escritura 1073 Viewport (Historical Deed) -->
-        <div class="viewport-card hidden" id="card-1073">
-          <div class="viewport-header">
-            <span class="view-title title-1073">📜 Escritura 1073</span>
+            <span class="view-title historical-title">📜 Historical Deed (PDF + DXF)</span>
             <div style="display:flex;align-items:center;gap:6px;">
               <button class="btn-fit-view" id="btn-fit-hist" title="Fit & Center Display" style="display:inline-flex;align-items:center;justify-content:center;padding:4px 6px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
               </button>
               <div class="compact-tool-group group-deed" title="Deed DXF: Edit or Vectorize PDF (✏️) & Download DXF (📥)">
-                <span class="group-label" style="color:var(--accent-red);">1073</span>
+                <span class="group-label">Deed</span>
                 <button class="btn-icon-action" id="btn-edit-deed-hist" title="Edit or Vectorize PDF for Deed DXF">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
                 </button>
-                <button class="btn-icon-action btn-save-deed" id="btn-save-deed-1073" title="Download modified Deed DXF">
+                <button class="btn-icon-action btn-save-deed" title="Download modified Deed DXF">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </button>
               </div>
-              <span id="hist-status" class="view-badge red">Loading…</span>
+              <span id="hist-status" class="view-badge">Loading…</span>
             </div>
           </div>
           <div class="canvas-container" id="hist-container">
             <canvas id="hist-canvas"></canvas>
           </div>
           <div class="viewport-hint" id="hist-hint">🖐️ Left click and drag to pan deed map. Click '🎯 Anchor Mode' to drop points.</div>
-        </div>
-
-        <!-- Escritura 196 Viewport -->
-        <div class="viewport-card hidden" id="card-196">
-          <div class="viewport-header">
-            <span class="view-title title-196">📜 Escritura 196</span>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <button class="btn-fit-view" id="btn-fit-196" title="Fit & Center Display" style="display:inline-flex;align-items:center;justify-content:center;padding:4px 6px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-              </button>
-              <div class="compact-tool-group group-deed" title="Deed 196 DXF: Download (📥)">
-                <span class="group-label" style="color:var(--accent-orange);">196</span>
-                <button class="btn-icon-action btn-save-deed-196" id="btn-save-deed-196" title="Download modified Deed 196 DXF">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                </button>
-              </div>
-              <span id="status-196" class="view-badge orange">Preloaded DXF</span>
-            </div>
-          </div>
-          <div class="canvas-container" id="container-196">
-            <canvas id="canvas-196"></canvas>
-          </div>
-          <div class="viewport-hint" id="hint-196">🖐️ Pan & Drag Deed 196 map. Click '🎯 Anchor Mode' to drop points.</div>
         </div>
 
         <!-- Right Window: True Field Survey DXF + Live Transformed Overlay -->
@@ -1748,100 +1620,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
               </div>
             </div>
 
-            <!-- 2B. ESCRITURA 196 SECTION -->
-            <div class="overlay-group-header" data-target="group-escritura196-body" style="margin-top:14px;margin-bottom:8px;" title="Colapsar / Desplegar Escritura 196">
-              <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#ff9100;text-transform:uppercase;">📜 Escritura 196</span>
-              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(255,145,0,0.4), rgba(255,145,0,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-escritura196" title="Colapsar / Desplegar Escritura 196" style="color:#ff9100;border-color:rgba(255,145,0,0.3);background:rgba(255,145,0,0.08);">▶</button>
-            </div>
-            <div id="group-escritura196-body" class="overlay-group-content" style="display:none;">
-              <div class="opacity-row" style="margin-bottom:8px;">
-                <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Plano Escritura 196 en Campo (Warped Deed PDF Map Image)">
-                  <input type="checkbox" id="chk-show-warped-pdf-196" checked style="accent-color:#ff9100;cursor:pointer;margin:0;">
-                  <span>📜 Plano Escritura 196</span>
-                </label>
-                <input type="range" class="opacity-slider" id="warped-pdf-opacity-196" min="0" max="100" value="66">
-                <span class="opacity-val" id="warped-pdf-opacity-val-196">66%</span>
-              </div>
-              <div class="layer-control-block">
-                <div class="opacity-row">
-                  <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Polígono Escritura 196 en Campo (Warped Deed DXF Boundary Polygon)">
-                    <input type="checkbox" id="chk-show-warped-dxf-196" checked style="accent-color:#ff9100;cursor:pointer;margin:0;">
-                    <span>📐 Poligono de la 196</span>
-                  </label>
-                  <input type="range" class="opacity-slider" id="warped-dxf-opacity-196" min="0" max="100" value="90">
-                  <span class="opacity-val" id="warped-dxf-opacity-val-196">90%</span>
-                </div>
-                <div class="style-row">
-                  <div style="display:flex;align-items:center;gap:5px;">
-                    <input type="color" id="style-deed-dxf-color-196" value="#ff9100" class="color-picker-swatch" title="Deed 196 DXF line color">
-                    <select id="style-deed-dxf-dash-196" class="style-select" title="Line style">
-                      <option value="solid">Solid ──</option>
-                      <option value="dashed">Dashed ─ ─</option>
-                      <option value="dotted" selected>Dotted · · ·</option>
-                    </select>
-                    <select id="style-deed-dxf-width-196" class="style-select width-select" title="Line thickness">
-                      <option value="1">1px</option>
-                      <option value="2">2px</option>
-                      <option value="3" selected>3px</option>
-                      <option value="4">4px</option>
-                      <option value="6">6px</option>
-                    </select>
-                  </div>
-                  <label class="chk-nodes-label" title="Show or hide Deed 196 DXF vertex nodes on canvas">
-                    <input type="checkbox" id="style-deed-dxf-nodes-196" style="accent-color:var(--accent-cyan);"> Nodes
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- 2C. ESCRITURA 296 SECTION -->
-            <div class="overlay-group-header" data-target="group-escritura296-body" style="margin-top:14px;margin-bottom:8px;" title="Colapsar / Desplegar Escritura 296">
-              <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#d500f9;text-transform:uppercase;">📜 Escritura 296</span>
-              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(213,0,249,0.4), rgba(213,0,249,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-escritura296" title="Colapsar / Desplegar Escritura 296" style="color:#d500f9;border-color:rgba(213,0,249,0.3);background:rgba(213,0,249,0.08);">▶</button>
-            </div>
-            <div id="group-escritura296-body" class="overlay-group-content" style="display:none;">
-              <div class="opacity-row" style="margin-bottom:8px;">
-                <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Plano Escritura 296 en Campo (Warped Deed PDF Map Image)">
-                  <input type="checkbox" id="chk-show-warped-pdf-296" checked style="accent-color:#d500f9;cursor:pointer;margin:0;">
-                  <span>📜 Plano Escritura 296</span>
-                </label>
-                <input type="range" class="opacity-slider" id="warped-pdf-opacity-296" min="0" max="100" value="66">
-                <span class="opacity-val" id="warped-pdf-opacity-val-296">66%</span>
-              </div>
-              <div class="layer-control-block">
-                <div class="opacity-row">
-                  <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Polígono Escritura 296 en Campo (Warped Deed DXF Boundary Polygon)">
-                    <input type="checkbox" id="chk-show-warped-dxf-296" checked style="accent-color:#d500f9;cursor:pointer;margin:0;">
-                    <span>📐 Poligono de la 296</span>
-                  </label>
-                  <input type="range" class="opacity-slider" id="warped-dxf-opacity-296" min="0" max="100" value="90">
-                  <span class="opacity-val" id="warped-dxf-opacity-val-296">90%</span>
-                </div>
-                <div class="style-row">
-                  <div style="display:flex;align-items:center;gap:5px;">
-                    <input type="color" id="style-deed-dxf-color-296" value="#d500f9" class="color-picker-swatch" title="Deed 296 DXF line color">
-                    <select id="style-deed-dxf-dash-296" class="style-select" title="Line style">
-                      <option value="solid">Solid ──</option>
-                      <option value="dashed">Dashed ─ ─</option>
-                      <option value="dotted" selected>Dotted · · ·</option>
-                    </select>
-                    <select id="style-deed-dxf-width-296" class="style-select width-select" title="Line thickness">
-                      <option value="1">1px</option>
-                      <option value="2">2px</option>
-                      <option value="3" selected>3px</option>
-                      <option value="4">4px</option>
-                      <option value="6">6px</option>
-                    </select>
-                  </div>
-                  <label class="chk-nodes-label" title="Show or hide Deed 296 DXF vertex nodes on canvas">
-                    <input type="checkbox" id="style-deed-dxf-nodes-296" style="accent-color:var(--accent-cyan);"> Nodes
-                  </label>
-                </div>
-              </div>
-            </div>
-
             <!-- 3. LA TRINIDAD SECTION -->
             <div class="overlay-group-header" data-target="group-latrinidad-body" style="margin-top:14px;margin-bottom:8px;" title="Colapsar / Desplegar La Trinidad">
               <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#00e676;text-transform:uppercase;">📍 La Trinidad</span>
@@ -2035,6 +1813,16 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <button id="btn-clear-anchors" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear all anchor points">🗑 Clear All</button>
             </div>
 
+            <!-- Algorithm Selector (Original GeoRectifier Methods) -->
+            <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(0,229,255,0.2);min-width:0;box-sizing:border-box;">
+              <label for="algorithm-select" style="font-size:0.72rem;color:var(--accent-cyan);font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm:</label>
+              <select id="algorithm-select" class="select-dropdown" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(0,229,255,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
+                <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
+                <option value="AFFINE">Affine Transformation (6-Param)</option>
+                <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
+                <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+              </select>
+            </div>
             <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging and simulation centers within the Pen Buffer Radius of Field vertices and Temporary Checkpoint Markers">
                 <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
@@ -2043,152 +1831,33 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <span id="anchor-constrain-hint" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
             </div>
 
-            <!-- 1. ESCRITURA 1073 ANCHORS (COLLAPSIBLE) -->
-            <div class="overlay-group-header" data-target="group-anchors-1073-body" style="margin-top:6px;margin-bottom:4px;cursor:pointer;" title="Colapsar / Desplegar Anchors 1073">
-              <span style="font-size:0.72rem;font-weight:800;letter-spacing:0.5px;color:#ff1744;text-transform:uppercase;">📜 Anchors 1073</span>
-              <span id="rmse-display-1073" class="badge-rmse" style="font-size:0.65rem;padding:1px 5px;margin-left:6px;">RMSE: 0.00</span>
-              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(255,23,68,0.4), rgba(255,23,68,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-anchors-1073" title="Colapsar / Desplegar" style="color:#ff1744;border-color:rgba(255,23,68,0.3);background:rgba(255,23,68,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▼</button>
+            <div class="table-wrapper">
+              <table class="anchor-table">
+                <colgroup>
+                  <col style="width: 24px;">
+                  <col>
+                  <col style="width: 28px;">
+                  <col style="width: 30px;">
+                  <col style="width: 46px;">
+                  <col style="width: 26px;">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style="width:24px;text-align:center;" title="Enable / Disable all anchor points in transformation calculation">
+                      <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
+                    </th>
+                    <th style="text-align:left;">Name</th>
+                    <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
+                    <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
+                    <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
+                    <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
+                  </tr>
+                </thead>
+                <tbody id="anchor-table-body">
+                  <!-- Anchor rows dynamically added here -->
+                </tbody>
+              </table>
             </div>
-            <div id="group-anchors-1073-body" class="overlay-group-content" style="display:flex;flex-direction:column;gap:4px;">
-              <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 8px;margin-bottom:2px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(255,23,68,0.25);min-width:0;box-sizing:border-box;">
-                <label for="algorithm-select-1073" style="font-size:0.7rem;color:#ff1744;font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm 1073:</label>
-                <select id="algorithm-select-1073" class="select-dropdown algo-deed-select" data-deed="1073" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(255,23,68,0.35);color:#e2e8f0;font-size:0.7rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
-                  <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
-                  <option value="AFFINE">Affine Transformation (6-Param)</option>
-                  <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
-                  <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
-                </select>
-              </div>
-              <div class="table-wrapper">
-                <table class="anchor-table">
-                  <colgroup>
-                    <col style="width: 24px;">
-                    <col>
-                    <col style="width: 28px;">
-                    <col style="width: 30px;">
-                    <col style="width: 46px;">
-                    <col style="width: 26px;">
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th style="width:24px;text-align:center;" title="Enable / Disable all anchor points for Escritura 1073">
-                        <input type="checkbox" id="chk-toggle-all-anchors-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors 1073">
-                      </th>
-                      <th style="text-align:left;">Name</th>
-                      <th style="width:28px;text-align:center;" title="Display / Hide all anchor labels on canvas">
-                        <button type="button" id="btn-toggle-all-labels-1073" class="btn-toggle-all-labels" data-deed="1073" title="Display / Hide all anchor labels on canvas">👁️</button>
-                      </th>
-                      <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
-                      <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
-                      <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
-                    </tr>
-                  </thead>
-                  <tbody id="anchor-table-body-1073">
-                    <!-- Anchor rows for 1073 dynamically added here -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- 2. ESCRITURA 196 ANCHORS (COLLAPSIBLE) -->
-            <div class="overlay-group-header" data-target="group-anchors-196-body" style="margin-top:8px;margin-bottom:4px;cursor:pointer;" title="Colapsar / Desplegar Anchors 196">
-              <span style="font-size:0.72rem;font-weight:800;letter-spacing:0.5px;color:#ff9100;text-transform:uppercase;">📜 Anchors 196</span>
-              <span id="rmse-display-196" class="badge-rmse" style="font-size:0.65rem;padding:1px 5px;margin-left:6px;">RMSE: 0.00</span>
-              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(255,145,0,0.4), rgba(255,145,0,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-anchors-196" title="Colapsar / Desplegar" style="color:#ff9100;border-color:rgba(255,145,0,0.3);background:rgba(255,145,0,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▼</button>
-            </div>
-            <div id="group-anchors-196-body" class="overlay-group-content" style="display:flex;flex-direction:column;gap:4px;">
-              <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 8px;margin-bottom:2px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(255,145,0,0.25);min-width:0;box-sizing:border-box;">
-                <label for="algorithm-select-196" style="font-size:0.7rem;color:#ff9100;font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm 196:</label>
-                <select id="algorithm-select-196" class="select-dropdown algo-deed-select" data-deed="196" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(255,145,0,0.35);color:#e2e8f0;font-size:0.7rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
-                  <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
-                  <option value="AFFINE">Affine Transformation (6-Param)</option>
-                  <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
-                  <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
-                </select>
-              </div>
-              <div class="table-wrapper">
-                <table class="anchor-table">
-                  <colgroup>
-                    <col style="width: 24px;">
-                    <col>
-                    <col style="width: 28px;">
-                    <col style="width: 30px;">
-                    <col style="width: 46px;">
-                    <col style="width: 26px;">
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th style="width:24px;text-align:center;" title="Enable / Disable all anchor points for Escritura 196">
-                        <input type="checkbox" id="chk-toggle-all-anchors-196" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors 196">
-                      </th>
-                      <th style="text-align:left;">Name</th>
-                      <th style="width:28px;text-align:center;" title="Display / Hide all anchor labels on canvas">
-                        <button type="button" id="btn-toggle-all-labels-196" class="btn-toggle-all-labels" data-deed="196" title="Display / Hide all anchor labels on canvas">👁️</button>
-                      </th>
-                      <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
-                      <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
-                      <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
-                    </tr>
-                  </thead>
-                  <tbody id="anchor-table-body-196">
-                    <!-- Anchor rows for 196 dynamically added here -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- 3. ESCRITURA 296 ANCHORS (COLLAPSIBLE) -->
-            <div class="overlay-group-header" data-target="group-anchors-296-body" style="margin-top:8px;margin-bottom:4px;cursor:pointer;" title="Colapsar / Desplegar Anchors 296">
-              <span style="font-size:0.72rem;font-weight:800;letter-spacing:0.5px;color:#d500f9;text-transform:uppercase;">📜 Anchors 296</span>
-              <span id="rmse-display-296" class="badge-rmse" style="font-size:0.65rem;padding:1px 5px;margin-left:6px;">RMSE: 0.00</span>
-              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(213,0,249,0.4), rgba(213,0,249,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-anchors-296" title="Colapsar / Desplegar" style="color:#d500f9;border-color:rgba(213,0,249,0.3);background:rgba(213,0,249,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▶</button>
-            </div>
-            <div id="group-anchors-296-body" class="overlay-group-content" style="display:none;flex-direction:column;gap:4px;">
-              <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 8px;margin-bottom:2px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(213,0,249,0.25);min-width:0;box-sizing:border-box;">
-                <label for="algorithm-select-296" style="font-size:0.7rem;color:#d500f9;font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm 296:</label>
-                <select id="algorithm-select-296" class="select-dropdown algo-deed-select" data-deed="296" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(213,0,249,0.35);color:#e2e8f0;font-size:0.7rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
-                  <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
-                  <option value="AFFINE">Affine Transformation (6-Param)</option>
-                  <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
-                  <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
-                </select>
-              </div>
-              <div class="table-wrapper">
-                <table class="anchor-table">
-                  <colgroup>
-                    <col style="width: 24px;">
-                    <col>
-                    <col style="width: 28px;">
-                    <col style="width: 30px;">
-                    <col style="width: 46px;">
-                    <col style="width: 26px;">
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th style="width:24px;text-align:center;" title="Enable / Disable all anchor points for Escritura 296">
-                        <input type="checkbox" id="chk-toggle-all-anchors-296" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors 296">
-                      </th>
-                      <th style="text-align:left;">Name</th>
-                      <th style="width:28px;text-align:center;" title="Display / Hide all anchor labels on canvas">
-                        <button type="button" id="btn-toggle-all-labels-296" class="btn-toggle-all-labels" data-deed="296" title="Display / Hide all anchor labels on canvas">👁️</button>
-                      </th>
-                      <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
-                      <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
-                      <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
-                    </tr>
-                  </thead>
-                  <tbody id="anchor-table-body-296">
-                    <!-- Anchor rows for 296 dynamically added here -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Fallback anchor table body for compatibility -->
-            <table style="display:none;"><tbody id="anchor-table-body"></tbody></table>
 
             <!-- Anchor Photo Size Slider -->
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px 2px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
@@ -5236,9 +4905,9 @@ EOF`;
   }
 };
 
-    function parseAnchorList(list) {
-      if (!Array.isArray(list) || list.length === 0) return [];
-      return list.map((a, i) => {
+    function applyAnchors(list) {
+      if (!Array.isArray(list) || list.length === 0) return;
+      state.anchors = list.map((a, i) => {
         const id = a.id || (i + 1);
         const anc = {
           id: id,
@@ -5254,39 +4923,17 @@ EOF`;
         if (anc.image) {
           const img = new Image();
           img.onload = () => {
-            if (typeof redrawAll === "function") redrawAll();
+            const histCard = document.getElementById("hist-card");
+            const trueCard = document.getElementById("true-card");
+            if (!histCard || !histCard.classList.contains("hidden")) redrawHistoricalCanvas();
+            if (!trueCard || !trueCard.classList.contains("hidden")) redrawTrueCanvas();
           };
           img.src = anc.image;
           anc._imgElement = img;
         }
         return anc;
       });
-    }
-
-    function applyAnchors(listOrObj, deedKey = "1073") {
-      if (!listOrObj) return;
-      if (typeof listOrObj === "object" && !Array.isArray(listOrObj)) {
-        if (Array.isArray(listOrObj.anchors1073) || Array.isArray(listOrObj.anchors)) {
-          applyAnchors(listOrObj.anchors1073 || listOrObj.anchors, "1073");
-        }
-        if (Array.isArray(listOrObj.anchors196)) {
-          applyAnchors(listOrObj.anchors196, "196");
-        }
-        if (Array.isArray(listOrObj.anchors296)) {
-          applyAnchors(listOrObj.anchors296, "296");
-        }
-        return;
-      }
-      const parsed = parseAnchorList(listOrObj);
-      if (deedKey === "196") {
-        state.anchors196 = parsed;
-      } else if (deedKey === "296") {
-        state.anchors296 = parsed;
-      } else {
-        state.anchors1073 = parsed;
-        state.anchors = parsed;
-      }
-      if (typeof updateAnalyticsUI === "function") updateAnalyticsUI();
+      updateAnalyticsUI();
     }
 
     function applyUserPolygon(obj) {
@@ -5593,76 +5240,36 @@ EOF`;
       activeDeedHandle: null,
       hoveredDeedHandle: null,
       deedDragStart: null,
-      entities1073: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf
-      entities196: [],       // DXF from Polygon_Escritura196.dxf
-      entities296: [],       // DXF from Polygon_Escritura296.dxf
-      histEntities: [],      // Alias to entities1073 (historical deed coord space)
+      histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
       trueEntities: [],      // DXF from CercoCampo_CristianCortes_Marz_2019.dxf (GIS UTM coord space)
-      anchors1073: [],
-      anchors196: [],
-      anchors296: [],
-      anchors: [],           // Alias to anchors1073
+      anchors: [],
       anchorPhotoSize: 56,
       pendingSource: null,
-      pendingSourceDeed: "1073",
-      algorithm: "SIMILARITY", // Default / 1073: Helmert = the PowerPoint method
-      deedAlgorithms: {
-        "1073": "SIMILARITY",
-        "196":  "SIMILARITY",
-        "296":  "SIMILARITY"
-      },
+      algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
       toolMode: "pan",
       showOverlay: true,
-      showOverlay1073: true,
-      showOverlay196: true,
-      showOverlay296: true,
       showGeoTiff: true,
-      showAnchors: true,
-      showAnchors1073: true,
-      showAnchors196: true,
-      showAnchors296: true,
       showWarpedPdf: true,
       showWarpedDxf: true,
-      showWarpedPdf196: true,
-      showWarpedDxf196: true,
-      showWarpedPdf296: true,
-      showWarpedDxf296: true,
       showTrueDxf: false,
       showSurveyValoy2025: false,
       showSurveyCortez2025: false,
       surveyValoy2025Entities: [],
       surveyCortez2025Entities: [],
-      vp1073: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
-      vp196: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
-      vp296: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
-      vpTrue: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
-      histViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null }, // Alias to vp1073
-      trueViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null }, // Alias to vpTrue
+      histViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+      trueViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
       geoTiff: null,
       geotiffFullRes: false,   // false = fast 4K downsampled display; true = full native resolution
       lastGeoTiffBlob: null,   // cached blob for instant resolution toggling without re-downloading
       geoTiffOpacity: 1.0,     // Drone TIF slider set to 100% by default
-      warpedPdfOpacity: 0.66,  // deed 1073 PDF image
-      warpedDxfOpacity: 0.9,   // deed 1073 DXF
-      warpedPdfOpacity196: 0.66,
-      warpedDxfOpacity196: 0.9,
-      warpedPdfOpacity296: 0.66,
-      warpedDxfOpacity296: 0.9,
+      warpedPdfOpacity: 0.66,  // deed PDF image: 34% opacity = 66% transparent
+      warpedDxfOpacity: 0.9,   // deed DXF drawn on true field canvas
       trueDxfOpacity: 0.5,     // Field DXF opacity slider set to 50% by default
       surveyValoy2025Opacity: 0.5,
       surveyCortez2025Opacity: 0.5,
-      pdf1073Canvas: null,
-      pdf1073W: 0,
-      pdf1073H: 0,
-      histPdfCanvas: null,     // rendered Mapa1073_FerminSuarez.pdf (alias to pdf1073Canvas)
+      histPdfCanvas: null,     // offscreen canvas: rendered Mapa1073_FerminSuarez.pdf
       histPdfW: 0,             // PDF width in PDF-space pts
       histPdfH: 0,
-      pdf196Canvas: null,      // rendered Mapa196_ErrorCasaDelSol.pdf
-      pdf196W: 0,
-      pdf196H: 0,
-      pdf296Canvas: null,      // rendered Mapa2096_LaTrinidad.pdf
-      pdf296W: 0,
-      pdf296H: 0,
       // Hand-crafted user polygon (Distance & Area panel)
       userPolygon: {
         vertices: [],          // [{x, y, deedPt, origX, origY}] in GIS world space
@@ -5719,8 +5326,6 @@ EOF`;
       defaultPolyStyle: { color: '#0066ff', dash: 'solid', width: 3.5, showNodes: false },
       // Deed DXF vertex editing on field panel & historical panel
       histFileName: "Polygon_Escritura1073_FerminSuarez.dxf",
-      histFileName196: "Polygon_Escritura196.dxf",
-      histFileName296: "Polygon_Escritura296.dxf",
       editDeedNodes: false,
       draggingDeedNode: null,      // { entIdx, ptIdx, origDeedPt: {x,y}, origFieldPt: {x,y} }
       hoverDeedNode: null,         // { entIdx, ptIdx, deedPt: {x,y}, warpedPt: {x,y} }
@@ -5740,24 +5345,6 @@ EOF`;
       styleDeedDxf: {
         color: "#ff1744",
         dash: "dotted",  // Deed DXF: dotted line
-        width: 3.0,
-        showNodes: false,
-      },
-      styleDeed1073: {
-        color: "#ff1744",
-        dash: "dotted",
-        width: 3.0,
-        showNodes: false,
-      },
-      styleDeed196: {
-        color: "#ff9100",
-        dash: "dotted",
-        width: 3.0,
-        showNodes: false,
-      },
-      styleDeed296: {
-        color: "#d500f9",
-        dash: "dotted",
         width: 3.0,
         showNodes: false,
       },
@@ -5803,12 +5390,6 @@ EOF`;
       },
     };
 
-    // Ensure aliases stay in sync
-    state.histEntities = state.entities1073;
-    state.anchors = state.anchors1073;
-    state.histViewport = state.vp1073;
-    state.trueViewport = state.vpTrue;
-
     const CUSTOM_POLY_PALETTE = ["#ffb300", "#00e5ff", "#76ff03", "#e040fb", "#ff5252", "#ffd600", "#18ffff", "#ff6e40", "#b388ff", "#69f0ae"];
     state.customPolygon = state.customPolygons[0];
 
@@ -5826,119 +5407,25 @@ EOF`;
 
     const anchorColors = ["#ff1744","#00e676","#00e5ff","#ff9100","#d500f9","#ffff00","#76ff03","#f50057"];
 
-    function getActiveAnchors(anchors = (state.anchors1073 || state.anchors)) {
+    function getActiveAnchors(anchors = state.anchors) {
       if (!anchors) return [];
       return anchors.filter(a => a.active !== false && a.enabled !== false);
     }
 
-    function normalizeAnchor(a, idx, defaultColor) {
-      const id = (a.id !== undefined && a.id !== null) ? a.id : (idx + 1);
-      const anc = {
-        id: id,
-        name: (a.name && a.name.trim()) ? a.name.trim() : (`#${id}`),
-        color: a.color || defaultColor,
-        src: { x: Number(a.src.x), y: Number(a.src.y) },
-        dst: { x: Number(a.dst.x), y: Number(a.dst.y) },
-        active: a.active !== false && a.enabled !== false,
-        enabled: a.active !== false && a.enabled !== false,
-        showLabel: a.showLabel !== false,
-        image: a.image || null,
-        labelOffsetSrc: a.labelOffsetSrc || null,
-        labelOffsetDst: a.labelOffsetDst || null
-      };
-      if (anc.image) {
-        const img = new Image();
-        img.onload = () => redrawAll();
-        img.src = anc.image;
-        anc._imgElement = img;
-      }
-      return anc;
-    }
-
-    function applyAnchors(data) {
-      if (!data) return;
-      if (Array.isArray(data)) {
-        state.anchors1073 = data.map((a, i) => normalizeAnchor(a, i, "#ff1744"));
-        state.anchors = state.anchors1073;
-        return;
-      }
-      if (data.anchors1073 && Array.isArray(data.anchors1073)) {
-        state.anchors1073 = data.anchors1073.map((a, i) => normalizeAnchor(a, i, "#ff1744"));
-        state.anchors = state.anchors1073;
-      } else if (data.anchors && Array.isArray(data.anchors)) {
-        state.anchors1073 = data.anchors.map((a, i) => normalizeAnchor(a, i, "#ff1744"));
-        state.anchors = state.anchors1073;
-      }
-      if (data.anchors196 && Array.isArray(data.anchors196)) {
-        state.anchors196 = data.anchors196.map((a, i) => normalizeAnchor(a, i, "#ff9100"));
-      }
-      if (data.anchors296 && Array.isArray(data.anchors296)) {
-        state.anchors296 = data.anchors296.map((a, i) => normalizeAnchor(a, i, "#d500f9"));
-      }
-    }
-    window.applyAnchors = applyAnchors;
-
-    const canvas296 = document.getElementById("canvas-296");
-    const ctx296    = canvas296 ? canvas296.getContext("2d") : null;
     const histCanvas = document.getElementById("hist-canvas");
-    const histCtx    = histCanvas ? histCanvas.getContext("2d") : null;
-    const canvas1073 = histCanvas;
-    const ctx1073    = histCtx;
-    const canvas196 = document.getElementById("canvas-196");
-    const ctx196    = canvas196 ? canvas196.getContext("2d") : null;
+    const histCtx    = histCanvas.getContext("2d");
     const trueCanvas = document.getElementById("true-canvas");
-    const trueCtx    = trueCanvas ? trueCanvas.getContext("2d") : null;
-
-    const card296   = document.getElementById("card-296");
-    const card1073  = document.getElementById("card-1073") || document.getElementById("hist-card");
-    const card196   = document.getElementById("card-196");
-    const cardTrue  = document.getElementById("true-card");
-
-    const chkShow296 = document.getElementById("chk-show-296");
-    const chkShow1073 = document.getElementById("chk-show-1073");
-    const chkShow196 = document.getElementById("chk-show-196");
-    const chkShowTrue = document.getElementById("chk-show-true");
-    const chkShowControlPanel = document.getElementById("chk-show-control-panel");
-    const sidebar = document.getElementById("sidebar");
+    const trueCtx    = trueCanvas.getContext("2d");
 
     const histInput       = document.getElementById("hist-dxf-input");
     const trueInput       = document.getElementById("true-dxf-input");
-    const algorithmSelect = document.getElementById("algorithm-select") || document.getElementById("algorithm-select-1073");
-    function getDeedAlgorithm(deedKey) {
-      if (state.deedAlgorithms && state.deedAlgorithms[deedKey]) {
-        return state.deedAlgorithms[deedKey];
-      }
-      return state.algorithm || "SIMILARITY";
-    }
-    function setDeedAlgorithm(deedKey, algoKey) {
-      if (!state.deedAlgorithms) state.deedAlgorithms = {};
-      state.deedAlgorithms[deedKey] = algoKey;
-      if (deedKey === "1073") state.algorithm = algoKey;
-      syncAlgorithmDropdowns();
-      redrawAll();
-    }
-    function syncAlgorithmDropdowns() {
-      ["1073", "196", "296"].forEach(key => {
-        const el = document.getElementById(`algorithm-select-${key}`);
-        if (el) el.value = getDeedAlgorithm(key);
-      });
-      const globalEl = document.getElementById("algorithm-select");
-      if (globalEl) globalEl.value = getDeedAlgorithm("1073");
-    }
+    const algorithmSelect = document.getElementById("algorithm-select");
     const btnExportDxf    = document.getElementById("btn-export-dxf");
     const btnClearAnchors = document.getElementById("btn-clear-anchors");
     const histStatus      = document.getElementById("hist-status");
-    const status196       = document.getElementById("status-196");
-    const status296       = document.getElementById("status-296");
     const trueStatus      = document.getElementById("true-status");
     const rmseDisplay     = document.getElementById("rmse-display");
-    const rmseDisplay1073 = document.getElementById("rmse-display-1073");
-    const rmseDisplay196  = document.getElementById("rmse-display-196");
-    const rmseDisplay296  = document.getElementById("rmse-display-296");
     const anchorTableBody = document.getElementById("anchor-table-body");
-    const anchorTableBody1073 = document.getElementById("anchor-table-body-1073");
-    const anchorTableBody196  = document.getElementById("anchor-table-body-196");
-    const anchorTableBody296  = document.getElementById("anchor-table-body-296");
     const chkShowOverlay  = document.getElementById("chk-show-overlay");
     const statusBar       = document.getElementById("status-bar");
     const coordsBar       = document.getElementById("coords-bar");
@@ -5997,31 +5484,12 @@ EOF`;
       return { x: Math.round((sx - vp.offsetX) / vp.scale * 100) / 100, y: Math.round((canvasH - sy - vp.offsetY) / vp.scale * 100) / 100 };
     }
 
-    function fitView296() {
-      if (!canvas296 || canvas296.width <= 0) return;
-      if (state.pdf296W > 0) {
-        state.vp296 = fitViewport(canvas296, { minX: 0, minY: 0, maxX: state.pdf296W, maxY: state.pdf296H, width: state.pdf296W, height: state.pdf296H });
-      } else if (state.entities296 && state.entities296.length > 0) {
-        state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
-      }
-    }
-
     function fitHistoricalView() {
       if (!histCanvas || histCanvas.width <= 0) return;
       if (state.histPdfW > 0) {
         state.histViewport = fitViewport(histCanvas, { minX: 0, minY: 0, maxX: state.histPdfW, maxY: state.histPdfH, width: state.histPdfW, height: state.histPdfH });
       } else if (state.histEntities && state.histEntities.length > 0) {
         state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
-      }
-    }
-    const fitView1073 = fitHistoricalView;
-
-    function fitView196() {
-      if (!canvas196 || canvas196.width <= 0) return;
-      if (state.pdf196W > 0) {
-        state.vp196 = fitViewport(canvas196, { minX: 0, minY: 0, maxX: state.pdf196W, maxY: state.pdf196H, width: state.pdf196W, height: state.pdf196H });
-      } else if (state.entities196 && state.entities196.length > 0) {
-        state.vp196 = fitViewport(canvas196, computeBoundingBox(state.entities196));
       }
     }
 
@@ -6034,73 +5502,33 @@ EOF`;
       }
     }
 
-    // ── Window layout & Visibility ────────────────────────────────────
-    function updateWindowLayout() {
-      const show296 = chkShow296 ? chkShow296.checked : false;
-      const show1073 = chkShow1073 ? chkShow1073.checked : false;
-      const show196 = chkShow196 ? chkShow196.checked : false;
-      const showTrue = chkShowTrue ? chkShowTrue.checked : true;
-      const showPanel = chkShowControlPanel ? chkShowControlPanel.checked : true;
-
-      if (card296) card296.classList.toggle("hidden", !show296);
-      if (card1073) card1073.classList.toggle("hidden", !show1073);
-      if (card196) card196.classList.toggle("hidden", !show196);
-      if (cardTrue) cardTrue.classList.toggle("hidden", !showTrue);
-
-      const sb = document.getElementById("sidebar");
-      if (sb) sb.style.display = showPanel ? "" : "none";
-
-      resizeCanvases();
-    }
-
-    [chkShow296, chkShow1073, chkShow196, chkShowTrue, chkShowControlPanel].forEach(chk => {
-      if (chk) chk.addEventListener("change", updateWindowLayout);
-    });
-
     // ── Canvas resize ─────────────────────────────────────────────────
     function resizeCanvases() {
-      const c296 = document.getElementById("container-296");
-      const c1073 = document.getElementById("hist-container");
-      const c196 = document.getElementById("container-196");
+      const hc = document.getElementById("hist-container");
       const tc = document.getElementById("true-container");
+      const histCard = document.getElementById("hist-card");
+      const trueCard = document.getElementById("true-card");
 
-      const card296El = document.getElementById("card-296");
-      const card1073El = document.getElementById("card-1073") || document.getElementById("hist-card");
-      const card196El = document.getElementById("card-196");
-      const trueCardEl = document.getElementById("true-card");
-
-      if (card296El && !card296El.classList.contains("hidden") && c296 && c296.clientWidth > 0 && c296.clientHeight > 0 && canvas296) {
-        canvas296.width = c296.clientWidth;
-        canvas296.height = c296.clientHeight;
+      if (histCard && !histCard.classList.contains("hidden") && hc && hc.clientWidth > 0 && hc.clientHeight > 0) {
+        histCanvas.width  = hc.clientWidth;
+        histCanvas.height = hc.clientHeight;
       }
-      if (card1073El && !card1073El.classList.contains("hidden") && c1073 && c1073.clientWidth > 0 && c1073.clientHeight > 0 && histCanvas) {
-        histCanvas.width = c1073.clientWidth;
-        histCanvas.height = c1073.clientHeight;
-      }
-      if (card196El && !card196El.classList.contains("hidden") && c196 && c196.clientWidth > 0 && c196.clientHeight > 0 && canvas196) {
-        canvas196.width = c196.clientWidth;
-        canvas196.height = c196.clientHeight;
-      }
-      if (trueCardEl && !trueCardEl.classList.contains("hidden") && tc && tc.clientWidth > 0 && tc.clientHeight > 0 && trueCanvas) {
-        trueCanvas.width = tc.clientWidth;
+      if (trueCard && !trueCard.classList.contains("hidden") && tc && tc.clientWidth > 0 && tc.clientHeight > 0) {
+        trueCanvas.width  = tc.clientWidth;
         trueCanvas.height = tc.clientHeight;
       }
 
-      if (canvas296 && canvas296.width > 0 && (!state.vp296.bbox || state.vp296.scale <= 0)) {
-        if (state.entities296 && state.entities296.length > 0) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
-        else if (state.pdf296Canvas) state.vp296 = fitViewport(canvas296, {minX:0,minY:0,maxX:state.pdf296W,maxY:state.pdf296H,width:state.pdf296W,height:state.pdf296H});
+      if ((!state.histViewport.bbox || state.histViewport.scale <= 0) && histCanvas.width > 0) {
+        if (state.histEntities.length > 0)
+          state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
+        else if (state.histPdfCanvas)
+          state.histViewport = fitViewport(histCanvas, {minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH});
       }
-      if (histCanvas && histCanvas.width > 0 && (!state.histViewport.bbox || state.histViewport.scale <= 0)) {
-        if (state.histEntities.length > 0) state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
-        else if (state.histPdfCanvas) state.histViewport = fitViewport(histCanvas, {minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH});
-      }
-      if (canvas196 && canvas196.width > 0 && (!state.vp196.bbox || state.vp196.scale <= 0)) {
-        if (state.entities196 && state.entities196.length > 0) state.vp196 = fitViewport(canvas196, computeBoundingBox(state.entities196));
-        else if (state.pdf196Canvas) state.vp196 = fitViewport(canvas196, {minX:0,minY:0,maxX:state.pdf196W,maxY:state.pdf196H,width:state.pdf196W,height:state.pdf196H});
-      }
-      if (trueCanvas && trueCanvas.width > 0 && (!state.trueViewport.bbox || state.trueViewport.scale <= 0)) {
-        if (state.trueEntities.length > 0) state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
-        else if (state.geoTiff) state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
+      if ((!state.trueViewport.bbox || state.trueViewport.scale <= 0) && trueCanvas.width > 0) {
+        if (state.trueEntities.length > 0)
+          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+        else if (state.geoTiff)
+          state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
       }
       redrawAll();
     }
@@ -6108,21 +5536,12 @@ EOF`;
 
     // ── Redraw ────────────────────────────────────────────────────────
     function redrawAll() {
-      const card296El = document.getElementById("card-296");
-      const card1073El = document.getElementById("card-1073") || document.getElementById("hist-card");
-      const card196El = document.getElementById("card-196");
-      const trueCardEl = document.getElementById("true-card");
-
-      if (card296El && !card296El.classList.contains("hidden")) {
-        redrawCanvas296();
-      }
-      if (card1073El && !card1073El.classList.contains("hidden")) {
+      const histCard = document.getElementById("hist-card");
+      const trueCard = document.getElementById("true-card");
+      if (!histCard || !histCard.classList.contains("hidden")) {
         redrawHistoricalCanvas();
       }
-      if (card196El && !card196El.classList.contains("hidden")) {
-        redrawCanvas196();
-      }
-      if (trueCardEl && !trueCardEl.classList.contains("hidden")) {
+      if (!trueCard || !trueCard.classList.contains("hidden")) {
         redrawTrueCanvas();
       }
       updateAnalyticsUI();
@@ -6147,10 +5566,10 @@ EOF`;
       ctx.save(); ctx.globalAlpha=opacity; ctx.drawImage(tiff.offscreen,x,y,sw,sh); ctx.restore();
     }
 
-    // Draw entities in deed-space (historical / deed panels)
-    function drawEntities(ctx, entities, vp, canvasH, color, opacity, customStyle) {
-      if (!entities || !entities.length) return;
-      const style = customStyle || state.styleDeedDxf;
+    // Draw entities in deed-space (historical panel)
+    function drawEntities(ctx, entities, vp, canvasH, color, opacity) {
+      if (!entities.length) return;
+      const style = state.styleDeedDxf;
       const strokeCol = (style && style.color) ? style.color : color;
       const lineW = (style && style.width) ? style.width : 2.5;
       const dash = (style && style.dash === "dashed") ? [6, 4] : ((style && style.dash === "dotted") ? [2, 3] : []);
@@ -6381,9 +5800,9 @@ EOF`;
     }
 
     // Draw deed DXF warped into GIS space on the true-field panel
-    function drawWarpedEntitiesGIS(ctx, entities, warper, vp, canvasH, color, opacity, customStyle) {
-      if (!entities || !entities.length || !warper) return;
-      const style = customStyle || state.styleDeedDxf;
+    function drawWarpedEntitiesGIS(ctx, entities, warper, vp, canvasH, color, opacity) {
+      if (!entities.length || !warper) return;
+      const style = state.styleDeedDxf;
       const strokeCol = (style && style.color) ? style.color : color;
       const lineW = (style && style.width) ? style.width : 3;
       const dash = (style && style.dash === "dashed") ? [6, 4] : ((style && style.dash === "dotted") ? [2, 3] : []);
@@ -6763,65 +6182,8 @@ EOF`;
       }
     }
 
-    // ── Escritura 296 Canvas ───────────────────────────────────────────
-    function redrawCanvas296() {
-      if (!canvas296 || !ctx296) return;
-      const w = canvas296.width, h = canvas296.height;
-      ctx296.clearRect(0, 0, w, h);
-      drawGrid(ctx296, w, h);
-      const vp = state.vp296;
-
-      // Layer 1: Deed 296 PDF background
-      if (state.pdf296Canvas && state.pdf296W > 0) {
-        const tl = worldToScreen({ x: 0, y: 0 }, vp, h);
-        const br = worldToScreen({ x: state.pdf296W, y: state.pdf296H }, vp, h);
-        const sw = br.x - tl.x, sh = br.y - tl.y;
-        if (sw > 0 && sh > 0) {
-          ctx296.save();
-          ctx296.globalAlpha = 0.85;
-          ctx296.drawImage(state.pdf296Canvas, tl.x, tl.y, sw, sh);
-          ctx296.restore();
-        }
-      }
-
-      // Layer 2: Deed 296 DXF boundary polygon
-      drawEntities(ctx296, state.entities296, vp, h, (state.styleDeed296 && state.styleDeed296.color) || "#d500f9", 1.0, state.styleDeed296);
-
-      // Layer 3: Pending source anchor for 296
-      if (state.pendingSource && state.pendingSourceDeed === "296") {
-        const sp = worldToScreen(state.pendingSource, vp, h);
-        ctx296.beginPath(); ctx296.arc(sp.x, sp.y, 10, 0, Math.PI * 2);
-        ctx296.strokeStyle = "#00e5ff"; ctx296.lineWidth = 2.5;
-        ctx296.setLineDash([4, 4]); ctx296.stroke(); ctx296.setLineDash([]);
-        ctx296.beginPath(); ctx296.arc(sp.x, sp.y, 4, 0, Math.PI * 2);
-        ctx296.fillStyle = "#00e5ff"; ctx296.fill();
-      }
-
-      // Layer 4: Source anchor pins + cards for 296
-      if (state.showAnchors !== false && state.showAnchors296 !== false) {
-        (state.anchors296 || []).forEach(anc => {
-          const isEnabled = anc.active !== false && anc.enabled !== false;
-          const sp = worldToScreen(anc.src, vp, h);
-          ctx296.save();
-          if (!isEnabled) ctx296.globalAlpha = 0.35;
-          ctx296.beginPath(); ctx296.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
-          ctx296.fillStyle = anc.color || "#d500f9"; ctx296.fill();
-          ctx296.strokeStyle = isEnabled ? "#fff" : "#999";
-          ctx296.lineWidth = 2;
-          if (!isEnabled) ctx296.setLineDash([2, 2]);
-          ctx296.stroke();
-          ctx296.setLineDash([]);
-          if (anc.showLabel !== false) {
-            drawAnchorLabelCard(ctx296, anc, sp, true);
-          }
-          ctx296.restore();
-        });
-      }
-    }
-
-    // ── Historical Canvas (Escritura 1073) ─────────────────────────────
+    // ── Historical Canvas ──────────────────────────────────────────────
     function redrawHistoricalCanvas() {
-      if (!histCanvas || !histCtx) return;
       const w = histCanvas.width, h = histCanvas.height;
       histCtx.clearRect(0,0,w,h);
       drawGrid(histCtx,w,h);
@@ -6841,10 +6203,10 @@ EOF`;
       }
 
       // Layer 2: Deed DXF boundary polygon
-      drawEntities(histCtx, state.histEntities, vp, h, (state.styleDeed1073 && state.styleDeed1073.color) || "#ff1744", 1.0, state.styleDeed1073 || state.styleDeedDxf);
+      drawEntities(histCtx, state.histEntities, vp, h, "#ff1744", 1.0);
 
       // Layer 3: Pending source anchor
-      if (state.pendingSource && (state.pendingSourceDeed === "1073" || !state.pendingSourceDeed)) {
+      if (state.pendingSource) {
         const sp = worldToScreen(state.pendingSource, vp, h);
         histCtx.beginPath(); histCtx.arc(sp.x,sp.y,10,0,Math.PI*2);
         histCtx.strokeStyle="#00e5ff"; histCtx.lineWidth=2.5;
@@ -6854,84 +6216,26 @@ EOF`;
       }
 
       // Layer 4: Source anchor pins + double-framed cards
-      if (state.showAnchors !== false && state.showAnchors1073 !== false) {
-        (state.anchors1073 || state.anchors || []).forEach(anc => {
-          const isEnabled = anc.active !== false && anc.enabled !== false;
-          const sp = worldToScreen(anc.src, vp, h);
-          histCtx.save();
-          if (!isEnabled) {
-            histCtx.globalAlpha = 0.35;
-          }
-          histCtx.beginPath(); histCtx.arc(sp.x,sp.y,7,0,Math.PI*2);
-          histCtx.fillStyle=anc.color; histCtx.fill();
-          histCtx.strokeStyle = isEnabled ? "#fff" : "#999";
-          histCtx.lineWidth=2;
-          if (!isEnabled) histCtx.setLineDash([2, 2]);
-          histCtx.stroke();
-          histCtx.setLineDash([]);
-
-          if (anc.showLabel !== false) {
-            drawAnchorLabelCard(histCtx, anc, sp, true);
-          }
-          histCtx.restore();
-        });
-      }
-    }
-
-    // ── Escritura 196 Canvas ───────────────────────────────────────────
-    function redrawCanvas196() {
-      if (!canvas196 || !ctx196) return;
-      const w = canvas196.width, h = canvas196.height;
-      ctx196.clearRect(0, 0, w, h);
-      drawGrid(ctx196, w, h);
-      const vp = state.vp196;
-
-      // Layer 1: Deed 196 PDF background
-      if (state.pdf196Canvas && state.pdf196W > 0) {
-        const tl = worldToScreen({ x: 0, y: 0 }, vp, h);
-        const br = worldToScreen({ x: state.pdf196W, y: state.pdf196H }, vp, h);
-        const sw = br.x - tl.x, sh = br.y - tl.y;
-        if (sw > 0 && sh > 0) {
-          ctx196.save();
-          ctx196.globalAlpha = 0.85;
-          ctx196.drawImage(state.pdf196Canvas, tl.x, tl.y, sw, sh);
-          ctx196.restore();
+      state.anchors.forEach(anc => {
+        const isEnabled = anc.active !== false && anc.enabled !== false;
+        const sp = worldToScreen(anc.src, vp, h);
+        histCtx.save();
+        if (!isEnabled) {
+          histCtx.globalAlpha = 0.35;
         }
-      }
+        histCtx.beginPath(); histCtx.arc(sp.x,sp.y,7,0,Math.PI*2);
+        histCtx.fillStyle=anc.color; histCtx.fill();
+        histCtx.strokeStyle = isEnabled ? "#fff" : "#999";
+        histCtx.lineWidth=2;
+        if (!isEnabled) histCtx.setLineDash([2, 2]);
+        histCtx.stroke();
+        histCtx.setLineDash([]);
 
-      // Layer 2: Deed 196 DXF boundary polygon
-      drawEntities(ctx196, state.entities196, vp, h, (state.styleDeed196 && state.styleDeed196.color) || "#ff9100", 1.0, state.styleDeed196);
-
-      // Layer 3: Pending source anchor for 196
-      if (state.pendingSource && state.pendingSourceDeed === "196") {
-        const sp = worldToScreen(state.pendingSource, vp, h);
-        ctx196.beginPath(); ctx196.arc(sp.x, sp.y, 10, 0, Math.PI * 2);
-        ctx196.strokeStyle = "#00e5ff"; ctx196.lineWidth = 2.5;
-        ctx196.setLineDash([4, 4]); ctx196.stroke(); ctx196.setLineDash([]);
-        ctx196.beginPath(); ctx196.arc(sp.x, sp.y, 4, 0, Math.PI * 2);
-        ctx196.fillStyle = "#00e5ff"; ctx196.fill();
-      }
-
-      // Layer 4: Source anchor pins + cards for 196
-      if (state.showAnchors !== false && state.showAnchors196 !== false) {
-        (state.anchors196 || []).forEach(anc => {
-          const isEnabled = anc.active !== false && anc.enabled !== false;
-          const sp = worldToScreen(anc.src, vp, h);
-          ctx196.save();
-          if (!isEnabled) ctx196.globalAlpha = 0.35;
-          ctx196.beginPath(); ctx196.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
-          ctx196.fillStyle = anc.color || "#ff9100"; ctx196.fill();
-          ctx196.strokeStyle = isEnabled ? "#fff" : "#999";
-          ctx196.lineWidth = 2;
-          if (!isEnabled) ctx196.setLineDash([2, 2]);
-          ctx196.stroke();
-          ctx196.setLineDash([]);
-          if (anc.showLabel !== false) {
-            drawAnchorLabelCard(ctx196, anc, sp, true);
-          }
-          ctx196.restore();
-        });
-      }
+        if (anc.showLabel !== false) {
+          drawAnchorLabelCard(histCtx, anc, sp, true);
+        }
+        histCtx.restore();
+      });
     }
 
     // ── True Field Canvas ──────────────────────────────────────────────
@@ -7333,60 +6637,25 @@ EOF`;
         drawGeoTiff(trueCtx, state.geoTiff, vp, h, state.geoTiffOpacity);
       }
 
-      // Build warpers from anchors (deed-space → GIS-space)
+      // Build warper from anchors (deed-space → GIS-space)
       let warper = null;
-      let warper1073 = null;
-      let warper196 = null;
-      let warper296 = null;
-
-      const active1073 = getActiveAnchors(state.anchors1073 || state.anchors);
-      if ((state.showOverlay1073 !== false && state.showOverlay) && active1073.length >= 2) {
-        try { warper1073 = TransformMath.createWarper(getDeedAlgorithm("1073"), active1073); }
-        catch(e) { console.warn("Warper 1073 error:", e); }
-      }
-      warper = warper1073;
-
-      const active196 = getActiveAnchors(state.anchors196);
-      if ((state.showOverlay196 !== false && state.showOverlay) && active196.length >= 2) {
-        try { warper196 = TransformMath.createWarper(getDeedAlgorithm("196"), active196); }
-        catch(e) { console.warn("Warper 196 error:", e); }
+      const activeAnchors = getActiveAnchors();
+      if (state.showOverlay && activeAnchors.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); }
+        catch(e) { console.warn("Warper error:", e); }
       }
 
-      const active296 = getActiveAnchors(state.anchors296);
-      if ((state.showOverlay296 !== false && state.showOverlay) && active296.length >= 2) {
-        try { warper296 = TransformMath.createWarper(getDeedAlgorithm("296"), active296); }
-        catch(e) { console.warn("Warper 296 error:", e); }
-      }
-
-      // Live update any polygon vertices anchored to deed DXF space (1073)
+      // Live update any polygon vertices anchored to deed DXF space
       updateUserPolygonWarp();
 
-      // Layer 2: Warped deed PDF image overlays
-      // 2a. Escritura 296 PDF
-      if (state.showWarpedPdf296 !== false && warper296 && state.pdf296Canvas && state.pdf296W > 0) {
-        drawWarpedPdfImage(trueCtx, warper296, vp, w, h, state.pdf296Canvas, state.pdf296W, state.pdf296H, state.warpedPdfOpacity296 !== undefined ? state.warpedPdfOpacity296 : 0.66);
-      }
-      // 2b. Escritura 1073 PDF
-      if (state.showWarpedPdf && warper1073 && state.histPdfCanvas && state.histPdfW > 0) {
-        drawWarpedPdfImage(trueCtx, warper1073, vp, w, h, state.histPdfCanvas, state.histPdfW, state.histPdfH, state.warpedPdfOpacity);
-      }
-      // 2c. Escritura 196 PDF
-      if (state.showWarpedPdf196 !== false && warper196 && state.pdf196Canvas && state.pdf196W > 0) {
-        drawWarpedPdfImage(trueCtx, warper196, vp, w, h, state.pdf196Canvas, state.pdf196W, state.pdf196H, state.warpedPdfOpacity196 !== undefined ? state.warpedPdfOpacity196 : 0.66);
+      // Layer 2: Warped deed PDF image (the PowerPoint transparent overlay)
+      if (state.showWarpedPdf && warper && state.histPdfCanvas && state.histPdfW > 0) {
+        drawWarpedPdfImage(trueCtx, warper, vp, w, h);
       }
 
-      // Layer 3: Warped deed DXF boundaries
-      // 3a. Escritura 296 DXF
-      if (warper296 && state.showWarpedDxf296 !== false) {
-        drawWarpedEntitiesGIS(trueCtx, state.entities296, warper296, vp, h, (state.styleDeed296 && state.styleDeed296.color) || "#d500f9", state.warpedDxfOpacity296 !== undefined ? state.warpedDxfOpacity296 : 0.9, state.styleDeed296);
-      }
-      // 3b. Escritura 1073 DXF
-      if (warper1073 && state.showWarpedDxf !== false) {
-        drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper1073, vp, h, (state.styleDeedDxf && state.styleDeedDxf.color) || "#ff1744", state.warpedDxfOpacity, state.styleDeedDxf);
-      }
-      // 3c. Escritura 196 DXF
-      if (warper196 && state.showWarpedDxf196 !== false) {
-        drawWarpedEntitiesGIS(trueCtx, state.entities196, warper196, vp, h, (state.styleDeed196 && state.styleDeed196.color) || "#ff9100", state.warpedDxfOpacity196 !== undefined ? state.warpedDxfOpacity196 : 0.9, state.styleDeed196);
+      // Layer 3: Warped deed DXF boundary
+      if (warper && state.showWarpedDxf !== false) {
+        drawWarpedEntitiesGIS(trueCtx, state.histEntities, warper, vp, h, "#ff1744", state.warpedDxfOpacity);
       }
 
       // Layer 3b: PowerPoint-style Deed Aspect Squeeze Handles
@@ -7418,68 +6687,59 @@ EOF`;
       drawTempMarkersGIS(trueCtx, vp, h);
 
       // Layer 5: Target anchor pen buffer disks & residual lines
-      const drawAnchorResiduals = (anchors, currentWarper, defaultColor) => {
-        if (!anchors || !anchors.length) return;
-        anchors.forEach((anc, ancIdx) => {
-          const isEnabled = anc.active !== false && anc.enabled !== false;
-          const tp = worldToScreenGIS(anc.dst, vp, h);
-          const col = anc.color || defaultColor;
-          if (currentWarper) {
-            const wp = worldToScreenGIS(currentWarper(anc.src), vp, h);
-            trueCtx.beginPath(); trueCtx.moveTo(wp.x, wp.y); trueCtx.lineTo(tp.x, tp.y);
-            trueCtx.strokeStyle = isEnabled ? col : "rgba(150, 150, 150, 0.25)";
-            trueCtx.lineWidth = isEnabled ? 1.5 : 1;
-            trueCtx.setLineDash(isEnabled ? [3, 3] : [2, 4]); trueCtx.stroke(); trueCtx.setLineDash([]);
-            trueCtx.beginPath(); trueCtx.arc(wp.x, wp.y, isEnabled ? 4 : 3, 0, Math.PI * 2);
-            trueCtx.fillStyle = isEnabled ? col : "rgba(150, 150, 150, 0.3)"; trueCtx.fill();
-          }
-          // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor origin during unconstrained simulation)
-          if (isEnabled && state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
-            let centerPt = null;
-            if (state.constrainAnchorsToField) {
-              const nearestField = findNearestFieldVertex(anc.dst);
-              if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
-                centerPt = nearestField;
-              }
-            } else if (state.tuningAnchorsActive && state.tuningAnchorCenters) {
-              if (state.tuningAnchorCenters[ancIdx]) {
-                centerPt = state.tuningAnchorCenters[ancIdx];
-              }
+      state.anchors.forEach(anc => {
+        const isEnabled = anc.active !== false && anc.enabled !== false;
+        const tp = worldToScreenGIS(anc.dst, vp, h);
+        if (warper) {
+          const wp = worldToScreenGIS(warper(anc.src), vp, h);
+          trueCtx.beginPath(); trueCtx.moveTo(wp.x,wp.y); trueCtx.lineTo(tp.x,tp.y);
+          trueCtx.strokeStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.25)";
+          trueCtx.lineWidth = isEnabled ? 1.5 : 1;
+          trueCtx.setLineDash(isEnabled ? [3,3] : [2,4]); trueCtx.stroke(); trueCtx.setLineDash([]);
+          trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y, isEnabled ? 4 : 3, 0, Math.PI*2);
+          trueCtx.fillStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.3)"; trueCtx.fill();
+        }
+        // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor origin during unconstrained simulation)
+        if (isEnabled && state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
+          let centerPt = null;
+          if (state.constrainAnchorsToField) {
+            const nearestField = findNearestFieldVertex(anc.dst);
+            if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
+              centerPt = nearestField;
             }
-
-            if (centerPt) {
-              const sCenter = worldToScreenGIS(centerPt, vp, h);
-              const rPx = state.optBufferRadius * vp.scale;
-              trueCtx.save();
-              trueCtx.beginPath();
-              trueCtx.arc(sCenter.x, sCenter.y, rPx, 0, Math.PI * 2);
-              trueCtx.fillStyle = "rgba(0, 229, 255, 0.08)";
-              trueCtx.fill();
-              trueCtx.strokeStyle = "rgba(0, 229, 255, 0.55)";
-              trueCtx.lineWidth = 1.5;
-              trueCtx.setLineDash([4, 4]);
-              trueCtx.stroke();
-              trueCtx.setLineDash([]);
-
-              // Center crosshair marker on the buffer disk center
-              trueCtx.beginPath();
-              trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
-              trueCtx.fillStyle = "#00e5ff";
-              trueCtx.fill();
-              trueCtx.strokeStyle = "#ffffff";
-              trueCtx.lineWidth = 1;
-              trueCtx.stroke();
-              trueCtx.restore();
+          } else if (state.tuningAnchorsActive && state.tuningAnchorCenters) {
+            const ancIdx = state.anchors.indexOf(anc);
+            if (ancIdx >= 0 && state.tuningAnchorCenters[ancIdx]) {
+              centerPt = state.tuningAnchorCenters[ancIdx];
             }
           }
-        });
-      };
 
-      if (state.showAnchors !== false) {
-        if (state.showAnchors296 !== false) drawAnchorResiduals(state.anchors296, warper296, "#d500f9");
-        if (state.showAnchors1073 !== false) drawAnchorResiduals(state.anchors1073 || state.anchors, warper1073, "#ff1744");
-        if (state.showAnchors196 !== false) drawAnchorResiduals(state.anchors196, warper196, "#ff9100");
-      }
+          if (centerPt) {
+            const sCenter = worldToScreenGIS(centerPt, vp, h);
+            const rPx = state.optBufferRadius * vp.scale;
+            trueCtx.save();
+            trueCtx.beginPath();
+            trueCtx.arc(sCenter.x, sCenter.y, rPx, 0, Math.PI * 2);
+            trueCtx.fillStyle = "rgba(0, 229, 255, 0.08)";
+            trueCtx.fill();
+            trueCtx.strokeStyle = "rgba(0, 229, 255, 0.55)";
+            trueCtx.lineWidth = 1.5;
+            trueCtx.setLineDash([4, 4]);
+            trueCtx.stroke();
+            trueCtx.setLineDash([]);
+
+            // Center crosshair marker on the buffer disk center
+            trueCtx.beginPath();
+            trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
+            trueCtx.fillStyle = "#00e5ff";
+            trueCtx.fill();
+            trueCtx.strokeStyle = "#ffffff";
+            trueCtx.lineWidth = 1;
+            trueCtx.stroke();
+            trueCtx.restore();
+          }
+        }
+      });
 
       // Layer 6: Hand-crafted user polygon
       drawUserPolygon(trueCtx, vp, h);
@@ -7489,37 +6749,27 @@ EOF`;
       drawCustomPolygon(trueCtx, vp, h);
 
       // Layer 7: Target anchor pins + white label cards + photos (BRING TO VERY FRONT OVER POLYGON LINES)
-      const drawAnchorPins = (anchors, defaultColor) => {
-        if (!anchors || !anchors.length) return;
-        anchors.forEach(anc => {
-          const isEnabled = anc.active !== false && anc.enabled !== false;
-          const tp = worldToScreenGIS(anc.dst, vp, h);
-          const col = anc.color || defaultColor;
+      state.anchors.forEach(anc => {
+        const isEnabled = anc.active !== false && anc.enabled !== false;
+        const tp = worldToScreenGIS(anc.dst, vp, h);
 
-          trueCtx.save();
-          if (!isEnabled) {
-            trueCtx.globalAlpha = 0.35;
-          }
-          trueCtx.beginPath(); trueCtx.arc(tp.x, tp.y, 7, 0, Math.PI * 2);
-          trueCtx.fillStyle = col; trueCtx.fill();
-          trueCtx.strokeStyle = isEnabled ? "#fff" : "#999";
-          trueCtx.lineWidth = 2;
-          if (!isEnabled) trueCtx.setLineDash([2, 2]);
-          trueCtx.stroke();
-          trueCtx.setLineDash([]);
+        trueCtx.save();
+        if (!isEnabled) {
+          trueCtx.globalAlpha = 0.35;
+        }
+        trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
+        trueCtx.fillStyle=anc.color; trueCtx.fill();
+        trueCtx.strokeStyle = isEnabled ? "#fff" : "#999";
+        trueCtx.lineWidth=2;
+        if (!isEnabled) trueCtx.setLineDash([2, 2]);
+        trueCtx.stroke();
+        trueCtx.setLineDash([]);
 
-          if (anc.showLabel !== false) {
-            drawAnchorLabelCard(trueCtx, anc, tp, false);
-          }
-          trueCtx.restore();
-        });
-      };
-
-      if (state.showAnchors !== false) {
-        if (state.showAnchors296 !== false) drawAnchorPins(state.anchors296, "#d500f9");
-        if (state.showAnchors1073 !== false) drawAnchorPins(state.anchors1073 || state.anchors, "#ff1744");
-        if (state.showAnchors196 !== false) drawAnchorPins(state.anchors196, "#ff9100");
-      }
+        if (anc.showLabel !== false) {
+          drawAnchorLabelCard(trueCtx, anc, tp, false);
+        }
+        trueCtx.restore();
+      });
 
       // Layer 8: Snap target ring indicator
       if (state.currentSnapTarget) {
@@ -7722,19 +6972,16 @@ EOF`;
        For Helmert/Affine this is an exact hardware-accelerated affine transform.
        For TPS we fall back to sampling a grid of corner points.
     ----------------------------------------------------------------------- */
-    function drawWarpedPdfImage(ctx, warper, vp, canvasW, canvasH, pdfCanvas, pdfW, pdfH, opacity) {
-      const pCanvas = pdfCanvas || state.histPdfCanvas;
-      const pW = (pdfW !== undefined && pdfW > 0) ? pdfW : state.histPdfW;
-      const pH = (pdfH !== undefined && pdfH > 0) ? pdfH : state.histPdfH;
-      const op = (opacity !== undefined) ? opacity : state.warpedPdfOpacity;
-      if (!pCanvas || pW <= 0) return;
+    function drawWarpedPdfImage(ctx, warper, vp, canvasW, canvasH) {
+      if (!state.histPdfCanvas || state.histPdfW <= 0) return;
+      const pdfW = state.histPdfW, pdfH = state.histPdfH;
 
       // Map the four PDF corners through the warper → GIS → screen
       const corners = [
         {px:0,     py:0     },
-        {px:pW,    py:0     },
-        {px:pW,    py:pH    },
-        {px:0,     py:pH    },
+        {px:pdfW,  py:0     },
+        {px:pdfW,  py:pdfH  },
+        {px:0,     py:pdfH  },
       ].map(c => {
         const gis = warper({x:c.px, y:c.py});
         const scr = worldToScreenGIS(gis, vp, canvasH);
@@ -7745,22 +6992,22 @@ EOF`;
       const [s0,s1,s2,s3] = corners;
 
       ctx.save();
-      ctx.globalAlpha = op;
+      ctx.globalAlpha = state.warpedPdfOpacity;
 
       // Use canvas setTransform with the affine computed from the corner mapping.
       // The affine that maps (0,0)→s0, (pdfW,0)→s1, (0,pdfH)→s3:
       //   | a  c  e |   pdfW·[a,c,e] = s1-s0
       //   | b  d  f |   pdfH·[b,d,f] = s3-s0
-      const a  = (s1.x - s0.x) / pW;
-      const b  = (s1.y - s0.y) / pW;
-      const c_ = (s3.x - s0.x) / pH;
-      const d_ = (s3.y - s0.y) / pH;
+      const a  = (s1.x - s0.x) / pdfW;
+      const b  = (s1.y - s0.y) / pdfW;
+      const c_ = (s3.x - s0.x) / pdfH;
+      const d_ = (s3.y - s0.y) / pdfH;
       const e  = s0.x;
       const f  = s0.y;
 
       ctx.setTransform(a, b, c_, d_, e, f);
       // Clip to canvas bounds to avoid drawing far outside
-      ctx.drawImage(pCanvas, 0, 0, pW, pH);
+      ctx.drawImage(state.histPdfCanvas, 0, 0, pdfW, pdfH);
       ctx.restore();
     }
 
@@ -11923,12 +11170,64 @@ EOF`;
     const sidebarEl = document.getElementById("sidebar");
     const chkShowDeed = document.getElementById("chk-show-deed");
     const chkShowField = document.getElementById("chk-show-field");
-    // chkShowControlPanel is already declared above on line 5835
+    const chkShowControlPanel = document.getElementById("chk-show-control-panel");
 
     function applyPanelVisibility() {
-      if (typeof updateWindowLayout === "function") {
-        updateWindowLayout();
-      }
+      const showDeed = chkShowDeed ? chkShowDeed.checked : false;
+      const showField = chkShowField ? chkShowField.checked : true;
+      const showControl = chkShowControlPanel ? chkShowControlPanel.checked : true;
+
+      state.showDeedPanel = showDeed;
+      state.showFieldPanel = showField;
+      state.sidebarVisible = showControl;
+
+      if (histCard) histCard.classList.toggle("hidden", !showDeed);
+      if (trueCard) trueCard.classList.toggle("hidden", !showField);
+      if (sidebarEl) sidebarEl.classList.toggle("collapsed", !showControl);
+
+      const activeList = [];
+      if (showDeed) activeList.push("Deed");
+      if (showField) activeList.push("Field");
+      if (showControl) activeList.push("Control Panel");
+      updateStatus(`Panels active: ${activeList.join(" + ")}.`);
+
+      setTimeout(() => {
+        resizeCanvases();
+        if (showDeed) {
+          fitHistoricalView();
+        }
+        redrawAll();
+      }, 50);
+    }
+
+    if (chkShowDeed) {
+      chkShowDeed.addEventListener("change", () => {
+        // Enforce at least one map panel is open
+        if (!chkShowDeed.checked && (!chkShowField || !chkShowField.checked)) {
+          chkShowDeed.checked = true;
+          updateStatus("At least one map panel (Deed or Field) must remain active.");
+          return;
+        }
+        applyPanelVisibility();
+      });
+    }
+
+    if (chkShowField) {
+      chkShowField.addEventListener("change", () => {
+        // Enforce at least one map panel is open
+        if (!chkShowField.checked && (!chkShowDeed || !chkShowDeed.checked)) {
+          chkShowField.checked = true;
+          updateStatus("At least one map panel (Deed or Field) must remain active.");
+          return;
+        }
+        applyPanelVisibility();
+      });
+    }
+
+    if (chkShowControlPanel) {
+      chkShowControlPanel.addEventListener("change", () => {
+        applyPanelVisibility();
+      });
     }
 
     // Segment Labels toggle handlers (synchronized across header and sidebar)
@@ -12098,32 +11397,10 @@ EOF`;
 
     function hitTestAnchor(sx, sy, isHist) {
       const radius = 14;
-      const is296 = (isHist === "296" || isHist === 296);
-      const is196 = (isHist === "196" || isHist === 196);
-      const vp = isHist ? (is196 ? state.vp196 : (is296 ? state.vp296 : state.histViewport)) : state.trueViewport;
-      const canvas = isHist ? (is196 ? canvas196 : (is296 ? canvas296 : histCanvas)) : trueCanvas;
-      const h = canvas ? canvas.height : 600;
-
-      if (!isHist) {
-        // On trueCanvas, test across all 3 deed anchor sets
-        for (const anc of (state.anchors296 || [])) {
-          const pt = worldToScreenGIS(anc.dst, vp, h);
-          if (Math.hypot(pt.x - sx, pt.y - sy) <= radius) return anc;
-        }
-        for (const anc of (state.anchors1073 || state.anchors || [])) {
-          const pt = worldToScreenGIS(anc.dst, vp, h);
-          if (Math.hypot(pt.x - sx, pt.y - sy) <= radius) return anc;
-        }
-        for (const anc of (state.anchors196 || [])) {
-          const pt = worldToScreenGIS(anc.dst, vp, h);
-          if (Math.hypot(pt.x - sx, pt.y - sy) <= radius) return anc;
-        }
-        return null;
-      }
-
-      const list = is196 ? state.anchors196 : (is296 ? state.anchors296 : (state.anchors1073 || state.anchors));
-      for (const anc of (list || [])) {
-        const pt = worldToScreen(anc.src, vp, h);
+      const vp = isHist ? state.histViewport : state.trueViewport;
+      const h = isHist ? histCanvas.height : trueCanvas.height;
+      for (const anc of state.anchors) {
+        const pt = isHist ? worldToScreen(anc.src, vp, h) : worldToScreenGIS(anc.dst, vp, h);
         if (Math.hypot(pt.x - sx, pt.y - sy) <= radius) {
           return anc;
         }
@@ -12135,39 +11412,30 @@ EOF`;
     let draggingAnchorLabel = null; // { anc, isHist, startMouseX, startMouseY, origDx, origDy }
 
     function hitTestAnchorLabel(sx, sy, isHist) {
-      const is296 = (isHist === "296" || isHist === 296);
-      const is196 = (isHist === "196" || isHist === 196);
-      const vp = isHist ? (is196 ? state.vp196 : (is296 ? state.vp296 : state.histViewport)) : state.trueViewport;
-      const canvas = isHist ? (is196 ? canvas196 : (is296 ? canvas296 : histCanvas)) : trueCanvas;
-      const h = canvas ? canvas.height : 600;
-      const ctx = isHist ? (is196 ? ctx196 : (is296 ? ctx296 : histCtx)) : trueCtx;
+      const vp = isHist ? state.histViewport : state.trueViewport;
+      const h = isHist ? histCanvas.height : trueCanvas.height;
+      const ctx = isHist ? histCtx : trueCtx;
+      for (let i = state.anchors.length - 1; i >= 0; i--) {
+        const anc = state.anchors[i];
+        if (anc.showLabel === false) continue;
+        const pt = isHist ? worldToScreen(anc.src, vp, h) : worldToScreenGIS(anc.dst, vp, h);
+        if (!pt || !isFinite(pt.x) || !isFinite(pt.y)) continue;
 
-      const checkList = (anchors) => {
-        if (!anchors) return null;
-        for (let i = anchors.length - 1; i >= 0; i--) {
-          const anc = anchors[i];
-          if (anc.showLabel === false) continue;
-          const pt = isHist ? worldToScreen(anc.src, vp, h) : worldToScreenGIS(anc.dst, vp, h);
-          if (!pt || !isFinite(pt.x) || !isFinite(pt.y)) continue;
+        const isEnabled = anc.enabled !== false;
+        const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+        const fullText = labelName + (isEnabled ? "" : " (off)");
 
-          const defDx = 10, defDy = -10;
-          const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
-          const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
-          const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
+        const defDx = 10, defDy = -10;
+        const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
+        const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
+        const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
 
-          const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
-          if (sx >= bounds.cardX && sx <= bounds.cardX + bounds.cardW && sy >= bounds.cardY && sy <= bounds.cardY + bounds.cardH) {
-            return { anc, isHist, offX: bounds.offX, offY: bounds.offY, cardX: bounds.cardX, cardY: bounds.cardY, cardW: bounds.cardW, cardH: bounds.cardH };
-          }
+        const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
+        if (sx >= bounds.cardX && sx <= bounds.cardX + bounds.cardW && sy >= bounds.cardY && sy <= bounds.cardY + bounds.cardH) {
+          return { anc, isHist, offX: bounds.offX, offY: bounds.offY, cardX: bounds.cardX, cardY: bounds.cardY, cardW: bounds.cardW, cardH: bounds.cardH };
         }
-        return null;
-      };
-
-      if (!isHist) {
-        return checkList(state.anchors296) || checkList(state.anchors1073 || state.anchors) || checkList(state.anchors196);
       }
-      const list = is196 ? state.anchors196 : (is296 ? state.anchors296 : (state.anchors1073 || state.anchors));
-      return checkList(list);
+      return null;
     }
 
     function handleMouseDown(e, canvas, viewport, isHist) {
@@ -12175,29 +11443,22 @@ EOF`;
       clickStart.x = e.clientX;
       clickStart.y = e.clientY;
 
-      // Edit Deed Nodes mode: priority drag of deed vertices on historical / deed canvas
+      // Edit Deed Nodes mode: priority drag of deed vertices on historical canvas
       if (isHist && state.editDeedNodes && e.button === 0 && !spacePressed && state.toolMode === "pan") {
-        const is296 = (isHist === "296" || isHist === 296);
-        const is196 = (isHist === "196" || isHist === 196);
-        const curC = is196 ? canvas196 : (is296 ? canvas296 : histCanvas);
-        const curV = is196 ? state.vp196 : (is296 ? state.vp296 : state.histViewport);
-        if (curC && curV) {
-          const rect = curC.getBoundingClientRect();
-          const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
-          const deedHit = findDeedNodeOnHistCanvas(sx, sy, curV, curC.height);
-          if (deedHit) {
-            e.preventDefault();
-            state.draggingDeedNodeHist = {
-              entIdx: deedHit.entIdx,
-              ptIdx: deedHit.ptIdx,
-              origDeedPt: { x: deedHit.deedPt.x, y: deedHit.deedPt.y },
-              isHist: isHist
-            };
-            curC.style.cursor = "move";
-            updateStatus(`✏️ Dragging Deed Vertex #${deedHit.ptIdx + 1} on deed map.`);
-            redrawAll();
-            return;
-          }
+        const rect = histCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const deedHit = findDeedNodeOnHistCanvas(sx, sy, state.histViewport, histCanvas.height);
+        if (deedHit) {
+          e.preventDefault();
+          state.draggingDeedNodeHist = {
+            entIdx: deedHit.entIdx,
+            ptIdx: deedHit.ptIdx,
+            origDeedPt: { x: deedHit.deedPt.x, y: deedHit.deedPt.y }
+          };
+          histCanvas.style.cursor = "move";
+          updateStatus(`✏️ Dragging Deed Vertex #${deedHit.ptIdx + 1} on deed map.`);
+          redrawAll();
+          return;
         }
       }
 
@@ -12263,10 +11524,8 @@ EOF`;
                            ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" :
                            ((state.customPolygon && state.customPolygon.drawMode) ? "crosshair" :
                            (state.toolMode === "pan" ? "grab" : "crosshair"))));
-        if (histCanvas) histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
-        if (canvas196) canvas196.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
-        if (canvas296) canvas296.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
-        if (trueCanvas) trueCanvas.style.cursor = trueCursor;
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
       }
 
       if (draggingAnchorLabel) {
@@ -12285,10 +11544,8 @@ EOF`;
                            ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" :
                            ((state.customPolygon && state.customPolygon.drawMode) ? "crosshair" :
                            (state.toolMode === "pan" ? "grab" : "crosshair"))));
-        if (histCanvas) histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
-        if (canvas196) canvas196.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
-        if (canvas296) canvas296.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
-        if (trueCanvas) trueCanvas.style.cursor = trueCursor;
+        histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        trueCanvas.style.cursor = trueCursor;
         redrawAll();
         return;
       }
@@ -12329,16 +11586,13 @@ EOF`;
       }
 
       if (isHist) {
-        const deedKey = (isHist === "196" || isHist === 196) ? "196" : ((isHist === "296" || isHist === 296) ? "296" : "1073");
         const worldPt = screenToWorld(sx, sy, viewport, canvas.height);
         state.pendingSource = worldPt;
-        state.pendingSourceDeed = deedKey;
         redrawAll();
-        const curList = (deedKey === "196") ? state.anchors196 : ((deedKey === "296") ? state.anchors296 : (state.anchors1073 || state.anchors));
-        updateStatus(`Source Anchor #${(curList ? curList.length : 0) + 1} for Escritura ${deedKey} at (${worldPt.x.toFixed(1)}, ${worldPt.y.toFixed(1)}). Now click matching location on drone survey.`);
+        updateStatus(`Source Anchor #${state.anchors.length + 1} at deed (${worldPt.x.toFixed(1)}, ${worldPt.y.toFixed(1)}). Now click matching location on drone survey.`);
       } else {
         if (!state.pendingSource) {
-          updateStatus("Click a landmark on a deed map (Escritura 296, 1073, or 196) first.");
+          updateStatus("Click a landmark on the deed map (left) first.");
           return;
         }
         let worldPt = screenToWorldGIS(sx, sy, viewport, canvas.height);
@@ -12352,18 +11606,9 @@ EOF`;
           }
         }
 
-        const deedKey = state.pendingSourceDeed || "1073";
-        let targetList = (deedKey === "196") ? state.anchors196 : ((deedKey === "296") ? state.anchors296 : (state.anchors1073 || state.anchors));
-        if (!targetList) {
-          if (deedKey === "196") { state.anchors196 = []; targetList = state.anchors196; }
-          else if (deedKey === "296") { state.anchors296 = []; targetList = state.anchors296; }
-          else { state.anchors1073 = []; targetList = state.anchors1073; }
-        }
-
-        const nextId = targetList.length + 1;
-        const defaultColor = deedKey === "296" ? "#d500f9" : (deedKey === "196" ? "#ff9100" : "#ff1744");
-        const color = anchorColors[(nextId - 1) % anchorColors.length] || defaultColor;
-        targetList.push({
+        const nextId = state.anchors.length + 1;
+        const color = anchorColors[(nextId - 1) % anchorColors.length];
+        state.anchors.push({
           id: nextId,
           name: `#${nextId}`,
           showLabel: true,
@@ -12375,9 +11620,8 @@ EOF`;
           enabled: true
         });
         state.pendingSource = null;
-        state.pendingSourceDeed = null;
         redrawAll();
-        updateStatus(`Anchor Pair #${nextId} created for Escritura ${deedKey}! Transformation updating live.`);
+        updateStatus(`Anchor Pair #${nextId} created! Transformation updating live.`);
       }
     }
 
@@ -12390,14 +11634,10 @@ EOF`;
           dx: draggingAnchorLabel.origDx + dx,
           dy: draggingAnchorLabel.origDy + dy
         };
-        const isH = draggingAnchorLabel.isHist;
-        if (isH) {
+        if (draggingAnchorLabel.isHist) {
           draggingAnchorLabel.anc.labelOffsetSrc = newOff;
-          const curC = (isH === "196") ? canvas196 : ((isH === "296") ? canvas296 : histCanvas);
-          if (curC) curC.style.cursor = "grabbing";
-          if (isH === "196") redrawCanvas196();
-          else if (isH === "296") redrawCanvas296();
-          else redrawHistoricalCanvas();
+          histCanvas.style.cursor = "grabbing";
+          redrawHistoricalCanvas();
         } else {
           draggingAnchorLabel.anc.labelOffsetDst = newOff;
           trueCanvas.style.cursor = "grabbing";
@@ -12451,13 +11691,11 @@ EOF`;
       }
 
       if (draggingAnchor) {
-        const isH = draggingAnchor.isHist;
-        const curC = (isH === "196") ? canvas196 : ((isH === "296") ? canvas296 : (isH ? histCanvas : trueCanvas));
-        const curV = (isH === "196") ? state.vp196 : ((isH === "296") ? state.vp296 : (isH ? state.histViewport : state.trueViewport));
-        const rect = curC.getBoundingClientRect();
+        const canvas = draggingAnchor.isHist ? histCanvas : trueCanvas;
+        const rect = canvas.getBoundingClientRect();
         const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
-        if (isH) {
-          draggingAnchor.anc.src = screenToWorld(sx, sy, curV, curC.height);
+        if (draggingAnchor.isHist) {
+          draggingAnchor.anc.src = screenToWorld(sx, sy, state.histViewport, histCanvas.height);
         } else {
           let targetPt = screenToWorldGIS(sx, sy, state.trueViewport, trueCanvas.height);
 
@@ -12490,16 +11728,14 @@ EOF`;
         return;
       }
 
-      // Dragging deed node on historical / deed canvas
+      // Dragging deed node on historical canvas
       if (state.draggingDeedNodeHist) {
-        const isH = state.draggingDeedNodeHist.isHist;
-        const curC = (isH === "196") ? canvas196 : ((isH === "296") ? canvas296 : histCanvas);
-        const curV = (isH === "196") ? state.vp196 : ((isH === "296") ? state.vp296 : state.histViewport);
-        const entList = (isH === "196") ? state.entities196 : ((isH === "296") ? state.entities296 : state.histEntities);
-        const rect = curC.getBoundingClientRect();
+        const vp = state.histViewport;
+        const h = histCanvas.height;
+        const rect = histCanvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
-        const deedPt = screenToWorld(mouseX, mouseY, curV, curC.height);
-        const ent = entList[state.draggingDeedNodeHist.entIdx];
+        const deedPt = screenToWorld(mouseX, mouseY, vp, h);
+        const ent = state.histEntities[state.draggingDeedNodeHist.entIdx];
         if (ent && ent.points && ent.points[state.draggingDeedNodeHist.ptIdx]) {
           const origDeed = state.draggingDeedNodeHist.origDeedPt;
           ent.points[state.draggingDeedNodeHist.ptIdx].x = deedPt.x;
@@ -12821,22 +12057,12 @@ EOF`;
 
       // Anchor Pin Hover detection (shows photo, custom name, coords, residual)
       let hitAnchor = null;
-      let hitAnchorDeed = "1073";
       if (!isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
-        for (const anc of (state.anchors296 || [])) {
+        for (const anc of (state.anchors || [])) {
           const tp = worldToScreenGIS(anc.dst, vp, h);
-          if (Math.hypot(mouseX - tp.x, mouseY - tp.y) <= 14) { hitAnchor = anc; hitAnchorDeed = "296"; break; }
-        }
-        if (!hitAnchor) {
-          for (const anc of (state.anchors1073 || state.anchors || [])) {
-            const tp = worldToScreenGIS(anc.dst, vp, h);
-            if (Math.hypot(mouseX - tp.x, mouseY - tp.y) <= 14) { hitAnchor = anc; hitAnchorDeed = "1073"; break; }
-          }
-        }
-        if (!hitAnchor) {
-          for (const anc of (state.anchors196 || [])) {
-            const tp = worldToScreenGIS(anc.dst, vp, h);
-            if (Math.hypot(mouseX - tp.x, mouseY - tp.y) <= 14) { hitAnchor = anc; hitAnchorDeed = "196"; break; }
+          if (Math.hypot(mouseX - tp.x, mouseY - tp.y) <= 14) {
+            hitAnchor = anc;
+            break;
           }
         }
       }
@@ -12845,8 +12071,7 @@ EOF`;
         trueCanvas.style.cursor = "pointer";
         const isEnabled = hitAnchor.active !== false && hitAnchor.enabled !== false;
         let errStr = "—";
-        const targetAnchorList = (hitAnchorDeed === "196") ? state.anchors196 : ((hitAnchorDeed === "296") ? state.anchors296 : (state.anchors1073 || state.anchors));
-        const activeAnchors = getActiveAnchors(targetAnchorList);
+        const activeAnchors = getActiveAnchors();
         if (activeAnchors.length >= 2) {
           try {
             const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
@@ -13256,71 +12481,9 @@ EOF`;
         e.preventDefault();
         delete labelHit.anc.labelOffsetSrc;
         updateStatus(`Anchor #${labelHit.anc.id} label position reset to default.`);
-        redrawHistoricalCanvas();
+        redrawAll();
       }
     });
-
-    if (canvas296) {
-      canvas296.addEventListener("wheel", e => {
-        e.preventDefault();
-        const r = canvas296.getBoundingClientRect();
-        const mx = e.clientX - r.left, my = e.clientY - r.top;
-        const vp = state.vp296;
-        const wx = (mx - vp.offsetX) / vp.scale;
-        const wy = (my - vp.offsetY) / vp.scale;
-        const factor = e.deltaY < 0 ? 1.15 : 0.85;
-        vp.scale = Math.min(Math.max(vp.scale * factor, 0.001), 500);
-        vp.offsetX = mx - wx * vp.scale;
-        vp.offsetY = my - wy * vp.scale;
-        redrawCanvas296();
-      }, { passive: false });
-
-      canvas296.addEventListener("mousedown", e => handleMouseDown(e, canvas296, state.vp296, "296"));
-      canvas296.addEventListener("mouseup",   e => handleMouseUp(e, canvas296, state.vp296, "296"));
-      canvas296.addEventListener("contextmenu", e => e.preventDefault());
-      canvas296.addEventListener("dblclick", function(e) {
-        const rect = canvas296.getBoundingClientRect();
-        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
-        const labelHit = hitTestAnchorLabel(sx, sy, "296");
-        if (labelHit) {
-          e.preventDefault();
-          delete labelHit.anc.labelOffsetSrc;
-          updateStatus(`Anchor #${labelHit.anc.id} label position reset to default.`);
-          redrawCanvas296();
-        }
-      });
-    }
-
-    if (canvas196) {
-      canvas196.addEventListener("wheel", e => {
-        e.preventDefault();
-        const r = canvas196.getBoundingClientRect();
-        const mx = e.clientX - r.left, my = e.clientY - r.top;
-        const vp = state.vp196;
-        const wx = (mx - vp.offsetX) / vp.scale;
-        const wy = (my - vp.offsetY) / vp.scale;
-        const factor = e.deltaY < 0 ? 1.15 : 0.85;
-        vp.scale = Math.min(Math.max(vp.scale * factor, 0.001), 500);
-        vp.offsetX = mx - wx * vp.scale;
-        vp.offsetY = my - wy * vp.scale;
-        redrawCanvas196();
-      }, { passive: false });
-
-      canvas196.addEventListener("mousedown", e => handleMouseDown(e, canvas196, state.vp196, "196"));
-      canvas196.addEventListener("mouseup",   e => handleMouseUp(e, canvas196, state.vp196, "196"));
-      canvas196.addEventListener("contextmenu", e => e.preventDefault());
-      canvas196.addEventListener("dblclick", function(e) {
-        const rect = canvas196.getBoundingClientRect();
-        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
-        const labelHit = hitTestAnchorLabel(sx, sy, "196");
-        if (labelHit) {
-          e.preventDefault();
-          delete labelHit.anc.labelOffsetSrc;
-          updateStatus(`Anchor #${labelHit.anc.id} label position reset to default.`);
-          redrawCanvas196();
-        }
-      });
-    }
     trueCanvas.addEventListener("mousedown", e => handleMouseDown(e, trueCanvas, state.trueViewport, false));
     trueCanvas.addEventListener("mouseup", e => {
       if (state.activeDeedHandle !== null) {
@@ -13502,23 +12665,11 @@ EOF`;
     });
 
     // Algorithm & overlay controls
-    syncAlgorithmDropdowns();
-    ["1073", "196", "296"].forEach(key => {
-      const el = document.getElementById(`algorithm-select-${key}`);
-      if (el) {
-        el.value = getDeedAlgorithm(key);
-        el.addEventListener("change", e => {
-          setDeedAlgorithm(key, e.target.value);
-          updateStatus(`Escritura ${key} algorithm switched to: ${e.target.options[e.target.selectedIndex].text}`);
-        });
-      }
+    algorithmSelect.value = state.algorithm;
+    algorithmSelect.addEventListener("change", e => {
+      state.algorithm=e.target.value; redrawAll();
+      updateStatus(`Switched to: ${e.target.options[e.target.selectedIndex].text}`);
     });
-    if (algorithmSelect) {
-      algorithmSelect.value = getDeedAlgorithm("1073");
-      algorithmSelect.addEventListener("change", e => {
-        setDeedAlgorithm("1073", e.target.value);
-      });
-    }
     chkShowOverlay.addEventListener("change", e => { state.showOverlay=e.target.checked; redrawAll(); });
 
     // ── Overlays & Opacity Layer Visibility Controls ────────────────
@@ -13529,10 +12680,6 @@ EOF`;
       const overlayChecks = [
         document.getElementById("chk-show-warped-pdf"),
         document.getElementById("chk-show-warped-dxf"),
-        document.getElementById("chk-show-warped-pdf-196"),
-        document.getElementById("chk-show-warped-dxf-196"),
-        document.getElementById("chk-show-warped-pdf-296"),
-        document.getElementById("chk-show-warped-dxf-296"),
         document.getElementById("chk-show-true-dxf"),
         document.getElementById("chk-show-survey-valoy-2025"),
         document.getElementById("chk-show-survey-cortez-2025"),
@@ -13558,7 +12705,6 @@ EOF`;
         globalChk.checked = false;
         globalChk.indeterminate = true;
       }
-      if (typeof syncAllGlobalToolbarCheckboxes === "function") syncAllGlobalToolbarCheckboxes();
     }
 
     const chkShowGeoTiff = document.getElementById("chk-show-geotiff");
@@ -13648,161 +12794,7 @@ EOF`;
         });
 
         redrawTrueCanvas();
-        if (typeof syncAllGlobalToolbarCheckboxes === "function") syncAllGlobalToolbarCheckboxes();
       });
-    }
-
-    // ── Global Controls: Deeds, Anchors, and Polygons ────────────────
-    function toggleGlobalDeeds(show) {
-      state.showWarpedPdf = show;
-      state.showWarpedDxf = show;
-      state.showWarpedPdf196 = show;
-      state.showWarpedDxf196 = show;
-      state.showWarpedPdf296 = show;
-      state.showWarpedDxf296 = show;
-
-      const chkPdf1073 = document.getElementById("chk-show-warped-pdf");
-      if (chkPdf1073) chkPdf1073.checked = show;
-      const chkDxf1073 = document.getElementById("chk-show-warped-dxf");
-      if (chkDxf1073) chkDxf1073.checked = show;
-
-      const chkPdf196 = document.getElementById("chk-show-warped-pdf-196");
-      if (chkPdf196) chkPdf196.checked = show;
-      const chkDxf196 = document.getElementById("chk-show-warped-dxf-196");
-      if (chkDxf196) chkDxf196.checked = show;
-
-      const chkPdf296 = document.getElementById("chk-show-warped-pdf-296");
-      if (chkPdf296) chkPdf296.checked = show;
-      const chkDxf296 = document.getElementById("chk-show-warped-dxf-296");
-      if (chkDxf296) chkDxf296.checked = show;
-
-      updateStatus(show ? "📜 All deeds (1073, 196, 296) displayed." : "📜 All deeds (1073, 196, 296) hidden.");
-      redrawTrueCanvas();
-      syncGlobalDeedsCheckbox();
-      if (typeof syncGlobalOverlaysCheckbox === "function") syncGlobalOverlaysCheckbox();
-    }
-    window.toggleGlobalDeeds = toggleGlobalDeeds;
-
-    function toggleGlobalAnchors(show) {
-      state.showAnchors = show;
-      state.showAnchors1073 = show;
-      state.showAnchors196 = show;
-      state.showAnchors296 = show;
-
-      ["1073", "196", "296"].forEach(dKey => {
-        let list = (dKey === "1073") ? (state.anchors1073 || state.anchors) :
-                   (dKey === "196")  ? state.anchors196 : state.anchors296;
-        (list || []).forEach(a => { a.showLabel = show; });
-      });
-
-      updateStatus(show ? "🎯 All anchors across all deeds displayed." : "🎯 All anchors across all deeds hidden.");
-      redrawAll();
-      syncGlobalAnchorsCheckbox();
-    }
-    window.toggleGlobalAnchors = toggleGlobalAnchors;
-
-    function toggleGlobalPolygons(show) {
-      if (state.userPolygon) state.userPolygon.show = show;
-      const chkUserPoly = document.getElementById("chk-show-user-polygon");
-      if (chkUserPoly) chkUserPoly.checked = show;
-
-      (state.customPolygons || []).forEach(p => { p.visible = show; });
-      if (typeof renderCustomPolyList === "function") renderCustomPolyList();
-
-      state.showTrueDxf = show;
-      state.showSurveyValoy2025 = show;
-      state.showSurveyCortez2025 = show;
-      (state.refDxfFiles || []).forEach(ref => {
-        ref.visible = show;
-        const chkRef = document.getElementById(`chk-ref-vis-${ref.id}`);
-        if (chkRef) chkRef.checked = show;
-      });
-      (state.vectorLayers || []).forEach(vl => { vl.visible = show; });
-
-      const chkTrueDxf = document.getElementById("chk-show-true-dxf");
-      if (chkTrueDxf) chkTrueDxf.checked = show;
-      const chkValoy = document.getElementById("chk-show-survey-valoy-2025");
-      if (chkValoy) chkValoy.checked = show;
-      const chkCortez = document.getElementById("chk-show-survey-cortez-2025");
-      if (chkCortez) chkCortez.checked = show;
-
-      updateStatus(show ? "📐 All polygons displayed." : "📐 All polygons hidden.");
-      redrawTrueCanvas();
-      syncGlobalPolygonsCheckbox();
-      if (typeof syncGlobalOverlaysCheckbox === "function") syncGlobalOverlaysCheckbox();
-    }
-    window.toggleGlobalPolygons = toggleGlobalPolygons;
-
-    function syncGlobalDeedsCheckbox() {
-      const chk = document.getElementById("chk-global-deeds");
-      if (!chk) return;
-      const deedStates = [
-        state.showWarpedPdf !== false,
-        state.showWarpedDxf !== false,
-        state.showWarpedPdf196 !== false,
-        state.showWarpedDxf196 !== false,
-        state.showWarpedPdf296 !== false,
-        state.showWarpedDxf296 !== false
-      ];
-      const n = deedStates.filter(Boolean).length;
-      if (n === deedStates.length) { chk.checked = true; chk.indeterminate = false; }
-      else if (n === 0) { chk.checked = false; chk.indeterminate = false; }
-      else { chk.checked = false; chk.indeterminate = true; }
-    }
-    window.syncGlobalDeedsCheckbox = syncGlobalDeedsCheckbox;
-
-    function syncGlobalAnchorsCheckbox() {
-      const chk = document.getElementById("chk-global-anchors");
-      if (!chk) return;
-      const anchorStates = [
-        state.showAnchors !== false && state.showAnchors1073 !== false,
-        state.showAnchors !== false && state.showAnchors196 !== false,
-        state.showAnchors !== false && state.showAnchors296 !== false
-      ];
-      const n = anchorStates.filter(Boolean).length;
-      if (n === anchorStates.length) { chk.checked = true; chk.indeterminate = false; }
-      else if (n === 0) { chk.checked = false; chk.indeterminate = false; }
-      else { chk.checked = false; chk.indeterminate = true; }
-    }
-    window.syncGlobalAnchorsCheckbox = syncGlobalAnchorsCheckbox;
-
-    function syncGlobalPolygonsCheckbox() {
-      const chk = document.getElementById("chk-global-polygons");
-      if (!chk) return;
-      const polyStates = [
-        state.userPolygon ? state.userPolygon.show !== false : true,
-        state.showTrueDxf !== false,
-        state.showSurveyValoy2025 !== false,
-        state.showSurveyCortez2025 !== false
-      ];
-      if (state.customPolygons && state.customPolygons.length > 0) {
-        polyStates.push(state.customPolygons.some(p => p.visible !== false));
-      }
-      const n = polyStates.filter(Boolean).length;
-      if (n === polyStates.length) { chk.checked = true; chk.indeterminate = false; }
-      else if (n === 0) { chk.checked = false; chk.indeterminate = false; }
-      else { chk.checked = false; chk.indeterminate = true; }
-    }
-    window.syncGlobalPolygonsCheckbox = syncGlobalPolygonsCheckbox;
-
-    function syncAllGlobalToolbarCheckboxes() {
-      syncGlobalDeedsCheckbox();
-      syncGlobalAnchorsCheckbox();
-      syncGlobalPolygonsCheckbox();
-    }
-    window.syncAllGlobalToolbarCheckboxes = syncAllGlobalToolbarCheckboxes;
-
-    const chkGlobalDeeds = document.getElementById("chk-global-deeds");
-    if (chkGlobalDeeds) {
-      chkGlobalDeeds.addEventListener("change", e => toggleGlobalDeeds(e.target.checked));
-    }
-    const chkGlobalAnchors = document.getElementById("chk-global-anchors");
-    if (chkGlobalAnchors) {
-      chkGlobalAnchors.addEventListener("change", e => toggleGlobalAnchors(e.target.checked));
-    }
-    const chkGlobalPolygons = document.getElementById("chk-global-polygons");
-    if (chkGlobalPolygons) {
-      chkGlobalPolygons.addEventListener("change", e => toggleGlobalPolygons(e.target.checked));
     }
 
     // Collapsible main panel cards (Overlays, Anchors, Boundary Reconstructed, Custom Polygons)
@@ -13843,39 +12835,24 @@ EOF`;
     });
 
     // Anchor management: Save, Load, Clear, Delete
-    function formatAnchorForSave(a) {
-      return {
-        id: a.id,
-        name: a.name || (`#${a.id}`),
-        showLabel: a.showLabel !== false,
-        image: a.image || null,
-        color: a.color,
-        src: { x: a.src.x, y: a.src.y },
-        dst: { x: a.dst.x, y: a.dst.y },
-        active: a.active !== false && a.enabled !== false,
-        enabled: a.active !== false && a.enabled !== false,
-        labelOffsetSrc: a.labelOffsetSrc || null,
-        labelOffsetDst: a.labelOffsetDst || null
-      };
-    }
-
-    // Anchor management: Save, Load, Clear, Delete
     const btnSaveAnchors = document.getElementById("btn-save-anchors");
     if (btnSaveAnchors) {
       btnSaveAnchors.addEventListener("click", () => {
-        const totalCount = (state.anchors1073 ? state.anchors1073.length : 0) +
-                           (state.anchors196 ? state.anchors196.length : 0) +
-                           (state.anchors296 ? state.anchors296.length : 0);
-        if (totalCount === 0) {
+        if (!state.anchors || state.anchors.length === 0) {
           updateStatus("⚠️ No anchors to save. Place anchor pairs first using 🎯 Anchor Mode.");
           return;
         }
-        const toSave = {
-          anchors296: (state.anchors296 || []).map(formatAnchorForSave),
-          anchors1073: (state.anchors1073 || []).map(formatAnchorForSave),
-          anchors196: (state.anchors196 || []).map(formatAnchorForSave),
-          anchors: (state.anchors1073 || []).map(formatAnchorForSave)
-        };
+        const toSave = state.anchors.map(a => ({
+          id: a.id,
+          name: a.name || (`#${a.id}`),
+          showLabel: a.showLabel !== false,
+          image: a.image || null,
+          color: a.color,
+          src: { x: a.src.x, y: a.src.y },
+          dst: { x: a.dst.x, y: a.dst.y },
+          active: a.active !== false && a.enabled !== false,
+          enabled: a.active !== false && a.enabled !== false
+        }));
         const jsonStr = JSON.stringify(toSave, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -13886,7 +12863,7 @@ EOF`;
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        updateStatus(`💾 Saved ${totalCount} anchors across all deeds to anchors_georectifier.json.`);
+        updateStatus(`💾 Saved ${state.anchors.length} anchors (${getActiveAnchors().length} active) to anchors_georectifier.json.`);
       });
     }
 
@@ -13899,13 +12876,15 @@ EOF`;
         reader.onload = ev => {
           try {
             const data = JSON.parse(ev.target.result);
-            applyAnchors(data);
-            state.pendingSource = null;
-            redrawAll();
-            const totalCount = (state.anchors1073 ? state.anchors1073.length : 0) +
-                               (state.anchors196 ? state.anchors196.length : 0) +
-                               (state.anchors296 ? state.anchors296.length : 0);
-            updateStatus(`✅ Loaded ${totalCount} anchors across deeds from ${file.name}`);
+            const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
+            if (list.length > 0) {
+              applyAnchors(list);
+              state.pendingSource = null;
+              redrawAll();
+              updateStatus(`✅ Loaded ${state.anchors.length} anchors (${getActiveAnchors().length} active) from ${file.name}`);
+            } else {
+              updateStatus("⚠️ No valid anchor pairs found in file.");
+            }
           } catch (err) {
             updateStatus(`❌ Failed to parse anchor file: ${err.message}`);
           }
@@ -13914,17 +12893,12 @@ EOF`;
       });
     }
 
-    if (btnClearAnchors) {
-      btnClearAnchors.addEventListener("click", () => {
-        state.anchors1073 = [];
-        state.anchors196 = [];
-        state.anchors296 = [];
-        state.anchors = state.anchors1073;
-        state.pendingSource = null;
-        redrawAll();
-        updateStatus("Cleared all anchors across all deeds.");
-      });
-    }
+    btnClearAnchors.addEventListener("click", () => {
+      state.anchors = [];
+      state.pendingSource = null;
+      redrawAll();
+      updateStatus("Cleared all anchors.");
+    });
 
     const chkConstrainAnchors = document.getElementById("chk-constrain-anchors");
     if (chkConstrainAnchors) {
@@ -14006,44 +12980,10 @@ EOF`;
       });
     }
 
-    function getAnchorByDeed(id, deedKey) {
-      const numId = parseInt(id, 10);
-      if (deedKey === "196") {
-        const anc = (state.anchors196 || []).find(a => a.id === numId);
-        return anc ? { anc, deedKey: "196" } : null;
-      }
-      if (deedKey === "296") {
-        const anc = (state.anchors296 || []).find(a => a.id === numId);
-        return anc ? { anc, deedKey: "296" } : null;
-      }
-      if (deedKey === "1073") {
-        const anc = (state.anchors1073 || state.anchors || []).find(a => a.id === numId);
-        return anc ? { anc, deedKey: "1073" } : null;
-      }
-      const a1073 = (state.anchors1073 || state.anchors || []).find(a => a.id === numId);
-      if (a1073) return { anc: a1073, deedKey: "1073" };
-      const a196 = (state.anchors196 || []).find(a => a.id === numId);
-      if (a196) return { anc: a196, deedKey: "196" };
-      const a296 = (state.anchors296 || []).find(a => a.id === numId);
-      if (a296) return { anc: a296, deedKey: "296" };
-      return null;
-    }
-
-    window.deleteAnchor = function(id, deedKey) {
-      const res = getAnchorByDeed(id, deedKey);
-      if (!res) return;
-      const dKey = res.deedKey;
-      const numId = parseInt(id, 10);
-      if (dKey === "196") {
-        state.anchors196 = (state.anchors196 || []).filter(a => a.id !== numId);
-      } else if (dKey === "296") {
-        state.anchors296 = (state.anchors296 || []).filter(a => a.id !== numId);
-      } else {
-        state.anchors1073 = (state.anchors1073 || []).filter(a => a.id !== numId);
-        state.anchors = state.anchors1073;
-      }
+    window.deleteAnchor = function(id) {
+      state.anchors = state.anchors.filter(a => a.id !== id);
       redrawAll();
-      updateStatus(`Deleted Anchor #${id} from Escritura ${dKey}.`);
+      updateStatus(`Deleted Anchor #${id}. Total remaining: ${state.anchors.length}`);
     };
 
     // ── Opacity sliders ───────────────────────────────────────────────
@@ -14054,7 +12994,7 @@ EOF`;
       el.addEventListener("input", e => {
         const val = parseInt(e.target.value, 10);
         state[stateKey] = val / 100;
-        if (vl) vl.textContent = e.target.value + "%";
+        vl.textContent = e.target.value + "%";
         if (chkId && showStateKey && val > 0) {
           const chk = document.getElementById(chkId);
           if (chk && !chk.checked) {
@@ -14071,115 +13011,9 @@ EOF`;
     bindOpacity("geotiff-opacity",    "geotiff-opacity-val",    "geoTiffOpacity",    "chk-show-geotiff",    "showGeoTiff");
     bindOpacity("warped-pdf-opacity", "warped-pdf-opacity-val", "warpedPdfOpacity", "chk-show-warped-pdf", "showWarpedPdf");
     bindOpacity("warped-dxf-opacity", "warped-dxf-opacity-val", "warpedDxfOpacity", "chk-show-warped-dxf", "showWarpedDxf");
-    bindOpacity("warped-pdf-opacity-196", "warped-pdf-opacity-val-196", "warpedPdfOpacity196", "chk-show-warped-pdf-196", "showWarpedPdf196");
-    bindOpacity("warped-dxf-opacity-196", "warped-dxf-opacity-val-196", "warpedDxfOpacity196", "chk-show-warped-dxf-196", "showWarpedDxf196");
-    bindOpacity("warped-pdf-opacity-296", "warped-pdf-opacity-val-296", "warpedPdfOpacity296", "chk-show-warped-pdf-296", "showWarpedPdf296");
-    bindOpacity("warped-dxf-opacity-296", "warped-dxf-opacity-val-296", "warpedDxfOpacity296", "chk-show-warped-dxf-296", "showWarpedDxf296");
     bindOpacity("true-dxf-opacity",   "true-dxf-opacity-val",   "trueDxfOpacity",   "chk-show-true-dxf",   "showTrueDxf");
     bindOpacity("survey-valoy-2025-opacity", "survey-valoy-2025-opacity-val", "surveyValoy2025Opacity", "chk-show-survey-valoy-2025", "showSurveyValoy2025");
     bindOpacity("survey-cortez-2025-opacity", "survey-cortez-2025-opacity-val", "surveyCortez2025Opacity", "chk-show-survey-cortez-2025", "showSurveyCortez2025");
-
-    const chkShowWarpedPdf196 = document.getElementById("chk-show-warped-pdf-196");
-    if (chkShowWarpedPdf196) {
-      chkShowWarpedPdf196.addEventListener("change", e => {
-        state.showWarpedPdf196 = e.target.checked;
-        redrawTrueCanvas();
-        if (typeof syncGlobalOverlaysCheckbox === "function") syncGlobalOverlaysCheckbox();
-      });
-    }
-    const chkShowWarpedDxf196 = document.getElementById("chk-show-warped-dxf-196");
-    if (chkShowWarpedDxf196) {
-      chkShowWarpedDxf196.addEventListener("change", e => {
-        state.showWarpedDxf196 = e.target.checked;
-        redrawTrueCanvas();
-        if (typeof syncGlobalOverlaysCheckbox === "function") syncGlobalOverlaysCheckbox();
-      });
-    }
-    const chkShowWarpedPdf296 = document.getElementById("chk-show-warped-pdf-296");
-    if (chkShowWarpedPdf296) {
-      chkShowWarpedPdf296.addEventListener("change", e => {
-        state.showWarpedPdf296 = e.target.checked;
-        redrawTrueCanvas();
-        if (typeof syncGlobalOverlaysCheckbox === "function") syncGlobalOverlaysCheckbox();
-      });
-    }
-    const chkShowWarpedDxf296 = document.getElementById("chk-show-warped-dxf-296");
-    if (chkShowWarpedDxf296) {
-      chkShowWarpedDxf296.addEventListener("change", e => {
-        state.showWarpedDxf296 = e.target.checked;
-        redrawTrueCanvas();
-        if (typeof syncGlobalOverlaysCheckbox === "function") syncGlobalOverlaysCheckbox();
-      });
-    }
-
-    function bindVectorStyle(colorId, dashId, widthId, nodesId, styleObj, onChange) {
-      if (!styleObj) return;
-      const c = document.getElementById(colorId);
-      const d = document.getElementById(dashId);
-      const w = document.getElementById(widthId);
-      const n = document.getElementById(nodesId);
-      if (c) c.addEventListener("input", e => { styleObj.color = e.target.value; onChange(); });
-      if (d) d.addEventListener("change", e => { styleObj.dash = e.target.value; onChange(); });
-      if (w) w.addEventListener("change", e => { styleObj.width = parseFloat(e.target.value); onChange(); });
-      if (n) n.addEventListener("change", e => { styleObj.showNodes = e.target.checked; onChange(); });
-    }
-
-    bindVectorStyle("style-deed-dxf-color", "style-deed-dxf-dash", "style-deed-dxf-width", "style-deed-dxf-nodes", state.styleDeed1073, () => {
-      state.styleDeedDxf = state.styleDeed1073;
-      redrawAll();
-    });
-    bindVectorStyle("style-deed-dxf-color-196", "style-deed-dxf-dash-196", "style-deed-dxf-width-196", "style-deed-dxf-nodes-196", state.styleDeed196, () => redrawAll());
-    bindVectorStyle("style-deed-dxf-color-296", "style-deed-dxf-dash-296", "style-deed-dxf-width-296", "style-deed-dxf-nodes-296", state.styleDeed296, () => redrawAll());
-    bindVectorStyle("style-true-dxf-color", "style-true-dxf-dash", "style-true-dxf-width", "style-true-dxf-nodes", state.styleTrueDxf, () => redrawTrueCanvas());
-    bindVectorStyle("style-survey-valoy-2025-color", "style-survey-valoy-2025-dash", "style-survey-valoy-2025-width", "style-survey-valoy-2025-nodes", state.styleSurveyValoy2025, () => redrawTrueCanvas());
-    bindVectorStyle("style-survey-cortez-2025-color", "style-survey-cortez-2025-dash", "style-survey-cortez-2025-width", "style-survey-cortez-2025-nodes", state.styleSurveyCortez2025, () => redrawTrueCanvas());
-
-    // ── Fit & Save Deed Action Buttons ────────────────────────────────
-    const btnFit296 = document.getElementById("btn-fit-296");
-    if (btnFit296) btnFit296.addEventListener("click", () => { fitView296(); redrawCanvas296(); updateStatus("Centered Escritura 296 view."); });
-    const btnFit196 = document.getElementById("btn-fit-196");
-    if (btnFit196) btnFit196.addEventListener("click", () => { fitView196(); redrawCanvas196(); updateStatus("Centered Escritura 196 view."); });
-
-    function saveDeedDxf196() {
-      if (!state.entities196 || state.entities196.length === 0) {
-        alert("No deed 196 DXF loaded to save.");
-        return;
-      }
-      const txt = DXFParser.serialize(state.entities196);
-      const blob = new Blob([txt], { type: "application/dxf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = state.histFileName196 || "Polygon_Escritura196.dxf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      updateStatus(`💾 Saved modified Deed 196 DXF to '${a.download}'.`);
-    }
-
-    function saveDeedDxf296() {
-      if (!state.entities296 || state.entities296.length === 0) {
-        alert("No deed 296 DXF loaded to save.");
-        return;
-      }
-      const txt = DXFParser.serialize(state.entities296);
-      const blob = new Blob([txt], { type: "application/dxf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = state.histFileName296 || "Polygon_Escritura296.dxf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      updateStatus(`💾 Saved modified Deed 296 DXF to '${a.download}'.`);
-    }
-
-    const btnSaveDeed196 = document.getElementById("btn-save-deed-196");
-    if (btnSaveDeed196) btnSaveDeed196.addEventListener("click", saveDeedDxf196);
-    const btnSaveDeed296 = document.getElementById("btn-save-deed-296");
-    if (btnSaveDeed296) btnSaveDeed296.addEventListener("click", saveDeedDxf296);
 
     // ── Analytics / RMSE panel ────────────────────────────────────────
     const algoCompareList = document.getElementById("algo-compare-list");
@@ -14196,56 +13030,42 @@ EOF`;
       "linear-gradient(90deg,#ff1744,#d50000)",
     ];
 
-    function renderAnchorTableSection(deedKey, anchors, tbodyEl, rmseEl, chkToggleAllEl, defaultColor) {
-      if (!tbodyEl) return { totalRMSE: 0, activeCount: 0 };
-      tbodyEl.innerHTML = "";
+    function updateAnalyticsUI() {
+      anchorTableBody.innerHTML = "";
       let warper = null, rmseInfo = { totalRMSE: 0, residuals: [] };
-      const activeAnchors = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
+      const activeAnchors = getActiveAnchors();
       if (activeAnchors.length >= 2) {
         try {
-          warper = TransformMath.createWarper(getDeedAlgorithm(deedKey), activeAnchors);
+          warper = TransformMath.createWarper(state.algorithm, activeAnchors);
           rmseInfo = TransformMath.computeRMSE(warper, activeAnchors);
-        } catch (_) {}
+        } catch(_) {}
       }
       const activeCount = activeAnchors.length;
-      const totalCount = (anchors || []).length;
-      if (rmseEl) {
+      const totalCount = state.anchors.length;
+      if (rmseDisplay) {
         if (activeCount < 2) {
-          rmseEl.textContent = `RMSE: — (${activeCount}/${totalCount} active)`;
+          rmseDisplay.textContent = `RMSE: — (${activeCount}/${totalCount} active)`;
         } else if (totalCount > activeCount) {
-          rmseEl.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)} (${activeCount}/${totalCount} active)`;
+          rmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)} (${activeCount}/${totalCount} active)`;
         } else {
-          rmseEl.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
+          rmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
         }
       }
 
-      if (chkToggleAllEl) {
-        chkToggleAllEl.checked = totalCount > 0 && activeCount === totalCount;
-        chkToggleAllEl.indeterminate = activeCount > 0 && activeCount < totalCount;
+      const chkToggleAll = document.getElementById("chk-toggle-all-anchors");
+      if (chkToggleAll) {
+        chkToggleAll.checked = totalCount > 0 && activeCount === totalCount;
+        chkToggleAll.indeterminate = activeCount > 0 && activeCount < totalCount;
       }
 
-      const btnToggleLabelsEl = document.getElementById(`btn-toggle-all-labels-${deedKey}`);
-      if (btnToggleLabelsEl) {
-        const isShown = (state[`showAnchors${deedKey}`] !== false) && (state.showAnchors !== false);
-        if (!isShown) {
-          btnToggleLabelsEl.style.filter = "grayscale(100%)";
-          btnToggleLabelsEl.style.opacity = "0.35";
-          btnToggleLabelsEl.title = `Show anchors on canvas (Escritura ${deedKey})`;
-        } else {
-          btnToggleLabelsEl.style.filter = "none";
-          btnToggleLabelsEl.style.opacity = "1";
-          btnToggleLabelsEl.title = `Hide anchors on canvas (Escritura ${deedKey})`;
-        }
-      }
-
-      (anchors || []).forEach(anc => {
+      state.anchors.forEach((anc, idx) => {
         const isEnabled = anc.active !== false && anc.enabled !== false;
         let err = "—";
         if (warper) {
           try {
             const warped = warper(anc.src);
             err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y).toFixed(2);
-          } catch (_) {}
+          } catch(_) {}
         }
         const tr = document.createElement("tr");
         if (!isEnabled) {
@@ -14255,252 +13075,149 @@ EOF`;
         const safeName = (ancName + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         const showLabel = anc.showLabel !== false;
         const hasPhoto = !!anc.image;
-        const badgeColor = anc.color || defaultColor;
 
         tr.innerHTML = `
           <td style="text-align:center;">
-            <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" data-deed="${deedKey}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
+            <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
           </td>
           <td style="overflow:hidden;">
             <div style="display:flex;align-items:center;gap:3px;min-width:0;">
-              <span class="anchor-badge" style="background:${badgeColor};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;">#${anc.id}</span>
-              <input type="text" class="anchor-name-input" data-id="${anc.id}" data-deed="${deedKey}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
+              <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;">#${anc.id}</span>
+              <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
             </div>
           </td>
           <td style="text-align:center;">
-            <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" data-deed="${deedKey}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
+            <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
           </td>
           <td style="text-align:center;">
             ${hasPhoto ? `
               <div style="display:inline-flex;align-items:center;justify-content:center;">
-                <img src="${anc.image}" class="anchor-thumb-preview" data-id="${anc.id}" data-deed="${deedKey}" title="Click to view, change, or remove photo" alt="Photo">
+                <img src="${anc.image}" class="anchor-thumb-preview" data-id="${anc.id}" title="Click to view, change, or remove photo" alt="Photo">
               </div>
             ` : `
-              <button class="btn-upload-anchor-photo" data-id="${anc.id}" data-deed="${deedKey}" title="Upload photo for this anchor">📷</button>
+              <button class="btn-upload-anchor-photo" data-id="${anc.id}" title="Upload photo for this anchor">📷</button>
             `}
           </td>
           <td style="text-align:right;font-family:monospace;white-space:nowrap;color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)')}">
             ${err}${err !== "—" ? "m" : ""}
           </td>
           <td style="text-align:center;">
-            <button class="btn-del-anchor" data-id="${anc.id}" data-deed="${deedKey}" title="Delete Anchor #${anc.id}">✕</button>
+            <button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})" title="Delete Anchor #${anc.id}">✕</button>
           </td>`;
-        tbodyEl.appendChild(tr);
+        anchorTableBody.appendChild(tr);
       });
-      return { totalRMSE: rmseInfo.totalRMSE, activeCount };
-    }
-
-    function updateAnalyticsUI() {
-      // 1. Escritura 1073
-      const r1073 = renderAnchorTableSection(
-        "1073",
-        state.anchors1073 || state.anchors,
-        document.getElementById("anchor-table-body-1073"),
-        document.getElementById("rmse-display-1073"),
-        document.getElementById("chk-toggle-all-anchors-1073"),
-        "#ff1744"
-      );
-
-      // 2. Escritura 196
-      const r196 = renderAnchorTableSection(
-        "196",
-        state.anchors196,
-        document.getElementById("anchor-table-body-196"),
-        document.getElementById("rmse-display-196"),
-        document.getElementById("chk-toggle-all-anchors-196"),
-        "#ff9100"
-      );
-
-      // 3. Escritura 296
-      const r296 = renderAnchorTableSection(
-        "296",
-        state.anchors296,
-        document.getElementById("anchor-table-body-296"),
-        document.getElementById("rmse-display-296"),
-        document.getElementById("chk-toggle-all-anchors-296"),
-        "#d500f9"
-      );
-
-      // Overall / Header RMSE badge
-      const overallRmseDisplay = document.getElementById("rmse-display");
-      if (overallRmseDisplay) {
-        const parts = [];
-        if (state.anchors1073 && state.anchors1073.length) parts.push(`1073: ${r1073.totalRMSE.toFixed(2)}m`);
-        if (state.anchors196 && state.anchors196.length) parts.push(`196: ${r196.totalRMSE.toFixed(2)}m`);
-        if (state.anchors296 && state.anchors296.length) parts.push(`296: ${r296.totalRMSE.toFixed(2)}m`);
-        overallRmseDisplay.textContent = parts.length > 0 ? `RMSE (${parts.join(", ")})` : "RMSE: 0.00";
-      }
-
-      // Legacy fallback
-      const chkToggleAll = document.getElementById("chk-toggle-all-anchors");
-      if (chkToggleAll) {
-        const total = (state.anchors1073 || []).length;
-        const act = r1073.activeCount;
-        chkToggleAll.checked = total > 0 && act === total;
-        chkToggleAll.indeterminate = act > 0 && act < total;
-      }
-
       updateAlgoComparePanel();
-      if (typeof syncAllGlobalToolbarCheckboxes === "function") syncAllGlobalToolbarCheckboxes();
     }
 
-    function toggleAnchor(id, active, deedKey) {
-      const res = getAnchorByDeed(id, deedKey);
-      if (!res || !res.anc) return;
-      const anc = res.anc;
-      const dKey = res.deedKey;
+    function toggleAnchor(id, active) {
+      const anc = (state.anchors || []).find(a => a.id === id);
+      if (!anc) return;
       const willBeActive = (active !== undefined) ? active : (anc.active === false || anc.enabled === false);
       anc.active = willBeActive;
       anc.enabled = willBeActive;
-      const deedAnchors = dKey === "196" ? state.anchors196 : (dKey === "296" ? state.anchors296 : (state.anchors1073 || state.anchors));
-      const activeCount = (deedAnchors || []).filter(a => a.active !== false && a.enabled !== false).length;
-      const totalCount = (deedAnchors || []).length;
+      const activeCount = getActiveAnchors().length;
+      const totalCount = state.anchors.length;
       if (activeCount < 2) {
-        updateStatus(`Anchor #${id} (Escritura ${dKey}) ${willBeActive ? "enabled" : "disabled"}. ⚠️ Need ≥ 2 active anchors for deed ${dKey} (currently ${activeCount}/${totalCount} active).`);
+        updateStatus(`Anchor #${id} ${willBeActive ? "enabled" : "disabled"}. ⚠️ Need ≥ 2 active anchors for transformation (currently ${activeCount}/${totalCount} active).`);
       } else {
-        updateStatus(`Anchor #${id} (Escritura ${dKey}) ${willBeActive ? "enabled" : "disabled"}. Active anchors: ${activeCount}/${totalCount}.`);
+        updateStatus(`Anchor #${id} ${willBeActive ? "enabled" : "disabled"}. Active anchors: ${activeCount}/${totalCount}. Live polygon & transformation updated.`);
       }
       redrawAll();
     }
     window.toggleAnchor = toggleAnchor;
 
-    function toggleAllAnchors(active, deedKey = "1073") {
-      let list = state.anchors1073 || state.anchors;
-      if (deedKey === "196") list = state.anchors196;
-      else if (deedKey === "296") list = state.anchors296;
-      (list || []).forEach(a => {
+    function toggleAllAnchors(active) {
+      (state.anchors || []).forEach(a => {
         a.active = active;
         a.enabled = active;
       });
-      const activeCount = (list || []).filter(a => a.active !== false && a.enabled !== false).length;
-      updateStatus(active ? `All ${activeCount} anchors for Escritura ${deedKey} enabled.` : `All anchors for Escritura ${deedKey} disabled.`);
+      const activeCount = getActiveAnchors().length;
+      updateStatus(active ? `All ${activeCount} anchors enabled.` : `All anchors disabled.`);
       redrawAll();
     }
     window.toggleAllAnchors = toggleAllAnchors;
 
-    function toggleAllAnchorLabels(deedKey = "1073") {
-      const prop = `showAnchors${deedKey}`;
-      const willShow = (state[prop] === false) ? true : false;
-      state[prop] = willShow;
-
-      let list = (deedKey === "1073") ? (state.anchors1073 || state.anchors) :
-                 (deedKey === "196")  ? state.anchors196 : state.anchors296;
-      (list || []).forEach(a => {
-        a.showLabel = willShow;
-      });
-
-      updateStatus(willShow ? `👁️ Anchors for Escritura ${deedKey} displayed.` : `🙈 Anchors for Escritura ${deedKey} hidden.`);
-      redrawAll();
-      if (typeof syncGlobalAnchorsCheckbox === "function") syncGlobalAnchorsCheckbox();
-    }
-    window.toggleAllAnchorLabels = toggleAllAnchorLabels;
-
     // Anchor table interactions: name editing, label toggling, photo upload/modal
     let currentPhotoAnchorId = null;
-    let currentPhotoAnchorDeed = "1073";
 
-    const bodyAnchorsContainer = document.getElementById("body-anchors");
-    if (bodyAnchorsContainer) {
-      bodyAnchorsContainer.addEventListener("input", e => {
-        if (e.target && e.target.classList.contains("anchor-name-input")) {
-          const id = parseInt(e.target.dataset.id, 10);
-          const deedKey = e.target.dataset.deed || "1073";
-          const res = getAnchorByDeed(id, deedKey);
-          if (res && res.anc) {
-            res.anc.name = e.target.value;
-            if (deedKey === "196") redrawCanvas196();
-            else if (deedKey === "296") redrawCanvas296();
-            else redrawHistoricalCanvas();
-            redrawTrueCanvas();
-          }
+    anchorTableBody.addEventListener("input", e => {
+      if (e.target && e.target.classList.contains("anchor-name-input")) {
+        const id = parseInt(e.target.dataset.id, 10);
+        const anc = (state.anchors || []).find(a => a.id === id);
+        if (anc) {
+          anc.name = e.target.value;
+          const histCard = document.getElementById("hist-card");
+          const trueCard = document.getElementById("true-card");
+          if (!histCard || !histCard.classList.contains("hidden")) redrawHistoricalCanvas();
+          if (!trueCard || !trueCard.classList.contains("hidden")) redrawTrueCanvas();
         }
-      });
+      }
+    });
 
-      bodyAnchorsContainer.addEventListener("blur", e => {
-        if (e.target && e.target.classList.contains("anchor-name-input")) {
-          const id = parseInt(e.target.dataset.id, 10);
-          const deedKey = e.target.dataset.deed || "1073";
-          const res = getAnchorByDeed(id, deedKey);
-          if (res && res.anc) {
-            const val = e.target.value.trim();
-            res.anc.name = val.length > 0 ? val : (`#${res.anc.id}`);
-            e.target.value = res.anc.name;
-            redrawAll();
-          }
+    anchorTableBody.addEventListener("blur", e => {
+      if (e.target && e.target.classList.contains("anchor-name-input")) {
+        const id = parseInt(e.target.dataset.id, 10);
+        const anc = (state.anchors || []).find(a => a.id === id);
+        if (anc) {
+          const val = e.target.value.trim();
+          anc.name = val.length > 0 ? val : (`#${anc.id}`);
+          e.target.value = anc.name;
+          redrawAll();
         }
-      }, true);
+      }
+    }, true);
 
-      bodyAnchorsContainer.addEventListener("keydown", e => {
-        if (e.key === "Enter" && e.target && e.target.classList.contains("anchor-name-input")) {
-          e.target.blur();
+    anchorTableBody.addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target && e.target.classList.contains("anchor-name-input")) {
+        e.target.blur();
+      }
+    });
+
+    anchorTableBody.addEventListener("change", e => {
+      if (e.target && e.target.classList.contains("chk-anchor-active")) {
+        const id = parseInt(e.target.dataset.id || e.target.getAttribute("data-id"), 10);
+        toggleAnchor(id, e.target.checked);
+      } else if (e.target && e.target.classList.contains("chk-anchor-showlabel")) {
+        const id = parseInt(e.target.dataset.id, 10);
+        const anc = (state.anchors || []).find(a => a.id === id);
+        if (anc) {
+          anc.showLabel = e.target.checked;
+          redrawAll();
         }
-      });
+      }
+    });
 
-      bodyAnchorsContainer.addEventListener("change", e => {
-        if (e.target && e.target.classList.contains("chk-anchor-active")) {
-          const id = parseInt(e.target.dataset.id, 10);
-          const deedKey = e.target.dataset.deed || "1073";
-          toggleAnchor(id, e.target.checked, deedKey);
-        } else if (e.target && e.target.classList.contains("chk-anchor-showlabel")) {
-          const id = parseInt(e.target.dataset.id, 10);
-          const deedKey = e.target.dataset.deed || "1073";
-          const res = getAnchorByDeed(id, deedKey);
-          if (res && res.anc) {
-            res.anc.showLabel = e.target.checked;
-            redrawAll();
-          }
+    anchorTableBody.addEventListener("click", e => {
+      const uploadBtn = e.target.closest(".btn-upload-anchor-photo");
+      if (uploadBtn) {
+        const id = parseInt(uploadBtn.dataset.id, 10);
+        currentPhotoAnchorId = id;
+        const photoFileInput = document.getElementById("anchor-photo-file-input");
+        if (photoFileInput) {
+          photoFileInput.value = "";
+          photoFileInput.click();
         }
-      });
+        return;
+      }
 
-      bodyAnchorsContainer.addEventListener("click", e => {
-        const toggleLabelsBtn = e.target.closest(".btn-toggle-all-labels");
-        if (toggleLabelsBtn) {
-          const deedKey = toggleLabelsBtn.dataset.deed || "1073";
-          toggleAllAnchorLabels(deedKey);
-          return;
+      const thumbImg = e.target.closest(".anchor-thumb-preview");
+      if (thumbImg) {
+        const id = parseInt(thumbImg.dataset.id, 10);
+        const anc = (state.anchors || []).find(a => a.id === id);
+        if (anc && anc.image) {
+          openAnchorPhotoModal(anc);
         }
+        return;
+      }
+    });
 
-        const uploadBtn = e.target.closest(".btn-upload-anchor-photo");
-        if (uploadBtn) {
-          currentPhotoAnchorId = parseInt(uploadBtn.dataset.id, 10);
-          currentPhotoAnchorDeed = uploadBtn.dataset.deed || "1073";
-          const photoFileInput = document.getElementById("anchor-photo-file-input");
-          if (photoFileInput) {
-            photoFileInput.value = "";
-            photoFileInput.click();
-          }
-          return;
-        }
-
-        const thumbImg = e.target.closest(".anchor-thumb-preview");
-        if (thumbImg) {
-          const id = parseInt(thumbImg.dataset.id, 10);
-          const deedKey = thumbImg.dataset.deed || "1073";
-          const res = getAnchorByDeed(id, deedKey);
-          if (res && res.anc && res.anc.image) {
-            openAnchorPhotoModal(res.anc, deedKey);
-          }
-          return;
-        }
-
-        const delBtn = e.target.closest(".btn-del-anchor");
-        if (delBtn) {
-          const id = parseInt(delBtn.dataset.id, 10);
-          const deedKey = delBtn.dataset.deed || "1073";
-          deleteAnchor(id, deedKey);
-          return;
-        }
-      });
-    }
-
-    function openAnchorPhotoModal(anc, deedKey = "1073") {
+    function openAnchorPhotoModal(anc) {
       currentPhotoAnchorId = anc.id;
-      currentPhotoAnchorDeed = deedKey;
       const modal = document.getElementById("modal-anchor-photo");
       const modalImg = document.getElementById("modal-anchor-photo-img");
       const modalTitle = document.getElementById("modal-anchor-photo-title");
       if (!modal || !modalImg) return;
-      modalTitle.textContent = `📷 Anchor ${anc.name || ('#' + anc.id)} Photo (Escritura ${deedKey})`;
+      modalTitle.textContent = `📷 Anchor ${anc.name || ('#' + anc.id)} Photo`;
       modalImg.src = anc.image;
       modal.style.display = "flex";
     }
@@ -14534,13 +13251,13 @@ EOF`;
     }
     if (btnModalDelete) {
       btnModalDelete.addEventListener("click", () => {
-        const res = getAnchorByDeed(currentPhotoAnchorId, currentPhotoAnchorDeed);
-        if (res && res.anc) {
-          res.anc.image = null;
-          delete res.anc._imgElement;
+        const anc = (state.anchors || []).find(a => a.id === currentPhotoAnchorId);
+        if (anc) {
+          anc.image = null;
+          delete anc._imgElement;
           closeAnchorPhotoModal();
           redrawAll();
-          updateStatus(`Removed photo from Anchor ${res.anc.name || ('#' + res.anc.id)} (Escritura ${res.deedKey}).`);
+          updateStatus(`Removed photo from Anchor ${anc.name || ('#' + anc.id)}.`);
         }
       });
     }
@@ -14550,9 +13267,8 @@ EOF`;
       photoFileInput.addEventListener("change", e => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
-        const res = getAnchorByDeed(currentPhotoAnchorId, currentPhotoAnchorDeed);
-        if (!res || !res.anc) return;
-        const anc = res.anc;
+        const anc = (state.anchors || []).find(a => a.id === currentPhotoAnchorId);
+        if (!anc) return;
 
         const reader = new FileReader();
         reader.onload = ev => {
@@ -14588,7 +13304,7 @@ EOF`;
               modalImg.src = compressedUrl;
             }
             redrawAll();
-            updateStatus(`📷 Photo attached to Anchor ${anc.name || ('#' + anc.id)} (Escritura ${res.deedKey}).`);
+            updateStatus(`📷 Photo attached to Anchor ${anc.name || ('#' + anc.id)}.`);
           };
           tempImg.src = rawUrl;
         };
@@ -14597,21 +13313,12 @@ EOF`;
       });
     }
 
-    const chkToggleAll1073 = document.getElementById("chk-toggle-all-anchors-1073");
-    if (chkToggleAll1073) chkToggleAll1073.addEventListener("change", e => toggleAllAnchors(e.target.checked, "1073"));
-    const chkToggleAll196 = document.getElementById("chk-toggle-all-anchors-196");
-    if (chkToggleAll196) chkToggleAll196.addEventListener("change", e => toggleAllAnchors(e.target.checked, "196"));
-    const chkToggleAll296 = document.getElementById("chk-toggle-all-anchors-296");
-    if (chkToggleAll296) chkToggleAll296.addEventListener("change", e => toggleAllAnchors(e.target.checked, "296"));
     const chkToggleAllAnchors = document.getElementById("chk-toggle-all-anchors");
-    if (chkToggleAllAnchors) chkToggleAllAnchors.addEventListener("change", e => toggleAllAnchors(e.target.checked, "1073"));
-
-    const btnToggleLabels1073 = document.getElementById("btn-toggle-all-labels-1073");
-    if (btnToggleLabels1073) btnToggleLabels1073.addEventListener("click", () => toggleAllAnchorLabels("1073"));
-    const btnToggleLabels196 = document.getElementById("btn-toggle-all-labels-196");
-    if (btnToggleLabels196) btnToggleLabels196.addEventListener("click", () => toggleAllAnchorLabels("196"));
-    const btnToggleLabels296 = document.getElementById("btn-toggle-all-labels-296");
-    if (btnToggleLabels296) btnToggleLabels296.addEventListener("click", () => toggleAllAnchorLabels("296"));
+    if (chkToggleAllAnchors) {
+      chkToggleAllAnchors.addEventListener("change", e => {
+        toggleAllAnchors(e.target.checked);
+      });
+    }
 
     // Anchor Photo Size Slider (for screenshots & high-resolution review)
     const rangePhotoSize = document.getElementById("range-anchor-photo-size");
@@ -15913,12 +14620,14 @@ EOF`;
     /* ======================================================
        PDF LOADING (Mapa1073_FerminSuarez.pdf)
     ====================================================== */
-    async function loadPdfFromBlob(fileOrBlob, deedKey = "1073") {
+    async function loadPdfFromBlob(fileOrBlob) {
       if (!window.pdfjsLib) { console.warn("PDF.js not available"); return; }
-      updateStatus(`⏳ Loading deed ${deedKey} PDF…`);
+      updateStatus("⏳ Loading deed PDF…");
       try {
         const arrayBuffer = await fileOrBlob.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+        state.histPdfDoc = pdf;
+        state.histPdfBlob = fileOrBlob;
         const page = await pdf.getPage(1);
         const vp = page.getViewport({scale: 2.0}); // render at 2× for clarity
         const origVp = page.getViewport({scale: 1.0});
@@ -15927,45 +14636,21 @@ EOF`;
         offCanvas.height = vp.height;
         const offCtx = offCanvas.getContext("2d");
         await page.render({canvasContext: offCtx, viewport: vp}).promise;
-
-        if (deedKey === "196") {
-          state.pdf196Doc = pdf;
-          state.pdf196Blob = fileOrBlob;
-          state.pdf196Canvas = offCanvas;
-          state.pdf196W = origVp.width;
-          state.pdf196H = origVp.height;
-          const status196 = document.getElementById("status-196");
-          if (status196) status196.textContent = `PDF: ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts`;
-          fitView196();
-          redrawCanvas196();
-        } else if (deedKey === "296") {
-          state.pdf296Doc = pdf;
-          state.pdf296Blob = fileOrBlob;
-          state.pdf296Canvas = offCanvas;
-          state.pdf296W = origVp.width;
-          state.pdf296H = origVp.height;
-          const status296 = document.getElementById("status-296");
-          if (status296) status296.textContent = `PDF: ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts`;
-          fitView296();
-          redrawCanvas296();
-        } else {
-          state.histPdfDoc = pdf;
-          state.histPdfBlob = fileOrBlob;
-          state.histPdfCanvas = offCanvas;
-          state.pdf1073Canvas = offCanvas;
-          state.histPdfW = origVp.width;
-          state.histPdfH = origVp.height;
-          state.pdf1073W = origVp.width;
-          state.pdf1073H = origVp.height;
-          histStatus.textContent = `PDF: ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts`;
+        state.histPdfCanvas = offCanvas;
+        state.histPdfW = origVp.width;
+        state.histPdfH = origVp.height;
+        histStatus.textContent = `PDF: ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts`;
+        // Fit historical viewport to PDF bounds
+        if (state.showDeedPanel || (histCard && !histCard.classList.contains("hidden"))) {
           fitHistoricalView();
-          redrawHistoricalCanvas();
+        } else if (!state.histViewport.bbox) {
+          fitHistoricalView();
         }
-        updateStatus(`Deed ${deedKey} PDF loaded — ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts.`);
-        redrawTrueCanvas();
+        updateStatus(`Deed PDF loaded — ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts. Drop anchors to align.`);
+        redrawAll();
       } catch(err) {
         console.error("PDF error:", err);
-        updateStatus(`PDF ${deedKey} failed: ${err.message}`);
+        updateStatus(`PDF failed: ${err.message}`);
       }
     }
 
@@ -15985,6 +14670,7 @@ EOF`;
       return r.text();
     }
 
+    
     /* ======================================================
        ASYNCHRONOUS BACKGROUND ASSET STREAMERS
        (Non-blocking: vectors and boundaries load immediately)
@@ -16041,41 +14727,14 @@ EOF`;
       }
     }
 
-    async function autoLoadDeedPdf1073Async() {
+    async function autoLoadDeedPdfAsync() {
       try {
         const blob = await fetchBlob("Mapa1073_FerminSuarez.pdf");
-        await loadPdfFromBlob(blob, "1073");
+        await loadPdfFromBlob(blob);
       } catch (err) {
-        console.warn("Auto PDF 1073 background load:", err.message);
+        console.warn("Auto PDF background load:", err.message);
         if (histStatus && !state.histPdfCanvas) {
-          histStatus.textContent = `Deed 1073 DXF ready (${state.histEntities.length} ents)`;
-        }
-      }
-    }
-    const autoLoadDeedPdfAsync = autoLoadDeedPdf1073Async;
-
-    async function autoLoadDeedPdf196Async() {
-      try {
-        const blob = await fetchBlob("Mapa196_ErrorCasaDelSol.pdf");
-        await loadPdfFromBlob(blob, "196");
-      } catch (err) {
-        console.warn("Auto PDF 196 background load:", err.message);
-        const status196 = document.getElementById("status-196");
-        if (status196 && !state.pdf196Canvas) {
-          status196.textContent = `Deed 196 DXF ready (${(state.entities196 || []).length} ents)`;
-        }
-      }
-    }
-
-    async function autoLoadDeedPdf296Async() {
-      try {
-        const blob = await fetchBlob("Mapa2096_LaTrinidad.pdf");
-        await loadPdfFromBlob(blob, "296");
-      } catch (err) {
-        console.warn("Auto PDF 296 background load:", err.message);
-        const status296 = document.getElementById("status-296");
-        if (status296 && !state.pdf296Canvas) {
-          status296.textContent = `Deed 296 DXF ready (${(state.entities296 || []).length} ents)`;
+          histStatus.textContent = `Deed DXF ready (${state.histEntities.length} ents)`;
         }
       }
     }
@@ -16083,52 +14742,23 @@ EOF`;
     async function autoLoadAll() {
       // =========================================================================
       // PHASE 1: INSTANT VECTOR & BOUNDARY PRELOAD (< 15 ms)
-      // Loads Deeds DXF (1073, 196, 296), Field DXF, Anchors & Reconstructed Boundary IMMEDIATELY!
+      // Loads Deed DXF, Field DXF, Anchors & Reconstructed Boundary IMMEDIATELY!
       // =========================================================================
 
       // 1. Deed DXF (Escritura 1073)
       try {
         const text = await fetchText("Polygon_Escritura1073_FerminSuarez.dxf");
-        state.entities1073 = DXFParser.parse(text);
-        state.histEntities = state.entities1073;
+        state.histEntities = DXFParser.parse(text);
         histStatus.textContent = `Deed DXF ready (${state.histEntities.length} ents)`;
       } catch(e) {
-        console.warn("Auto Deed DXF 1073:", e.message);
+        console.warn("Auto Deed DXF:", e.message);
         if (typeof HISTORICAL_DXF_SAMPLE !== "undefined") {
-          state.entities1073 = DXFParser.parse(HISTORICAL_DXF_SAMPLE);
-          state.histEntities = state.entities1073;
+          state.histEntities = DXFParser.parse(HISTORICAL_DXF_SAMPLE);
           histStatus.textContent = `Deed DXF ready (${state.histEntities.length} ents)`;
         }
       }
       if (histCanvas.width > 0 && state.histEntities.length > 0) {
         state.histViewport = fitViewport(histCanvas, computeBoundingBox(state.histEntities));
-        state.vp1073 = state.histViewport;
-      }
-
-      // 1b. Deed DXF (Escritura 196)
-      try {
-        const text196 = await fetchText("Polygon_Escritura196.dxf");
-        state.entities196 = DXFParser.parse(text196);
-        const status196 = document.getElementById("status-196");
-        if (status196) status196.textContent = `Deed 196 ready (${state.entities196.length} ents)`;
-      } catch(e) {
-        console.warn("Auto Deed DXF 196:", e.message);
-      }
-      if (canvas196 && canvas196.width > 0 && state.entities196.length > 0) {
-        state.vp196 = fitViewport(canvas196, computeBoundingBox(state.entities196));
-      }
-
-      // 1c. Deed DXF (Escritura 296)
-      try {
-        const text296 = await fetchText("Polygon_Escritura296.dxf");
-        state.entities296 = DXFParser.parse(text296);
-        const status296 = document.getElementById("status-296");
-        if (status296) status296.textContent = `Deed 296 ready (${state.entities296.length} ents)`;
-      } catch(e) {
-        console.warn("Auto Deed DXF 296:", e.message);
-      }
-      if (canvas296 && canvas296.width > 0 && state.entities296.length > 0) {
-        state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
       }
 
       // 2. Field survey DXF (CercoCampo_CristianCortes_Marz_2019.dxf)
@@ -16170,6 +14800,7 @@ EOF`;
       try {
         const textValoy = await fetchText("CercoCampo_WilmarValoy_Agos_2025.dxf");
         state.surveyValoy2025Entities = DXFParser.parse(textValoy);
+        console.log(`Valoy 2025 DXF: ${state.surveyValoy2025Entities.length} ents`);
       } catch(e) {
         console.warn("Auto Field DXF Valoy 2025:", e.message);
       }
@@ -16178,6 +14809,7 @@ EOF`;
       try {
         const textCortez = await fetchText("CercoCampo_CristianCortes_Sept_2026.dxf");
         state.surveyCortez2025Entities = DXFParser.parse(textCortez);
+        console.log(`Cortez 2025 DXF: ${state.surveyCortez2025Entities.length} ents`);
       } catch(e) {
         console.warn("Auto Field DXF Cortez 2025:", e.message);
       }
@@ -16187,34 +14819,14 @@ EOF`;
       try {
         const text = await fetchText("anchors_georectifier.json");
         const data = JSON.parse(text);
-        applyAnchors(data);
-        if (state.anchors1073.length > 0 || state.anchors196.length > 0 || state.anchors296.length > 0) {
+        const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
+        if (list.length > 0) {
+          applyAnchors(list);
           loadedAnchors = true;
         }
       } catch(e) {
         console.warn("anchors_georectifier.json:", e.message);
       }
-
-      // 3b. Fallback to anchors.json for any deeds missing anchors
-      if (state.anchors196.length === 0 || state.anchors296.length === 0 || state.anchors1073.length === 0) {
-        try {
-          const textAnchors = await fetchText("anchors.json");
-          const dataAnchors = JSON.parse(textAnchors);
-          if (state.anchors1073.length === 0 && dataAnchors.anchors1073) {
-            applyAnchors({ anchors1073: dataAnchors.anchors1073 });
-          }
-          if (state.anchors196.length === 0 && dataAnchors.anchors196) {
-            applyAnchors({ anchors196: dataAnchors.anchors196 });
-          }
-          if (state.anchors296.length === 0 && dataAnchors.anchors296) {
-            applyAnchors({ anchors296: dataAnchors.anchors296 });
-          }
-          loadedAnchors = true;
-        } catch(e) {
-          console.warn("anchors.json fallback:", e.message);
-        }
-      }
-
       if (!loadedAnchors && typeof EMBEDDED_ANCHORS !== "undefined" && EMBEDDED_ANCHORS.length > 0) {
         applyAnchors(EMBEDDED_ANCHORS);
       }
@@ -16252,15 +14864,13 @@ EOF`;
       redrawAll();
 
       const activeAnc = getActiveAnchors().length;
-      updateStatus(`⚡ Ready: Deeds DXF (1073: ${state.entities1073.length}, 196: ${state.entities196.length}, 296: ${state.entities296.length}), Field DXF (${state.trueEntities.length} ents), Anchors (${activeAnc}) & Boundary (${state.userPolygon.vertices.length} pts) loaded.`);
+      updateStatus(`⚡ Ready: Deed DXF (${state.histEntities.length} ents), Field DXF (${state.trueEntities.length} ents), Anchors (${activeAnc}) & Boundary (${state.userPolygon.vertices.length} pts) loaded.`);
 
       // =========================================================================
       // PHASE 2: NON-BLOCKING ASYNCHRONOUS BACKGROUND RASTERS
-      // Heavy 51MB GeoTIFF & 2MB PDFs stream in the background without freezing UI
+      // Heavy 51MB GeoTIFF & 2MB PDF stream in the background without freezing UI
       // =========================================================================
-      autoLoadDeedPdf1073Async();
-      autoLoadDeedPdf196Async();
-      autoLoadDeedPdf296Async();
+      autoLoadDeedPdfAsync();
       autoLoadGeoTiffAsync();
     }
 
@@ -16337,16 +14947,10 @@ EOF`;
     }
 
     // ── Startup ───────────────────────────────────────────────────────
-    state.entities1073 = [];
-    state.entities196 = [];
-    state.entities296 = [];
-    state.histEntities = state.entities1073;
+    state.histEntities = [];
     state.trueEntities = [];
-    state.anchors1073 = [];
-    state.anchors196 = [];
-    state.anchors296 = [];
-    state.anchors = state.anchors1073;
-    syncAlgorithmDropdowns();
+    state.anchors = [];
+    algorithmSelect.value = state.algorithm;
     initConstraintsAndBuffers();
     renderCustomPolyList();
     updateCustomPolyButtonStates();
