@@ -646,19 +646,19 @@
       "showNodes": false
     },
     "e296": {
-      "color": "#0080ff",
+      "color": "#80ffff",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
     },
     "quebrada": {
-      "color": "#ffd600",
+      "color": "#00ff40",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
     },
     "e1073": {
-      "color": "#ff4081",
+      "color": "#0000ff",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
