@@ -1863,11 +1863,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px 2px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
               <label for="range-anchor-photo-size" style="display:flex;align-items:center;gap:4px;color:var(--accent-cyan);font-weight:600;white-space:nowrap;margin:0;" title="Adjust manual size of landmark photo cards shown on map">
                 <span>📷 Size:</span>
-                <span id="anchor-photo-size-val" style="font-family:monospace;color:var(--text-main);font-weight:bold;min-width:38px;">56px</span>
+                <span id="anchor-photo-size-val" style="font-family:monospace;color:var(--text-main);font-weight:bold;min-width:38px;">180px</span>
               </label>
               <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:190px;">
-                <input type="range" id="range-anchor-photo-size" min="40" max="280" step="4" value="56" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
-                <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (56px)">↺</button>
+                <input type="range" id="range-anchor-photo-size" min="40" max="320" step="4" value="180" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
+                <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (180px)">↺</button>
               </div>
             </div>
           </div>
@@ -5243,7 +5243,7 @@ EOF`;
       histEntities: [],      // DXF from Polygon_Escritura1073_FerminSuarez.dxf (deed coord space)
       trueEntities: [],      // DXF from CercoCampo_CristianCortes_Marz_2019.dxf (GIS UTM coord space)
       anchors: [],
-      anchorPhotoSize: 56,
+      anchorPhotoSize: 180,
       pendingSource: null,
       algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
       toolMode: "pan",
@@ -5456,13 +5456,15 @@ EOF`;
       return { minX, minY, maxX, maxY, width:maxX-minX, height:maxY-minY };
     }
 
-    function fitViewport(canvas, bbox) {
-      const pad = 40, w = canvas.width-pad*2, h = canvas.height-pad*2;
-      const scale = Math.min(w/(bbox.width||1), h/(bbox.height||1));
+    function fitViewport(canvas, bbox, customPad) {
+      const pad = (typeof customPad === "number") ? customPad : 40;
+      const w = Math.max(10, canvas.width - pad * 2);
+      const h = Math.max(10, canvas.height - pad * 2);
+      const scale = Math.min(w / (bbox.width || 1), h / (bbox.height || 1));
       return {
         scale,
-        offsetX: pad + (w - bbox.width*scale)/2 - bbox.minX*scale,
-        offsetY: pad + (h - bbox.height*scale)/2 - bbox.minY*scale,
+        offsetX: pad + (w - bbox.width * scale) / 2 - bbox.minX * scale,
+        offsetY: pad + (h - bbox.height * scale) / 2 - bbox.minY * scale,
         bbox
       };
     }
@@ -5495,11 +5497,57 @@ EOF`;
 
     function fitTrueFieldView() {
       if (!trueCanvas || trueCanvas.width <= 0) return;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+      // 1. Include field survey entities
       if (state.trueEntities && state.trueEntities.length > 0) {
-        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
-      } else if (state.geoTiff && state.geoTiff.bbox) {
-        state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
+        const bb = computeBoundingBox(state.trueEntities);
+        if (bb && bb.minX !== Infinity) {
+          minX = Math.min(minX, bb.minX);
+          minY = Math.min(minY, bb.minY);
+          maxX = Math.max(maxX, bb.maxX);
+          maxY = Math.max(maxY, bb.maxY);
+        }
       }
+
+      // 2. Include all active/enabled anchor field locations (SW Entrada & NE Lindero)
+      const activeAnchors = (state.anchors || []).filter(a => a.active !== false && a.enabled !== false && a.dst);
+      activeAnchors.forEach(a => {
+        if (typeof a.dst.x === "number" && typeof a.dst.y === "number") {
+          minX = Math.min(minX, a.dst.x);
+          minY = Math.min(minY, a.dst.y);
+          maxX = Math.max(maxX, a.dst.x);
+          maxY = Math.max(maxY, a.dst.y);
+        }
+      });
+
+      // 3. Include user reconstructed polygon vertices
+      if (state.userPolygon && state.userPolygon.vertices && state.userPolygon.vertices.length > 0) {
+        state.userPolygon.vertices.forEach(v => {
+          if (typeof v.x === "number" && typeof v.y === "number") {
+            minX = Math.min(minX, v.x);
+            minY = Math.min(minY, v.y);
+            maxX = Math.max(maxX, v.x);
+            maxY = Math.max(maxY, v.y);
+          }
+        });
+      }
+
+      // Fallback if no vectors loaded
+      if (minX === Infinity || minX === maxX) {
+        if (state.geoTiff && state.geoTiff.bbox) {
+          state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox, 50);
+          return;
+        }
+        minX = 1097650; maxX = 1098220; minY = 876520; maxY = 877280;
+      }
+
+      const bbox = { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
+      // Adaptive paddle space: generous margin for 180px anchor photo cards
+      // Proportional to canvas dimensions so it stays equally spaced across any screen resolution
+      const minCanvasDim = Math.min(trueCanvas.width, trueCanvas.height);
+      const pad = Math.max(130, Math.min(220, Math.round(minCanvasDim * 0.20)));
+      state.trueViewport = fitViewport(trueCanvas, bbox, pad);
     }
 
     // ── Canvas resize ─────────────────────────────────────────────────
@@ -5905,12 +5953,32 @@ EOF`;
       ctx.restore();
     }
 
+    // ── Helper: Default Anchor Card Offset (Optimized for 180px cards without overlaps) ──
+    function getDefaultAnchorOffset(anc, isHist) {
+      const id = anc.id != null ? Number(anc.id) : null;
+      if (id === 1) {
+        // Lower anchor (Mojón 1 Entrada, SW): sits to the left/NW with ample clearance
+        return { dx: -215, dy: -60 };
+      } else if (id === 2) {
+        // Upper anchor (Mojón 2 Lindero NE): sits to the right/NE with ample clearance
+        return { dx: 35, dy: -135 };
+      } else if (id === 3) {
+        return { dx: 35, dy: 25 };
+      } else if (id === 4) {
+        return { dx: -215, dy: 10 };
+      } else if (id === 5) {
+        return { dx: 35, dy: -100 };
+      }
+      return { dx: 25, dy: -25 };
+    }
+
     // ── Helper: Anchor Label Double-Framed Card & Aspect Ratio Bounds ──
     function getAnchorCardBounds(anc, pt, isHist, ctx) {
       const isEnabled = anc.active !== false && anc.enabled !== false;
       const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
       const fullText = labelName + (isEnabled ? "" : " (off)");
-      const defDx = 10, defDy = -10;
+      const defOff = getDefaultAnchorOffset(anc, isHist);
+      const defDx = defOff.dx, defDy = defOff.dy;
       const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
       const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
       const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
@@ -5966,7 +6034,8 @@ EOF`;
       const isEnabled = anc.active !== false && anc.enabled !== false;
       const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
       const fullText = labelName + (isEnabled ? "" : " (off)");
-      const defDx = 10, defDy = -10;
+      const defOff = getDefaultAnchorOffset(anc, isHist);
+      const defDx = defOff.dx, defDy = defOff.dy;
       const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
       const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
       const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
@@ -5990,7 +6059,7 @@ EOF`;
       const cardH = bounds.cardH;
 
       // Draw 3px connector arrow pointing towards the anchor
-      if (Math.hypot(offX - defDx, offY - defDy) > 6 || (offset && typeof offset.dx === "number")) {
+      if (Math.hypot(offX, offY) > 20 || (offset && typeof offset.dx === "number")) {
         const startX = Math.max(cardX, Math.min(cardX + cardW, pt.x));
         const startY = Math.max(cardY, Math.min(cardY + cardH, pt.y));
         const dx = pt.x - startX;
@@ -9718,6 +9787,44 @@ EOF`;
       updateStatus("💾 Saved polygon to user_polygon.json.");
     });
 
+    // Helper to load and apply user reconstructed polygon object
+    function applyUserPolygon(obj) {
+      if (!obj || !Array.isArray(obj.vertices)) return false;
+      if (obj.sectionColors) { state.sectionColors = { ...obj.sectionColors }; }
+      if (obj.sectionStyles) { state.sectionStyles = { ...obj.sectionStyles }; }
+      if (obj.defaultPolyStyle) { state.defaultPolyStyle = { ...obj.defaultPolyStyle }; }
+      state.userPolygon = {
+        vertices: (obj.vertices || []).map(v => ({
+          x: v.x,
+          y: v.y,
+          deedPt: v.deedPt || null,
+          origX: v.origX != null ? v.origX : null,
+          origY: v.origY != null ? v.origY : null
+        })),
+        segmentLengths: obj.segmentLengths || [],
+        segmentSections: obj.segmentSections || obj.segmentNames || [],
+        segmentParts: obj.segmentParts || [],
+        segmentOptimize: obj.segmentOptimize || [],
+        closed: !!obj.closed,
+        drawMode: false,
+        show: document.getElementById("chk-show-user-polygon") ? document.getElementById("chk-show-user-polygon").checked : true,
+      };
+      while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
+        state.userPolygon.segmentLengths.push(null);
+      }
+      const btnCancel = document.getElementById("btn-cancel-polygon");
+      const btnClose = document.getElementById("btn-close-polygon");
+      if (btnCancel) btnCancel.style.display = "none";
+      if (btnClose) btnClose.style.display = "none";
+      rebuildSegmentInputs();
+      recomputeUserPolygonMetrics();
+      updatePolygonButtonStates();
+      if (state.constrainPolyToDeed) {
+        applyDeedConstraints(false);
+      }
+      return true;
+    }
+
     // Helper to load polygon from DXF text
     function loadUserPolygonFromDXF(dxfText, filename) {
       const entities = DXFParser.parse(dxfText);
@@ -9760,41 +9867,12 @@ EOF`;
             loadUserPolygonFromDXF(content, file.name);
           } else {
             const obj = JSON.parse(content);
-            if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
-            if (obj.sectionColors) { state.sectionColors = { ...obj.sectionColors }; }
-            state.userPolygon = {
-              vertices: (obj.vertices || []).map(v => ({
-                x: v.x,
-                y: v.y,
-                deedPt: v.deedPt || null,
-                origX: v.origX != null ? v.origX : null,
-                origY: v.origY != null ? v.origY : null
-              })),
-              segmentLengths: obj.segmentLengths || [],
-              segmentSections: obj.segmentSections || obj.segmentNames || [],
-              segmentParts: obj.segmentParts || [],
-              segmentOptimize: obj.segmentOptimize || [],
-              closed: !!obj.closed,
-              drawMode: false,
-              show: document.getElementById("chk-show-user-polygon") ? document.getElementById("chk-show-user-polygon").checked : true,
-            };
-            while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
-              state.userPolygon.segmentLengths.push(null);
-            }
-            document.getElementById("btn-cancel-polygon").style.display = "none";
-            document.getElementById("btn-close-polygon").style.display = "none";
-            rebuildSegmentInputs();
-            recomputeUserPolygonMetrics();
-            updatePolygonButtonStates();
+            if (!applyUserPolygon(obj)) throw new Error("Invalid polygon JSON");
             if (state.userPolygon.vertices.length > 0 && !state.trueViewport.bbox) {
               const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
               state.trueViewport = fitViewport(trueCanvas, bb);
             }
-            if (state.constrainPolyToDeed) {
-              applyDeedConstraints(false);
-            } else {
-              redrawTrueCanvas();
-            }
+            redrawTrueCanvas();
             updateStatus(`📂 Loaded polygon with ${state.userPolygon.vertices.length} vertices from ${file.name}`);
           }
         } catch(err) {
@@ -11421,15 +11499,6 @@ EOF`;
         const pt = isHist ? worldToScreen(anc.src, vp, h) : worldToScreenGIS(anc.dst, vp, h);
         if (!pt || !isFinite(pt.x) || !isFinite(pt.y)) continue;
 
-        const isEnabled = anc.enabled !== false;
-        const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
-        const fullText = labelName + (isEnabled ? "" : " (off)");
-
-        const defDx = 10, defDy = -10;
-        const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
-        const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
-        const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
-
         const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
         if (sx >= bounds.cardX && sx <= bounds.cardX + bounds.cardW && sy >= bounds.cardY && sy <= bounds.cardY + bounds.cardH) {
           return { anc, isHist, offX: bounds.offX, offY: bounds.offY, cardX: bounds.cardX, cardY: bounds.cardY, cardW: bounds.cardW, cardH: bounds.cardH };
@@ -12835,6 +12904,24 @@ EOF`;
     });
 
     // Anchor management: Save, Load, Clear, Delete
+    function applyAnchors(list) {
+      if (!Array.isArray(list) || list.length === 0) return;
+      state.anchors = list.map((a, idx) => ({
+        id: a.id != null ? a.id : (idx + 1),
+        name: a.name || (`#${a.id != null ? a.id : (idx + 1)}`),
+        showLabel: a.showLabel !== false,
+        image: a.image || null,
+        color: a.color || (anchorColors && anchorColors[idx % anchorColors.length]) || "#00e5ff",
+        src: { x: Number(a.src.x), y: Number(a.src.y) },
+        dst: { x: Number(a.dst.x), y: Number(a.dst.y) },
+        active: a.active !== false && a.enabled !== false,
+        enabled: a.active !== false && a.enabled !== false,
+        labelOffsetSrc: a.labelOffsetSrc || null,
+        labelOffsetDst: a.labelOffsetDst || null
+      }));
+      updateAnalyticsUI();
+    }
+
     const btnSaveAnchors = document.getElementById("btn-save-anchors");
     if (btnSaveAnchors) {
       btnSaveAnchors.addEventListener("click", () => {
@@ -12851,7 +12938,9 @@ EOF`;
           src: { x: a.src.x, y: a.src.y },
           dst: { x: a.dst.x, y: a.dst.y },
           active: a.active !== false && a.enabled !== false,
-          enabled: a.active !== false && a.enabled !== false
+          enabled: a.active !== false && a.enabled !== false,
+          labelOffsetSrc: a.labelOffsetSrc || undefined,
+          labelOffsetDst: a.labelOffsetDst || undefined
         }));
         const jsonStr = JSON.stringify(toSave, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
@@ -13339,7 +13428,7 @@ EOF`;
       rangePhotoSize.addEventListener("input", e => setAnchorPhotoSize(parseInt(e.target.value, 10)));
     }
     if (btnResetPhotoSize) {
-      btnResetPhotoSize.addEventListener("click", () => setAnchorPhotoSize(56));
+      btnResetPhotoSize.addEventListener("click", () => setAnchorPhotoSize(180));
     }
 
     function updateAlgoComparePanel() {
@@ -14861,6 +14950,7 @@ EOF`;
       updateCustomPolyButtonStates();
       recomputeCustomPolygonMetrics();
       updateDeedScaleDisplay();
+      fitTrueFieldView();
       redrawAll();
 
       const activeAnc = getActiveAnchors().length;
