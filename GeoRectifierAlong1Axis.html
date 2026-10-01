@@ -13863,6 +13863,8 @@ EOF`;
             const data = JSON.parse(ev.target.result);
             if (data.testAxes && Array.isArray(data.testAxes)) {
               state.testAxes = data.testAxes.map(ax => ({ ...ax }));
+              if (typeof ensureUniqueTestAxisIds === "function") ensureUniqueTestAxisIds();
+              else if (typeof syncTestAxisCounter === "function") syncTestAxisCounter();
               if (typeof renderTestAxesList === "function") renderTestAxesList();
             }
             const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
@@ -15279,7 +15281,8 @@ EOF`;
 
     function findTestAxisHandleAt(sx, sy, vp, canvasH, hitRadiusPx = 12) {
       const axes = (state.testAxes || []).filter(a => a.visible !== false);
-      for (const ax of axes) {
+      for (let i = axes.length - 1; i >= 0; i--) {
+        const ax = axes[i];
         const s1 = worldToScreenGIS(ax.p1, vp, canvasH);
         if (Math.hypot(sx - s1.x, sy - s1.y) <= hitRadiusPx) {
           return { axis: ax, handle: 'p1' };
@@ -15290,6 +15293,37 @@ EOF`;
         }
       }
       return null;
+    }
+
+    function syncTestAxisCounter() {
+      const maxId = (state.testAxes || []).reduce((max, a) => Math.max(max, Number(a.id) || 0), 0);
+      state.testAxisCounter = Math.max(state.testAxisCounter || 0, maxId);
+      return state.testAxisCounter;
+    }
+
+    function ensureUniqueTestAxisIds() {
+      const seen = new Set();
+      let nextId = 1;
+      (state.testAxes || []).forEach(ax => {
+        const numId = Number(ax.id);
+        if (!numId || isNaN(numId) || seen.has(numId)) {
+          while (seen.has(nextId) || (state.testAxes || []).some(other => other !== ax && Number(other.id) === nextId)) {
+            nextId++;
+          }
+          const oldId = ax.id;
+          ax.id = nextId;
+          if (oldId != null) {
+            (state.anchors || []).forEach(anc => {
+              if (anc.axisId === oldId) anc.axisId = ax.id;
+            });
+          }
+          if (!ax.name || /^Axis\s+\d+$/i.test(ax.name)) {
+            ax.name = `Axis ${ax.id}`;
+          }
+        }
+        seen.add(Number(ax.id));
+      });
+      syncTestAxisCounter();
     }
 
     function updateAnchorsOnAxis(axis) {
@@ -15311,8 +15345,9 @@ EOF`;
     }
 
     function addTestAxis(p1, p2) {
-      state.testAxisCounter = (state.testAxisCounter || 0) + 1;
-      const id = state.testAxisCounter;
+      ensureUniqueTestAxisIds();
+      const id = syncTestAxisCounter() + 1;
+      state.testAxisCounter = id;
       const colors = ["#e040fb", "#00e5ff", "#ffd600", "#ff6d00", "#76ff03", "#d500f9"];
       const color = colors[(id - 1) % colors.length];
       const ax = {
@@ -16341,6 +16376,8 @@ EOF`;
         const data = JSON.parse(text);
         if (data.testAxes && Array.isArray(data.testAxes) && data.testAxes.length > 0) {
           state.testAxes = data.testAxes.map(ax => ({ ...ax }));
+          if (typeof ensureUniqueTestAxisIds === "function") ensureUniqueTestAxisIds();
+          else if (typeof syncTestAxisCounter === "function") syncTestAxisCounter();
           if (typeof renderTestAxesList === "function") renderTestAxesList();
         }
         const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
@@ -16362,6 +16399,8 @@ EOF`;
             const cachedObj = JSON.parse(cached);
             if (cachedObj.testAxes && Array.isArray(cachedObj.testAxes) && cachedObj.testAxes.length > 0) {
               state.testAxes = cachedObj.testAxes.map(ax => ({ ...ax }));
+              if (typeof ensureUniqueTestAxisIds === "function") ensureUniqueTestAxisIds();
+              else if (typeof syncTestAxisCounter === "function") syncTestAxisCounter();
               if (typeof renderTestAxesList === "function") renderTestAxesList();
             }
           }
