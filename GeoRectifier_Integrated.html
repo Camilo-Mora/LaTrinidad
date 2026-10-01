@@ -1397,11 +1397,19 @@ Do NOT modify dormant/parked sections unless specifically requested.
         </label>
       </div>
 
-      <!-- Master Display Selector (Deeds, Anchors, Polygons) -->
-      <div class="master-layers-toggle-group" style="display:flex;align-items:center;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.28);border-radius:6px;padding:3px 10px;margin-left:4px;" title="Display / Deselect all deeds, anchors, and polygons at once">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin:0;user-select:none;">
-          <input type="checkbox" id="chk-toggle-all-master" checked style="accent-color:var(--accent-cyan);cursor:pointer;width:14px;height:14px;margin:0;">
-          <span style="color:var(--accent-cyan);font-weight:700;font-size:0.75rem;letter-spacing:0.3px;white-space:nowrap;">🌐 All (Deeds · Anchors · Polygons)</span>
+      <!-- Global Controls: All Deeds, All Anchors, All Polygons -->
+      <div class="global-layers-toolbar-group" style="display:flex;align-items:center;background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:2px 8px;gap:10px;margin-left:4px;">
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;user-select:none;" title="Display / Hide all 3 Deeds (Escritura 1073, 196, 296 PDF & DXF)">
+          <input type="checkbox" id="chk-global-deeds" checked style="accent-color:#ff9100;cursor:pointer;width:13px;height:13px;margin:0;">
+          <span style="color:#ff9100;font-weight:700;font-size:0.73rem;white-space:nowrap;">📜 Deeds</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;user-select:none;border-left:1px solid rgba(255,255,255,0.12);padding-left:8px;" title="Display / Hide all Anchor control points & labels across all deeds">
+          <input type="checkbox" id="chk-global-anchors" checked style="accent-color:#00e5ff;cursor:pointer;width:13px;height:13px;margin:0;">
+          <span style="color:#00e5ff;font-weight:700;font-size:0.73rem;white-space:nowrap;">🎯 Anchors</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;user-select:none;border-left:1px solid rgba(255,255,255,0.12);padding-left:8px;" title="Display / Hide all Polygons (Reconstructed, Custom, Survey DXFs)">
+          <input type="checkbox" id="chk-global-polygons" checked style="accent-color:#00e676;cursor:pointer;width:13px;height:13px;margin:0;">
+          <span style="color:#00e676;font-weight:700;font-size:0.73rem;white-space:nowrap;">📐 Polygons</span>
         </label>
       </div>
 
@@ -5610,6 +5618,9 @@ EOF`;
       showOverlay296: true,
       showGeoTiff: true,
       showAnchors: true,
+      showAnchors1073: true,
+      showAnchors196: true,
+      showAnchors296: true,
       showWarpedPdf: true,
       showWarpedDxf: true,
       showWarpedPdf196: true,
@@ -6787,7 +6798,7 @@ EOF`;
       }
 
       // Layer 4: Source anchor pins + cards for 296
-      if (state.showAnchors !== false) {
+      if (state.showAnchors !== false && state.showAnchors296 !== false) {
         (state.anchors296 || []).forEach(anc => {
           const isEnabled = anc.active !== false && anc.enabled !== false;
           const sp = worldToScreen(anc.src, vp, h);
@@ -6843,7 +6854,7 @@ EOF`;
       }
 
       // Layer 4: Source anchor pins + double-framed cards
-      if (state.showAnchors !== false) {
+      if (state.showAnchors !== false && state.showAnchors1073 !== false) {
         (state.anchors1073 || state.anchors || []).forEach(anc => {
           const isEnabled = anc.active !== false && anc.enabled !== false;
           const sp = worldToScreen(anc.src, vp, h);
@@ -6902,7 +6913,7 @@ EOF`;
       }
 
       // Layer 4: Source anchor pins + cards for 196
-      if (state.showAnchors !== false) {
+      if (state.showAnchors !== false && state.showAnchors196 !== false) {
         (state.anchors196 || []).forEach(anc => {
           const isEnabled = anc.active !== false && anc.enabled !== false;
           const sp = worldToScreen(anc.src, vp, h);
@@ -7465,9 +7476,9 @@ EOF`;
       };
 
       if (state.showAnchors !== false) {
-        drawAnchorResiduals(state.anchors296, warper296, "#d500f9");
-        drawAnchorResiduals(state.anchors1073 || state.anchors, warper1073, "#ff1744");
-        drawAnchorResiduals(state.anchors196, warper196, "#ff9100");
+        if (state.showAnchors296 !== false) drawAnchorResiduals(state.anchors296, warper296, "#d500f9");
+        if (state.showAnchors1073 !== false) drawAnchorResiduals(state.anchors1073 || state.anchors, warper1073, "#ff1744");
+        if (state.showAnchors196 !== false) drawAnchorResiduals(state.anchors196, warper196, "#ff9100");
       }
 
       // Layer 6: Hand-crafted user polygon
@@ -7505,9 +7516,9 @@ EOF`;
       };
 
       if (state.showAnchors !== false) {
-        drawAnchorPins(state.anchors296, "#d500f9");
-        drawAnchorPins(state.anchors1073 || state.anchors, "#ff1744");
-        drawAnchorPins(state.anchors196, "#ff9100");
+        if (state.showAnchors296 !== false) drawAnchorPins(state.anchors296, "#d500f9");
+        if (state.showAnchors1073 !== false) drawAnchorPins(state.anchors1073 || state.anchors, "#ff1744");
+        if (state.showAnchors196 !== false) drawAnchorPins(state.anchors196, "#ff9100");
       }
 
       // Layer 8: Snap target ring indicator
@@ -13547,7 +13558,7 @@ EOF`;
         globalChk.checked = false;
         globalChk.indeterminate = true;
       }
-      if (typeof syncMasterToggleCheckbox === "function") syncMasterToggleCheckbox();
+      if (typeof syncAllGlobalToolbarCheckboxes === "function") syncAllGlobalToolbarCheckboxes();
     }
 
     const chkShowGeoTiff = document.getElementById("chk-show-geotiff");
@@ -13637,13 +13648,12 @@ EOF`;
         });
 
         redrawTrueCanvas();
-        if (typeof syncMasterToggleCheckbox === "function") syncMasterToggleCheckbox();
+        if (typeof syncAllGlobalToolbarCheckboxes === "function") syncAllGlobalToolbarCheckboxes();
       });
     }
 
-    // ── Master Display Selector (Deeds, Anchors, Polygons) ────────────
-    function toggleAllMaster(show) {
-      // 1. DEEDS (Escritura 1073, 196, 296 PDF & DXF overlays)
+    // ── Global Controls: Deeds, Anchors, and Polygons ────────────────
+    function toggleGlobalDeeds(show) {
       state.showWarpedPdf = show;
       state.showWarpedDxf = show;
       state.showWarpedPdf196 = show;
@@ -13666,15 +13676,32 @@ EOF`;
       const chkDxf296 = document.getElementById("chk-show-warped-dxf-296");
       if (chkDxf296) chkDxf296.checked = show;
 
-      // 2. ANCHORS (Controls anchor pins & label rendering across all views)
+      updateStatus(show ? "📜 All deeds (1073, 196, 296) displayed." : "📜 All deeds (1073, 196, 296) hidden.");
+      redrawTrueCanvas();
+      syncGlobalDeedsCheckbox();
+      if (typeof syncGlobalOverlaysCheckbox === "function") syncGlobalOverlaysCheckbox();
+    }
+    window.toggleGlobalDeeds = toggleGlobalDeeds;
+
+    function toggleGlobalAnchors(show) {
       state.showAnchors = show;
+      state.showAnchors1073 = show;
+      state.showAnchors196 = show;
+      state.showAnchors296 = show;
+
       ["1073", "196", "296"].forEach(dKey => {
         let list = (dKey === "1073") ? (state.anchors1073 || state.anchors) :
                    (dKey === "196")  ? state.anchors196 : state.anchors296;
         (list || []).forEach(a => { a.showLabel = show; });
       });
 
-      // 3. POLYGONS (User polygon, Custom polygons, Survey DXFs, Vector layers)
+      updateStatus(show ? "🎯 All anchors across all deeds displayed." : "🎯 All anchors across all deeds hidden.");
+      redrawAll();
+      syncGlobalAnchorsCheckbox();
+    }
+    window.toggleGlobalAnchors = toggleGlobalAnchors;
+
+    function toggleGlobalPolygons(show) {
       if (state.userPolygon) state.userPolygon.show = show;
       const chkUserPoly = document.getElementById("chk-show-user-polygon");
       if (chkUserPoly) chkUserPoly.checked = show;
@@ -13699,53 +13726,83 @@ EOF`;
       const chkCortez = document.getElementById("chk-show-survey-cortez-2025");
       if (chkCortez) chkCortez.checked = show;
 
-      const globalChk = document.getElementById("chk-toggle-all-overlays");
-      if (globalChk) {
-        globalChk.checked = show;
-        globalChk.indeterminate = false;
-      }
-
-      updateStatus(show ? "🌐 All deeds, anchors, and polygons displayed." : "🌐 All deeds, anchors, and polygons deselected / hidden.");
-      redrawAll();
-      syncMasterToggleCheckbox();
+      updateStatus(show ? "📐 All polygons displayed." : "📐 All polygons hidden.");
+      redrawTrueCanvas();
+      syncGlobalPolygonsCheckbox();
+      if (typeof syncGlobalOverlaysCheckbox === "function") syncGlobalOverlaysCheckbox();
     }
-    window.toggleAllMaster = toggleAllMaster;
+    window.toggleGlobalPolygons = toggleGlobalPolygons;
 
-    function syncMasterToggleCheckbox() {
-      const masterChk = document.getElementById("chk-toggle-all-master");
-      if (!masterChk) return;
-
-      const checks = [
+    function syncGlobalDeedsCheckbox() {
+      const chk = document.getElementById("chk-global-deeds");
+      if (!chk) return;
+      const deedStates = [
         state.showWarpedPdf !== false,
         state.showWarpedDxf !== false,
         state.showWarpedPdf196 !== false,
         state.showWarpedDxf196 !== false,
         state.showWarpedPdf296 !== false,
-        state.showWarpedDxf296 !== false,
-        state.showAnchors !== false,
-        state.userPolygon ? state.userPolygon.show !== false : true
+        state.showWarpedDxf296 !== false
+      ];
+      const n = deedStates.filter(Boolean).length;
+      if (n === deedStates.length) { chk.checked = true; chk.indeterminate = false; }
+      else if (n === 0) { chk.checked = false; chk.indeterminate = false; }
+      else { chk.checked = false; chk.indeterminate = true; }
+    }
+    window.syncGlobalDeedsCheckbox = syncGlobalDeedsCheckbox;
+
+    function syncGlobalAnchorsCheckbox() {
+      const chk = document.getElementById("chk-global-anchors");
+      if (!chk) return;
+      const anchorStates = [
+        state.showAnchors !== false && state.showAnchors1073 !== false,
+        state.showAnchors !== false && state.showAnchors196 !== false,
+        state.showAnchors !== false && state.showAnchors296 !== false
+      ];
+      const n = anchorStates.filter(Boolean).length;
+      if (n === anchorStates.length) { chk.checked = true; chk.indeterminate = false; }
+      else if (n === 0) { chk.checked = false; chk.indeterminate = false; }
+      else { chk.checked = false; chk.indeterminate = true; }
+    }
+    window.syncGlobalAnchorsCheckbox = syncGlobalAnchorsCheckbox;
+
+    function syncGlobalPolygonsCheckbox() {
+      const chk = document.getElementById("chk-global-polygons");
+      if (!chk) return;
+      const polyStates = [
+        state.userPolygon ? state.userPolygon.show !== false : true,
+        state.showTrueDxf !== false,
+        state.showSurveyValoy2025 !== false,
+        state.showSurveyCortez2025 !== false
       ];
       if (state.customPolygons && state.customPolygons.length > 0) {
-        checks.push(state.customPolygons.some(p => p.visible !== false));
+        polyStates.push(state.customPolygons.some(p => p.visible !== false));
       }
-
-      const numChecked = checks.filter(Boolean).length;
-      if (numChecked === checks.length) {
-        masterChk.checked = true;
-        masterChk.indeterminate = false;
-      } else if (numChecked === 0) {
-        masterChk.checked = false;
-        masterChk.indeterminate = false;
-      } else {
-        masterChk.checked = false;
-        masterChk.indeterminate = true;
-      }
+      const n = polyStates.filter(Boolean).length;
+      if (n === polyStates.length) { chk.checked = true; chk.indeterminate = false; }
+      else if (n === 0) { chk.checked = false; chk.indeterminate = false; }
+      else { chk.checked = false; chk.indeterminate = true; }
     }
-    window.syncMasterToggleCheckbox = syncMasterToggleCheckbox;
+    window.syncGlobalPolygonsCheckbox = syncGlobalPolygonsCheckbox;
 
-    const chkToggleAllMaster = document.getElementById("chk-toggle-all-master");
-    if (chkToggleAllMaster) {
-      chkToggleAllMaster.addEventListener("change", e => toggleAllMaster(e.target.checked));
+    function syncAllGlobalToolbarCheckboxes() {
+      syncGlobalDeedsCheckbox();
+      syncGlobalAnchorsCheckbox();
+      syncGlobalPolygonsCheckbox();
+    }
+    window.syncAllGlobalToolbarCheckboxes = syncAllGlobalToolbarCheckboxes;
+
+    const chkGlobalDeeds = document.getElementById("chk-global-deeds");
+    if (chkGlobalDeeds) {
+      chkGlobalDeeds.addEventListener("change", e => toggleGlobalDeeds(e.target.checked));
+    }
+    const chkGlobalAnchors = document.getElementById("chk-global-anchors");
+    if (chkGlobalAnchors) {
+      chkGlobalAnchors.addEventListener("change", e => toggleGlobalAnchors(e.target.checked));
+    }
+    const chkGlobalPolygons = document.getElementById("chk-global-polygons");
+    if (chkGlobalPolygons) {
+      chkGlobalPolygons.addEventListener("change", e => toggleGlobalPolygons(e.target.checked));
     }
 
     // Collapsible main panel cards (Overlays, Anchors, Boundary Reconstructed, Custom Polygons)
@@ -14169,14 +14226,15 @@ EOF`;
 
       const btnToggleLabelsEl = document.getElementById(`btn-toggle-all-labels-${deedKey}`);
       if (btnToggleLabelsEl) {
-        const visibleCount = (anchors || []).filter(a => a.showLabel !== false).length;
-        const allShown = totalCount > 0 && visibleCount === totalCount;
-        if (visibleCount === 0 && totalCount > 0) {
+        const isShown = (state[`showAnchors${deedKey}`] !== false) && (state.showAnchors !== false);
+        if (!isShown) {
+          btnToggleLabelsEl.style.filter = "grayscale(100%)";
           btnToggleLabelsEl.style.opacity = "0.35";
-          btnToggleLabelsEl.title = `Show all anchor labels on canvas (Escritura ${deedKey})`;
+          btnToggleLabelsEl.title = `Show anchors on canvas (Escritura ${deedKey})`;
         } else {
+          btnToggleLabelsEl.style.filter = "none";
           btnToggleLabelsEl.style.opacity = "1";
-          btnToggleLabelsEl.title = allShown ? `Hide all anchor labels on canvas (Escritura ${deedKey})` : `Show all anchor labels on canvas (Escritura ${deedKey})`;
+          btnToggleLabelsEl.title = `Hide anchors on canvas (Escritura ${deedKey})`;
         }
       }
 
@@ -14283,7 +14341,7 @@ EOF`;
       }
 
       updateAlgoComparePanel();
-      if (typeof syncMasterToggleCheckbox === "function") syncMasterToggleCheckbox();
+      if (typeof syncAllGlobalToolbarCheckboxes === "function") syncAllGlobalToolbarCheckboxes();
     }
 
     function toggleAnchor(id, active, deedKey) {
@@ -14321,21 +14379,19 @@ EOF`;
     window.toggleAllAnchors = toggleAllAnchors;
 
     function toggleAllAnchorLabels(deedKey = "1073") {
-      let list = state.anchors1073 || state.anchors;
-      if (deedKey === "196") list = state.anchors196;
-      else if (deedKey === "296") list = state.anchors296;
-      if (!list || list.length === 0) return;
+      const prop = `showAnchors${deedKey}`;
+      const willShow = (state[prop] === false) ? true : false;
+      state[prop] = willShow;
 
-      const totalCount = list.length;
-      const visibleCount = list.filter(a => a.showLabel !== false).length;
-      const targetState = !(visibleCount === totalCount);
-
-      list.forEach(a => {
-        a.showLabel = targetState;
+      let list = (deedKey === "1073") ? (state.anchors1073 || state.anchors) :
+                 (deedKey === "196")  ? state.anchors196 : state.anchors296;
+      (list || []).forEach(a => {
+        a.showLabel = willShow;
       });
 
-      updateStatus(targetState ? `All anchor labels for Escritura ${deedKey} displayed.` : `All anchor labels for Escritura ${deedKey} hidden.`);
+      updateStatus(willShow ? `👁️ Anchors for Escritura ${deedKey} displayed.` : `🙈 Anchors for Escritura ${deedKey} hidden.`);
       redrawAll();
+      if (typeof syncGlobalAnchorsCheckbox === "function") syncGlobalAnchorsCheckbox();
     }
     window.toggleAllAnchorLabels = toggleAllAnchorLabels;
 
