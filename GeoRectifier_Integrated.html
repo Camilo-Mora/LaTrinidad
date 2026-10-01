@@ -2001,16 +2001,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <button id="btn-clear-anchors" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear all anchor points">🗑 Clear All</button>
             </div>
 
-            <!-- Algorithm Selector (Original GeoRectifier Methods) -->
-            <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(0,229,255,0.2);min-width:0;box-sizing:border-box;">
-              <label for="algorithm-select" style="font-size:0.72rem;color:var(--accent-cyan);font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm:</label>
-              <select id="algorithm-select" class="select-dropdown" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(0,229,255,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
-                <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
-                <option value="AFFINE">Affine Transformation (6-Param)</option>
-                <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
-                <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
-              </select>
-            </div>
             <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
               <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Constrain anchor dragging and simulation centers within the Pen Buffer Radius of Field vertices and Temporary Checkpoint Markers">
                 <input type="checkbox" id="chk-constrain-anchors" checked style="accent-color:var(--accent-cyan);">
@@ -2027,6 +2017,15 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <button type="button" class="btn-group-toggle" id="btn-toggle-group-anchors-1073" title="Colapsar / Desplegar" style="color:#ff1744;border-color:rgba(255,23,68,0.3);background:rgba(255,23,68,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▼</button>
             </div>
             <div id="group-anchors-1073-body" class="overlay-group-content" style="display:flex;flex-direction:column;gap:4px;">
+              <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 8px;margin-bottom:2px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(255,23,68,0.25);min-width:0;box-sizing:border-box;">
+                <label for="algorithm-select-1073" style="font-size:0.7rem;color:#ff1744;font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm 1073:</label>
+                <select id="algorithm-select-1073" class="select-dropdown algo-deed-select" data-deed="1073" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(255,23,68,0.35);color:#e2e8f0;font-size:0.7rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
+                  <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
+                  <option value="AFFINE">Affine Transformation (6-Param)</option>
+                  <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
+                  <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+                </select>
+              </div>
               <div class="table-wrapper">
                 <table class="anchor-table">
                   <colgroup>
@@ -2064,6 +2063,15 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <button type="button" class="btn-group-toggle" id="btn-toggle-group-anchors-196" title="Colapsar / Desplegar" style="color:#ff9100;border-color:rgba(255,145,0,0.3);background:rgba(255,145,0,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▼</button>
             </div>
             <div id="group-anchors-196-body" class="overlay-group-content" style="display:flex;flex-direction:column;gap:4px;">
+              <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 8px;margin-bottom:2px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(255,145,0,0.25);min-width:0;box-sizing:border-box;">
+                <label for="algorithm-select-196" style="font-size:0.7rem;color:#ff9100;font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm 196:</label>
+                <select id="algorithm-select-196" class="select-dropdown algo-deed-select" data-deed="196" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(255,145,0,0.35);color:#e2e8f0;font-size:0.7rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
+                  <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
+                  <option value="AFFINE">Affine Transformation (6-Param)</option>
+                  <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
+                  <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+                </select>
+              </div>
               <div class="table-wrapper">
                 <table class="anchor-table">
                   <colgroup>
@@ -2101,6 +2109,15 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <button type="button" class="btn-group-toggle" id="btn-toggle-group-anchors-296" title="Colapsar / Desplegar" style="color:#d500f9;border-color:rgba(213,0,249,0.3);background:rgba(213,0,249,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▶</button>
             </div>
             <div id="group-anchors-296-body" class="overlay-group-content" style="display:none;flex-direction:column;gap:4px;">
+              <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 8px;margin-bottom:2px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(213,0,249,0.25);min-width:0;box-sizing:border-box;">
+                <label for="algorithm-select-296" style="font-size:0.7rem;color:#d500f9;font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm 296:</label>
+                <select id="algorithm-select-296" class="select-dropdown algo-deed-select" data-deed="296" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(213,0,249,0.35);color:#e2e8f0;font-size:0.7rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
+                  <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
+                  <option value="AFFINE">Affine Transformation (6-Param)</option>
+                  <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
+                  <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+                </select>
+              </div>
               <div class="table-wrapper">
                 <table class="anchor-table">
                   <colgroup>
@@ -5548,7 +5565,12 @@ EOF`;
       anchorPhotoSize: 56,
       pendingSource: null,
       pendingSourceDeed: "1073",
-      algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
+      algorithm: "SIMILARITY", // Default / 1073: Helmert = the PowerPoint method
+      deedAlgorithms: {
+        "1073": "SIMILARITY",
+        "196":  "SIMILARITY",
+        "296":  "SIMILARITY"
+      },
       toolMode: "pan",
       showOverlay: true,
       showOverlay1073: true,
@@ -5837,7 +5859,28 @@ EOF`;
 
     const histInput       = document.getElementById("hist-dxf-input");
     const trueInput       = document.getElementById("true-dxf-input");
-    const algorithmSelect = document.getElementById("algorithm-select");
+    const algorithmSelect = document.getElementById("algorithm-select") || document.getElementById("algorithm-select-1073");
+    function getDeedAlgorithm(deedKey) {
+      if (state.deedAlgorithms && state.deedAlgorithms[deedKey]) {
+        return state.deedAlgorithms[deedKey];
+      }
+      return state.algorithm || "SIMILARITY";
+    }
+    function setDeedAlgorithm(deedKey, algoKey) {
+      if (!state.deedAlgorithms) state.deedAlgorithms = {};
+      state.deedAlgorithms[deedKey] = algoKey;
+      if (deedKey === "1073") state.algorithm = algoKey;
+      syncAlgorithmDropdowns();
+      redrawAll();
+    }
+    function syncAlgorithmDropdowns() {
+      ["1073", "196", "296"].forEach(key => {
+        const el = document.getElementById(`algorithm-select-${key}`);
+        if (el) el.value = getDeedAlgorithm(key);
+      });
+      const globalEl = document.getElementById("algorithm-select");
+      if (globalEl) globalEl.value = getDeedAlgorithm("1073");
+    }
     const btnExportDxf    = document.getElementById("btn-export-dxf");
     const btnClearAnchors = document.getElementById("btn-clear-anchors");
     const histStatus      = document.getElementById("hist-status");
@@ -7248,20 +7291,20 @@ EOF`;
 
       const active1073 = getActiveAnchors(state.anchors1073 || state.anchors);
       if ((state.showOverlay1073 !== false && state.showOverlay) && active1073.length >= 2) {
-        try { warper1073 = TransformMath.createWarper(state.algorithm, active1073); }
+        try { warper1073 = TransformMath.createWarper(getDeedAlgorithm("1073"), active1073); }
         catch(e) { console.warn("Warper 1073 error:", e); }
       }
       warper = warper1073;
 
       const active196 = getActiveAnchors(state.anchors196);
       if ((state.showOverlay196 !== false && state.showOverlay) && active196.length >= 2) {
-        try { warper196 = TransformMath.createWarper(state.algorithm, active196); }
+        try { warper196 = TransformMath.createWarper(getDeedAlgorithm("196"), active196); }
         catch(e) { console.warn("Warper 196 error:", e); }
       }
 
       const active296 = getActiveAnchors(state.anchors296);
       if ((state.showOverlay296 !== false && state.showOverlay) && active296.length >= 2) {
-        try { warper296 = TransformMath.createWarper(state.algorithm, active296); }
+        try { warper296 = TransformMath.createWarper(getDeedAlgorithm("296"), active296); }
         catch(e) { console.warn("Warper 296 error:", e); }
       }
 
@@ -13405,11 +13448,23 @@ EOF`;
     });
 
     // Algorithm & overlay controls
-    algorithmSelect.value = state.algorithm;
-    algorithmSelect.addEventListener("change", e => {
-      state.algorithm=e.target.value; redrawAll();
-      updateStatus(`Switched to: ${e.target.options[e.target.selectedIndex].text}`);
+    syncAlgorithmDropdowns();
+    ["1073", "196", "296"].forEach(key => {
+      const el = document.getElementById(`algorithm-select-${key}`);
+      if (el) {
+        el.value = getDeedAlgorithm(key);
+        el.addEventListener("change", e => {
+          setDeedAlgorithm(key, e.target.value);
+          updateStatus(`Escritura ${key} algorithm switched to: ${e.target.options[e.target.selectedIndex].text}`);
+        });
+      }
     });
+    if (algorithmSelect) {
+      algorithmSelect.value = getDeedAlgorithm("1073");
+      algorithmSelect.addEventListener("change", e => {
+        setDeedAlgorithm("1073", e.target.value);
+      });
+    }
     chkShowOverlay.addEventListener("change", e => { state.showOverlay=e.target.checked; redrawAll(); });
 
     // ── Overlays & Opacity Layer Visibility Controls ────────────────
@@ -13935,7 +13990,7 @@ EOF`;
       const activeAnchors = (anchors || []).filter(a => a.active !== false && a.enabled !== false);
       if (activeAnchors.length >= 2) {
         try {
-          warper = TransformMath.createWarper(state.algorithm, activeAnchors);
+          warper = TransformMath.createWarper(getDeedAlgorithm(deedKey), activeAnchors);
           rmseInfo = TransformMath.computeRMSE(warper, activeAnchors);
         } catch (_) {}
       }
@@ -16032,7 +16087,7 @@ EOF`;
     state.anchors196 = [];
     state.anchors296 = [];
     state.anchors = state.anchors1073;
-    algorithmSelect.value = state.algorithm;
+    syncAlgorithmDropdowns();
     initConstraintsAndBuffers();
     renderCustomPolyList();
     updateCustomPolyButtonStates();
