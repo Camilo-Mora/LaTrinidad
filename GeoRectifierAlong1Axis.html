@@ -2072,6 +2072,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     <input type="checkbox" id="chk-auto-min-buffer" checked style="accent-color:var(--accent-cyan);">
                     ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
                   </label>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:#00e676;font-weight:600;" title="Cuando el error de perímetro y área es ≤ 0.01% (o en el menor radio convergente), selecciona la combinación con mayor porcentaje dentro del corredor IGAC ±1.04m, maximizando la fidelidad al plano original de la escritura">
+                    <input type="checkbox" id="chk-opt-igac-filter" checked style="accent-color:#00e676;">
+                    🎯 Filtrar por IGAC ±1.04m (si error ≤ 0.01%)
+                  </label>
                   <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);margin-top:2px;">
                     <span style="font-size:0.70rem;color:var(--text-muted);">Auto-Tune Search:</span>
                     <div style="display:flex;align-items:center;gap:12px;">
@@ -10896,6 +10900,9 @@ EOF`;
       const chkOptCdsOnly = document.getElementById("chk-opt-casa-del-sol-only");
       const useCdsOnly = chkOptCdsOnly ? chkOptCdsOnly.checked : (state.optCasaDelSolOnly || false);
 
+      const chkOptIgacFilter = document.getElementById("chk-opt-igac-filter");
+      const isFilterIgac = chkOptIgacFilter ? chkOptIgacFilter.checked : true;
+
       const optimizableAnchors = state.anchors.filter(anc => anc.active !== false && anc.enabled !== false && anc.optimize === true);
       const isAllAnchorsFixed = optimizableAnchors.length === 0;
 
@@ -11221,9 +11228,29 @@ EOF`;
               overallErr = countSegs > 0 ? (avgSegErr + combinedAreaDiffPct) / 2 : combinedAreaDiffPct;
             }
 
+            let pct104 = 0;
+            if (optRes && optRes.vertices) {
+              try {
+                const evalPoly = {
+                  vertices: optRes.vertices.map((v, idx) => ({
+                    ...v,
+                    origX: candVertices[idx]?.origX ?? v.origX ?? v.x,
+                    origY: candVertices[idx]?.origY ?? v.origY ?? v.y,
+                    deedPt: candVertices[idx]?.deedPt ?? v.deedPt
+                  })),
+                  closed: poly.closed,
+                  segmentLengths: poly.segmentLengths,
+                  segmentOptimize: poly.segmentOptimize
+                };
+                const igac = computeIgacCompliance(evalPoly);
+                pct104 = igac ? (igac.pct104 || 0) : 0;
+              } catch (_) {}
+            }
+
             return {
               loss: compositeLoss,
               overallErr,
+              pct104,
               optRes,
               candAnchors,
               areaDiffPct: useCdsOnly ? avgCdsErr : combinedAreaDiffPct,
@@ -11234,8 +11261,33 @@ EOF`;
               offsets: offsets.map(o => ({ ...o }))
             };
           } catch (e) {
-            return { loss: 999999, overallErr: 999, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
+            return { loss: 999999, overallErr: 999, pct104: 0, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
           }
+        }
+
+        // Comparison helper: determines if candidate A is strictly better than candidate B
+        function isCandidateBetter(candA, candB) {
+          if (!candA || candA.loss >= 99999) return false;
+          if (!candB || candB.loss >= 99999) return true;
+
+          if (isFilterIgac) {
+            // Strict legal gate: both distance and area errors are virtually zero (<= 0.01%)
+            const aInGate = (candA.avgSegErr <= 0.01 && candA.areaDiffPct <= 0.01) || (candA.overallErr <= 0.01);
+            const bInGate = (candB.avgSegErr <= 0.01 && candB.areaDiffPct <= 0.01) || (candB.overallErr <= 0.01);
+
+            if (aInGate && bInGate) {
+              // Both satisfy <= 0.01%: secondary optimization objective is to maximize IGAC ±1.04m compliance
+              if (Math.abs(candA.pct104 - candB.pct104) > 0.05) {
+                return candA.pct104 > candB.pct104;
+              }
+              // If IGAC % is tied, pick smaller overall error / loss
+              return candA.loss < candB.loss;
+            }
+            if (aInGate && !bInGate) return true;
+            if (!aInGate && bInGate) return false;
+          }
+
+          return candA.loss < candB.loss;
         }
 
         let globalBest = null;
@@ -11276,7 +11328,7 @@ EOF`;
             const trialOffsets = allCombos[cIdx];
             const trialEval = evaluateCandidate(trialOffsets);
 
-            const isNewBest = trialEval.loss < globalBest.loss;
+            const isNewBest = isCandidateBetter(trialEval, globalBest);
             if (isNewBest) {
               globalBest = trialEval;
             }
@@ -11304,7 +11356,8 @@ EOF`;
                 else if (useCdsOnly) prefix = "CdS Area";
                 else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
                 else prefix = "Combos";
-                optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (Best: ${globalBest.loss.toFixed(2)}%)`;
+                const igacInfo = (isFilterIgac && globalBest.pct104 != null) ? ` | IGAC: ${globalBest.pct104.toFixed(1)}%` : "";
+                optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (Best: ${globalBest.loss.toFixed(2)}%${igacInfo})`;
                 optStatusBadge.style.color = "#ffb300";
                 optStatusBadge.style.background = "rgba(255, 179, 0, 0.15)";
               }
@@ -11401,10 +11454,10 @@ EOF`;
               }
 
               const trialEval = evaluateCandidate(trialOffsets);
-              if (trialEval.loss < population[i].loss) {
+              if (isCandidateBetter(trialEval, population[i])) {
                 population[i] = trialEval;
               }
-              if (population[i].loss < globalBest.loss) {
+              if (isCandidateBetter(population[i], globalBest)) {
                 globalBest = population[i];
               }
             }
@@ -11432,7 +11485,8 @@ EOF`;
                 else if (useAxisOnly) prefix = `1D Axis Gen ${gen}/${MAX_GEN}`;
                 else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
                 else prefix = `Tune ${gen}/${MAX_GEN}`;
-                optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
+                const igacInfo = (isFilterIgac && globalBest.pct104 != null) ? ` | IGAC: ${globalBest.pct104.toFixed(1)}%` : "";
+                optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%${igacInfo})`;
                 optStatusBadge.style.color = "var(--accent-cyan)";
                 optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
               }
@@ -11451,7 +11505,7 @@ EOF`;
         // Convergence check: stops ONLY when the overall error reaches zero (< 0.005%)
         const isZeroError = currentOverallErr < 0.005;
 
-        if (!globalOverallBest || globalBest.loss < globalOverallBest.loss) {
+        if (!globalOverallBest || isCandidateBetter(globalBest, globalOverallBest)) {
           globalOverallBest = globalBest;
           winningR = currentR;
         }
@@ -11460,7 +11514,8 @@ EOF`;
         if (isAutoMin && isZeroError) {
           winningR = currentR;
           globalOverallBest = globalBest;
-          updateStatus(`⚡ Auto-Detect: Overall error cero (0.00%) alcanzado en radio mínimo de ±${currentR.toFixed(1)}m.`);
+          const igacMsg = (isFilterIgac && globalBest.pct104 != null) ? ` (IGAC ±1.04m: ${globalBest.pct104.toFixed(1)}%)` : "";
+          updateStatus(`⚡ Auto-Detect: Overall error cero (0.00%) alcanzado en radio mínimo de ±${currentR.toFixed(1)}m${igacMsg}.`);
           break;
         }
       }
@@ -11512,19 +11567,20 @@ EOF`;
         redrawAll();
 
         const finalOverall = document.getElementById("overall-error")?.textContent || globalOverallBest.loss.toFixed(2);
+        const finalIgacStr = (isFilterIgac && globalOverallBest.pct104 != null) ? ` | IGAC: ${globalOverallBest.pct104.toFixed(1)}%` : "";
         if (optStatusBadge) {
           const badgeText = isAllAnchorsFixed
-            ? (isAutoMin ? `✓ Fixed Anchors: Min R ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Fixed Anchors Fitted (${finalOverall}%)`)
+            ? (isAutoMin ? `✓ Fixed Anchors: Min R ±${winningR.toFixed(1)}m (${finalOverall}%${finalIgacStr})` : `✓ Fixed Anchors Fitted (${finalOverall}%${finalIgacStr})`)
             : (useCdsOnly
                 ? `✓ CdS Area Fitted (${globalOverallBest.loss.toFixed(2)}%)`
                 : (useAxisOnly
-                    ? `✓ 1D Axis Fitted (${finalOverall}%)`
-                    : (isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`)));
+                    ? `✓ 1D Axis Fitted (${finalOverall}%${finalIgacStr})`
+                    : (isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%${finalIgacStr})` : `✓ Auto-Tuned (${finalOverall}%${finalIgacStr})`)));
           optStatusBadge.textContent = badgeText;
           optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
           optStatusBadge.style.color = "#00e676";
         }
-        updateStatus(`⚡ Auto-Tune finalizado: solución óptima ${isAllAnchorsFixed ? 'con anclajes fijos (optimizando buffers de nodos)' : (useCdsOnly ? 'para áreas Casa del Sol' : (useAxisOnly ? 'a lo largo de ejes de prueba' : `con radio ±${winningR.toFixed(1)}m`))}, error = ${(useCdsOnly ? globalOverallBest.loss.toFixed(2) : finalOverall)}%.`);
+        updateStatus(`⚡ Auto-Tune finalizado: solución óptima ${isAllAnchorsFixed ? 'con anclajes fijos (optimizando buffers de nodos)' : (useCdsOnly ? 'para áreas Casa del Sol' : (useAxisOnly ? 'a lo largo de ejes de prueba' : `con radio ±${winningR.toFixed(1)}m`))}, error = ${(useCdsOnly ? globalOverallBest.loss.toFixed(2) : finalOverall)}%${(isFilterIgac && globalOverallBest.pct104 != null) ? ` (Cumplimiento IGAC ±1.04m: ${globalOverallBest.pct104.toFixed(1)}%)` : ''}.`);
       }
 
       // Cleanup state & UI
