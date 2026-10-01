@@ -5456,15 +5456,23 @@ EOF`;
       return { minX, minY, maxX, maxY, width:maxX-minX, height:maxY-minY };
     }
 
-    function fitViewport(canvas, bbox, customPad) {
-      const pad = (typeof customPad === "number") ? customPad : 40;
-      const w = Math.max(10, canvas.width - pad * 2);
-      const h = Math.max(10, canvas.height - pad * 2);
+    function fitViewport(canvas, bbox, padOptions) {
+      let pL = 40, pR = 40, pT = 40, pB = 40;
+      if (typeof padOptions === "number") {
+        pL = pR = pT = pB = padOptions;
+      } else if (padOptions && typeof padOptions === "object") {
+        pL = padOptions.left ?? 40;
+        pR = padOptions.right ?? 40;
+        pT = padOptions.top ?? 40;
+        pB = padOptions.bottom ?? 40;
+      }
+      const w = Math.max(10, canvas.width - pL - pR);
+      const h = Math.max(10, canvas.height - pT - pB);
       const scale = Math.min(w / (bbox.width || 1), h / (bbox.height || 1));
       return {
         scale,
-        offsetX: pad + (w - bbox.width * scale) / 2 - bbox.minX * scale,
-        offsetY: pad + (h - bbox.height * scale) / 2 - bbox.minY * scale,
+        offsetX: pL + (w - bbox.width * scale) / 2 - bbox.minX * scale,
+        offsetY: pB + (h - bbox.height * scale) / 2 - bbox.minY * scale,
         bbox
       };
     }
@@ -5543,11 +5551,12 @@ EOF`;
       }
 
       const bbox = { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
-      // Adaptive paddle space: generous margin for 180px anchor photo cards
-      // Proportional to canvas dimensions so it stays equally spaced across any screen resolution
-      const minCanvasDim = Math.min(trueCanvas.width, trueCanvas.height);
-      const pad = Math.max(130, Math.min(220, Math.round(minCanvasDim * 0.20)));
-      state.trueViewport = fitViewport(trueCanvas, bbox, pad);
+      // Canvas-proportional clearance for 180px anchor cards (governed strictly by canvas dimensions, not image)
+      const pL = Math.round(Math.min(trueCanvas.width * 0.28, 245));
+      const pR = Math.round(Math.min(trueCanvas.width * 0.28, 245));
+      const pT = Math.round(Math.min(trueCanvas.height * 0.28, 230));
+      const pB = Math.round(Math.min(trueCanvas.height * 0.28, 230));
+      state.trueViewport = fitViewport(trueCanvas, bbox, { left: pL, right: pR, top: pT, bottom: pB });
     }
 
     // ── Canvas resize ─────────────────────────────────────────────────
@@ -6008,9 +6017,31 @@ EOF`;
         const cardInnerW = Math.max(imgW, (badgeR * 2) + 6 + textW + 4);
         const cardW = cardInnerW + padX * 2;
         const cardH = padTop + headerH + dividerGap + imgGap + imgH + padBottom;
-        const cardX = pt.x + offX;
-        const cardY = pt.y + offY - (cardH / 2) + 10;
-        return { cardX, cardY, cardW, cardH, offX, offY };
+
+        let cardX = pt.x + offX;
+        let cardY = pt.y + offY - (cardH / 2) + 10;
+        let finalOffX = offX, finalOffY = offY;
+
+        const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
+        const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (isHist ? histCanvas.width : trueCanvas.width);
+        const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (isHist ? histCanvas.height : trueCanvas.height);
+        const margin = 24; // Equal distance from canvas edge for both right/top and left/bottom
+
+        if (!isHist && !hasCustom && anc.id === 1) {
+          // Bottom anchor: left side at margin (24px), bottom at canvasH - margin (24px)
+          cardX = margin;
+          cardY = canvasH - cardH - margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y + (cardH / 2) - 10;
+        } else if (!isHist && !hasCustom && anc.id === 2) {
+          // Top anchor: top at margin (24px), right side at canvasW - margin (24px)
+          cardX = canvasW - cardW - margin;
+          cardY = margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y + (cardH / 2) - 10;
+        }
+
+        return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
       } else {
         const padX = 8;
         const cardH = 24;
@@ -6024,9 +6055,28 @@ EOF`;
         ctx.restore();
 
         const cardW = (badgeR * 2) + 8 + textW + padX * 2;
-        const cardX = pt.x + offX;
-        const cardY = pt.y + offY;
-        return { cardX, cardY, cardW, cardH, offX, offY };
+        let cardX = pt.x + offX;
+        let cardY = pt.y + offY;
+        let finalOffX = offX, finalOffY = offY;
+
+        const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
+        const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (isHist ? histCanvas.width : trueCanvas.width);
+        const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (isHist ? histCanvas.height : trueCanvas.height);
+        const margin = 24;
+
+        if (!isHist && !hasCustom && anc.id === 1) {
+          cardX = margin;
+          cardY = canvasH - cardH - margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y;
+        } else if (!isHist && !hasCustom && anc.id === 2) {
+          cardX = canvasW - cardW - margin;
+          cardY = margin;
+          finalOffX = cardX - pt.x;
+          finalOffY = cardY - pt.y;
+        }
+
+        return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
       }
     }
 
@@ -6034,12 +6084,6 @@ EOF`;
       const isEnabled = anc.active !== false && anc.enabled !== false;
       const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
       const fullText = labelName + (isEnabled ? "" : " (off)");
-      const defOff = getDefaultAnchorOffset(anc, isHist);
-      const defDx = defOff.dx, defDy = defOff.dy;
-      const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
-      const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
-      const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
-
       if (anc.image && !anc._imgElement) {
         const img = new Image();
         img.onload = () => {
@@ -6057,9 +6101,11 @@ EOF`;
       const cardY = bounds.cardY;
       const cardW = bounds.cardW;
       const cardH = bounds.cardH;
+      const offX = bounds.offX;
+      const offY = bounds.offY;
 
       // Draw 3px connector arrow pointing towards the anchor
-      if (Math.hypot(offX, offY) > 20 || (offset && typeof offset.dx === "number")) {
+      if (Math.hypot(offX, offY) > 20 || (anc.labelOffsetDst && typeof anc.labelOffsetDst.dx === "number")) {
         const startX = Math.max(cardX, Math.min(cardX + cardW, pt.x));
         const startY = Math.max(cardY, Math.min(cardY + cardH, pt.y));
         const dx = pt.x - startX;
