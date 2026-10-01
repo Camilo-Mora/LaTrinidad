@@ -2008,6 +2008,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     <input type="checkbox" id="chk-auto-min-buffer" checked style="accent-color:var(--accent-cyan);">
                     ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
                   </label>
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:#00e676;font-weight:600;" title="Al ejecutar Auto-Tune, busca adicionalmente maximizar el % de longitud dentro de la tolerancia de gabinete IGAC (±1.04m a 1:2.000), deteniéndose tras 15 generaciones sin mejora ≥0.1%">
+                    <input type="checkbox" id="chk-maximize-igac" style="accent-color:#00e676;">
+                    🎯 Maximizar IGAC ±1.04m (Meseta 15 gen)
+                  </label>
                   <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);margin-top:2px;">
                     <span style="font-size:0.70rem;color:var(--text-muted);">Auto-Tune Search:</span>
                     <div style="display:flex;align-items:center;gap:12px;">
@@ -2046,7 +2050,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <button type="button" class="btn-help-bubble" aria-label="Help Auto-Tune Anchors" title="Help: Auto-Tune Anchors">?</button>
                       <div class="opt-hover-card align-right" style="width:280px;">
                         <div class="opt-hover-title">⚡ Auto-Tune Anchors (Global Search)</div>
-                        <div class="opt-hover-body">Explores anchor positions within their Field buffers using either <strong>Genetic Algorithm (Differential Evolution)</strong> or <strong>All Combinations (exhaustive grid)</strong> to find the anchor alignment that minimizes overall boundary and area error. Live-animates the polygon during execution.</div>
+                        <div class="opt-hover-body">Explores anchor positions within their Field buffers using either <strong>Genetic Algorithm (Differential Evolution)</strong> or <strong>All Combinations (exhaustive grid)</strong> to find the anchor alignment that minimizes overall boundary and area error (and optionally maximizes IGAC ±1.04m compliance). Live-animates the polygon during execution.</div>
                       </div>
                     </div>
                   </div>
@@ -10343,6 +10347,8 @@ EOF`;
       const M = state.anchors.length;
       const chkAutoMin = document.getElementById("chk-auto-min-buffer");
       const isAutoMin = chkAutoMin ? chkAutoMin.checked : false;
+      const chkMaxIgac = document.getElementById("chk-maximize-igac");
+      const isMaxIgac = chkMaxIgac ? chkMaxIgac.checked : false;
 
       // If Auto-Detect Min Buffer is ticked, sweep from 0.1m up to 3.0m in increments of 0.1m.
       // Otherwise, use current slider buffer radius (default 3.0m).
@@ -10377,8 +10383,8 @@ EOF`;
       if (btnRunOpt) btnRunOpt.disabled = true;
       if (btnResetOpt) btnResetOpt.disabled = true;
 
-      const POP_SIZE = 16;
-      const MAX_GEN = isAutoMin ? 10 : 22;
+      const POP_SIZE = isMaxIgac ? 18 : 16;
+      const MAX_GEN = isMaxIgac ? (isAutoMin ? 18 : 60) : (isAutoMin ? 10 : 22);
 
       function sampleDisk() {
         const theta = Math.random() * 2 * Math.PI;
@@ -10522,18 +10528,43 @@ EOF`;
             const compositeLoss = (wDist * avgSegErr + wArea * areaDiffPct) / (wDist + wArea);
             const overallErr = countSegs > 0 ? (avgSegErr + areaDiffPct) / 2 : areaDiffPct;
 
+            let pct104 = 0;
+            let finalLoss = compositeLoss;
+
+            if (isMaxIgac) {
+              const dummyVertices = optRes.vertices.map((v, i) => ({
+                ...v,
+                origX: candVertices[i].origX,
+                origY: candVertices[i].origY,
+                deedPt: candVertices[i].deedPt
+              }));
+              const dummyPoly = {
+                vertices: dummyVertices,
+                closed: poly.closed,
+                segmentLengths: poly.segmentLengths,
+                segmentOptimize: poly.segmentOptimize
+              };
+              const igac = computeIgacCompliance(dummyPoly);
+              pct104 = igac.pct104 || 0;
+              // Lexicographic fitness: legal error gate (<1.0%), then maximize pct104
+              const legalPenalty = overallErr > 1.0 ? (overallErr * 50) : (overallErr * 0.1);
+              finalLoss = (100 - pct104) + legalPenalty;
+            }
+
             return {
-              loss: compositeLoss,
+              loss: finalLoss,
+              pct104,
               overallErr,
               optRes,
               candAnchors,
+              candVertices,
               areaDiffPct,
               avgSegErr,
               radius: currentR,
               offsets: offsets.map(o => ({ ...o }))
             };
           } catch (e) {
-            return { loss: 999999, overallErr: 999, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
+            return { loss: 999999, pct104: 0, overallErr: 999, optRes: null, candAnchors: null, candVertices: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
           }
         }
 
@@ -10604,6 +10635,21 @@ EOF`;
           population.push(evaluateCandidate(currentOffsets));
           population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
 
+          if (isMaxIgac) {
+            const jitters = [0.08, -0.08, 0.15, -0.15, 0.25, -0.25];
+            for (const j of jitters) {
+              if (population.length >= POP_SIZE) break;
+              const jArr = currentOffsets.map(o => {
+                let u = Math.max(-1, Math.min(1, o.u + (Math.random() - 0.5) * j * 2));
+                let v = Math.max(-1, Math.min(1, o.v + (Math.random() - 0.5) * j * 2));
+                const len = Math.hypot(u, v);
+                if (len > 1) { u /= len; v /= len; }
+                return { u, v };
+              });
+              population.push(evaluateCandidate(jArr));
+            }
+          }
+
           const cardinals = [
             { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
             { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
@@ -10621,6 +10667,9 @@ EOF`;
           }
 
           globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
+
+          let bestPct104SoFar = globalBest.pct104 || 0;
+          let consecutiveNoImprove = 0;
 
           // Evolutionary generations loop for this radius
           for (let gen = 1; gen <= MAX_GEN; gen++) {
@@ -10671,6 +10720,17 @@ EOF`;
               }
             }
 
+            // Option 2 (Plateau / Convergence Stagnation Limit) for IGAC mode
+            if (isMaxIgac) {
+              const curPct = globalBest.pct104 || 0;
+              if (curPct >= bestPct104SoFar + 0.1) {
+                bestPct104SoFar = curPct;
+                consecutiveNoImprove = 0;
+              } else {
+                consecutiveNoImprove++;
+              }
+            }
+
             // Live screen animation update
             if (globalBest.candAnchors && globalBest.optRes) {
               for (let k = 0; k < M; k++) {
@@ -10679,19 +10739,45 @@ EOF`;
                   state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
                 }
               }
-              poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
+              poly.vertices = globalBest.optRes.vertices.map((v, idx) => ({
+                ...v,
+                origX: globalBest.candVertices ? globalBest.candVertices[idx].origX : v.origX,
+                origY: globalBest.candVertices ? globalBest.candVertices[idx].origY : v.origY,
+                deedPt: poly.vertices[idx]?.deedPt || null
+              }));
               recomputeUserPolygonMetrics();
               redrawTrueCanvas();
 
               if (optStatusBadge) {
-                const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`;
-                optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
-                optStatusBadge.style.color = "var(--accent-cyan)";
-                optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
+                if (isMaxIgac) {
+                  const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Gen ${gen}`;
+                  optStatusBadge.textContent = `${prefix} (${(globalBest.pct104 || 0).toFixed(1)}% IGAC)`;
+                  optStatusBadge.style.color = "#00e676";
+                  optStatusBadge.style.background = "rgba(0, 200, 83, 0.20)";
+                } else {
+                  const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`;
+                  optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
+                  optStatusBadge.style.color = "var(--accent-cyan)";
+                  optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
+                }
               }
             }
 
-            await new Promise(resolve => setTimeout(resolve, isAutoMin ? 15 : 40));
+            if (isMaxIgac) {
+              updateStatus(`🎯 Auto-Tune + IGAC (Gen ${gen}): Mejor ±1.04m = ${bestPct104SoFar.toFixed(1)}% | Sin mejora: ${consecutiveNoImprove}/15`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, isAutoMin ? 15 : 35));
+
+            // Option 2 Stagnation check: stop when after 15 consecutive generations without >= 0.1% improvement
+            if (isMaxIgac && consecutiveNoImprove >= 15) {
+              updateStatus(`🎯 Auto-Tune + IGAC: Meseta de convergencia alcanzada (15 generaciones sin mejora ≥0.1%). Techo fijado en ${bestPct104SoFar.toFixed(1)}%.`);
+              break;
+            }
+            if (isMaxIgac && (globalBest.pct104 || 0) >= 100.0) {
+              updateStatus(`🎯 Auto-Tune + IGAC: 100.0% de cumplimiento IGAC alcanzado.`);
+              break;
+            }
           }
         }
 
@@ -10751,7 +10837,12 @@ EOF`;
         });
 
         if (finalOpt.success) {
-          poly.vertices = finalOpt.vertices;
+          poly.vertices = finalOpt.vertices.map((v, idx) => ({
+            ...v,
+            origX: finalNominal[idx].origX,
+            origY: finalNominal[idx].origY,
+            deedPt: finalNominal[idx].deedPt
+          }));
         }
 
         state.tuningAnchorsActive = false;
@@ -10759,14 +10850,25 @@ EOF`;
         rebuildSegmentInputs();
         redrawAll();
 
-        const finalOverall = document.getElementById("overall-error")?.textContent || globalOverallBest.loss.toFixed(2);
+        const finalIgac = computeIgacCompliance(poly);
+        const finalOverall = document.getElementById("overall-error")?.textContent || (globalOverallBest.overallErr != null ? globalOverallBest.overallErr.toFixed(2) : "0.00");
         if (optStatusBadge) {
-          const badgeText = isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`;
-          optStatusBadge.textContent = badgeText;
-          optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
-          optStatusBadge.style.color = "#00e676";
+          if (isMaxIgac) {
+            optStatusBadge.textContent = `✓ IGAC ${finalIgac.pct104.toFixed(1)}% (Err: ${finalOverall}%)`;
+            optStatusBadge.style.background = "rgba(0, 200, 83, 0.22)";
+            optStatusBadge.style.color = "#00e676";
+          } else {
+            const badgeText = isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`;
+            optStatusBadge.textContent = badgeText;
+            optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
+            optStatusBadge.style.color = "#00e676";
+          }
         }
-        updateStatus(`⚡ Auto-Tune finalizado: solución óptima con radio ±${winningR.toFixed(1)}m y error = ${finalOverall}%.`);
+        if (isMaxIgac) {
+          updateStatus(`⚡ Auto-Tune finalizado con IGAC maximizado: ${finalIgac.pct104.toFixed(1)}% en ±1.04m (radio ±${winningR.toFixed(1)}m, error = ${finalOverall}%).`);
+        } else {
+          updateStatus(`⚡ Auto-Tune finalizado: solución óptima con radio ±${winningR.toFixed(1)}m y error = ${finalOverall}%.`);
+        }
       }
 
       // Cleanup state & UI
