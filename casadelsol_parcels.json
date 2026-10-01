@@ -7,7 +7,7 @@
     "optArea": false,
     "closed": true,
     "visible": true,
-    "showNodes": true,
+    "showNodes": false,
     "showLabels": false,
     "snapEnabled": true,
     "vertices": [
@@ -114,7 +114,7 @@
     "optArea": false,
     "closed": true,
     "visible": true,
-    "showNodes": true,
+    "showNodes": false,
     "showLabels": false,
     "snapEnabled": true,
     "vertices": [
@@ -191,7 +191,7 @@
     "optArea": false,
     "closed": true,
     "visible": true,
-    "showNodes": true,
+    "showNodes": false,
     "showLabels": false,
     "snapEnabled": true,
     "vertices": [
@@ -373,7 +373,7 @@
     "optArea": false,
     "closed": true,
     "visible": true,
-    "showNodes": true,
+    "showNodes": false,
     "showLabels": false,
     "snapEnabled": true,
     "vertices": [

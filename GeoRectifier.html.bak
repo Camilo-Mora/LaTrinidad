@@ -456,6 +456,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
       font-size: 0.73rem;
       font-weight: 600;
       width: 75px;
+      min-width: 40px;
       flex: 1;
       padding: 1px 3px;
       border-radius: 3px;
@@ -1870,6 +1871,37 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (56px)">↺</button>
               </div>
             </div>
+
+            <!-- Test Axes (Hypothesis Testing) Section -->
+            <div style="margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,255,255,0.15);display:flex;flex-direction:column;gap:5px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.73rem;font-weight:700;color:#e040fb;display:flex;align-items:center;gap:4px;">
+                  <span>📐 Test Axes</span>
+                  <span id="test-axes-count-badge" style="font-size:0.62rem;padding:1px 5px;border-radius:10px;background:rgba(224,64,251,0.2);color:#e040fb;font-family:monospace;">0</span>
+                </span>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <button type="button" id="btn-add-test-axis" class="btn btn-secondary btn-sm" style="font-size:0.68rem;padding:2px 7px;background:rgba(224,64,251,0.15);border:1px solid rgba(224,64,251,0.4);color:#e040fb;" title="Click 2 points on field canvas to create a test axis">➕ Add Axis</button>
+                  <button type="button" id="btn-cancel-test-axis" class="btn btn-secondary btn-sm" style="display:none;font-size:0.68rem;padding:2px 6px;background:rgba(255,23,68,0.2);border:1px solid #ff1744;color:#ff1744;" title="Cancel axis creation">✕ Cancel</button>
+                </div>
+              </div>
+
+              <!-- Snapping checkbox -->
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.70rem;">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-muted);" title="When active, new anchors placed near a test axis automatically snap and bind to it">
+                  <input type="checkbox" id="chk-snap-anchor-axis" checked style="accent-color:#e040fb;">
+                  <span>🧲 Snap new anchors to axis</span>
+                </label>
+                <span style="font-size:0.63rem;color:var(--text-muted);font-family:monospace;">(±18px)</span>
+              </div>
+
+              <!-- Test Axes List -->
+              <div id="test-axes-list" style="display:flex;flex-direction:column;gap:3px;max-height:105px;overflow-y:auto;padding-right:2px;">
+                <!-- Dynamically rendered axis rows -->
+              </div>
+              <p style="font-size:0.65rem;color:var(--text-muted);margin:0;line-height:1.3;">
+                💡 <em>Click <strong>Add Axis</strong> and pick 2 points on field. Dragging handles <strong>A</strong> or <strong>B</strong> carries snapped anchors along.</em>
+              </p>
+            </div>
           </div>
         </section>
 
@@ -2021,6 +2053,13 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       </label>
                     </div>
                   </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(224,64,251,0.06);border:1px solid rgba(224,64,251,0.25);margin-top:2px;">
+                    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.70rem;color:#e040fb;font-weight:600;margin:0;" title="Restringe la optimización a desplazamientos 1D a lo largo de los ejes de prueba vinculados a los anclajes (los anclajes sin eje quedan fijos)">
+                      <input type="checkbox" id="chk-opt-along-axis" style="accent-color:#e040fb;">
+                      <span>📐 1D Test Axis Constraint</span>
+                    </label>
+                    <span id="opt-axis-count-badge" style="font-size:0.62rem;font-family:monospace;color:var(--text-muted);">0 axes</span>
+                  </div>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:6px;">
                   <div style="display:flex;gap:6px;align-items:center;">
@@ -2120,10 +2159,18 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-custom-poly" title="Colapsar / Desplegar">▶</button>
           </div>
           <div id="body-custom-polygon" style="display:none;flex-direction:column;gap:8px;">
-            <!-- + New Polygon button -->
-            <button id="btn-add-new-custom-poly" class="btn btn-primary btn-sm" style="background:linear-gradient(135deg,#00e5ff,#00b0ff);border-color:#00e5ff;color:#050d1a;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Create a new independent polygon on the field map and subpanel">
-              ➕ New Polygon
-            </button>
+            <!-- Action Toolbar: New, Save & Load -->
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button id="btn-add-new-custom-poly" class="btn btn-primary btn-sm" style="flex:1;background:linear-gradient(135deg,#00e5ff,#00b0ff);border-color:#00e5ff;color:#050d1a;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;padding:3px 6px;font-size:0.71rem;" title="Create a new independent polygon on the field map and subpanel">
+                ➕ New Poly
+              </button>
+              <button id="btn-save-custom-poly-json" class="btn btn-sm" style="background:rgba(0,200,83,0.20);border:1px solid rgba(0,200,83,0.45);color:#00e676;padding:3px 8px;font-size:0.70rem;" title="Download &amp; Save Custom Polygons to JSON">
+                💾 Save JSON
+              </button>
+              <label for="custom-poly-file-input" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;gap:3px;padding:3px 8px;font-size:0.70rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;" title="Load Custom Polygons from JSON file">
+                📂 Load JSON<input type="file" id="custom-poly-file-input" accept=".json" style="display:none;">
+              </label>
+            </div>
 
             <!-- Multi-polygon list container -->
             <div id="custom-poly-list" class="custom-poly-list">
@@ -2155,7 +2202,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
             </div>
 
             <!-- Area & Metrics display -->
-            <div id="custom-poly-metrics" style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,179,0,0.25);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+            <div id="custom-poly-metrics" style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,179,0,0.25);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;box-sizing:border-box;max-width:100%;overflow:hidden;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span id="custom-poly-selected-name" style="font-size:0.72rem;font-weight:700;color:#ffb300;display:flex;align-items:center;gap:5px;">
                   <span id="custom-poly-selected-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffb300;"></span>
@@ -2178,6 +2225,52 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
                 <span style="color:var(--text-muted);">Anchored Vertices:</span>
                 <span id="custom-poly-anchored-count" style="font-family:monospace;color:#ffb300;font-weight:600;">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;border-top:1px dashed rgba(255,255,255,0.1);padding-top:4px;margin-top:2px;">
+                <span style="color:var(--text-muted);">Target Cabida:</span>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <input type="number" id="custom-poly-target-input" step="0.1" style="width:85px;background:rgba(15,20,32,0.9);border:1px solid rgba(0,229,255,0.3);color:var(--accent-cyan);font-family:monospace;font-size:0.72rem;border-radius:3px;padding:1px 4px;text-align:right;" placeholder="Deed m²">
+                  <span style="color:var(--text-muted);font-size:0.68rem;">m²</span>
+                </div>
+              </div>
+              <div id="custom-poly-target-diff-row" style="display:none;justify-content:space-between;align-items:center;font-size:0.72rem;">
+                <span style="color:var(--text-muted);">Cabida Error:</span>
+                <span id="custom-poly-target-diff-val" style="font-family:monospace;font-weight:700;">—</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;padding-top:2px;">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Check to include this polygon in the area optimization loss function">
+                  <input type="checkbox" id="chk-custom-poly-include-opt" checked style="accent-color:var(--accent-cyan);">
+                  🎯 Include in Area Optimization
+                </label>
+              </div>
+
+              <!-- Visual Styling Controls (Color, Dash, Thickness, Opacity) -->
+              <div style="border-top:1px dashed rgba(255,255,255,0.12);padding-top:5px;margin-top:2px;display:flex;flex-direction:column;gap:5px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
+                  <span style="color:var(--text-muted);flex-shrink:0;">Color &amp; Line:</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="color" id="custom-poly-style-color" class="color-picker-swatch" style="width:24px;height:20px;padding:0;border:1px solid rgba(255,255,255,0.25);border-radius:3px;cursor:pointer;background:transparent;" title="Polygon border &amp; fill color">
+                    <select id="custom-poly-style-dash" class="style-select" style="font-size:0.68rem;padding:1px 4px;height:22px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,255,255,0.15);color:var(--text-main);border-radius:3px;cursor:pointer;" title="Line style">
+                      <option value="solid">Solid ───</option>
+                      <option value="dashed">Dashed ╌╌</option>
+                      <option value="dotted">Dotted ┈ ┈</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;gap:6px;">
+                  <span style="color:var(--text-muted);flex-shrink:0;">Thickness:</span>
+                  <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:115px;min-width:0;">
+                    <input type="range" id="custom-poly-style-width" min="1.0" max="8.0" step="0.5" value="2.5" class="opacity-slider" style="height:3px;flex:1;min-width:0;width:100%;">
+                    <span id="custom-poly-style-width-val" style="font-family:monospace;color:var(--accent-cyan);min-width:28px;text-align:right;flex-shrink:0;">2.5px</span>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;gap:6px;">
+                  <span style="color:var(--text-muted);flex-shrink:0;">Fill Opacity:</span>
+                  <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:115px;min-width:0;">
+                    <input type="range" id="custom-poly-style-opacity" min="0" max="100" step="5" value="20" class="opacity-slider" style="height:3px;flex:1;min-width:0;width:100%;">
+                    <span id="custom-poly-style-opacity-val" style="font-family:monospace;color:var(--accent-cyan);min-width:28px;text-align:right;flex-shrink:0;">20%</span>
+                  </div>
+                </div>
               </div>
               <div id="custom-poly-total-summary" style="display:none;border-top:1px dashed rgba(255,255,255,0.12);padding-top:4px;margin-top:2px;justify-content:space-between;font-size:0.70rem;color:var(--accent-cyan);">
                 <span>Total All Polygons:</span>
@@ -4975,6 +5068,38 @@ EOF`;
       return true;
     }
 
+    const EMBEDDED_CASADELSOL_PARCELS = [{"id":"poly_casadelsol_lote_7","name":"Casa del Sol - Lote 7","color":"#76ff03","targetArea":33727.85,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097954.0825,"y":877187.4389,"origX":1097954.0825,"origY":877187.4389,"anchor":{"type":"deed","entIdx":0,"ptIdx":0,"deedPt":{"x":461.39,"y":141.81}}},{"x":1097793.4334,"y":877147.7537,"origX":1097793.4334,"origY":877147.7537,"anchor":{"type":"deed","entIdx":0,"ptIdx":1,"deedPt":{"x":525.83,"y":273.81}}},{"x":1097803.3437,"y":876955.0459,"origX":1097803.3437,"origY":876955.0459,"anchor":{"type":"deed","entIdx":0,"ptIdx":2,"deedPt":{"x":388.95,"y":376.78}}},{"x":1097751.1564,"y":876903.2513,"origX":1097751.1564,"origY":876903.2513,"anchor":{"type":"deed","entIdx":0,"ptIdx":3,"deedPt":{"x":383.39,"y":441.81}}},{"x":1097928.028,"y":877020.0804,"origX":1097928.028,"origY":877020.0804,"anchor":{"type":"deed","entIdx":0,"ptIdx":4,"deedPt":{"x":362.25,"y":254.84}}},{"x":1097985.6233,"y":877004.548,"origX":1097985.6233,"origY":877004.548,"anchor":{"type":"deed","entIdx":0,"ptIdx":5,"deedPt":{"x":318.88,"y":224.46}}}]},{"id":"poly_casadelsol_lote_6","name":"Casa del Sol - Lote 6","color":"#00e5ff","targetArea":2735.61,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097928.028,"y":877020.0804,"origX":1097928.028,"origY":877020.0804,"anchor":{"type":"deed","entIdx":1,"ptIdx":0,"deedPt":{"x":362.25,"y":254.84}}},{"x":1097920.2844,"y":876991.5806,"origX":1097920.2844,"origY":876991.5806,"anchor":{"type":"deed","entIdx":1,"ptIdx":1,"deedPt":{"x":347.25,"y":276.34}}},{"x":1097734.439,"y":876886.0299,"origX":1097734.439,"origY":876886.0299,"anchor":{"type":"deed","entIdx":1,"ptIdx":2,"deedPt":{"x":381.18,"y":463}}},{"x":1097751.1564,"y":876903.2513,"origX":1097751.1564,"origY":876903.2513,"anchor":{"type":"deed","entIdx":1,"ptIdx":3,"deedPt":{"x":383.39,"y":441.81}}}]},{"id":"poly_casadelsol_lote_5","name":"Casa del Sol - Lote 5","color":"#ffb300","targetArea":17964.45,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097920.2844,"y":876991.5806,"origX":1097920.2844,"origY":876991.5806,"anchor":{"type":"deed","entIdx":2,"ptIdx":0,"deedPt":{"x":347.25,"y":276.34}}},{"x":1097734.439,"y":876886.0299,"origX":1097734.439,"origY":876886.0299,"anchor":{"type":"deed","entIdx":2,"ptIdx":1,"deedPt":{"x":381.18,"y":463}}},{"x":1097622.1075,"y":876777.433,"origX":1097622.1075,"origY":876777.433,"anchor":{"type":"deed","entIdx":2,"ptIdx":2,"deedPt":{"x":371.18,"y":601.33}}},{"x":1097585.3786,"y":876758.1357,"origX":1097585.3786,"origY":876758.1357,"anchor":{"type":"deed","entIdx":2,"ptIdx":3,"deedPt":{"x":378.95,"y":637.33}}},{"x":1097793.6945,"y":876808.8476,"origX":1097793.6945,"origY":876808.8476,"anchor":{"type":"deed","entIdx":2,"ptIdx":4,"deedPt":{"x":294.88,"y":466.59}}},{"x":1097857.0189,"y":876868.5729,"origX":1097857.0189,"origY":876868.5729,"anchor":{"type":"deed","entIdx":2,"ptIdx":5,"deedPt":{"x":299.5,"y":389.46}}},{"x":1097854.8295,"y":876891.1618,"origX":1097854.8295,"origY":876891.1618,"anchor":{"type":"deed","entIdx":2,"ptIdx":6,"deedPt":{"x":316.13,"y":378.09}}},{"x":1097863.7045,"y":876902.0617,"origX":1097863.7045,"origY":876902.0617,"anchor":{"type":"deed","entIdx":2,"ptIdx":7,"deedPt":{"x":318.5,"y":365.84}}},{"x":1097864.5627,"y":876918.3881,"origX":1097864.5627,"origY":876918.3881,"anchor":{"type":"deed","entIdx":2,"ptIdx":8,"deedPt":{"x":329.13,"y":355.96}}},{"x":1097891.8643,"y":876952.0352,"origX":1097891.8643,"origY":876952.0352,"anchor":{"type":"deed","entIdx":2,"ptIdx":9,"deedPt":{"x":336.5,"y":318.21}}},{"x":1097911.2318,"y":876956.3038,"origX":1097911.2318,"origY":876956.3038,"anchor":{"type":"deed","entIdx":2,"ptIdx":10,"deedPt":{"x":328.38,"y":302.59}}}]},{"id":"poly_casadelsol_lote_8","name":"Casa del Sol - Lote 8","color":"#e040fb","targetArea":29555.19,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097985.6233,"y":877004.548,"origX":1097985.6233,"origY":877004.548,"anchor":{"type":"deed","entIdx":5,"ptIdx":0,"deedPt":{"x":318.88,"y":224.46}}},{"x":1097954.0825,"y":877187.4389,"origX":1097954.0825,"origY":877187.4389,"anchor":{"type":"deed","entIdx":5,"ptIdx":1,"deedPt":{"x":461.39,"y":141.81}}},{"x":1098094.6041,"y":877230.0173,"origX":1098094.6041,"origY":877230.0173,"anchor":{"type":"deed","entIdx":5,"ptIdx":2,"deedPt":{"x":410.38,"y":21.87}}},{"x":1098130.8214,"y":877073.2528,"origX":1098130.8214,"origY":877073.2528,"anchor":{"type":"deed","entIdx":5,"ptIdx":3,"deedPt":{"x":283,"y":86.46}}},{"x":1098143.5773,"y":877020.2331,"origX":1098143.5773,"origY":877020.2331,"anchor":{"type":"deed","entIdx":5,"ptIdx":4,"deedPt":{"x":239.63,"y":107.96}}},{"x":1098110.3309,"y":877019.6032,"origX":1098110.3309,"origY":877019.6032,"anchor":{"type":"deed","entIdx":5,"ptIdx":5,"deedPt":{"x":258.13,"y":130.96}}},{"x":1098029.6281,"y":876965.5246,"origX":1098029.6281,"origY":876965.5246,"anchor":{"type":"deed","entIdx":5,"ptIdx":6,"deedPt":{"x":267.25,"y":216.71}}},{"x":1098022.803,"y":876994.3257,"origX":1098022.803,"origY":876994.3257,"anchor":{"type":"deed","entIdx":5,"ptIdx":7,"deedPt":{"x":290.75,"y":204.96}}}]}];
+
+    function applyCustomPolygons(parcels) {
+      if (!parcels || !Array.isArray(parcels) || parcels.length === 0) return false;
+      state.customPolygons = JSON.parse(JSON.stringify(parcels));
+      state.customPolygons.forEach((p, idx) => {
+        if (!p.color) p.color = CUSTOM_POLY_PALETTE[idx % CUSTOM_POLY_PALETTE.length];
+        if (p.optArea === undefined) p.optArea = true;
+        if (p.visible === undefined) p.visible = true;
+        if (p.closed === undefined) p.closed = true;
+        if (p.showNodes === undefined) p.showNodes = true;
+        if (p.showLabels === undefined) p.showLabels = true;
+      });
+      state.activeCustomPolyIndex = 0;
+      state.customPolygon = state.customPolygons[0];
+      if (typeof updateCustomPolygonAnchors === "function") {
+        updateCustomPolygonAnchors();
+      }
+      if (typeof renderCustomPolyList === "function") {
+        renderCustomPolyList();
+      }
+      if (typeof recomputeCustomPolygonMetrics === "function") {
+        recomputeCustomPolygonMetrics();
+      }
+      if (typeof updateCustomPolyButtonStates === "function") {
+        updateCustomPolyButtonStates();
+      }
+      if (typeof redrawTrueCanvas === "function") {
+        redrawTrueCanvas();
+      }
+      return true;
+    }
 
     // [/SECTION: JS_PRELOAD_DATA]
 
@@ -5341,6 +5466,16 @@ EOF`;
       markerToolActive: false,
       draggingTempMarker: null,    // { idx, marker, origPt: {x,y} }
       hoverTempMarker: null,       // { idx, marker, screenPt }
+      // Test Axes for 1D Parametric Hypothesis Optimization
+      testAxes: [],                // [ { id: 1, name: "Axis 1", p1: {x,y}, p2: {x,y}, color: "#e040fb", visible: true } ]
+      testAxisCounter: 0,
+      creatingTestAxis: false,
+      testAxisDrawStart: null,     // { x, y } Point A during creation
+      testAxisCursorPt: null,      // live mouse position during creation
+      draggingTestAxisHandle: null,// { axisId, handle: 'p1'|'p2' }
+      hoverTestAxisHandle: null,   // { axisId, handle: 'p1'|'p2' }
+      snapNewAnchorsToAxis: true,
+      optAlongAxisOnly: false,
       // Layer & Polygon Visual Styles
       styleDeedDxf: {
         color: "#ff1744",
@@ -6685,6 +6820,11 @@ EOF`;
 
       // Layer 4c: Temporary Reference Checkpoint Markers
       drawTempMarkersGIS(trueCtx, vp, h);
+
+      // Layer 4d: Parametric 1D Test Axes (Hypothesis Testing)
+      if (typeof drawTestAxesGIS === "function") {
+        drawTestAxesGIS(trueCtx, vp, h);
+      }
 
       // Layer 5: Target anchor pen buffer disks & residual lines
       state.anchors.forEach(anc => {
@@ -8178,20 +8318,70 @@ EOF`;
           redrawTrueCanvas();
         });
 
+        // Visibility Checkbox directly beside lote number (Show or not in main canvas)
+        const chkVis = document.createElement("input");
+        chkVis.type = "checkbox";
+        chkVis.checked = (p.visible !== false);
+        chkVis.title = p.visible !== false ? "Visible on main canvas (uncheck to hide)" : "Hidden on main canvas (check to show)";
+        chkVis.style.accentColor = p.color || "var(--accent-cyan)";
+        chkVis.style.cursor = "pointer";
+        chkVis.style.margin = "0 1px 0 0";
+        chkVis.style.flexShrink = "0";
+        chkVis.addEventListener("click", e => e.stopPropagation());
+        chkVis.addEventListener("change", () => {
+          toggleCustomPolyVisibility(idx);
+        });
+
+        if (p.visible === false) {
+          row.style.opacity = "0.55";
+        }
+
+        // Opt Checkbox (Tickmark to include in optimization)
+        const lblOpt = document.createElement("label");
+        lblOpt.style.display = "inline-flex";
+        lblOpt.style.alignItems = "center";
+        lblOpt.style.gap = "2px";
+        lblOpt.style.cursor = "pointer";
+        lblOpt.style.margin = "0 3px";
+        lblOpt.style.flexShrink = "0";
+        lblOpt.title = "Include this parcel in area optimization loss [Tickmark]";
+
+        const chkOpt = document.createElement("input");
+        chkOpt.type = "checkbox";
+        chkOpt.checked = (p.optArea !== false);
+        chkOpt.style.accentColor = "var(--accent-cyan)";
+        chkOpt.style.cursor = "pointer";
+        chkOpt.style.margin = "0";
+        chkOpt.addEventListener("click", e => e.stopPropagation());
+        chkOpt.addEventListener("change", e => {
+          p.optArea = e.target.checked;
+          optTxt.style.color = p.optArea ? "var(--accent-cyan)" : "var(--text-muted)";
+          recomputeCustomPolygonMetrics();
+        });
+
+        const optTxt = document.createElement("span");
+        optTxt.textContent = "Opt";
+        optTxt.style.fontSize = "0.61rem";
+        optTxt.style.fontWeight = "700";
+        optTxt.style.color = (p.optArea !== false) ? "var(--accent-cyan)" : "var(--text-muted)";
+
+        lblOpt.appendChild(chkOpt);
+        lblOpt.appendChild(optTxt);
+
+        // Area & Delta % readout
+        let deltaHtml = "";
+        if (areaM2 > 0 && p.targetArea > 0) {
+          const diffPct = ((areaM2 - p.targetArea) / p.targetArea) * 100;
+          const absDiff = Math.abs(diffPct);
+          const color = absDiff <= 4.0 ? "#00e676" : (absDiff <= 8.0 ? "#ffb300" : "#ff1744");
+          const sign = diffPct > 0 ? "+" : "";
+          deltaHtml = `<span style="color:${color};font-size:0.62rem;font-weight:700;margin-left:3px;" title="Cabida Target: ${p.targetArea.toFixed(1)} m² (${sign}${diffPct.toFixed(2)}%)">${sign}${diffPct.toFixed(1)}%</span>`;
+        }
+
         const meta = document.createElement("span");
         meta.className = "custom-poly-meta-badge";
         meta.style.color = p.closed ? (isActive ? p.color : "var(--text-muted)") : "#ff9100";
-        meta.textContent = areaStr;
-
-        const btnVis = document.createElement("button");
-        btnVis.type = "button";
-        btnVis.className = "custom-poly-btn-icon";
-        btnVis.title = p.visible !== false ? "Hide on map" : "Show on map";
-        btnVis.innerHTML = p.visible !== false ? "👁️" : "<span style='opacity:0.35;'>👁️</span>";
-        btnVis.addEventListener("click", e => {
-          e.stopPropagation();
-          toggleCustomPolyVisibility(idx);
-        });
+        meta.innerHTML = areaStr + deltaHtml;
 
         const btnDel = document.createElement("button");
         btnDel.type = "button";
@@ -8204,9 +8394,10 @@ EOF`;
         });
 
         row.appendChild(dot);
+        row.appendChild(chkVis);
         row.appendChild(inp);
+        row.appendChild(lblOpt);
         row.appendChild(meta);
-        row.appendChild(btnVis);
         row.appendChild(btnDel);
 
         row.addEventListener("click", () => {
@@ -8647,6 +8838,55 @@ EOF`;
           totalWrap.style.display = "none";
         }
       }
+
+      // Target Cabida & Optimization Checkbox in Metrics subpanel
+      const targetInput = document.getElementById("custom-poly-target-input");
+      const targetDiffRow = document.getElementById("custom-poly-target-diff-row");
+      const targetDiffVal = document.getElementById("custom-poly-target-diff-val");
+      const chkIncludeOpt = document.getElementById("chk-custom-poly-include-opt");
+
+      if (targetInput) {
+        targetInput.value = (poly.targetArea !== undefined && poly.targetArea !== null && poly.targetArea > 0) ? poly.targetArea : "";
+      }
+      if (chkIncludeOpt) {
+        chkIncludeOpt.checked = (poly.optArea !== false);
+      }
+      if (targetDiffRow && targetDiffVal) {
+        if (areaM2 > 0 && poly.targetArea > 0) {
+          targetDiffRow.style.display = "flex";
+          const diffM2 = areaM2 - poly.targetArea;
+          const diffPct = (diffM2 / poly.targetArea) * 100;
+          const absDiff = Math.abs(diffPct);
+          const color = absDiff <= 4.0 ? "#00e676" : (absDiff <= 8.0 ? "#ffb300" : "#ff1744");
+          const sign = diffM2 > 0 ? "+" : "";
+          targetDiffVal.style.color = color;
+          targetDiffVal.textContent = `${sign}${diffM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (${sign}${diffPct.toFixed(2)}%)`;
+        } else {
+          targetDiffRow.style.display = "none";
+        }
+      }
+
+      // Visual Styling Controls in Metrics subpanel
+      const colorPicker = document.getElementById("custom-poly-style-color");
+      const dashSelect = document.getElementById("custom-poly-style-dash");
+      const widthSlider = document.getElementById("custom-poly-style-width");
+      const widthVal = document.getElementById("custom-poly-style-width-val");
+      const opacitySlider = document.getElementById("custom-poly-style-opacity");
+      const opacityVal = document.getElementById("custom-poly-style-opacity-val");
+
+      if (colorPicker) {
+        colorPicker.value = poly.color || "#ffb300";
+      }
+      if (dashSelect) {
+        dashSelect.value = poly.dash || "solid";
+      }
+      const curWidth = (poly.width !== undefined && poly.width !== null) ? poly.width : 2.5;
+      if (widthSlider) widthSlider.value = curWidth;
+      if (widthVal) widthVal.textContent = `${curWidth.toFixed(1)}px`;
+
+      const curOpacity = (poly.fillOpacity !== undefined && poly.fillOpacity !== null) ? poly.fillOpacity : 20;
+      if (opacitySlider) opacitySlider.value = curOpacity;
+      if (opacityVal) opacityVal.textContent = `${curOpacity}%`;
     }
 
     /** Update button states and status badge for Custom Polygon */
@@ -8793,9 +9033,12 @@ EOF`;
         if (!verts || verts.length === 0) continue;
 
         const pColor = poly.color || "#ffb300";
+        const lineW = (poly.width !== undefined && poly.width !== null) ? poly.width : 2.0;
+        const dash = (poly.dash === "dashed") ? [6, 4] : ((poly.dash === "dotted") ? [2, 3] : []);
+        const fillAlpha = (poly.fillOpacity !== undefined && poly.fillOpacity !== null) ? (poly.fillOpacity / 100) : 0.12;
 
         // Fill interior if closed
-        if (poly.closed && verts.length >= 3) {
+        if (poly.closed && verts.length >= 3 && fillAlpha > 0) {
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -8804,13 +9047,14 @@ EOF`;
             ctx.lineTo(s.x, s.y);
           }
           ctx.closePath();
-          ctx.fillStyle = hexToRgba(pColor, 0.12);
+          ctx.fillStyle = hexToRgba(pColor, fillAlpha);
           ctx.fill();
         }
 
         // Perimeter stroke
         const nSegs = poly.closed ? verts.length : verts.length - 1;
         if (nSegs > 0) {
+          ctx.save();
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -8820,10 +9064,12 @@ EOF`;
           }
           if (poly.closed) ctx.closePath();
           ctx.strokeStyle = pColor;
-          ctx.lineWidth = 2.0;
+          ctx.lineWidth = lineW;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
+          ctx.setLineDash(dash);
           ctx.stroke();
+          ctx.restore();
         }
 
         // Centroid name & area badge for closed non-active polygons
@@ -8876,9 +9122,12 @@ EOF`;
         const poly = activePoly;
         const verts = poly.vertices;
         const pColor = poly.color || "#ffb300";
+        const lineW = (poly.width !== undefined && poly.width !== null) ? poly.width : 2.8;
+        const dash = (poly.dash === "dashed") ? [6, 4] : ((poly.dash === "dotted") ? [2, 3] : []);
+        const fillAlpha = (poly.fillOpacity !== undefined && poly.fillOpacity !== null) ? (poly.fillOpacity / 100) : 0.18;
 
         // Fill interior if closed
-        if (poly.closed && verts.length >= 3) {
+        if (poly.closed && verts.length >= 3 && fillAlpha > 0) {
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -8887,7 +9136,7 @@ EOF`;
             ctx.lineTo(s.x, s.y);
           }
           ctx.closePath();
-          ctx.fillStyle = hexToRgba(pColor, 0.18);
+          ctx.fillStyle = hexToRgba(pColor, fillAlpha);
           ctx.fill();
         }
 
@@ -8895,6 +9144,7 @@ EOF`;
         const nSegs = poly.closed ? verts.length : verts.length - 1;
         if (nSegs > 0) {
           // Glow halo
+          ctx.save();
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -8904,15 +9154,17 @@ EOF`;
           }
           if (poly.closed) ctx.closePath();
           ctx.strokeStyle = hexToRgba(pColor, 0.4);
-          ctx.lineWidth = 5.5;
+          ctx.lineWidth = lineW + 2.7;
           ctx.stroke();
 
           // Sharp stroke
           ctx.strokeStyle = pColor;
-          ctx.lineWidth = 2.8;
+          ctx.lineWidth = lineW;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
+          ctx.setLineDash(dash);
           ctx.stroke();
+          ctx.restore();
         }
 
         // Rubber-band line from last placed vertex to cursor in drawMode
@@ -9957,6 +10209,119 @@ EOF`;
       btnDlCustomPolyDxf.addEventListener("click", downloadCustomPolygonDxf);
     }
 
+    const btnSaveCustomPolyJson = document.getElementById("btn-save-custom-poly-json");
+    if (btnSaveCustomPolyJson) {
+      btnSaveCustomPolyJson.addEventListener("click", () => {
+        const polys = state.customPolygons || [];
+        const str = JSON.stringify(polys, null, 2);
+        const blob = new Blob([str], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "casadelsol_parcels.json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        updateStatus("💾 Saved Custom Polygons to casadelsol_parcels.json.");
+      });
+    }
+
+    const customPolyFileInput = document.getElementById("custom-poly-file-input");
+    if (customPolyFileInput) {
+      customPolyFileInput.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (Array.isArray(data) && data.length > 0) {
+              applyCustomPolygons(data);
+              updateStatus(`📂 Loaded ${data.length} custom polygons from ${file.name}.`);
+            } else {
+              alert("Invalid custom polygons JSON file: expected array of polygons.");
+            }
+          } catch(err) {
+            alert("Error parsing JSON file: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    const customPolyTargetInput = document.getElementById("custom-poly-target-input");
+    if (customPolyTargetInput) {
+      customPolyTargetInput.addEventListener("change", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        const val = parseFloat(e.target.value);
+        poly.targetArea = (!isNaN(val) && val > 0) ? val : null;
+        recomputeCustomPolygonMetrics();
+        renderCustomPolyList();
+      });
+    }
+
+    const chkCustomPolyIncludeOpt = document.getElementById("chk-custom-poly-include-opt");
+    if (chkCustomPolyIncludeOpt) {
+      chkCustomPolyIncludeOpt.addEventListener("change", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        poly.optArea = e.target.checked;
+        recomputeCustomPolygonMetrics();
+        renderCustomPolyList();
+      });
+    }
+
+    const customPolyColorPicker = document.getElementById("custom-poly-style-color");
+    if (customPolyColorPicker) {
+      customPolyColorPicker.addEventListener("input", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        poly.color = e.target.value;
+        const dot = document.getElementById("custom-poly-selected-dot");
+        if (dot) {
+          dot.style.background = poly.color;
+          dot.style.boxShadow = `0 0 5px ${poly.color}`;
+        }
+        renderCustomPolyList();
+        redrawTrueCanvas();
+      });
+    }
+
+    const customPolyDashSelect = document.getElementById("custom-poly-style-dash");
+    if (customPolyDashSelect) {
+      customPolyDashSelect.addEventListener("change", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        poly.dash = e.target.value;
+        redrawTrueCanvas();
+      });
+    }
+
+    const customPolyWidthSlider = document.getElementById("custom-poly-style-width");
+    const customPolyWidthVal = document.getElementById("custom-poly-style-width-val");
+    if (customPolyWidthSlider) {
+      customPolyWidthSlider.addEventListener("input", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        const val = parseFloat(e.target.value) || 2.5;
+        poly.width = val;
+        if (customPolyWidthVal) customPolyWidthVal.textContent = `${val.toFixed(1)}px`;
+        redrawTrueCanvas();
+      });
+    }
+
+    const customPolyOpacitySlider = document.getElementById("custom-poly-style-opacity");
+    const customPolyOpacityVal = document.getElementById("custom-poly-style-opacity-val");
+    if (customPolyOpacitySlider) {
+      customPolyOpacitySlider.addEventListener("input", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        const val = parseInt(e.target.value, 10) || 0;
+        poly.fillOpacity = val;
+        if (customPolyOpacityVal) customPolyOpacityVal.textContent = `${val}%`;
+        redrawTrueCanvas();
+      });
+    }
+
     // Initial render of custom polygon list
     renderCustomPolyList();
     recomputeCustomPolygonMetrics();
@@ -10256,10 +10621,37 @@ EOF`;
       const POP_SIZE = 16;
       const MAX_GEN = isAutoMin ? 10 : 22;
 
-      function sampleDisk() {
+      const chkOptAlongAxis = document.getElementById("chk-opt-along-axis");
+      const useAxisOnly = chkOptAlongAxis ? chkOptAlongAxis.checked : (state.optAlongAxisOnly || false);
+
+      function getOffsetForAnchor(ancIdx, sScalar) {
+        const anc = state.anchors[ancIdx];
+        if (anc && anc.axisId != null) {
+          const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+          if (ax) {
+            const geom = computeAxisGeometry(ax);
+            return { u: +(sScalar * geom.u.x).toFixed(4), v: +(sScalar * geom.u.y).toFixed(4) };
+          }
+        }
+        return { u: 0, v: 0 }; // Anchors without an axis remain locked (0 drift)
+      }
+
+      function sampleCandidateOffset(ancIdx) {
+        if (useAxisOnly) {
+          const anc = state.anchors[ancIdx];
+          if (anc && anc.axisId != null) {
+            const s = (Math.random() * 2 - 1);
+            return getOffsetForAnchor(ancIdx, s);
+          }
+          return { u: 0, v: 0 }; // Locked!
+        }
         const theta = Math.random() * 2 * Math.PI;
         const rad = Math.sqrt(Math.random());
         return { u: rad * Math.cos(theta), v: rad * Math.sin(theta) };
+      }
+
+      function sampleDisk() {
+        return sampleCandidateOffset(0);
       }
 
       const chkOptAll = document.getElementById("chk-opt-all");
@@ -10377,7 +10769,35 @@ EOF`;
               areaM2 += V[i].x * V[j].y - V[j].x * V[i].y;
             }
             areaM2 = Math.abs(areaM2) / 2;
-            const areaDiffPct = (Math.abs(areaM2 - 162156.0) / 162156.0) * 100;
+            const trinidadAreaDiffPct = (Math.abs(areaM2 - 162156.0) / 162156.0) * 100;
+
+            // Multi-parcel area evaluation for Custom Polygons (e.g. Casa del Sol Lotes 5-8)
+            let customAreaErrSum = 0;
+            let countOptPolys = 0;
+            const customPolys = state.customPolygons || [];
+            for (let pIdx = 0; pIdx < customPolys.length; pIdx++) {
+              const cp = customPolys[pIdx];
+              if (cp.optArea !== false && cp.targetArea > 0 && cp.closed && cp.vertices && cp.vertices.length >= 3) {
+                let cpArea = 0;
+                const cpLen = cp.vertices.length;
+                for (let k = 0; k < cpLen; k++) {
+                  const m = (k + 1) % cpLen;
+                  const vk = cp.vertices[k];
+                  const vm = cp.vertices[m];
+                  const ptk = (vk.anchor && vk.anchor.type === 'deed' && vk.anchor.deedPt) ? candWarper(vk.anchor.deedPt) : vk;
+                  const ptm = (vm.anchor && vm.anchor.type === 'deed' && vm.anchor.deedPt) ? candWarper(vm.anchor.deedPt) : vm;
+                  cpArea += ptk.x * ptm.y - ptm.x * ptk.y;
+                }
+                cpArea = Math.abs(cpArea) / 2;
+                const pErr = (Math.abs(cpArea - cp.targetArea) / cp.targetArea) * 100;
+                customAreaErrSum += pErr;
+                countOptPolys++;
+              }
+            }
+
+            const combinedAreaDiffPct = (countOptPolys > 0)
+              ? (trinidadAreaDiffPct + customAreaErrSum) / (1 + countOptPolys)
+              : trinidadAreaDiffPct;
 
             const nSegs = V.length;
             let segErrSum = 0, countSegs = 0;
@@ -10395,15 +10815,16 @@ EOF`;
             const b = Math.max(0, Math.min(100, state.optBalance));
             const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
             const wArea = b >= 50 ? 1.0 : b / 50;
-            const compositeLoss = (wDist * avgSegErr + wArea * areaDiffPct) / (wDist + wArea);
-            const overallErr = countSegs > 0 ? (avgSegErr + areaDiffPct) / 2 : areaDiffPct;
+            const compositeLoss = (wDist * avgSegErr + wArea * combinedAreaDiffPct) / (wDist + wArea);
+            const overallErr = countSegs > 0 ? (avgSegErr + combinedAreaDiffPct) / 2 : combinedAreaDiffPct;
 
             return {
               loss: compositeLoss,
               overallErr,
               optRes,
               candAnchors,
-              areaDiffPct,
+              areaDiffPct: combinedAreaDiffPct,
+              trinidadAreaDiffPct,
               avgSegErr,
               radius: currentR,
               offsets: offsets.map(o => ({ ...o }))
@@ -10417,8 +10838,20 @@ EOF`;
 
         if (useAllCombos) {
           // ── STRATEGY A: ALL COMBINATIONS (ORDERED GRID SEARCH) ──────────────
-          const baseGrid = getGridOffsetsForM(M);
-          const pointSets = anchorCenters.map(() => [...baseGrid]);
+          let pointSets;
+          if (useAxisOnly) {
+            // 1D Axis grid: sweep scalar s from -1.0 to +1.0 in 9 steps
+            const sVals = [-1.0, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.0];
+            pointSets = state.anchors.map((anc, idx) => {
+              if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+                return sVals.map(s => getOffsetForAnchor(idx, s));
+              }
+              return [{ u: 0, v: 0 }]; // Unbound anchors stay locked!
+            });
+          } else {
+            const baseGrid = getGridOffsetsForM(M);
+            pointSets = anchorCenters.map(() => [...baseGrid]);
+          }
 
           const allCombos = cartesianProduct(pointSets);
           globalBest = evaluateCandidate(currentOffsets);
@@ -10480,19 +10913,27 @@ EOF`;
           population.push(evaluateCandidate(currentOffsets));
           population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
 
-          const cardinals = [
-            { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
-            { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
-            { u: 0.55, v: 0.55 }, { u: -0.55, v: 0.55 },
-            { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
-          ];
-          for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
-            const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i] }));
-            population.push(evaluateCandidate(offsetArr));
+          if (useAxisOnly) {
+            const sVals = [-0.9, -0.6, -0.3, 0.3, 0.6, 0.9];
+            for (let i = 0; i < sVals.length && population.length < POP_SIZE; i++) {
+              const offsetArr = state.anchors.map((_, k) => getOffsetForAnchor(k, sVals[i]));
+              population.push(evaluateCandidate(offsetArr));
+            }
+          } else {
+            const cardinals = [
+              { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
+              { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
+              { u: 0.55, v: 0.55 }, { u: -0.55, v: 0.55 },
+              { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
+            ];
+            for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
+              const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i] }));
+              population.push(evaluateCandidate(offsetArr));
+            }
           }
 
           while (population.length < POP_SIZE) {
-            const offsetArr = Array.from({ length: M }, () => sampleDisk());
+            const offsetArr = Array.from({ length: M }, (_, k) => sampleCandidateOffset(k));
             population.push(evaluateCandidate(offsetArr));
           }
 
@@ -10530,10 +10971,28 @@ EOF`;
                   v = population[i].offsets[k].v;
                 }
 
-                const dist = Math.hypot(u, v);
-                if (dist > 1.0) {
-                  u /= dist;
-                  v /= dist;
+                if (useAxisOnly) {
+                  const anc = state.anchors[k];
+                  if (anc && anc.axisId != null) {
+                    const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+                    if (ax) {
+                      const geom = computeAxisGeometry(ax);
+                      let s = u * geom.u.x + v * geom.u.y;
+                      s = Math.max(-1.0, Math.min(1.0, s));
+                      u = +(s * geom.u.x).toFixed(4);
+                      v = +(s * geom.u.y).toFixed(4);
+                    } else {
+                      u = 0; v = 0;
+                    }
+                  } else {
+                    u = 0; v = 0;
+                  }
+                } else {
+                  const dist = Math.hypot(u, v);
+                  if (dist > 1.0) {
+                    u /= dist;
+                    v /= dist;
+                  }
                 }
                 trialOffsets.push({ u, v });
               }
@@ -10766,6 +11225,52 @@ EOF`;
           return;
         }
       }
+
+      // 0a. Test Axis Creation (Point A & Point B picking)
+      if (e.button === 0 && !spacePressed && state.creatingTestAxis) {
+        const rect = trueCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const worldPt = screenToWorldGIS(sx, sy, state.trueViewport, trueCanvas.height);
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        if (!state.testAxisDrawStart) {
+          state.testAxisDrawStart = worldPt;
+          state.testAxisCursorPt = worldPt;
+          const btnAdd = document.getElementById("btn-add-test-axis");
+          if (btnAdd) btnAdd.textContent = "📍 Click Point B...";
+          updateStatus(`Point A set at (${worldPt.x.toFixed(1)}, ${worldPt.y.toFixed(1)}). Now click Point B on field canvas to create Test Axis.`);
+          redrawTrueCanvas();
+        } else {
+          addTestAxis(state.testAxisDrawStart, worldPt);
+          state.creatingTestAxis = false;
+          state.testAxisDrawStart = null;
+          state.testAxisCursorPt = null;
+          const btnAdd = document.getElementById("btn-add-test-axis");
+          const btnCancel = document.getElementById("btn-cancel-test-axis");
+          if (btnAdd) { btnAdd.style.background = ""; btnAdd.textContent = "➕ Add Axis"; }
+          if (btnCancel) btnCancel.style.display = "none";
+          trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+          redrawTrueCanvas();
+        }
+        return;
+      }
+
+      // 0b. Test Axis Handle Dragging (Handles A & B)
+      if (e.button === 0 && !spacePressed && (state.testAxes || []).length > 0) {
+        const rect = trueCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const axisHit = findTestAxisHandleAt(sx, sy, state.trueViewport, trueCanvas.height);
+        if (axisHit) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          state.draggingTestAxisHandle = { axisId: axisHit.axis.id, handle: axisHit.handle };
+          trueCanvas.style.cursor = "move";
+          updateStatus(`Dragging ${axisHit.axis.name} Handle ${axisHit.handle.toUpperCase()} — attached anchors slide parametrically with this line.`);
+          return;
+        }
+      }
+
       // In Anchor Mode: block ALL polygon interactions — move, create, delete — anchors have exclusive control
       if (state.toolMode === "anchor") {
         return;
@@ -11597,12 +12102,22 @@ EOF`;
         }
         let worldPt = screenToWorldGIS(sx, sy, viewport, canvas.height);
 
-        // Snap to nearest vertex (Field survey or added reference DXFs)
-        const nearestField = findNearestFieldVertex(worldPt);
-        if (nearestField) {
-          const snapDistPx = nearestField.dist * viewport.scale;
-          if (snapDistPx <= 18 || (state.constrainAnchorsToField && nearestField.dist <= state.optBufferRadius)) {
-            worldPt = { x: nearestField.x, y: nearestField.y };
+        // Check snapping to active test axis (parametric coupling)
+        let snappedAxisInfo = null;
+        if (state.snapNewAnchorsToAxis && typeof findNearestTestAxis === "function" && (state.testAxes || []).some(a => a.visible !== false)) {
+          snappedAxisInfo = findNearestTestAxis(worldPt, viewport, 20);
+        }
+
+        if (snappedAxisInfo) {
+          worldPt = snappedAxisInfo.projPt;
+        } else {
+          // Snap to nearest vertex (Field survey or added reference DXFs)
+          const nearestField = findNearestFieldVertex(worldPt);
+          if (nearestField) {
+            const snapDistPx = nearestField.dist * viewport.scale;
+            if (snapDistPx <= 18 || (state.constrainAnchorsToField && nearestField.dist <= state.optBufferRadius)) {
+              worldPt = { x: nearestField.x, y: nearestField.y };
+            }
           }
         }
 
@@ -11617,11 +12132,18 @@ EOF`;
           src: { ...state.pendingSource },
           dst: worldPt,
           active: true,
-          enabled: true
+          enabled: true,
+          axisId: snappedAxisInfo ? snappedAxisInfo.axis.id : null,
+          axisT: snappedAxisInfo ? snappedAxisInfo.t : null
         });
         state.pendingSource = null;
         redrawAll();
-        updateStatus(`Anchor Pair #${nextId} created! Transformation updating live.`);
+        if (snappedAxisInfo) {
+          if (typeof renderTestAxesList === "function") renderTestAxesList();
+          updateStatus(`Anchor Pair #${nextId} created & coupled to ${snappedAxisInfo.axis.name}! Dragging axis handles carries this anchor.`);
+        } else {
+          updateStatus(`Anchor Pair #${nextId} created! Transformation updating live.`);
+        }
       }
     }
 
@@ -11975,6 +12497,42 @@ EOF`;
       // If actively dragging deed handle, window mousemove handles position
       if (state.activeDeedHandle !== null) {
         return;
+      }
+
+      // 0a. Test Axis creation in progress (rubber-band from Point A to mouse)
+      if (state.creatingTestAxis && state.testAxisDrawStart) {
+        state.testAxisCursorPt = screenToWorldGIS(mouseX, mouseY, vp, h);
+        const dx = state.testAxisCursorPt.x - state.testAxisDrawStart.x;
+        const dy = state.testAxisCursorPt.y - state.testAxisDrawStart.y;
+        const len = Math.hypot(dx, dy);
+        const brg = computeAxisBearing(state.testAxisDrawStart, state.testAxisCursorPt);
+        coordsBar.textContent = `📐 Test Axis: Point A (${state.testAxisDrawStart.x.toFixed(1)}, ${state.testAxisDrawStart.y.toFixed(1)}) → Length ${len.toFixed(1)}m, Bearing ${brg.toFixed(1)}° • Click to set Point B`;
+        redrawTrueCanvas();
+        return;
+      }
+
+      // 0b. Test Axis handle dragging (A or B)
+      if (state.draggingTestAxisHandle) {
+        const mouseWorld = screenToWorldGIS(mouseX, mouseY, vp, h);
+        const ax = (state.testAxes || []).find(a => a.id === state.draggingTestAxisHandle.axisId);
+        if (ax) {
+          ax[state.draggingTestAxisHandle.handle] = mouseWorld;
+          updateAnchorsOnAxis(ax);
+          redrawTrueCanvas();
+          const geom = computeAxisGeometry(ax);
+          coordsBar.textContent = `📐 ${ax.name} [Handle ${state.draggingTestAxisHandle.handle.toUpperCase()}]: (${mouseWorld.x.toFixed(1)}, ${mouseWorld.y.toFixed(1)}) • Length ${geom.len.toFixed(1)}m, Bearing ${geom.bearing.toFixed(1)}°`;
+        }
+        return;
+      }
+
+      // 0c. Test Axis Handle Hover detection
+      if (!isPanning && !draggingAnchor && !state.creatingTestAxis && (state.testAxes || []).length > 0) {
+        const axisHit = findTestAxisHandleAt(mouseX, mouseY, vp, h);
+        if (axisHit) {
+          trueCanvas.style.cursor = "move";
+          coordsBar.textContent = `📐 ${axisHit.axis.name} Handle ${axisHit.handle.toUpperCase()}: Drag to rotate/move axis (attached anchors slide with it).`;
+          return;
+        }
       }
 
       // Anchor Label Hover detection (drag label or double-click to reset)
@@ -12495,6 +13053,13 @@ EOF`;
         updateCustomPolygonAnchors();
         const ratioVal = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
         updateStatus(`📐 Deed Squeeze adjusted: ${(ratioVal * 100).toFixed(1)}%. Anchors 1 & 2 locked (0.0 m drift).`);
+        return;
+      }
+      if (state.draggingTestAxisHandle) {
+        state.draggingTestAxisHandle = null;
+        trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        updateStatus("📐 Test axis handle updated. Attached anchors adjusted.");
+        redrawAll();
         return;
       }
       handleMouseUp(e, trueCanvas, state.trueViewport, false);
@@ -13076,6 +13641,14 @@ EOF`;
         const showLabel = anc.showLabel !== false;
         const hasPhoto = !!anc.image;
 
+        let axisBadgeHtml = "";
+        if (anc.axisId != null) {
+          const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+          if (ax) {
+            axisBadgeHtml = `<span class="anchor-axis-badge" data-anc-id="${anc.id}" style="font-size:0.59rem;background:${hexToRgba(ax.color, 0.20)};border:1px solid ${ax.color};color:${ax.color};padding:1px 3px;border-radius:2px;cursor:pointer;flex-shrink:0;" title="Coupled to ${ax.name}. Click to detach anchor.">📐${ax.name}</span>`;
+          }
+        }
+
         tr.innerHTML = `
           <td style="text-align:center;">
             <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
@@ -13084,6 +13657,7 @@ EOF`;
             <div style="display:flex;align-items:center;gap:3px;min-width:0;">
               <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;">#${anc.id}</span>
               <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
+              ${axisBadgeHtml}
             </div>
           </td>
           <td style="text-align:center;">
@@ -13106,6 +13680,24 @@ EOF`;
           </td>`;
         anchorTableBody.appendChild(tr);
       });
+
+      // Detach anchor from axis click listener
+      anchorTableBody.querySelectorAll(".anchor-axis-badge").forEach(badge => {
+        badge.addEventListener("click", e => {
+          e.stopPropagation();
+          const ancId = parseInt(badge.getAttribute("data-anc-id"), 10);
+          const anc = (state.anchors || []).find(a => a.id === ancId);
+          if (anc) {
+            anc.axisId = null;
+            anc.axisT = null;
+            updateAnalyticsUI();
+            if (typeof renderTestAxesList === "function") renderTestAxesList();
+            redrawAll();
+            updateStatus(`Anchor #${ancId} detached from axis.`);
+          }
+        });
+      });
+
       updateAlgoComparePanel();
     }
 
@@ -14167,6 +14759,446 @@ EOF`;
     // [/SECTION: JS_MEASURING_TOOL]
 
     // ============================================================================
+    // [SECTION: JS_TEST_AXIS_ENGINE]
+    // ============================================================================
+    /* ============================================================================
+       PARAMETRIC 1D TEST AXIS ENGINE (HYPOTHESIS TESTING)
+       Allows defining manual test axes with draggable handles A & B.
+       Anchors placed near an axis dynamically snap and couple parametrically:
+       moving the axis handles carries the anchors along!
+       ============================================================================ */
+
+    function computeAxisBearing(p1, p2) {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      return (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+    }
+
+    function computeAxisGeometry(axis) {
+      const dx = axis.p2.x - axis.p1.x;
+      const dy = axis.p2.y - axis.p1.y;
+      const len = Math.hypot(dx, dy);
+      const safeLen = len > 1e-6 ? len : 1e-6;
+      const u = { x: dx / safeLen, y: dy / safeLen };
+      const n = { x: -u.y, y: u.x };
+      const bearing = computeAxisBearing(axis.p1, axis.p2);
+      return { len, u, n, bearing };
+    }
+
+    function projectPointOnAxis(pt, axis) {
+      const vx = axis.p2.x - axis.p1.x;
+      const vy = axis.p2.y - axis.p1.y;
+      const L2 = vx * vx + vy * vy;
+      if (L2 < 1e-8) {
+        return { projPt: { ...axis.p1 }, t: 0, dist: Math.hypot(pt.x - axis.p1.x, pt.y - axis.p1.y) };
+      }
+      const t = ((pt.x - axis.p1.x) * vx + (pt.y - axis.p1.y) * vy) / L2;
+      const projPt = { x: axis.p1.x + t * vx, y: axis.p1.y + t * vy };
+      const dist = Math.hypot(pt.x - projPt.x, pt.y - projPt.y);
+      return { projPt, t, dist };
+    }
+
+    function findNearestTestAxis(worldPt, vp, maxScreenPx = 18) {
+      const axes = (state.testAxes || []).filter(a => a.visible !== false);
+      if (axes.length === 0) return null;
+      let best = null;
+      let bestScreenDist = Infinity;
+      for (const ax of axes) {
+        const pr = projectPointOnAxis(worldPt, ax);
+        const sDist = pr.dist * vp.scale;
+        if (sDist <= maxScreenPx && sDist < bestScreenDist) {
+          bestScreenDist = sDist;
+          best = { axis: ax, projPt: pr.projPt, t: pr.t, screenDist: sDist };
+        }
+      }
+      return best;
+    }
+
+    function findTestAxisHandleAt(sx, sy, vp, canvasH, hitRadiusPx = 12) {
+      const axes = (state.testAxes || []).filter(a => a.visible !== false);
+      for (const ax of axes) {
+        const s1 = worldToScreenGIS(ax.p1, vp, canvasH);
+        if (Math.hypot(sx - s1.x, sy - s1.y) <= hitRadiusPx) {
+          return { axis: ax, handle: 'p1' };
+        }
+        const s2 = worldToScreenGIS(ax.p2, vp, canvasH);
+        if (Math.hypot(sx - s2.x, sy - s2.y) <= hitRadiusPx) {
+          return { axis: ax, handle: 'p2' };
+        }
+      }
+      return null;
+    }
+
+    function updateAnchorsOnAxis(axis) {
+      const vx = axis.p2.x - axis.p1.x;
+      const vy = axis.p2.y - axis.p1.y;
+      let changed = false;
+      (state.anchors || []).forEach(anc => {
+        if (anc.axisId === axis.id && typeof anc.axisT === "number") {
+          anc.dst = {
+            x: axis.p1.x + anc.axisT * vx,
+            y: axis.p1.y + anc.axisT * vy
+          };
+          changed = true;
+        }
+      });
+      if (changed) {
+        redrawAll();
+      }
+    }
+
+    function addTestAxis(p1, p2) {
+      state.testAxisCounter = (state.testAxisCounter || 0) + 1;
+      const id = state.testAxisCounter;
+      const colors = ["#e040fb", "#00e5ff", "#ffd600", "#ff6d00", "#76ff03", "#d500f9"];
+      const color = colors[(id - 1) % colors.length];
+      const ax = {
+        id,
+        name: `Axis ${id}`,
+        p1: { x: p1.x, y: p1.y },
+        p2: { x: p2.x, y: p2.y },
+        color,
+        visible: true
+      };
+      state.testAxes.push(ax);
+      renderTestAxesList();
+      redrawTrueCanvas();
+      const geom = computeAxisGeometry(ax);
+      updateStatus(`📐 Created ${ax.name}: ${geom.len.toFixed(1)}m at ${geom.bearing.toFixed(1)}°. Drag handles A or B to reposition.`);
+      return ax;
+    }
+
+    function deleteTestAxis(id) {
+      const idx = (state.testAxes || []).findIndex(a => a.id === id);
+      if (idx < 0) return;
+      const ax = state.testAxes[idx];
+      state.testAxes.splice(idx, 1);
+      // Detach any anchors bound to this axis
+      let detached = 0;
+      (state.anchors || []).forEach(anc => {
+        if (anc.axisId === id) {
+          anc.axisId = null;
+          anc.axisT = null;
+          detached++;
+        }
+      });
+      renderTestAxesList();
+      updateAnalyticsUI();
+      redrawAll();
+      updateStatus(`Deleted ${ax.name}${detached > 0 ? ` (detached ${detached} anchor(s))` : ''}.`);
+    }
+
+    function startAddTestAxis() {
+      state.creatingTestAxis = true;
+      state.testAxisDrawStart = null;
+      state.testAxisCursorPt = null;
+      const btnAdd = document.getElementById("btn-add-test-axis");
+      const btnCancel = document.getElementById("btn-cancel-test-axis");
+      if (btnAdd) {
+        btnAdd.style.background = "rgba(224,64,251,0.35)";
+        btnAdd.textContent = "📍 Click Point A...";
+      }
+      if (btnCancel) btnCancel.style.display = "inline-flex";
+      updateStatus("📐 Click Point A on the Field Survey map to start the test axis.");
+      trueCanvas.style.cursor = "crosshair";
+    }
+
+    function cancelAddTestAxis() {
+      state.creatingTestAxis = false;
+      state.testAxisDrawStart = null;
+      state.testAxisCursorPt = null;
+      const btnAdd = document.getElementById("btn-add-test-axis");
+      const btnCancel = document.getElementById("btn-cancel-test-axis");
+      if (btnAdd) {
+        btnAdd.style.background = "";
+        btnAdd.textContent = "➕ Add Axis";
+      }
+      if (btnCancel) btnCancel.style.display = "none";
+      updateStatus("Test axis creation cancelled.");
+      trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+      redrawTrueCanvas();
+    }
+
+    function renderTestAxesList() {
+      const container = document.getElementById("test-axes-list");
+      const countBadge = document.getElementById("test-axes-count-badge");
+      const optAxisBadge = document.getElementById("opt-axis-count-badge");
+      const axes = state.testAxes || [];
+
+      if (countBadge) countBadge.textContent = axes.length;
+      if (optAxisBadge) {
+        const boundAnchors = (state.anchors || []).filter(a => a.axisId != null && a.active !== false).length;
+        optAxisBadge.textContent = `${axes.length} axis (${boundAnchors} anc)`;
+      }
+
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (axes.length === 0) {
+        container.innerHTML = `<div style="font-size:0.68rem;color:var(--text-muted);font-style:italic;padding:3px 2px;">No test axes defined yet.</div>`;
+        return;
+      }
+
+      axes.forEach(ax => {
+        const geom = computeAxisGeometry(ax);
+        const boundAnchors = (state.anchors || []).filter(a => a.axisId === ax.id);
+        const row = document.createElement("div");
+        row.style.cssText = `display:flex;align-items:center;justify-content:space-between;gap:5px;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid ${hexToRgba(ax.color, 0.35)};font-size:0.71rem;`;
+        if (ax.visible === false) row.style.opacity = "0.55";
+
+        // Dot & Checkbox
+        const leftWrap = document.createElement("div");
+        leftWrap.style.cssText = "display:flex;align-items:center;gap:4px;min-width:0;flex:1;";
+
+        const dot = document.createElement("span");
+        dot.style.cssText = `width:8px;height:8px;border-radius:50%;background:${ax.color};box-shadow:0 0 6px ${ax.color};flex-shrink:0;`;
+
+        const chkVis = document.createElement("input");
+        chkVis.type = "checkbox";
+        chkVis.checked = (ax.visible !== false);
+        chkVis.title = ax.visible !== false ? "Visible on canvas (uncheck to hide)" : "Hidden (check to show)";
+        chkVis.style.cssText = `accent-color:${ax.color};cursor:pointer;margin:0;flex-shrink:0;`;
+        chkVis.addEventListener("change", () => {
+          ax.visible = chkVis.checked;
+          renderTestAxesList();
+          redrawTrueCanvas();
+        });
+
+        const nameInp = document.createElement("input");
+        nameInp.type = "text";
+        nameInp.value = ax.name;
+        nameInp.title = "Click to rename axis";
+        nameInp.style.cssText = "background:transparent;border:none;color:inherit;font-size:0.71rem;font-weight:600;min-width:45px;flex:1;padding:1px 2px;";
+        nameInp.addEventListener("change", e => {
+          ax.name = e.target.value.trim() || `Axis ${ax.id}`;
+          updateAnalyticsUI();
+          redrawTrueCanvas();
+        });
+
+        leftWrap.appendChild(dot);
+        leftWrap.appendChild(chkVis);
+        leftWrap.appendChild(nameInp);
+
+        // Right details: Bearing / Len badge & Anchors attached
+        const rightWrap = document.createElement("div");
+        rightWrap.style.cssText = "display:flex;align-items:center;gap:4px;flex-shrink:0;";
+
+        const badgeGeom = document.createElement("span");
+        badgeGeom.style.cssText = "font-family:monospace;font-size:0.62rem;color:var(--text-muted);";
+        badgeGeom.textContent = `${geom.len.toFixed(0)}m ${geom.bearing.toFixed(0)}°`;
+        badgeGeom.title = `Length: ${geom.len.toFixed(2)}m • Bearing: ${geom.bearing.toFixed(1)}°`;
+
+        if (boundAnchors.length > 0) {
+          const badgeAnc = document.createElement("span");
+          badgeAnc.style.cssText = `font-family:monospace;font-size:0.60rem;background:${hexToRgba(ax.color, 0.25)};color:${ax.color};padding:0 3px;border-radius:2px;font-weight:700;`;
+          badgeAnc.textContent = boundAnchors.map(a => `#${a.id}`).join(",");
+          badgeAnc.title = `Coupled Anchors: ${boundAnchors.map(a => `#${a.id}`).join(", ")}`;
+          rightWrap.appendChild(badgeAnc);
+        }
+
+        const btnDel = document.createElement("button");
+        btnDel.type = "button";
+        btnDel.className = "custom-poly-btn-icon custom-poly-btn-del";
+        btnDel.title = `Delete ${ax.name}`;
+        btnDel.innerHTML = "✕";
+        btnDel.style.cssText = "padding:0 4px;font-size:0.68rem;cursor:pointer;";
+        btnDel.addEventListener("click", () => deleteTestAxis(ax.id));
+
+        rightWrap.appendChild(badgeGeom);
+        rightWrap.appendChild(btnDel);
+
+        row.appendChild(leftWrap);
+        row.appendChild(rightWrap);
+        container.appendChild(row);
+      });
+    }
+
+    function drawTestAxesGIS(ctx, vp, canvasH) {
+      const axes = (state.testAxes || []).filter(a => a.visible !== false);
+
+      // 1. Draw defined test axes
+      axes.forEach(ax => {
+        const geom = computeAxisGeometry(ax);
+        const s1 = worldToScreenGIS(ax.p1, vp, canvasH);
+        const s2 = worldToScreenGIS(ax.p2, vp, canvasH);
+
+        // Extended guideline (dashed ray extending ±150m along axis direction)
+        const extDist = Math.max(150, geom.len * 1.5);
+        const pExt1 = { x: ax.p1.x - extDist * geom.u.x, y: ax.p1.y - extDist * geom.u.y };
+        const pExt2 = { x: ax.p2.x + extDist * geom.u.x, y: ax.p2.y + extDist * geom.u.y };
+        const sExt1 = worldToScreenGIS(pExt1, vp, canvasH);
+        const sExt2 = worldToScreenGIS(pExt2, vp, canvasH);
+
+        ctx.save();
+        // Faint extended guideline
+        ctx.beginPath();
+        ctx.moveTo(sExt1.x, sExt1.y);
+        ctx.lineTo(sExt2.x, sExt2.y);
+        ctx.strokeStyle = hexToRgba(ax.color, 0.35);
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([8, 6]);
+        ctx.stroke();
+
+        // Core solid line between A and B
+        ctx.beginPath();
+        ctx.moveTo(s1.x, s1.y);
+        ctx.lineTo(s2.x, s2.y);
+        ctx.strokeStyle = ax.color;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([]);
+        ctx.shadowColor = ax.color;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Metric distance tickmarks along axis (every 5m sub-tick, 10m labeled tick)
+        const tickStep = (geom.len >= 60) ? 10 : 5;
+        const tickSpan = Math.ceil(geom.len / tickStep) * tickStep;
+        ctx.font = "9px monospace";
+        ctx.fillStyle = ax.color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        for (let d = 0; d <= tickSpan; d += tickStep) {
+          const tPt = { x: ax.p1.x + d * geom.u.x, y: ax.p1.y + d * geom.u.y };
+          const sTick = worldToScreenGIS(tPt, vp, canvasH);
+          const tickLen = (d % 10 === 0) ? 6 : 3.5;
+
+          // Perpendicular tick
+          const tx = -geom.n.x * tickLen;
+          const ty = geom.n.y * tickLen; // Screen Y is inverted
+          ctx.beginPath();
+          ctx.moveTo(sTick.x - tx, sTick.y - ty);
+          ctx.lineTo(sTick.x + tx, sTick.y + ty);
+          ctx.strokeStyle = ax.color;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          // Numeric label at 10m intervals
+          if (d % 10 === 0 && d > 0 && d < geom.len) {
+            ctx.fillText(`${d}m`, sTick.x + geom.n.x * 12, sTick.y - geom.n.y * 12);
+          }
+        }
+
+        // Handles A and B
+        function drawHandle(sPt, label) {
+          ctx.beginPath();
+          ctx.arc(sPt.x, sPt.y, 6.5, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+          ctx.strokeStyle = ax.color;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(sPt.x, sPt.y, 2, 0, Math.PI * 2);
+          ctx.fillStyle = ax.color;
+          ctx.fill();
+
+          // Label
+          ctx.font = "bold 9px sans-serif";
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "rgba(0,0,0,0.85)";
+          ctx.lineWidth = 2.5;
+          ctx.strokeText(label, sPt.x + 9, sPt.y - 7);
+          ctx.fillText(label, sPt.x + 9, sPt.y - 7);
+        }
+        drawHandle(s1, "A");
+        drawHandle(s2, "B");
+
+        // Connected Anchors markers on axis
+        (state.anchors || []).forEach(anc => {
+          if (anc.axisId === ax.id && anc.dst) {
+            const sAnc = worldToScreenGIS(anc.dst, vp, canvasH);
+            ctx.beginPath();
+            ctx.arc(sAnc.x, sAnc.y, 10, 0, Math.PI * 2);
+            ctx.strokeStyle = ax.color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.font = "bold 8px monospace";
+            ctx.fillStyle = ax.color;
+            ctx.fillText(`⚓ #${anc.id}`, sAnc.x, sAnc.y + 14);
+          }
+        });
+
+        ctx.restore();
+      });
+
+      // 2. Draw active creation rubber-band
+      if (state.creatingTestAxis && state.testAxisDrawStart && state.testAxisCursorPt) {
+        const sA = worldToScreenGIS(state.testAxisDrawStart, vp, canvasH);
+        const sB = worldToScreenGIS(state.testAxisCursorPt, vp, canvasH);
+        const dx = state.testAxisCursorPt.x - state.testAxisDrawStart.x;
+        const dy = state.testAxisCursorPt.y - state.testAxisDrawStart.y;
+        const len = Math.hypot(dx, dy);
+        const bearing = computeAxisBearing(state.testAxisDrawStart, state.testAxisCursorPt);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(sA.x, sA.y);
+        ctx.lineTo(sB.x, sB.y);
+        ctx.strokeStyle = "#e040fb";
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+
+        // Point A handle
+        ctx.beginPath();
+        ctx.arc(sA.x, sA.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.strokeStyle = "#e040fb";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Midpoint badge
+        const midX = (sA.x + sB.x) / 2;
+        const midY = (sA.y + sB.y) / 2;
+        const label = `${len.toFixed(1)}m • ${bearing.toFixed(1)}°`;
+        ctx.font = "bold 10px monospace";
+        ctx.fillStyle = "#e040fb";
+        ctx.strokeStyle = "#0f1420";
+        ctx.lineWidth = 3;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.strokeText(label, midX, midY - 6);
+        ctx.fillText(label, midX, midY - 6);
+
+        ctx.restore();
+      }
+    }
+
+    // Attach button listeners for Test Axes
+    const btnAddTestAxis = document.getElementById("btn-add-test-axis");
+    const btnCancelTestAxis = document.getElementById("btn-cancel-test-axis");
+    const chkSnapAnchorAxis = document.getElementById("chk-snap-anchor-axis");
+    const chkOptAlongAxis = document.getElementById("chk-opt-along-axis");
+
+    if (btnAddTestAxis) {
+      btnAddTestAxis.addEventListener("click", () => {
+        if (state.creatingTestAxis) cancelAddTestAxis();
+        else startAddTestAxis();
+      });
+    }
+    if (btnCancelTestAxis) {
+      btnCancelTestAxis.addEventListener("click", cancelAddTestAxis);
+    }
+    if (chkSnapAnchorAxis) {
+      chkSnapAnchorAxis.addEventListener("change", e => {
+        state.snapNewAnchorsToAxis = e.target.checked;
+      });
+    }
+    if (chkOptAlongAxis) {
+      chkOptAlongAxis.addEventListener("change", e => {
+        state.optAlongAxisOnly = e.target.checked;
+      });
+    }
+    // [/SECTION: JS_TEST_AXIS_ENGINE]
+
+    // ============================================================================
     // [SECTION: JS_TEMP_REFERENCE_DXF]
     // ============================================================================
     /* ======================================================
@@ -14853,6 +15885,22 @@ EOF`;
         } catch(e) {
           console.warn("user_polygon.dxf preload:", e.message);
         }
+      }
+
+      // 4.5. Custom Polygons / Casa del Sol Parcels preload (casadelsol_parcels.json)
+      let loadedCustom = false;
+      try {
+        const textCustom = await fetchText("casadelsol_parcels.json");
+        const dataCustom = JSON.parse(textCustom);
+        if (Array.isArray(dataCustom) && dataCustom.length > 0) {
+          applyCustomPolygons(dataCustom);
+          loadedCustom = true;
+        }
+      } catch(e) {
+        console.warn("casadelsol_parcels.json preload:", e.message);
+      }
+      if (!loadedCustom && typeof EMBEDDED_CASADELSOL_PARCELS !== "undefined" && EMBEDDED_CASADELSOL_PARCELS.length > 0) {
+        applyCustomPolygons(EMBEDDED_CASADELSOL_PARCELS);
       }
 
       // 5. Initialize constraints, subpanels, metrics and redraw immediately
