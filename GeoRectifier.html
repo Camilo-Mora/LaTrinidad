@@ -12227,35 +12227,59 @@ EOF`;
         }
       }
 
-      // Segment Label Hover & Tooltip detection
-      let hitSegLabel = null;
-      if (state.showSegmentLabels && state.userPolyLabelBoxes && state.userPolyLabelBoxes.length > 0 && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
-        hitSegLabel = state.userPolyLabelBoxes.find(b =>
-          mouseX >= b.box.x && mouseX <= b.box.x + b.box.w &&
-          mouseY >= b.box.y && mouseY <= b.box.y + b.box.h
-        );
+      // Segment Hover & Tooltip detection (only when hovering directly over a recreated polygon segment)
+      let hitSeg = null;
+      if (state.userPolygon && state.userPolygon.vertices && state.userPolygon.vertices.length >= 2 && state.userPolygon.show !== false && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
+        hitSeg = findUserPolySegmentAt(mouseX, mouseY, vp, h, 10);
       }
       const labelTooltipEl = document.getElementById("segment-label-tooltip");
-      if (hitSegLabel && labelTooltipEl) {
+      if (hitSeg && labelTooltipEl) {
         trueCanvas.style.cursor = "help";
-        const deedValStr = (hitSegLabel.deedLen != null && hitSegLabel.deedLen > 0)
-          ? `${Number(hitSegLabel.deedLen).toFixed(2)} m`
-          : "Sin dato en escritura";
-        const fieldValStr = `${hitSegLabel.len.toFixed(2)} m`;
-        const errValStr = hitSegLabel.errPct != null
-          ? `${hitSegLabel.errPct.toFixed(2)}%`
-          : "—";
+        const poly = state.userPolygon;
+        const i = hitSeg.segIdx;
+        const a = poly.vertices[i];
+        const b = poly.vertices[(i + 1) % poly.vertices.length];
+        const calcLen = Math.hypot(b.x - a.x, b.y - a.y);
+        const deedLen = (poly.segmentLengths && poly.segmentLengths[i] != null && poly.segmentLengths[i] > 0) ? Number(poly.segmentLengths[i]) : null;
+        const meta = getSegmentErrorMeta(calcLen, deedLen);
 
-        const errColor = hitSegLabel.errPct == null ? "#94a3b8" : (hitSegLabel.errPct < 2 ? "#00e676" : (hitSegLabel.errPct <= 5 ? "#aeea00" : (hitSegLabel.errPct <= 10 ? "#ffd600" : "#ff1744")));
+        // Line 1: Origin from Sección (E296, E1073, La Quebrada, etc.)
+        const rawSec = (poly.segmentSections && poly.segmentSections[i]) ? String(poly.segmentSections[i]).trim() : "";
+        let originStr = "Lindero Reconstruido";
+        if (rawSec.toUpperCase().includes("1073")) {
+          originStr = "From Escritura 1073";
+        } else if (rawSec.toUpperCase().includes("296")) {
+          originStr = "From Escritura 296";
+        } else if (rawSec.toLowerCase().includes("quebrada")) {
+          originStr = "From La Quebrada (Atributo Geofísico Fijo)";
+        } else if (rawSec) {
+          originStr = `From ${rawSec}`;
+        }
+
+        // Line 2: Segment # and Part
+        const rawPart = (poly.segmentParts && poly.segmentParts[i]) ? String(poly.segmentParts[i]).trim() : "";
+        const partSuffix = rawPart ? ` - ${rawPart}` : "";
+        const segIdStr = `Segment #: ${i + 1}${partSuffix}`;
+
+        // Line 3: Distancia reportada
+        const deedValStr = deedLen != null ? `${deedLen.toFixed(2)} m` : "Sin dato en escritura";
+
+        // Line 4: Distancia en campo
+        const fieldValStr = `${calcLen.toFixed(2)} m`;
+
+        // Line 5: Percent error
+        const errValStr = meta.errPct != null ? `${meta.errPct.toFixed(2)}%` : "—";
+        const errColor = meta.color || "#00e5ff";
 
         labelTooltipEl.innerHTML = `
-          <div style="font-weight:700;color:var(--accent-cyan);font-size:0.75rem;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <span>📏 ${hitSegLabel.segDisplayName}</span>
+          <div style="font-weight:700;color:var(--accent-cyan);font-size:0.75rem;margin-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span>📐 ${originStr}</span>
           </div>
-          <div style="display:flex;flex-direction:column;gap:3px;font-size:0.73rem;">
-            <div><span style="color:#94a3b8;">Largo documentado en escritura:</span> <strong style="color:#f8fafc;font-family:monospace;">${deedValStr}</strong></div>
-            <div><span style="color:#94a3b8;">Valor observado en campo:</span> <strong style="color:#00e5ff;font-family:monospace;">${fieldValStr}</strong></div>
-            <div><span style="color:#94a3b8;">% error:</span> <strong style="color:${errColor};font-family:monospace;font-size:0.78rem;">${errValStr}</strong></div>
+          <div style="display:flex;flex-direction:column;gap:3px;font-size:0.72rem;line-height:1.5;">
+            <div><span style="color:#94a3b8;">${segIdStr}</span></div>
+            <div><span style="color:#94a3b8;">Distancia reportada:</span> <strong style="color:#f8fafc;font-family:monospace;">${deedValStr}</strong></div>
+            <div><span style="color:#94a3b8;">Distancia en campo:</span> <strong style="color:#00e5ff;font-family:monospace;">${fieldValStr}</strong></div>
+            <div><span style="color:#94a3b8;">Percent error:</span> <strong style="color:${errColor};font-family:monospace;font-size:0.76rem;">${errValStr}</strong></div>
           </div>
         `;
         labelTooltipEl.style.display = "block";
@@ -12264,10 +12288,10 @@ EOF`;
         let leftPx = mouseX + 14;
         let topPx = mouseY + 14;
         if (leftPx + 280 > cw) leftPx = mouseX - 290;
-        if (topPx + 105 > ch) topPx = mouseY - 110;
+        if (topPx + 120 > ch) topPx = mouseY - 125;
         labelTooltipEl.style.left = `${Math.max(10, leftPx)}px`;
         labelTooltipEl.style.top = `${Math.max(10, topPx)}px`;
-        coordsBar.textContent = `${hitSegLabel.segDisplayName} | Largo doc: ${deedValStr} | Obs campo: ${fieldValStr} | % error: ${errValStr}`;
+        coordsBar.textContent = `${originStr} | ${segIdStr} | Rep: ${deedValStr} | Campo: ${fieldValStr} | Error: ${errValStr}`;
         return;
       } else if (labelTooltipEl && labelTooltipEl.style.display !== "none") {
         labelTooltipEl.style.display = "none";
