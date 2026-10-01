@@ -101,7 +101,10 @@
           }
         }
       }
-    ]
+    ],
+    "dash": "solid",
+    "width": 2.5,
+    "fillOpacity": 20
   },
   {
     "id": "poly_casadelsol_lote_6",
@@ -175,7 +178,10 @@
           }
         }
       }
-    ]
+    ],
+    "dash": "solid",
+    "width": 2.5,
+    "fillOpacity": 20
   },
   {
     "id": "poly_casadelsol_lote_5",
@@ -354,7 +360,10 @@
           }
         }
       }
-    ]
+    ],
+    "dash": "solid",
+    "width": 2.5,
+    "fillOpacity": 20
   },
   {
     "id": "poly_casadelsol_lote_8",
@@ -488,6 +497,9 @@
           }
         }
       }
-    ]
+    ],
+    "dash": "solid",
+    "width": 2.5,
+    "fillOpacity": 20
   }
 ]

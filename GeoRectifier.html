@@ -2120,19 +2120,16 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-custom-poly" title="Colapsar / Desplegar">▶</button>
           </div>
           <div id="body-custom-polygon" style="display:none;flex-direction:column;gap:8px;">
-            <!-- Action Toolbar: New, Casa del Sol preset, Save & Load -->
-            <div style="display:flex;gap:5px;align-items:center;">
+            <!-- Action Toolbar: New, Save & Load -->
+            <div style="display:flex;gap:6px;align-items:center;">
               <button id="btn-add-new-custom-poly" class="btn btn-primary btn-sm" style="flex:1;background:linear-gradient(135deg,#00e5ff,#00b0ff);border-color:#00e5ff;color:#050d1a;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;padding:3px 6px;font-size:0.71rem;" title="Create a new independent polygon on the field map and subpanel">
                 ➕ New Poly
               </button>
-              <button id="btn-load-casadelsol-preset" class="btn btn-sm" style="background:rgba(255,179,0,0.18);border:1px solid rgba(255,179,0,0.45);color:#ffb300;font-weight:700;padding:3px 6px;font-size:0.70rem;" title="Load Casa del Sol parcels (Lotes 5, 6, 7, 8) from Deed 1073">
-                ☀️ Casa del Sol
+              <button id="btn-save-custom-poly-json" class="btn btn-sm" style="background:rgba(0,200,83,0.20);border:1px solid rgba(0,200,83,0.45);color:#00e676;padding:3px 8px;font-size:0.70rem;" title="Download &amp; Save Custom Polygons to JSON">
+                💾 Save JSON
               </button>
-              <button id="btn-save-custom-poly-json" class="btn btn-sm" style="background:rgba(0,200,83,0.20);border:1px solid rgba(0,200,83,0.45);color:#00e676;padding:3px 6px;font-size:0.70rem;" title="Download &amp; Save Custom Polygons to JSON">
-                💾 Save
-              </button>
-              <label for="custom-poly-file-input" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;gap:2px;padding:3px 6px;font-size:0.70rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;" title="Load Custom Polygons from JSON file">
-                📂 Load<input type="file" id="custom-poly-file-input" accept=".json" style="display:none;">
+              <label for="custom-poly-file-input" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;gap:3px;padding:3px 8px;font-size:0.70rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;" title="Load Custom Polygons from JSON file">
+                📂 Load JSON<input type="file" id="custom-poly-file-input" accept=".json" style="display:none;">
               </label>
             </div>
 
@@ -2206,6 +2203,35 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <input type="checkbox" id="chk-custom-poly-include-opt" checked style="accent-color:var(--accent-cyan);">
                   🎯 Include in Area Optimization
                 </label>
+              </div>
+
+              <!-- Visual Styling Controls (Color, Dash, Thickness, Opacity) -->
+              <div style="border-top:1px dashed rgba(255,255,255,0.12);padding-top:5px;margin-top:2px;display:flex;flex-direction:column;gap:5px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
+                  <span style="color:var(--text-muted);">Color &amp; Line:</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="color" id="custom-poly-style-color" class="color-picker-swatch" style="width:24px;height:20px;padding:0;border:1px solid rgba(255,255,255,0.25);border-radius:3px;cursor:pointer;background:transparent;" title="Polygon border &amp; fill color">
+                    <select id="custom-poly-style-dash" class="style-select" style="font-size:0.68rem;padding:1px 4px;height:22px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,255,255,0.15);color:var(--text-main);border-radius:3px;cursor:pointer;" title="Line style">
+                      <option value="solid">Solid ───</option>
+                      <option value="dashed">Dashed ╌╌</option>
+                      <option value="dotted">Dotted ┈ ┈</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;">
+                  <span style="color:var(--text-muted);">Thickness:</span>
+                  <div style="display:flex;align-items:center;gap:6px;width:125px;">
+                    <input type="range" id="custom-poly-style-width" min="1.0" max="8.0" step="0.5" value="2.5" class="opacity-slider" style="height:3px;flex:1;">
+                    <span id="custom-poly-style-width-val" style="font-family:monospace;color:var(--accent-cyan);min-width:32px;text-align:right;">2.5px</span>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;">
+                  <span style="color:var(--text-muted);">Fill Opacity:</span>
+                  <div style="display:flex;align-items:center;gap:6px;width:125px;">
+                    <input type="range" id="custom-poly-style-opacity" min="0" max="100" step="5" value="20" class="opacity-slider" style="height:3px;flex:1;">
+                    <span id="custom-poly-style-opacity-val" style="font-family:monospace;color:var(--accent-cyan);min-width:32px;text-align:right;">20%</span>
+                  </div>
+                </div>
               </div>
               <div id="custom-poly-total-summary" style="display:none;border-top:1px dashed rgba(255,255,255,0.12);padding-top:4px;margin-top:2px;justify-content:space-between;font-size:0.70rem;color:var(--accent-cyan);">
                 <span>Total All Polygons:</span>
@@ -8777,6 +8803,28 @@ EOF`;
           targetDiffRow.style.display = "none";
         }
       }
+
+      // Visual Styling Controls in Metrics subpanel
+      const colorPicker = document.getElementById("custom-poly-style-color");
+      const dashSelect = document.getElementById("custom-poly-style-dash");
+      const widthSlider = document.getElementById("custom-poly-style-width");
+      const widthVal = document.getElementById("custom-poly-style-width-val");
+      const opacitySlider = document.getElementById("custom-poly-style-opacity");
+      const opacityVal = document.getElementById("custom-poly-style-opacity-val");
+
+      if (colorPicker) {
+        colorPicker.value = poly.color || "#ffb300";
+      }
+      if (dashSelect) {
+        dashSelect.value = poly.dash || "solid";
+      }
+      const curWidth = (poly.width !== undefined && poly.width !== null) ? poly.width : 2.5;
+      if (widthSlider) widthSlider.value = curWidth;
+      if (widthVal) widthVal.textContent = `${curWidth.toFixed(1)}px`;
+
+      const curOpacity = (poly.fillOpacity !== undefined && poly.fillOpacity !== null) ? poly.fillOpacity : 20;
+      if (opacitySlider) opacitySlider.value = curOpacity;
+      if (opacityVal) opacityVal.textContent = `${curOpacity}%`;
     }
 
     /** Update button states and status badge for Custom Polygon */
@@ -8923,9 +8971,12 @@ EOF`;
         if (!verts || verts.length === 0) continue;
 
         const pColor = poly.color || "#ffb300";
+        const lineW = (poly.width !== undefined && poly.width !== null) ? poly.width : 2.0;
+        const dash = (poly.dash === "dashed") ? [6, 4] : ((poly.dash === "dotted") ? [2, 3] : []);
+        const fillAlpha = (poly.fillOpacity !== undefined && poly.fillOpacity !== null) ? (poly.fillOpacity / 100) : 0.12;
 
         // Fill interior if closed
-        if (poly.closed && verts.length >= 3) {
+        if (poly.closed && verts.length >= 3 && fillAlpha > 0) {
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -8934,13 +8985,14 @@ EOF`;
             ctx.lineTo(s.x, s.y);
           }
           ctx.closePath();
-          ctx.fillStyle = hexToRgba(pColor, 0.12);
+          ctx.fillStyle = hexToRgba(pColor, fillAlpha);
           ctx.fill();
         }
 
         // Perimeter stroke
         const nSegs = poly.closed ? verts.length : verts.length - 1;
         if (nSegs > 0) {
+          ctx.save();
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -8950,10 +9002,12 @@ EOF`;
           }
           if (poly.closed) ctx.closePath();
           ctx.strokeStyle = pColor;
-          ctx.lineWidth = 2.0;
+          ctx.lineWidth = lineW;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
+          ctx.setLineDash(dash);
           ctx.stroke();
+          ctx.restore();
         }
 
         // Centroid name & area badge for closed non-active polygons
@@ -9006,9 +9060,12 @@ EOF`;
         const poly = activePoly;
         const verts = poly.vertices;
         const pColor = poly.color || "#ffb300";
+        const lineW = (poly.width !== undefined && poly.width !== null) ? poly.width : 2.8;
+        const dash = (poly.dash === "dashed") ? [6, 4] : ((poly.dash === "dotted") ? [2, 3] : []);
+        const fillAlpha = (poly.fillOpacity !== undefined && poly.fillOpacity !== null) ? (poly.fillOpacity / 100) : 0.18;
 
         // Fill interior if closed
-        if (poly.closed && verts.length >= 3) {
+        if (poly.closed && verts.length >= 3 && fillAlpha > 0) {
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -9017,7 +9074,7 @@ EOF`;
             ctx.lineTo(s.x, s.y);
           }
           ctx.closePath();
-          ctx.fillStyle = hexToRgba(pColor, 0.18);
+          ctx.fillStyle = hexToRgba(pColor, fillAlpha);
           ctx.fill();
         }
 
@@ -9025,6 +9082,7 @@ EOF`;
         const nSegs = poly.closed ? verts.length : verts.length - 1;
         if (nSegs > 0) {
           // Glow halo
+          ctx.save();
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -9034,15 +9092,17 @@ EOF`;
           }
           if (poly.closed) ctx.closePath();
           ctx.strokeStyle = hexToRgba(pColor, 0.4);
-          ctx.lineWidth = 5.5;
+          ctx.lineWidth = lineW + 2.7;
           ctx.stroke();
 
           // Sharp stroke
           ctx.strokeStyle = pColor;
-          ctx.lineWidth = 2.8;
+          ctx.lineWidth = lineW;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
+          ctx.setLineDash(dash);
           ctx.stroke();
+          ctx.restore();
         }
 
         // Rubber-band line from last placed vertex to cursor in drawMode
@@ -10087,16 +10147,6 @@ EOF`;
       btnDlCustomPolyDxf.addEventListener("click", downloadCustomPolygonDxf);
     }
 
-    const btnLoadCasaDelSol = document.getElementById("btn-load-casadelsol-preset");
-    if (btnLoadCasaDelSol) {
-      btnLoadCasaDelSol.addEventListener("click", () => {
-        if (typeof EMBEDDED_CASADELSOL_PARCELS !== "undefined") {
-          applyCustomPolygons(EMBEDDED_CASADELSOL_PARCELS);
-          updateStatus("☀️ Loaded Casa del Sol parcels (Lotes 5, 6, 7, 8) from Deed 1073.");
-        }
-      });
-    }
-
     const btnSaveCustomPolyJson = document.getElementById("btn-save-custom-poly-json");
     if (btnSaveCustomPolyJson) {
       btnSaveCustomPolyJson.addEventListener("click", () => {
@@ -10155,6 +10205,58 @@ EOF`;
         poly.optArea = e.target.checked;
         recomputeCustomPolygonMetrics();
         renderCustomPolyList();
+      });
+    }
+
+    const customPolyColorPicker = document.getElementById("custom-poly-style-color");
+    if (customPolyColorPicker) {
+      customPolyColorPicker.addEventListener("input", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        poly.color = e.target.value;
+        const dot = document.getElementById("custom-poly-selected-dot");
+        if (dot) {
+          dot.style.background = poly.color;
+          dot.style.boxShadow = `0 0 5px ${poly.color}`;
+        }
+        renderCustomPolyList();
+        redrawTrueCanvas();
+      });
+    }
+
+    const customPolyDashSelect = document.getElementById("custom-poly-style-dash");
+    if (customPolyDashSelect) {
+      customPolyDashSelect.addEventListener("change", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        poly.dash = e.target.value;
+        redrawTrueCanvas();
+      });
+    }
+
+    const customPolyWidthSlider = document.getElementById("custom-poly-style-width");
+    const customPolyWidthVal = document.getElementById("custom-poly-style-width-val");
+    if (customPolyWidthSlider) {
+      customPolyWidthSlider.addEventListener("input", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        const val = parseFloat(e.target.value) || 2.5;
+        poly.width = val;
+        if (customPolyWidthVal) customPolyWidthVal.textContent = `${val.toFixed(1)}px`;
+        redrawTrueCanvas();
+      });
+    }
+
+    const customPolyOpacitySlider = document.getElementById("custom-poly-style-opacity");
+    const customPolyOpacityVal = document.getElementById("custom-poly-style-opacity-val");
+    if (customPolyOpacitySlider) {
+      customPolyOpacitySlider.addEventListener("input", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        const val = parseInt(e.target.value, 10) || 0;
+        poly.fillOpacity = val;
+        if (customPolyOpacityVal) customPolyOpacityVal.textContent = `${val}%`;
+        redrawTrueCanvas();
       });
     }
 
