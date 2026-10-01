@@ -2120,10 +2120,21 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-custom-poly" title="Colapsar / Desplegar">▶</button>
           </div>
           <div id="body-custom-polygon" style="display:none;flex-direction:column;gap:8px;">
-            <!-- + New Polygon button -->
-            <button id="btn-add-new-custom-poly" class="btn btn-primary btn-sm" style="background:linear-gradient(135deg,#00e5ff,#00b0ff);border-color:#00e5ff;color:#050d1a;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Create a new independent polygon on the field map and subpanel">
-              ➕ New Polygon
-            </button>
+            <!-- Action Toolbar: New, Casa del Sol preset, Save & Load -->
+            <div style="display:flex;gap:5px;align-items:center;">
+              <button id="btn-add-new-custom-poly" class="btn btn-primary btn-sm" style="flex:1;background:linear-gradient(135deg,#00e5ff,#00b0ff);border-color:#00e5ff;color:#050d1a;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;padding:3px 6px;font-size:0.71rem;" title="Create a new independent polygon on the field map and subpanel">
+                ➕ New Poly
+              </button>
+              <button id="btn-load-casadelsol-preset" class="btn btn-sm" style="background:rgba(255,179,0,0.18);border:1px solid rgba(255,179,0,0.45);color:#ffb300;font-weight:700;padding:3px 6px;font-size:0.70rem;" title="Load Casa del Sol parcels (Lotes 5, 6, 7, 8) from Deed 1073">
+                ☀️ Casa del Sol
+              </button>
+              <button id="btn-save-custom-poly-json" class="btn btn-sm" style="background:rgba(0,200,83,0.20);border:1px solid rgba(0,200,83,0.45);color:#00e676;padding:3px 6px;font-size:0.70rem;" title="Download &amp; Save Custom Polygons to JSON">
+                💾 Save
+              </button>
+              <label for="custom-poly-file-input" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;gap:2px;padding:3px 6px;font-size:0.70rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;" title="Load Custom Polygons from JSON file">
+                📂 Load<input type="file" id="custom-poly-file-input" accept=".json" style="display:none;">
+              </label>
+            </div>
 
             <!-- Multi-polygon list container -->
             <div id="custom-poly-list" class="custom-poly-list">
@@ -2178,6 +2189,23 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
                 <span style="color:var(--text-muted);">Anchored Vertices:</span>
                 <span id="custom-poly-anchored-count" style="font-family:monospace;color:#ffb300;font-weight:600;">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;border-top:1px dashed rgba(255,255,255,0.1);padding-top:4px;margin-top:2px;">
+                <span style="color:var(--text-muted);">Target Cabida:</span>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <input type="number" id="custom-poly-target-input" step="0.1" style="width:85px;background:rgba(15,20,32,0.9);border:1px solid rgba(0,229,255,0.3);color:var(--accent-cyan);font-family:monospace;font-size:0.72rem;border-radius:3px;padding:1px 4px;text-align:right;" placeholder="Deed m²">
+                  <span style="color:var(--text-muted);font-size:0.68rem;">m²</span>
+                </div>
+              </div>
+              <div id="custom-poly-target-diff-row" style="display:none;justify-content:space-between;align-items:center;font-size:0.72rem;">
+                <span style="color:var(--text-muted);">Cabida Error:</span>
+                <span id="custom-poly-target-diff-val" style="font-family:monospace;font-weight:700;">—</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;padding-top:2px;">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Check to include this polygon in the area optimization loss function">
+                  <input type="checkbox" id="chk-custom-poly-include-opt" checked style="accent-color:var(--accent-cyan);">
+                  🎯 Include in Area Optimization
+                </label>
               </div>
               <div id="custom-poly-total-summary" style="display:none;border-top:1px dashed rgba(255,255,255,0.12);padding-top:4px;margin-top:2px;justify-content:space-between;font-size:0.70rem;color:var(--accent-cyan);">
                 <span>Total All Polygons:</span>
@@ -4975,6 +5003,38 @@ EOF`;
       return true;
     }
 
+    const EMBEDDED_CASADELSOL_PARCELS = [{"id":"poly_casadelsol_lote_7","name":"Casa del Sol - Lote 7","color":"#76ff03","targetArea":33727.85,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097954.0825,"y":877187.4389,"origX":1097954.0825,"origY":877187.4389,"anchor":{"type":"deed","entIdx":0,"ptIdx":0,"deedPt":{"x":461.39,"y":141.81}}},{"x":1097793.4334,"y":877147.7537,"origX":1097793.4334,"origY":877147.7537,"anchor":{"type":"deed","entIdx":0,"ptIdx":1,"deedPt":{"x":525.83,"y":273.81}}},{"x":1097803.3437,"y":876955.0459,"origX":1097803.3437,"origY":876955.0459,"anchor":{"type":"deed","entIdx":0,"ptIdx":2,"deedPt":{"x":388.95,"y":376.78}}},{"x":1097751.1564,"y":876903.2513,"origX":1097751.1564,"origY":876903.2513,"anchor":{"type":"deed","entIdx":0,"ptIdx":3,"deedPt":{"x":383.39,"y":441.81}}},{"x":1097928.028,"y":877020.0804,"origX":1097928.028,"origY":877020.0804,"anchor":{"type":"deed","entIdx":0,"ptIdx":4,"deedPt":{"x":362.25,"y":254.84}}},{"x":1097985.6233,"y":877004.548,"origX":1097985.6233,"origY":877004.548,"anchor":{"type":"deed","entIdx":0,"ptIdx":5,"deedPt":{"x":318.88,"y":224.46}}}]},{"id":"poly_casadelsol_lote_6","name":"Casa del Sol - Lote 6","color":"#00e5ff","targetArea":2735.61,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097928.028,"y":877020.0804,"origX":1097928.028,"origY":877020.0804,"anchor":{"type":"deed","entIdx":1,"ptIdx":0,"deedPt":{"x":362.25,"y":254.84}}},{"x":1097920.2844,"y":876991.5806,"origX":1097920.2844,"origY":876991.5806,"anchor":{"type":"deed","entIdx":1,"ptIdx":1,"deedPt":{"x":347.25,"y":276.34}}},{"x":1097734.439,"y":876886.0299,"origX":1097734.439,"origY":876886.0299,"anchor":{"type":"deed","entIdx":1,"ptIdx":2,"deedPt":{"x":381.18,"y":463}}},{"x":1097751.1564,"y":876903.2513,"origX":1097751.1564,"origY":876903.2513,"anchor":{"type":"deed","entIdx":1,"ptIdx":3,"deedPt":{"x":383.39,"y":441.81}}}]},{"id":"poly_casadelsol_lote_5","name":"Casa del Sol - Lote 5","color":"#ffb300","targetArea":17964.45,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097920.2844,"y":876991.5806,"origX":1097920.2844,"origY":876991.5806,"anchor":{"type":"deed","entIdx":2,"ptIdx":0,"deedPt":{"x":347.25,"y":276.34}}},{"x":1097734.439,"y":876886.0299,"origX":1097734.439,"origY":876886.0299,"anchor":{"type":"deed","entIdx":2,"ptIdx":1,"deedPt":{"x":381.18,"y":463}}},{"x":1097622.1075,"y":876777.433,"origX":1097622.1075,"origY":876777.433,"anchor":{"type":"deed","entIdx":2,"ptIdx":2,"deedPt":{"x":371.18,"y":601.33}}},{"x":1097585.3786,"y":876758.1357,"origX":1097585.3786,"origY":876758.1357,"anchor":{"type":"deed","entIdx":2,"ptIdx":3,"deedPt":{"x":378.95,"y":637.33}}},{"x":1097793.6945,"y":876808.8476,"origX":1097793.6945,"origY":876808.8476,"anchor":{"type":"deed","entIdx":2,"ptIdx":4,"deedPt":{"x":294.88,"y":466.59}}},{"x":1097857.0189,"y":876868.5729,"origX":1097857.0189,"origY":876868.5729,"anchor":{"type":"deed","entIdx":2,"ptIdx":5,"deedPt":{"x":299.5,"y":389.46}}},{"x":1097854.8295,"y":876891.1618,"origX":1097854.8295,"origY":876891.1618,"anchor":{"type":"deed","entIdx":2,"ptIdx":6,"deedPt":{"x":316.13,"y":378.09}}},{"x":1097863.7045,"y":876902.0617,"origX":1097863.7045,"origY":876902.0617,"anchor":{"type":"deed","entIdx":2,"ptIdx":7,"deedPt":{"x":318.5,"y":365.84}}},{"x":1097864.5627,"y":876918.3881,"origX":1097864.5627,"origY":876918.3881,"anchor":{"type":"deed","entIdx":2,"ptIdx":8,"deedPt":{"x":329.13,"y":355.96}}},{"x":1097891.8643,"y":876952.0352,"origX":1097891.8643,"origY":876952.0352,"anchor":{"type":"deed","entIdx":2,"ptIdx":9,"deedPt":{"x":336.5,"y":318.21}}},{"x":1097911.2318,"y":876956.3038,"origX":1097911.2318,"origY":876956.3038,"anchor":{"type":"deed","entIdx":2,"ptIdx":10,"deedPt":{"x":328.38,"y":302.59}}}]},{"id":"poly_casadelsol_lote_8","name":"Casa del Sol - Lote 8","color":"#e040fb","targetArea":29555.19,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097985.6233,"y":877004.548,"origX":1097985.6233,"origY":877004.548,"anchor":{"type":"deed","entIdx":5,"ptIdx":0,"deedPt":{"x":318.88,"y":224.46}}},{"x":1097954.0825,"y":877187.4389,"origX":1097954.0825,"origY":877187.4389,"anchor":{"type":"deed","entIdx":5,"ptIdx":1,"deedPt":{"x":461.39,"y":141.81}}},{"x":1098094.6041,"y":877230.0173,"origX":1098094.6041,"origY":877230.0173,"anchor":{"type":"deed","entIdx":5,"ptIdx":2,"deedPt":{"x":410.38,"y":21.87}}},{"x":1098130.8214,"y":877073.2528,"origX":1098130.8214,"origY":877073.2528,"anchor":{"type":"deed","entIdx":5,"ptIdx":3,"deedPt":{"x":283,"y":86.46}}},{"x":1098143.5773,"y":877020.2331,"origX":1098143.5773,"origY":877020.2331,"anchor":{"type":"deed","entIdx":5,"ptIdx":4,"deedPt":{"x":239.63,"y":107.96}}},{"x":1098110.3309,"y":877019.6032,"origX":1098110.3309,"origY":877019.6032,"anchor":{"type":"deed","entIdx":5,"ptIdx":5,"deedPt":{"x":258.13,"y":130.96}}},{"x":1098029.6281,"y":876965.5246,"origX":1098029.6281,"origY":876965.5246,"anchor":{"type":"deed","entIdx":5,"ptIdx":6,"deedPt":{"x":267.25,"y":216.71}}},{"x":1098022.803,"y":876994.3257,"origX":1098022.803,"origY":876994.3257,"anchor":{"type":"deed","entIdx":5,"ptIdx":7,"deedPt":{"x":290.75,"y":204.96}}}]}];
+
+    function applyCustomPolygons(parcels) {
+      if (!parcels || !Array.isArray(parcels) || parcels.length === 0) return false;
+      state.customPolygons = JSON.parse(JSON.stringify(parcels));
+      state.customPolygons.forEach((p, idx) => {
+        if (!p.color) p.color = CUSTOM_POLY_PALETTE[idx % CUSTOM_POLY_PALETTE.length];
+        if (p.optArea === undefined) p.optArea = true;
+        if (p.visible === undefined) p.visible = true;
+        if (p.closed === undefined) p.closed = true;
+        if (p.showNodes === undefined) p.showNodes = true;
+        if (p.showLabels === undefined) p.showLabels = true;
+      });
+      state.activeCustomPolyIndex = 0;
+      state.customPolygon = state.customPolygons[0];
+      if (typeof updateCustomPolygonAnchors === "function") {
+        updateCustomPolygonAnchors();
+      }
+      if (typeof renderCustomPolyList === "function") {
+        renderCustomPolyList();
+      }
+      if (typeof recomputeCustomPolygonMetrics === "function") {
+        recomputeCustomPolygonMetrics();
+      }
+      if (typeof updateCustomPolyButtonStates === "function") {
+        updateCustomPolyButtonStates();
+      }
+      if (typeof redrawTrueCanvas === "function") {
+        redrawTrueCanvas();
+      }
+      return true;
+    }
 
     // [/SECTION: JS_PRELOAD_DATA]
 
@@ -8178,10 +8238,52 @@ EOF`;
           redrawTrueCanvas();
         });
 
+        // Opt Checkbox (Tickmark to include in optimization)
+        const lblOpt = document.createElement("label");
+        lblOpt.style.display = "inline-flex";
+        lblOpt.style.alignItems = "center";
+        lblOpt.style.gap = "2px";
+        lblOpt.style.cursor = "pointer";
+        lblOpt.style.margin = "0 3px";
+        lblOpt.style.flexShrink = "0";
+        lblOpt.title = "Include this parcel in area optimization loss [Tickmark]";
+
+        const chkOpt = document.createElement("input");
+        chkOpt.type = "checkbox";
+        chkOpt.checked = (p.optArea !== false);
+        chkOpt.style.accentColor = "var(--accent-cyan)";
+        chkOpt.style.cursor = "pointer";
+        chkOpt.style.margin = "0";
+        chkOpt.addEventListener("click", e => e.stopPropagation());
+        chkOpt.addEventListener("change", e => {
+          p.optArea = e.target.checked;
+          optTxt.style.color = p.optArea ? "var(--accent-cyan)" : "var(--text-muted)";
+          recomputeCustomPolygonMetrics();
+        });
+
+        const optTxt = document.createElement("span");
+        optTxt.textContent = "Opt";
+        optTxt.style.fontSize = "0.61rem";
+        optTxt.style.fontWeight = "700";
+        optTxt.style.color = (p.optArea !== false) ? "var(--accent-cyan)" : "var(--text-muted)";
+
+        lblOpt.appendChild(chkOpt);
+        lblOpt.appendChild(optTxt);
+
+        // Area & Delta % readout
+        let deltaHtml = "";
+        if (areaM2 > 0 && p.targetArea > 0) {
+          const diffPct = ((areaM2 - p.targetArea) / p.targetArea) * 100;
+          const absDiff = Math.abs(diffPct);
+          const color = absDiff <= 4.0 ? "#00e676" : (absDiff <= 8.0 ? "#ffb300" : "#ff1744");
+          const sign = diffPct > 0 ? "+" : "";
+          deltaHtml = `<span style="color:${color};font-size:0.62rem;font-weight:700;margin-left:3px;" title="Cabida Target: ${p.targetArea.toFixed(1)} m² (${sign}${diffPct.toFixed(2)}%)">${sign}${diffPct.toFixed(1)}%</span>`;
+        }
+
         const meta = document.createElement("span");
         meta.className = "custom-poly-meta-badge";
         meta.style.color = p.closed ? (isActive ? p.color : "var(--text-muted)") : "#ff9100";
-        meta.textContent = areaStr;
+        meta.innerHTML = areaStr + deltaHtml;
 
         const btnVis = document.createElement("button");
         btnVis.type = "button";
@@ -8205,6 +8307,7 @@ EOF`;
 
         row.appendChild(dot);
         row.appendChild(inp);
+        row.appendChild(lblOpt);
         row.appendChild(meta);
         row.appendChild(btnVis);
         row.appendChild(btnDel);
@@ -8645,6 +8748,33 @@ EOF`;
           totalAreaEl.textContent = `${totalArea.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (${tPlazas.toFixed(2)} pl)`;
         } else {
           totalWrap.style.display = "none";
+        }
+      }
+
+      // Target Cabida & Optimization Checkbox in Metrics subpanel
+      const targetInput = document.getElementById("custom-poly-target-input");
+      const targetDiffRow = document.getElementById("custom-poly-target-diff-row");
+      const targetDiffVal = document.getElementById("custom-poly-target-diff-val");
+      const chkIncludeOpt = document.getElementById("chk-custom-poly-include-opt");
+
+      if (targetInput) {
+        targetInput.value = (poly.targetArea !== undefined && poly.targetArea !== null && poly.targetArea > 0) ? poly.targetArea : "";
+      }
+      if (chkIncludeOpt) {
+        chkIncludeOpt.checked = (poly.optArea !== false);
+      }
+      if (targetDiffRow && targetDiffVal) {
+        if (areaM2 > 0 && poly.targetArea > 0) {
+          targetDiffRow.style.display = "flex";
+          const diffM2 = areaM2 - poly.targetArea;
+          const diffPct = (diffM2 / poly.targetArea) * 100;
+          const absDiff = Math.abs(diffPct);
+          const color = absDiff <= 4.0 ? "#00e676" : (absDiff <= 8.0 ? "#ffb300" : "#ff1744");
+          const sign = diffM2 > 0 ? "+" : "";
+          targetDiffVal.style.color = color;
+          targetDiffVal.textContent = `${sign}${diffM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (${sign}${diffPct.toFixed(2)}%)`;
+        } else {
+          targetDiffRow.style.display = "none";
         }
       }
     }
@@ -9957,6 +10087,77 @@ EOF`;
       btnDlCustomPolyDxf.addEventListener("click", downloadCustomPolygonDxf);
     }
 
+    const btnLoadCasaDelSol = document.getElementById("btn-load-casadelsol-preset");
+    if (btnLoadCasaDelSol) {
+      btnLoadCasaDelSol.addEventListener("click", () => {
+        if (typeof EMBEDDED_CASADELSOL_PARCELS !== "undefined") {
+          applyCustomPolygons(EMBEDDED_CASADELSOL_PARCELS);
+          updateStatus("☀️ Loaded Casa del Sol parcels (Lotes 5, 6, 7, 8) from Deed 1073.");
+        }
+      });
+    }
+
+    const btnSaveCustomPolyJson = document.getElementById("btn-save-custom-poly-json");
+    if (btnSaveCustomPolyJson) {
+      btnSaveCustomPolyJson.addEventListener("click", () => {
+        const polys = state.customPolygons || [];
+        const str = JSON.stringify(polys, null, 2);
+        const blob = new Blob([str], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "casadelsol_parcels.json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        updateStatus("💾 Saved Custom Polygons to casadelsol_parcels.json.");
+      });
+    }
+
+    const customPolyFileInput = document.getElementById("custom-poly-file-input");
+    if (customPolyFileInput) {
+      customPolyFileInput.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (Array.isArray(data) && data.length > 0) {
+              applyCustomPolygons(data);
+              updateStatus(`📂 Loaded ${data.length} custom polygons from ${file.name}.`);
+            } else {
+              alert("Invalid custom polygons JSON file: expected array of polygons.");
+            }
+          } catch(err) {
+            alert("Error parsing JSON file: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    const customPolyTargetInput = document.getElementById("custom-poly-target-input");
+    if (customPolyTargetInput) {
+      customPolyTargetInput.addEventListener("change", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        const val = parseFloat(e.target.value);
+        poly.targetArea = (!isNaN(val) && val > 0) ? val : null;
+        recomputeCustomPolygonMetrics();
+        renderCustomPolyList();
+      });
+    }
+
+    const chkCustomPolyIncludeOpt = document.getElementById("chk-custom-poly-include-opt");
+    if (chkCustomPolyIncludeOpt) {
+      chkCustomPolyIncludeOpt.addEventListener("change", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        poly.optArea = e.target.checked;
+        recomputeCustomPolygonMetrics();
+        renderCustomPolyList();
+      });
+    }
+
     // Initial render of custom polygon list
     renderCustomPolyList();
     recomputeCustomPolygonMetrics();
@@ -10377,7 +10578,35 @@ EOF`;
               areaM2 += V[i].x * V[j].y - V[j].x * V[i].y;
             }
             areaM2 = Math.abs(areaM2) / 2;
-            const areaDiffPct = (Math.abs(areaM2 - 162156.0) / 162156.0) * 100;
+            const trinidadAreaDiffPct = (Math.abs(areaM2 - 162156.0) / 162156.0) * 100;
+
+            // Multi-parcel area evaluation for Custom Polygons (e.g. Casa del Sol Lotes 5-8)
+            let customAreaErrSum = 0;
+            let countOptPolys = 0;
+            const customPolys = state.customPolygons || [];
+            for (let pIdx = 0; pIdx < customPolys.length; pIdx++) {
+              const cp = customPolys[pIdx];
+              if (cp.optArea !== false && cp.targetArea > 0 && cp.closed && cp.vertices && cp.vertices.length >= 3) {
+                let cpArea = 0;
+                const cpLen = cp.vertices.length;
+                for (let k = 0; k < cpLen; k++) {
+                  const m = (k + 1) % cpLen;
+                  const vk = cp.vertices[k];
+                  const vm = cp.vertices[m];
+                  const ptk = (vk.anchor && vk.anchor.type === 'deed' && vk.anchor.deedPt) ? candWarper(vk.anchor.deedPt) : vk;
+                  const ptm = (vm.anchor && vm.anchor.type === 'deed' && vm.anchor.deedPt) ? candWarper(vm.anchor.deedPt) : vm;
+                  cpArea += ptk.x * ptm.y - ptm.x * ptk.y;
+                }
+                cpArea = Math.abs(cpArea) / 2;
+                const pErr = (Math.abs(cpArea - cp.targetArea) / cp.targetArea) * 100;
+                customAreaErrSum += pErr;
+                countOptPolys++;
+              }
+            }
+
+            const combinedAreaDiffPct = (countOptPolys > 0)
+              ? (trinidadAreaDiffPct + customAreaErrSum) / (1 + countOptPolys)
+              : trinidadAreaDiffPct;
 
             const nSegs = V.length;
             let segErrSum = 0, countSegs = 0;
@@ -10395,15 +10624,16 @@ EOF`;
             const b = Math.max(0, Math.min(100, state.optBalance));
             const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
             const wArea = b >= 50 ? 1.0 : b / 50;
-            const compositeLoss = (wDist * avgSegErr + wArea * areaDiffPct) / (wDist + wArea);
-            const overallErr = countSegs > 0 ? (avgSegErr + areaDiffPct) / 2 : areaDiffPct;
+            const compositeLoss = (wDist * avgSegErr + wArea * combinedAreaDiffPct) / (wDist + wArea);
+            const overallErr = countSegs > 0 ? (avgSegErr + combinedAreaDiffPct) / 2 : combinedAreaDiffPct;
 
             return {
               loss: compositeLoss,
               overallErr,
               optRes,
               candAnchors,
-              areaDiffPct,
+              areaDiffPct: combinedAreaDiffPct,
+              trinidadAreaDiffPct,
               avgSegErr,
               radius: currentR,
               offsets: offsets.map(o => ({ ...o }))
@@ -14853,6 +15083,22 @@ EOF`;
         } catch(e) {
           console.warn("user_polygon.dxf preload:", e.message);
         }
+      }
+
+      // 4.5. Custom Polygons / Casa del Sol Parcels preload (casadelsol_parcels.json)
+      let loadedCustom = false;
+      try {
+        const textCustom = await fetchText("casadelsol_parcels.json");
+        const dataCustom = JSON.parse(textCustom);
+        if (Array.isArray(dataCustom) && dataCustom.length > 0) {
+          applyCustomPolygons(dataCustom);
+          loadedCustom = true;
+        }
+      } catch(e) {
+        console.warn("casadelsol_parcels.json preload:", e.message);
+      }
+      if (!loadedCustom && typeof EMBEDDED_CASADELSOL_PARCELS !== "undefined" && EMBEDDED_CASADELSOL_PARCELS.length > 0) {
+        applyCustomPolygons(EMBEDDED_CASADELSOL_PARCELS);
       }
 
       // 5. Initialize constraints, subpanels, metrics and redraw immediately
