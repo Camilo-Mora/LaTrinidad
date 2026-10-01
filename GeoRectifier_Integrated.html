@@ -681,6 +681,24 @@ Do NOT modify dormant/parked sections unless specifically requested.
       flex-shrink: 0;
     }
 
+    .btn-toggle-all-labels {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 0.92rem;
+      padding: 0;
+      line-height: 1;
+      vertical-align: middle;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, opacity 0.2s ease, filter 0.15s ease;
+    }
+    .btn-toggle-all-labels:hover {
+      transform: scale(1.25);
+      filter: drop-shadow(0 0 4px var(--accent-cyan));
+    }
+
     .btn-del-anchor {
       background: rgba(255, 23, 68, 0.15);
       border: 1px solid rgba(255, 23, 68, 0.35);
@@ -2042,7 +2060,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
                         <input type="checkbox" id="chk-toggle-all-anchors-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors 1073">
                       </th>
                       <th style="text-align:left;">Name</th>
-                      <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
+                      <th style="width:28px;text-align:center;" title="Display / Hide all anchor labels on canvas">
+                        <button type="button" id="btn-toggle-all-labels-1073" class="btn-toggle-all-labels" data-deed="1073" title="Display / Hide all anchor labels on canvas">👁️</button>
+                      </th>
                       <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
                       <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
                       <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
@@ -2088,7 +2108,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
                         <input type="checkbox" id="chk-toggle-all-anchors-196" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors 196">
                       </th>
                       <th style="text-align:left;">Name</th>
-                      <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
+                      <th style="width:28px;text-align:center;" title="Display / Hide all anchor labels on canvas">
+                        <button type="button" id="btn-toggle-all-labels-196" class="btn-toggle-all-labels" data-deed="196" title="Display / Hide all anchor labels on canvas">👁️</button>
+                      </th>
                       <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
                       <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
                       <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
@@ -2134,7 +2156,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
                         <input type="checkbox" id="chk-toggle-all-anchors-296" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors 296">
                       </th>
                       <th style="text-align:left;">Name</th>
-                      <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
+                      <th style="width:28px;text-align:center;" title="Display / Hide all anchor labels on canvas">
+                        <button type="button" id="btn-toggle-all-labels-296" class="btn-toggle-all-labels" data-deed="296" title="Display / Hide all anchor labels on canvas">👁️</button>
+                      </th>
                       <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
                       <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
                       <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
@@ -14011,6 +14035,19 @@ EOF`;
         chkToggleAllEl.indeterminate = activeCount > 0 && activeCount < totalCount;
       }
 
+      const btnToggleLabelsEl = document.getElementById(`btn-toggle-all-labels-${deedKey}`);
+      if (btnToggleLabelsEl) {
+        const visibleCount = (anchors || []).filter(a => a.showLabel !== false).length;
+        const allShown = totalCount > 0 && visibleCount === totalCount;
+        if (visibleCount === 0 && totalCount > 0) {
+          btnToggleLabelsEl.style.opacity = "0.35";
+          btnToggleLabelsEl.title = `Show all anchor labels on canvas (Escritura ${deedKey})`;
+        } else {
+          btnToggleLabelsEl.style.opacity = "1";
+          btnToggleLabelsEl.title = allShown ? `Hide all anchor labels on canvas (Escritura ${deedKey})` : `Show all anchor labels on canvas (Escritura ${deedKey})`;
+        }
+      }
+
       (anchors || []).forEach(anc => {
         const isEnabled = anc.active !== false && anc.enabled !== false;
         let err = "—";
@@ -14150,6 +14187,25 @@ EOF`;
     }
     window.toggleAllAnchors = toggleAllAnchors;
 
+    function toggleAllAnchorLabels(deedKey = "1073") {
+      let list = state.anchors1073 || state.anchors;
+      if (deedKey === "196") list = state.anchors196;
+      else if (deedKey === "296") list = state.anchors296;
+      if (!list || list.length === 0) return;
+
+      const totalCount = list.length;
+      const visibleCount = list.filter(a => a.showLabel !== false).length;
+      const targetState = !(visibleCount === totalCount);
+
+      list.forEach(a => {
+        a.showLabel = targetState;
+      });
+
+      updateStatus(targetState ? `All anchor labels for Escritura ${deedKey} displayed.` : `All anchor labels for Escritura ${deedKey} hidden.`);
+      redrawAll();
+    }
+    window.toggleAllAnchorLabels = toggleAllAnchorLabels;
+
     // Anchor table interactions: name editing, label toggling, photo upload/modal
     let currentPhotoAnchorId = null;
     let currentPhotoAnchorDeed = "1073";
@@ -14208,6 +14264,13 @@ EOF`;
       });
 
       bodyAnchorsContainer.addEventListener("click", e => {
+        const toggleLabelsBtn = e.target.closest(".btn-toggle-all-labels");
+        if (toggleLabelsBtn) {
+          const deedKey = toggleLabelsBtn.dataset.deed || "1073";
+          toggleAllAnchorLabels(deedKey);
+          return;
+        }
+
         const uploadBtn = e.target.closest(".btn-upload-anchor-photo");
         if (uploadBtn) {
           currentPhotoAnchorId = parseInt(uploadBtn.dataset.id, 10);
@@ -14353,6 +14416,13 @@ EOF`;
     if (chkToggleAll296) chkToggleAll296.addEventListener("change", e => toggleAllAnchors(e.target.checked, "296"));
     const chkToggleAllAnchors = document.getElementById("chk-toggle-all-anchors");
     if (chkToggleAllAnchors) chkToggleAllAnchors.addEventListener("change", e => toggleAllAnchors(e.target.checked, "1073"));
+
+    const btnToggleLabels1073 = document.getElementById("btn-toggle-all-labels-1073");
+    if (btnToggleLabels1073) btnToggleLabels1073.addEventListener("click", () => toggleAllAnchorLabels("1073"));
+    const btnToggleLabels196 = document.getElementById("btn-toggle-all-labels-196");
+    if (btnToggleLabels196) btnToggleLabels196.addEventListener("click", () => toggleAllAnchorLabels("196"));
+    const btnToggleLabels296 = document.getElementById("btn-toggle-all-labels-296");
+    if (btnToggleLabels296) btnToggleLabels296.addEventListener("click", () => toggleAllAnchorLabels("296"));
 
     // Anchor Photo Size Slider (for screenshots & high-resolution review)
     const rangePhotoSize = document.getElementById("range-anchor-photo-size");
