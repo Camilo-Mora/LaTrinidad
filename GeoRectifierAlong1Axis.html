@@ -5019,7 +5019,10 @@ EOF`;
           src: { x: a.src.x, y: a.src.y },
           dst: { x: a.dst.x, y: a.dst.y },
           active: a.active !== false && a.enabled !== false,
-          enabled: a.active !== false && a.enabled !== false
+          enabled: a.active !== false && a.enabled !== false,
+          axisId: a.axisId !== undefined ? a.axisId : null,
+          axisT: a.axisT !== undefined ? a.axisT : null,
+          optimize: a.optimize === true
         };
         if (anc.image) {
           const img = new Image();
@@ -11227,28 +11230,6 @@ EOF`;
                   t = Math.max(0.0, Math.min(1.0, t));
                   trialOffsets.push({ t, u: 0, v: 0 });
                 } else {
-                  let u, v;
-                  if (Math.random() < CR || k === 0) {
-                    u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
-                        + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
-                    v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
-                        + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
-                    if (Math.random() < 0.12) {
-                      u += (Math.random() - 0.5) * 0.18;
-                      v += (Math.random() - 0.5) * 0.18;
-                    }
-                  } else {
-                    u = population[i].offsets[k].u;
-                    v = population[i].offsets[k].v;
-                  }
-                  const dist = Math.hypot(u, v);
-                  if (dist > 1.0) {
-                    u /= dist;
-                    v /= dist;
-                  }
-                  trialOffsets.push({ u, v, t: 0.5 });
-                }
-              }
                   let u, v;
                   if (Math.random() < CR || k === 0) {
                     u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
