@@ -9013,6 +9013,90 @@ EOF`;
       ctx.restore();
     }
 
+    /** Draw centroid label badge displaying polygon name, area and deed error statistics on main canvas */
+    function drawCustomPolyCentroidLabel(ctx, poly, verts, vp, canvasH, isActive) {
+      if (!poly.closed || !verts || verts.length < 3) return;
+
+      let cx = 0, cy = 0;
+      for (let i = 0; i < verts.length; i++) { cx += verts[i].x; cy += verts[i].y; }
+      cx /= verts.length; cy /= verts.length;
+      const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
+
+      let aM2 = 0;
+      for (let i = 0; i < verts.length; i++) {
+        const j = (i + 1) % verts.length;
+        aM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
+      }
+      aM2 = Math.abs(aM2) / 2;
+
+      const pColor = poly.color || "#ffb300";
+      const hasTarget = (poly.targetArea > 0);
+
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      if (hasTarget) {
+        const diffM2 = aM2 - poly.targetArea;
+        const diffPct = (diffM2 / poly.targetArea) * 100;
+        const sign = diffM2 >= 0 ? "+" : "";
+        const absPct = Math.abs(diffPct);
+        const errColor = absPct <= 2.0 ? "#00e676" : (absPct <= 5.0 ? "#ffb300" : "#ff1744");
+
+        const line1 = `${poly.name}: ${aM2.toLocaleString('en-US', { maximumFractionDigits: 1 })} m²`;
+        const line2 = `Δ: ${sign}${diffPct.toFixed(2)}% (${sign}${diffM2.toFixed(1)} m²) • Deed: ${poly.targetArea.toLocaleString('en-US', { maximumFractionDigits: 0 })} m²`;
+
+        ctx.font = "bold 9.5px sans-serif";
+        const w1 = ctx.measureText(line1).width;
+        ctx.font = "bold 8.5px monospace";
+        const w2 = ctx.measureText(line2).width;
+        const bw = Math.max(w1, w2) + 14;
+        const bh = 28;
+
+        ctx.fillStyle = "rgba(8, 12, 22, 0.90)";
+        ctx.strokeStyle = isActive ? pColor : errColor;
+        ctx.lineWidth = isActive ? 2.0 : 1.2;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh, 4);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+          ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        }
+
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.fillStyle = pColor;
+        ctx.fillText(line1, sc.x, sc.y - 6);
+
+        ctx.font = "bold 8.5px monospace";
+        ctx.fillStyle = errColor;
+        ctx.fillText(line2, sc.x, sc.y + 7);
+      } else {
+        const line1 = `${poly.name}: ${aM2.toLocaleString('en-US', { maximumFractionDigits: 1 })} m²`;
+        ctx.font = "bold 9px sans-serif";
+        const tw = ctx.measureText(line1).width;
+        const bw = tw + 8, bh = 15;
+
+        ctx.fillStyle = "rgba(10, 14, 23, 0.88)";
+        ctx.strokeStyle = hexToRgba(pColor, 0.75);
+        ctx.lineWidth = isActive ? 1.8 : 1;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh, 3);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+          ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        }
+        ctx.fillStyle = pColor;
+        ctx.fillText(line1, sc.x, sc.y);
+      }
+      ctx.restore();
+    }
+
     /** Render Autonomous Custom Polygons on trueCanvas */
     function drawCustomPolygon(ctx, vp, canvasH) {
       const polys = state.customPolygons || (state.customPolygon ? [state.customPolygon] : []);
@@ -9072,35 +9156,8 @@ EOF`;
           ctx.restore();
         }
 
-        // Centroid name & area badge for closed non-active polygons
-        if (poly.closed && verts.length >= 3) {
-          let cx = 0, cy = 0;
-          for (let i = 0; i < verts.length; i++) { cx += verts[i].x; cy += verts[i].y; }
-          cx /= verts.length; cy /= verts.length;
-          const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
-
-          let aM2 = 0;
-          for (let i = 0; i < verts.length; i++) {
-            const j = (i + 1) % verts.length;
-            aM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
-          }
-          aM2 = Math.abs(aM2) / 2;
-
-          const badgeTxt = `${poly.name}: ${aM2.toLocaleString('en-US', { maximumFractionDigits: 1 })} m²`;
-          ctx.save();
-          ctx.font = "bold 9px sans-serif";
-          ctx.textAlign = "center";
-          const tw = ctx.measureText(badgeTxt).width;
-          const bw = tw + 8, bh = 14;
-          ctx.fillStyle = "rgba(10, 14, 23, 0.85)";
-          ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-          ctx.strokeStyle = hexToRgba(pColor, 0.7);
-          ctx.lineWidth = 1;
-          ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-          ctx.fillStyle = pColor;
-          ctx.fillText(badgeTxt, sc.x, sc.y + 3);
-          ctx.restore();
-        }
+        // Centroid name & error statistic badge for closed non-active polygons
+        drawCustomPolyCentroidLabel(ctx, poly, verts, vp, canvasH, false);
 
         // Subtle node dots for non-active polygons
         if (poly.showNodes) {
@@ -9312,6 +9369,9 @@ EOF`;
           ctx.restore();
         }
 
+        // Centroid name & error statistic badge for active polygon
+        drawCustomPolyCentroidLabel(ctx, poly, verts, vp, canvasH, true);
+
         // Area HUD callout box pinned to top-left of the field canvas
         if (poly.closed && verts.length >= 3) {
           let areaM2 = 0;
@@ -9322,18 +9382,31 @@ EOF`;
           areaM2 = Math.abs(areaM2) / 2;
           const plazas = areaM2 / 6400;
 
+          const hasTarget = (poly.targetArea > 0);
+          let diffM2 = 0, diffPct = 0, sign = "", absPct = 0, errColor = "#00e676";
+          if (hasTarget) {
+            diffM2 = areaM2 - poly.targetArea;
+            diffPct = (diffM2 / poly.targetArea) * 100;
+            sign = diffM2 >= 0 ? "+" : "";
+            absPct = Math.abs(diffPct);
+            errColor = absPct <= 2.0 ? "#00e676" : (absPct <= 5.0 ? "#ffb300" : "#ff1744");
+          }
+
           const txt1 = `📐 ${poly.name}: ${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-          const txt2 = `${plazas.toFixed(2)} plazas (${verts.length} nodes)`;
+          const txt2 = hasTarget
+            ? `Deed: ${poly.targetArea.toLocaleString('en-US', { maximumFractionDigits: 1 })} m² • Δ: ${sign}${diffPct.toFixed(2)}% (${sign}${diffM2.toFixed(1)} m²)`
+            : `${plazas.toFixed(2)} plazas (${verts.length} nodes)`;
+          const txt3 = hasTarget ? `${plazas.toFixed(2)} plazas (${verts.length} nodes)` : "";
 
           const hasUserPolyHud = state.userPolygon && state.userPolygon.closed && state.userPolygon.vertices && state.userPolygon.vertices.length >= 3;
           const boxX = 14;
           const boxY = hasUserPolyHud ? 54 : 14;
-          const bw = 155;
-          const bh = 34;
+          const bw = hasTarget ? 240 : 160;
+          const bh = hasTarget ? 48 : 34;
 
           ctx.save();
-          ctx.fillStyle = "rgba(6, 9, 16, 0.90)";
-          ctx.strokeStyle = hexToRgba(pColor, 0.65);
+          ctx.fillStyle = "rgba(6, 9, 16, 0.92)";
+          ctx.strokeStyle = hasTarget ? errColor : hexToRgba(pColor, 0.65);
           ctx.lineWidth = 1.5;
 
           ctx.beginPath();
@@ -9350,9 +9423,16 @@ EOF`;
           ctx.font = "bold 11px monospace";
           ctx.textAlign = "center";
           ctx.fillText(txt1, centerX, boxY + 14);
-          ctx.fillStyle = "#cbd5e1";
-          ctx.font = "10px sans-serif";
+
+          ctx.fillStyle = hasTarget ? errColor : "#cbd5e1";
+          ctx.font = hasTarget ? "bold 9.5px monospace" : "10px sans-serif";
           ctx.fillText(txt2, centerX, boxY + 28);
+
+          if (hasTarget && txt3) {
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "9px sans-serif";
+            ctx.fillText(txt3, centerX, boxY + 41);
+          }
           ctx.restore();
         }
       }
@@ -10585,11 +10665,24 @@ EOF`;
       const chkAutoMin = document.getElementById("chk-auto-min-buffer");
       const isAutoMin = chkAutoMin ? chkAutoMin.checked : false;
 
-      // If Auto-Detect Min Buffer is ticked, sweep from 0.1m up to 3.0m in increments of 0.1m.
-      // Otherwise, use current slider buffer radius (default 3.0m).
-      const rSweepList = isAutoMin
-        ? Array.from({ length: 30 }, (_, i) => +(0.1 * (i + 1)).toFixed(1))
-        : [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0];
+      const chkOptAlongAxis = document.getElementById("chk-opt-along-axis");
+      const useAxisOnly = chkOptAlongAxis ? chkOptAlongAxis.checked : (state.optAlongAxisOnly || false);
+
+      if (useAxisOnly) {
+        const boundAxisAnchors = state.anchors.filter(anc => anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId));
+        if (boundAxisAnchors.length === 0) {
+          alert("1D Test Axis Constraint is enabled, but no active anchors are linked to a Test Axis.\n\nPlease snap at least one anchor to a Test Axis or untick '1D Test Axis Constraint'.");
+          return;
+        }
+      }
+
+      // If in 1D Axis Mode, perform a single sweep across the entire length [0.0, 1.0] of each axis.
+      // Otherwise, if Auto-Detect Min Buffer is ticked, sweep from 0.1m up to 3.0m in increments of 0.1m.
+      const rSweepList = useAxisOnly
+        ? [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0]
+        : (isAutoMin
+            ? Array.from({ length: 30 }, (_, i) => +(0.1 * (i + 1)).toFixed(1))
+            : [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0]);
 
       // Identify buffer centers for each anchor:
       // If "Constrain to Vertices / Markers" is ticked, start/center from the snapped vertex or temporary marker.
@@ -10621,33 +10714,17 @@ EOF`;
       const POP_SIZE = 16;
       const MAX_GEN = isAutoMin ? 10 : 22;
 
-      const chkOptAlongAxis = document.getElementById("chk-opt-along-axis");
-      const useAxisOnly = chkOptAlongAxis ? chkOptAlongAxis.checked : (state.optAlongAxisOnly || false);
-
-      function getOffsetForAnchor(ancIdx, sScalar) {
-        const anc = state.anchors[ancIdx];
-        if (anc && anc.axisId != null) {
-          const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
-          if (ax) {
-            const geom = computeAxisGeometry(ax);
-            return { u: +(sScalar * geom.u.x).toFixed(4), v: +(sScalar * geom.u.y).toFixed(4) };
-          }
-        }
-        return { u: 0, v: 0 }; // Anchors without an axis remain locked (0 drift)
-      }
-
       function sampleCandidateOffset(ancIdx) {
         if (useAxisOnly) {
           const anc = state.anchors[ancIdx];
-          if (anc && anc.axisId != null) {
-            const s = (Math.random() * 2 - 1);
-            return getOffsetForAnchor(ancIdx, s);
+          if (anc && anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+            return { t: Math.random(), u: 0, v: 0 };
           }
-          return { u: 0, v: 0 }; // Locked!
+          return { t: 0.5, u: 0, v: 0 }; // Locked!
         }
         const theta = Math.random() * 2 * Math.PI;
         const rad = Math.sqrt(Math.random());
-        return { u: rad * Math.cos(theta), v: rad * Math.sin(theta) };
+        return { u: rad * Math.cos(theta), v: rad * Math.sin(theta), t: 0.5 };
       }
 
       function sampleDisk() {
@@ -10674,31 +10751,30 @@ EOF`;
       function getGridOffsetsForM(numAnchors) {
         if (numAnchors <= 2) {
           // 17 ordered points: Center (0,0), then inner ring r=0.50 (8 pts), then outer ring r=0.92 (8 pts)
-          // Sequential circular sweep through 0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°
-          const pts = [{ u: 0, v: 0 }];
+          const pts = [{ u: 0, v: 0, t: 0.5 }];
           const r1 = 0.50;
           const r2 = 0.92;
           for (let k = 0; k < 8; k++) {
             const th = (k * Math.PI) / 4;
-            pts.push({ u: +(r1 * Math.cos(th)).toFixed(4), v: +(r1 * Math.sin(th)).toFixed(4) });
+            pts.push({ u: +(r1 * Math.cos(th)).toFixed(4), v: +(r1 * Math.sin(th)).toFixed(4), t: 0.5 });
           }
           for (let k = 0; k < 8; k++) {
             const th = (k * Math.PI) / 4;
-            pts.push({ u: +(r2 * Math.cos(th)).toFixed(4), v: +(r2 * Math.sin(th)).toFixed(4) });
+            pts.push({ u: +(r2 * Math.cos(th)).toFixed(4), v: +(r2 * Math.sin(th)).toFixed(4), t: 0.5 });
           }
           return pts;
         } else if (numAnchors === 3) {
           return [
-            { u: 0, v: 0 },
-            { u: 0.80, v: 0 }, { u: -0.80, v: 0 },
-            { u: 0.40, v: 0.69 }, { u: -0.40, v: 0.69 },
-            { u: 0.40, v: -0.69 }, { u: -0.40, v: -0.69 }
+            { u: 0, v: 0, t: 0.5 },
+            { u: 0.80, v: 0, t: 0.5 }, { u: -0.80, v: 0, t: 0.5 },
+            { u: 0.40, v: 0.69, t: 0.5 }, { u: -0.40, v: 0.69, t: 0.5 },
+            { u: 0.40, v: -0.69, t: 0.5 }, { u: -0.40, v: -0.69, t: 0.5 }
           ];
         } else {
           return [
-            { u: 0, v: 0 },
-            { u: 0.80, v: 0 }, { u: -0.80, v: 0 },
-            { u: 0, v: 0.80 }, { u: 0, v: -0.80 }
+            { u: 0, v: 0, t: 0.5 },
+            { u: 0.80, v: 0, t: 0.5 }, { u: -0.80, v: 0, t: 0.5 },
+            { u: 0, v: 0.80, t: 0.5 }, { u: 0, v: -0.80, t: 0.5 }
           ];
         }
       }
@@ -10717,26 +10793,59 @@ EOF`;
         if (optBufferSlider) optBufferSlider.value = currentR;
         if (optBufferVal) optBufferVal.textContent = `±${currentR.toFixed(1)} m`;
 
-        // Current normalized offsets inside unit disk for this currentR
+        // Current normalized offsets inside unit disk or full-axis parameter t
         const currentOffsets = state.anchors.map((anc, idx) => {
+          if (useAxisOnly && anc.axisId != null) {
+            const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+            if (ax) {
+              let t = anc.axisT;
+              if (typeof t !== "number") {
+                const pr = projectPointOnAxis(anc.dst, ax);
+                t = pr.t;
+              }
+              t = Math.max(0.0, Math.min(1.0, t));
+              return { t, u: 0, v: 0 };
+            }
+          }
           const center = anchorCenters[idx];
           let du = (anc.dst.x - center.x) / currentR;
           let dv = (anc.dst.y - center.y) / currentR;
           const d = Math.hypot(du, dv);
           if (d > 1) { du /= d; dv /= d; }
-          return { u: du, v: dv };
+          return { u: du, v: dv, t: 0.5 };
         });
 
         // Candidate fitness evaluation function for currentR
         function evaluateCandidate(offsets) {
           try {
-            const candAnchors = state.anchors.map((anc, idx) => ({
-              ...anc,
-              dst: {
-                x: anchorCenters[idx].x + offsets[idx].u * currentR,
-                y: anchorCenters[idx].y + offsets[idx].v * currentR
+            const candAnchors = state.anchors.map((anc, idx) => {
+              if (useAxisOnly && anc.axisId != null) {
+                const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+                if (ax) {
+                  let t = offsets[idx].t !== undefined
+                    ? offsets[idx].t
+                    : (offsets[idx].u !== undefined ? (offsets[idx].u + 1) / 2 : 0.5);
+                  t = Math.max(0.0, Math.min(1.0, t));
+                  return {
+                    ...anc,
+                    axisT: t,
+                    dst: {
+                      x: ax.p1.x + t * (ax.p2.x - ax.p1.x),
+                      y: ax.p1.y + t * (ax.p2.y - ax.p1.y)
+                    }
+                  };
+                }
               }
-            }));
+              const u = offsets[idx].u || 0;
+              const v = offsets[idx].v || 0;
+              return {
+                ...anc,
+                dst: {
+                  x: anchorCenters[idx].x + u * currentR,
+                  y: anchorCenters[idx].y + v * currentR
+                }
+              };
+            });
 
             const candWarper = TransformMath.createWarper(state.algorithm, candAnchors);
 
@@ -10840,13 +10949,25 @@ EOF`;
           // ── STRATEGY A: ALL COMBINATIONS (ORDERED GRID SEARCH) ──────────────
           let pointSets;
           if (useAxisOnly) {
-            // 1D Axis grid: sweep scalar s from -1.0 to +1.0 in 9 steps
-            const sVals = [-1.0, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1.0];
+            // Full-length 1D Axis grid: sweep parameter t from 0.0 (Point 1) to 1.0 (Point 2)
+            const axisAnchors = state.anchors.filter(anc => anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId));
+            const axisAnchorCount = axisAnchors.length;
+            let nSteps = 51; // 1 anchor -> 51 steps (0.00 to 1.00 at 0.02 intervals)
+            if (axisAnchorCount === 2) nSteps = 25; // 2 anchors -> 25*25 = 625 combos
+            else if (axisAnchorCount === 3) nSteps = 11; // 3 anchors -> 11^3 = 1331 combos
+            else if (axisAnchorCount === 4) nSteps = 6;  // 4 anchors -> 6^4 = 1296 combos
+            else if (axisAnchorCount > 4) nSteps = 5;
+
+            const tVals = [];
+            for (let s = 0; s < nSteps; s++) {
+              tVals.push(+(s / (nSteps - 1)).toFixed(4));
+            }
+
             pointSets = state.anchors.map((anc, idx) => {
               if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
-                return sVals.map(s => getOffsetForAnchor(idx, s));
+                return tVals.map(t => ({ t, u: 0, v: 0 }));
               }
-              return [{ u: 0, v: 0 }]; // Unbound anchors stay locked!
+              return [{ t: 0.5, u: 0, v: 0 }]; // Unbound anchors stay locked!
             });
           } else {
             const baseGrid = getGridOffsetsForM(M);
@@ -10871,12 +10992,15 @@ EOF`;
               globalBest = trialEval;
             }
 
-            // Animate orderly movement across buffer disks so the user sees the sequential sweep
+            // Animate orderly movement across buffer disks / axes so the user sees the sequential sweep
             if (cIdx % yieldInterval === 0 || cIdx === totalCombos - 1 || isNewBest) {
               for (let k = 0; k < M; k++) {
                 if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
                   state.anchors[k].dst.x = trialEval.candAnchors[k].dst.x;
                   state.anchors[k].dst.y = trialEval.candAnchors[k].dst.y;
+                  if (trialEval.candAnchors[k].axisT !== undefined) {
+                    state.anchors[k].axisT = trialEval.candAnchors[k].axisT;
+                  }
                 }
               }
               if (trialEval.optRes) {
@@ -10886,7 +11010,7 @@ EOF`;
               redrawTrueCanvas();
 
               if (optStatusBadge) {
-                const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Combos`;
+                const prefix = useAxisOnly ? `1D Axis` : (isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Combos`);
                 optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (Best: ${globalBest.loss.toFixed(2)}%)`;
                 optStatusBadge.style.color = "#ffb300";
                 optStatusBadge.style.background = "rgba(255, 179, 0, 0.15)";
@@ -10901,6 +11025,9 @@ EOF`;
               if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
                 state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
                 state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+                if (globalBest.candAnchors[k].axisT !== undefined) {
+                  state.anchors[k].axisT = globalBest.candAnchors[k].axisT;
+                }
               }
             }
             poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
@@ -10911,15 +11038,30 @@ EOF`;
           // ── STRATEGY B: GENETIC ALGORITHM (DIFFERENTIAL EVOLUTION) ───────────
           const population = [];
           population.push(evaluateCandidate(currentOffsets));
-          population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
 
           if (useAxisOnly) {
-            const sVals = [-0.9, -0.6, -0.3, 0.3, 0.6, 0.9];
-            for (let i = 0; i < sVals.length && population.length < POP_SIZE; i++) {
-              const offsetArr = state.anchors.map((_, k) => getOffsetForAnchor(k, sVals[i]));
+            // Seed key stations along the full axis [0.0, 1.0]: 0.0 (p1), 1.0 (p2), 0.5 (mid), 0.25, 0.75, etc.
+            const tSeeds = [0.0, 1.0, 0.5, 0.25, 0.75, 0.1, 0.9, 0.35, 0.65];
+            for (let s = 0; s < tSeeds.length && population.length < POP_SIZE; s++) {
+              const offsetArr = state.anchors.map(anc => {
+                if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+                  return { t: tSeeds[s], u: 0, v: 0 };
+                }
+                return { t: 0.5, u: 0, v: 0 };
+              });
+              population.push(evaluateCandidate(offsetArr));
+            }
+            while (population.length < POP_SIZE) {
+              const offsetArr = state.anchors.map(anc => {
+                if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+                  return { t: Math.random(), u: 0, v: 0 };
+                }
+                return { t: 0.5, u: 0, v: 0 };
+              });
               population.push(evaluateCandidate(offsetArr));
             }
           } else {
+            population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0, t: 0.5 }))));
             const cardinals = [
               { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
               { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
@@ -10927,14 +11069,13 @@ EOF`;
               { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
             ];
             for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
-              const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i] }));
+              const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i], t: 0.5 }));
               population.push(evaluateCandidate(offsetArr));
             }
-          }
-
-          while (population.length < POP_SIZE) {
-            const offsetArr = Array.from({ length: M }, (_, k) => sampleCandidateOffset(k));
-            population.push(evaluateCandidate(offsetArr));
+            while (population.length < POP_SIZE) {
+              const offsetArr = Array.from({ length: M }, (_, k) => sampleCandidateOffset(k));
+              population.push(evaluateCandidate(offsetArr));
+            }
           }
 
           globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
@@ -10956,45 +11097,50 @@ EOF`;
               const trialOffsets = [];
 
               for (let k = 0; k < M; k++) {
-                let u, v;
-                if (Math.random() < CR || k === 0) {
-                  u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
-                      + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
-                  v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
-                      + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
-                  if (Math.random() < 0.12) {
-                    u += (Math.random() - 0.5) * 0.18;
-                    v += (Math.random() - 0.5) * 0.18;
+                const anc = state.anchors[k];
+                if (useAxisOnly) {
+                  if (anc && anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+                    let t;
+                    if (Math.random() < CR || k === 0) {
+                      const t1 = population[r1].offsets[k].t ?? 0.5;
+                      const t2 = population[r2].offsets[k].t ?? 0.5;
+                      const t3 = population[r3].offsets[k].t ?? 0.5;
+                      const tBest = globalBest.offsets[k].t ?? 0.5;
+                      const tCur = population[i].offsets[k].t ?? 0.5;
+                      t = t1 + F * (t2 - t3) + 0.15 * (tBest - tCur);
+                      if (Math.random() < 0.15) {
+                        t += (Math.random() - 0.5) * 0.12;
+                      }
+                    } else {
+                      t = population[i].offsets[k].t ?? 0.5;
+                    }
+                    t = Math.max(0.0, Math.min(1.0, t));
+                    trialOffsets.push({ t, u: 0, v: 0 });
+                  } else {
+                    trialOffsets.push({ t: 0.5, u: 0, v: 0 });
                   }
                 } else {
-                  u = population[i].offsets[k].u;
-                  v = population[i].offsets[k].v;
-                }
-
-                if (useAxisOnly) {
-                  const anc = state.anchors[k];
-                  if (anc && anc.axisId != null) {
-                    const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
-                    if (ax) {
-                      const geom = computeAxisGeometry(ax);
-                      let s = u * geom.u.x + v * geom.u.y;
-                      s = Math.max(-1.0, Math.min(1.0, s));
-                      u = +(s * geom.u.x).toFixed(4);
-                      v = +(s * geom.u.y).toFixed(4);
-                    } else {
-                      u = 0; v = 0;
+                  let u, v;
+                  if (Math.random() < CR || k === 0) {
+                    u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
+                        + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
+                    v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
+                        + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
+                    if (Math.random() < 0.12) {
+                      u += (Math.random() - 0.5) * 0.18;
+                      v += (Math.random() - 0.5) * 0.18;
                     }
                   } else {
-                    u = 0; v = 0;
+                    u = population[i].offsets[k].u;
+                    v = population[i].offsets[k].v;
                   }
-                } else {
                   const dist = Math.hypot(u, v);
                   if (dist > 1.0) {
                     u /= dist;
                     v /= dist;
                   }
+                  trialOffsets.push({ u, v, t: 0.5 });
                 }
-                trialOffsets.push({ u, v });
               }
 
               const trialEval = evaluateCandidate(trialOffsets);
@@ -11012,6 +11158,9 @@ EOF`;
                 if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
                   state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
                   state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+                  if (globalBest.candAnchors[k].axisT !== undefined) {
+                    state.anchors[k].axisT = globalBest.candAnchors[k].axisT;
+                  }
                 }
               }
               poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
@@ -11019,7 +11168,7 @@ EOF`;
               redrawTrueCanvas();
 
               if (optStatusBadge) {
-                const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`;
+                const prefix = useAxisOnly ? `1D Axis Gen ${gen}/${MAX_GEN}` : (isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`);
                 optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
                 optStatusBadge.style.color = "var(--accent-cyan)";
                 optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
@@ -11063,6 +11212,9 @@ EOF`;
           if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
             state.anchors[k].dst.x = globalOverallBest.candAnchors[k].dst.x;
             state.anchors[k].dst.y = globalOverallBest.candAnchors[k].dst.y;
+            if (globalOverallBest.candAnchors[k].axisT !== undefined) {
+              state.anchors[k].axisT = globalOverallBest.candAnchors[k].axisT;
+            }
           }
         }
 
@@ -11096,12 +11248,14 @@ EOF`;
 
         const finalOverall = document.getElementById("overall-error")?.textContent || globalOverallBest.loss.toFixed(2);
         if (optStatusBadge) {
-          const badgeText = isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`;
+          const badgeText = useAxisOnly
+            ? `✓ 1D Axis Fitted (${finalOverall}%)`
+            : (isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`);
           optStatusBadge.textContent = badgeText;
           optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
           optStatusBadge.style.color = "#00e676";
         }
-        updateStatus(`⚡ Auto-Tune finalizado: solución óptima con radio ±${winningR.toFixed(1)}m y error = ${finalOverall}%.`);
+        updateStatus(`⚡ Auto-Tune finalizado: solución óptima ${useAxisOnly ? 'a lo largo de ejes de prueba' : `con radio ±${winningR.toFixed(1)}m`}, error = ${finalOverall}%.`);
       }
 
       // Cleanup state & UI
@@ -12241,6 +12395,19 @@ EOF`;
                 }
                 // When nearestField.dist <= R, targetPt remains free inside the circle!
               }
+            }
+          }
+
+          if (draggingAnchor.anc.axisId != null) {
+            const ax = (state.testAxes || []).find(a => a.id === draggingAnchor.anc.axisId);
+            if (ax) {
+              const pr = projectPointOnAxis(targetPt, ax);
+              const clampedT = Math.max(0.0, Math.min(1.0, pr.t));
+              draggingAnchor.anc.axisT = clampedT;
+              targetPt = {
+                x: ax.p1.x + clampedT * (ax.p2.x - ax.p1.x),
+                y: ax.p1.y + clampedT * (ax.p2.y - ax.p1.y)
+              };
             }
           }
 

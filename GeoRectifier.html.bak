@@ -9013,6 +9013,90 @@ EOF`;
       ctx.restore();
     }
 
+    /** Draw centroid label badge displaying polygon name, area and deed error statistics on main canvas */
+    function drawCustomPolyCentroidLabel(ctx, poly, verts, vp, canvasH, isActive) {
+      if (!poly.closed || !verts || verts.length < 3) return;
+
+      let cx = 0, cy = 0;
+      for (let i = 0; i < verts.length; i++) { cx += verts[i].x; cy += verts[i].y; }
+      cx /= verts.length; cy /= verts.length;
+      const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
+
+      let aM2 = 0;
+      for (let i = 0; i < verts.length; i++) {
+        const j = (i + 1) % verts.length;
+        aM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
+      }
+      aM2 = Math.abs(aM2) / 2;
+
+      const pColor = poly.color || "#ffb300";
+      const hasTarget = (poly.targetArea > 0);
+
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      if (hasTarget) {
+        const diffM2 = aM2 - poly.targetArea;
+        const diffPct = (diffM2 / poly.targetArea) * 100;
+        const sign = diffM2 >= 0 ? "+" : "";
+        const absPct = Math.abs(diffPct);
+        const errColor = absPct <= 2.0 ? "#00e676" : (absPct <= 5.0 ? "#ffb300" : "#ff1744");
+
+        const line1 = `${poly.name}: ${aM2.toLocaleString('en-US', { maximumFractionDigits: 1 })} m²`;
+        const line2 = `Δ: ${sign}${diffPct.toFixed(2)}% (${sign}${diffM2.toFixed(1)} m²) • Deed: ${poly.targetArea.toLocaleString('en-US', { maximumFractionDigits: 0 })} m²`;
+
+        ctx.font = "bold 9.5px sans-serif";
+        const w1 = ctx.measureText(line1).width;
+        ctx.font = "bold 8.5px monospace";
+        const w2 = ctx.measureText(line2).width;
+        const bw = Math.max(w1, w2) + 14;
+        const bh = 28;
+
+        ctx.fillStyle = "rgba(8, 12, 22, 0.90)";
+        ctx.strokeStyle = isActive ? pColor : errColor;
+        ctx.lineWidth = isActive ? 2.0 : 1.2;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh, 4);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+          ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        }
+
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.fillStyle = pColor;
+        ctx.fillText(line1, sc.x, sc.y - 6);
+
+        ctx.font = "bold 8.5px monospace";
+        ctx.fillStyle = errColor;
+        ctx.fillText(line2, sc.x, sc.y + 7);
+      } else {
+        const line1 = `${poly.name}: ${aM2.toLocaleString('en-US', { maximumFractionDigits: 1 })} m²`;
+        ctx.font = "bold 9px sans-serif";
+        const tw = ctx.measureText(line1).width;
+        const bw = tw + 8, bh = 15;
+
+        ctx.fillStyle = "rgba(10, 14, 23, 0.88)";
+        ctx.strokeStyle = hexToRgba(pColor, 0.75);
+        ctx.lineWidth = isActive ? 1.8 : 1;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh, 3);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+          ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        }
+        ctx.fillStyle = pColor;
+        ctx.fillText(line1, sc.x, sc.y);
+      }
+      ctx.restore();
+    }
+
     /** Render Autonomous Custom Polygons on trueCanvas */
     function drawCustomPolygon(ctx, vp, canvasH) {
       const polys = state.customPolygons || (state.customPolygon ? [state.customPolygon] : []);
@@ -9072,35 +9156,8 @@ EOF`;
           ctx.restore();
         }
 
-        // Centroid name & area badge for closed non-active polygons
-        if (poly.closed && verts.length >= 3) {
-          let cx = 0, cy = 0;
-          for (let i = 0; i < verts.length; i++) { cx += verts[i].x; cy += verts[i].y; }
-          cx /= verts.length; cy /= verts.length;
-          const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
-
-          let aM2 = 0;
-          for (let i = 0; i < verts.length; i++) {
-            const j = (i + 1) % verts.length;
-            aM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
-          }
-          aM2 = Math.abs(aM2) / 2;
-
-          const badgeTxt = `${poly.name}: ${aM2.toLocaleString('en-US', { maximumFractionDigits: 1 })} m²`;
-          ctx.save();
-          ctx.font = "bold 9px sans-serif";
-          ctx.textAlign = "center";
-          const tw = ctx.measureText(badgeTxt).width;
-          const bw = tw + 8, bh = 14;
-          ctx.fillStyle = "rgba(10, 14, 23, 0.85)";
-          ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-          ctx.strokeStyle = hexToRgba(pColor, 0.7);
-          ctx.lineWidth = 1;
-          ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-          ctx.fillStyle = pColor;
-          ctx.fillText(badgeTxt, sc.x, sc.y + 3);
-          ctx.restore();
-        }
+        // Centroid name & error statistic badge for closed non-active polygons
+        drawCustomPolyCentroidLabel(ctx, poly, verts, vp, canvasH, false);
 
         // Subtle node dots for non-active polygons
         if (poly.showNodes) {
@@ -9312,6 +9369,9 @@ EOF`;
           ctx.restore();
         }
 
+        // Centroid name & error statistic badge for active polygon
+        drawCustomPolyCentroidLabel(ctx, poly, verts, vp, canvasH, true);
+
         // Area HUD callout box pinned to top-left of the field canvas
         if (poly.closed && verts.length >= 3) {
           let areaM2 = 0;
@@ -9322,18 +9382,31 @@ EOF`;
           areaM2 = Math.abs(areaM2) / 2;
           const plazas = areaM2 / 6400;
 
+          const hasTarget = (poly.targetArea > 0);
+          let diffM2 = 0, diffPct = 0, sign = "", absPct = 0, errColor = "#00e676";
+          if (hasTarget) {
+            diffM2 = areaM2 - poly.targetArea;
+            diffPct = (diffM2 / poly.targetArea) * 100;
+            sign = diffM2 >= 0 ? "+" : "";
+            absPct = Math.abs(diffPct);
+            errColor = absPct <= 2.0 ? "#00e676" : (absPct <= 5.0 ? "#ffb300" : "#ff1744");
+          }
+
           const txt1 = `📐 ${poly.name}: ${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-          const txt2 = `${plazas.toFixed(2)} plazas (${verts.length} nodes)`;
+          const txt2 = hasTarget
+            ? `Deed: ${poly.targetArea.toLocaleString('en-US', { maximumFractionDigits: 1 })} m² • Δ: ${sign}${diffPct.toFixed(2)}% (${sign}${diffM2.toFixed(1)} m²)`
+            : `${plazas.toFixed(2)} plazas (${verts.length} nodes)`;
+          const txt3 = hasTarget ? `${plazas.toFixed(2)} plazas (${verts.length} nodes)` : "";
 
           const hasUserPolyHud = state.userPolygon && state.userPolygon.closed && state.userPolygon.vertices && state.userPolygon.vertices.length >= 3;
           const boxX = 14;
           const boxY = hasUserPolyHud ? 54 : 14;
-          const bw = 155;
-          const bh = 34;
+          const bw = hasTarget ? 240 : 160;
+          const bh = hasTarget ? 48 : 34;
 
           ctx.save();
-          ctx.fillStyle = "rgba(6, 9, 16, 0.90)";
-          ctx.strokeStyle = hexToRgba(pColor, 0.65);
+          ctx.fillStyle = "rgba(6, 9, 16, 0.92)";
+          ctx.strokeStyle = hasTarget ? errColor : hexToRgba(pColor, 0.65);
           ctx.lineWidth = 1.5;
 
           ctx.beginPath();
@@ -9350,9 +9423,16 @@ EOF`;
           ctx.font = "bold 11px monospace";
           ctx.textAlign = "center";
           ctx.fillText(txt1, centerX, boxY + 14);
-          ctx.fillStyle = "#cbd5e1";
-          ctx.font = "10px sans-serif";
+
+          ctx.fillStyle = hasTarget ? errColor : "#cbd5e1";
+          ctx.font = hasTarget ? "bold 9.5px monospace" : "10px sans-serif";
           ctx.fillText(txt2, centerX, boxY + 28);
+
+          if (hasTarget && txt3) {
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "9px sans-serif";
+            ctx.fillText(txt3, centerX, boxY + 41);
+          }
           ctx.restore();
         }
       }
