@@ -13691,17 +13691,33 @@ EOF`;
           updateStatus("⚠️ No anchors to save. Place anchor pairs first using 🎯 Anchor Mode.");
           return;
         }
-        const toSave = state.anchors.map(a => ({
-          id: a.id,
-          name: a.name || (`#${a.id}`),
-          showLabel: a.showLabel !== false,
-          image: a.image || null,
-          color: a.color,
-          src: { x: a.src.x, y: a.src.y },
-          dst: { x: a.dst.x, y: a.dst.y },
-          active: a.active !== false && a.enabled !== false,
-          enabled: a.active !== false && a.enabled !== false
-        }));
+        const toSave = {
+          anchors: state.anchors.map(a => ({
+            id: a.id,
+            name: a.name || (`#${a.id}`),
+            showLabel: a.showLabel !== false,
+            image: a.image || null,
+            color: a.color,
+            src: { x: a.src.x, y: a.src.y },
+            dst: { x: a.dst.x, y: a.dst.y },
+            active: a.active !== false && a.enabled !== false,
+            enabled: a.active !== false && a.enabled !== false,
+            axisId: a.axisId !== undefined ? a.axisId : null,
+            axisT: a.axisT !== undefined ? a.axisT : null,
+            optimize: a.optimize === true
+          })),
+          testAxes: (state.testAxes || []).map(ax => ({
+            id: ax.id,
+            name: ax.name,
+            p1: { x: ax.p1.x, y: ax.p1.y },
+            p2: { x: ax.p2.x, y: ax.p2.y },
+            color: ax.color,
+            visible: ax.visible !== false
+          }))
+        };
+        try {
+          localStorage.setItem("georectifier_axes_anchors", JSON.stringify(toSave));
+        } catch (_) {}
         const jsonStr = JSON.stringify(toSave, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -13712,7 +13728,7 @@ EOF`;
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        updateStatus(`💾 Saved ${state.anchors.length} anchors (${getActiveAnchors().length} active) to anchors_georectifier.json.`);
+        updateStatus(`💾 Saved ${state.anchors.length} anchors & ${(state.testAxes || []).length} axes to anchors_georectifier.json.`);
       });
     }
 
@@ -13725,12 +13741,16 @@ EOF`;
         reader.onload = ev => {
           try {
             const data = JSON.parse(ev.target.result);
+            if (data.testAxes && Array.isArray(data.testAxes)) {
+              state.testAxes = data.testAxes.map(ax => ({ ...ax }));
+              if (typeof renderTestAxesList === "function") renderTestAxesList();
+            }
             const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
             if (list.length > 0) {
               applyAnchors(list);
               state.pendingSource = null;
               redrawAll();
-              updateStatus(`✅ Loaded ${state.anchors.length} anchors (${getActiveAnchors().length} active) from ${file.name}`);
+              updateStatus(`✅ Loaded ${state.anchors.length} anchors & ${(state.testAxes || []).length} axes from ${file.name}`);
             } else {
               updateStatus("⚠️ No valid anchor pairs found in file.");
             }
@@ -16195,6 +16215,10 @@ EOF`;
       try {
         const text = await fetchText("anchors_georectifier.json");
         const data = JSON.parse(text);
+        if (data.testAxes && Array.isArray(data.testAxes) && data.testAxes.length > 0) {
+          state.testAxes = data.testAxes.map(ax => ({ ...ax }));
+          if (typeof renderTestAxesList === "function") renderTestAxesList();
+        }
         const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
         if (list.length > 0) {
           applyAnchors(list);
@@ -16205,6 +16229,19 @@ EOF`;
       }
       if (!loadedAnchors && typeof EMBEDDED_ANCHORS !== "undefined" && EMBEDDED_ANCHORS.length > 0) {
         applyAnchors(EMBEDDED_ANCHORS);
+      }
+      // Also restore axes from localStorage if anchors_georectifier.json was legacy without axes
+      if ((!state.testAxes || state.testAxes.length === 0)) {
+        try {
+          const cached = localStorage.getItem("georectifier_axes_anchors");
+          if (cached) {
+            const cachedObj = JSON.parse(cached);
+            if (cachedObj.testAxes && Array.isArray(cachedObj.testAxes) && cachedObj.testAxes.length > 0) {
+              state.testAxes = cachedObj.testAxes.map(ax => ({ ...ax }));
+              if (typeof renderTestAxesList === "function") renderTestAxesList();
+            }
+          }
+        } catch (_) {}
       }
 
       // 4. User polygon preload (user_polygon.json or user_polygon.dxf)
