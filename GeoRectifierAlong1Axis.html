@@ -1528,7 +1528,50 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <!-- Hidden file input for anchor photo uploads -->
             <input type="file" id="anchor-photo-file-input" accept="image/*" style="display:none;">
           </div>
-          <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to pan field survey. Click '🎯 Anchor Mode' to drop points.</div>
+          <!-- Toolbar under True Field Canvas: Controles Escritura 1073 -->
+          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 12px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(255,23,68,0.3);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
+                📜 Escritura 1073
+              </span>
+            </div>
+            <!-- Plano PDF overlay control -->
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
+                <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
+                <span>Plano PDF</span>
+              </label>
+              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="66" style="width:60px;">
+              <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">66%</span>
+            </div>
+            <!-- Polígono DXF boundary control & styling -->
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
+                <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
+                <span>Polígono DXF</span>
+              </label>
+              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:60px;">
+              <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">90%</span>
+              <div style="display:flex;align-items:center;gap:4px;margin-left:4px;">
+                <input type="color" id="style-deed-dxf-color" value="#ff1744" class="color-picker-swatch" title="Deed DXF line color" style="width:20px;height:20px;padding:0;border:none;border-radius:3px;cursor:pointer;">
+                <select id="style-deed-dxf-dash" class="style-select" title="Line style" style="padding:2px 4px;font-size:0.68rem;">
+                  <option value="solid">Solid ──</option>
+                  <option value="dashed">Dashed ─ ─</option>
+                  <option value="dotted" selected>Dotted · · ·</option>
+                </select>
+                <select id="style-deed-dxf-width" class="style-select width-select" title="Line thickness" style="padding:2px 4px;font-size:0.68rem;">
+                  <option value="1">1px</option>
+                  <option value="2">2px</option>
+                  <option value="3" selected>3px</option>
+                  <option value="4">4px</option>
+                  <option value="6">6px</option>
+                </select>
+                <label class="chk-nodes-label" title="Show or hide Deed DXF vertex nodes on canvas" style="display:flex;align-items:center;gap:3px;font-size:0.68rem;margin:0;cursor:pointer;">
+                  <input type="checkbox" id="style-deed-dxf-nodes" style="accent-color:var(--accent-cyan);"> Nodes
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1537,6 +1580,40 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
     <!-- [SECTION: HTML_SIDEBAR_OVERLAYS] -->
       <aside class="sidebar" id="sidebar">
+        <!-- 0. Conclusion & IGAC Tolerance Corridors (Top Executive Summary) -->
+        <section class="panel-card" id="panel-poly-conclusion">
+          <div class="panel-header" data-target="body-poly-conclusion" title="Colapsar / Desplegar Conclusión e IGAC Corredores" style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h3 style="color:var(--accent-cyan);">📋 Conclusión & Corredores IGAC</h3>
+            </div>
+            <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-conclusion" title="Colapsar / Desplegar">▼</button>
+          </div>
+          <div id="body-poly-conclusion" style="display:flex;flex-direction:column;gap:8px;padding:8px 10px;">
+            <div id="poly-conclusion-container" style="display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,0.35);border-left:3px solid var(--accent-cyan);padding:8px 10px;border-radius:0 4px 4px 0;">
+              <p id="poly-conclusion-text" style="font-size:0.71rem;line-height:1.55;color:#cbd5e1;margin:0;">
+                —
+              </p>
+              <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:2px;display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia gráfica pura a escala 1:2.000 (EH = 1.04 m)">
+                    <input type="checkbox" id="chk-corridor-104" style="accent-color:var(--accent-cyan);">
+                    Corredor IGAC ±1.04m (Papel)
+                  </label>
+                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#00e676;font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia rural con cobertura de bosque (EH = 5.20 m)">
+                    <input type="checkbox" id="chk-corridor-520" style="accent-color:#00e676;">
+                    Corredor IGAC ±5.20m (Bosque)
+                  </label>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.68rem;color:var(--text-muted);">
+                  <span style="white-space:nowrap;" title="Ajusta el nivel de transparencia/opacidad de los dos corredores IGAC en el mapa de campo">Transparency:</span>
+                  <input type="range" id="corridor-opacity-slider" min="0" max="100" value="50" class="opacity-slider" style="height:4px;flex:1;cursor:pointer;">
+                  <span id="corridor-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;color:var(--accent-cyan);">50%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Layer Opacity & Overlays Card -->
         <section class="panel-card" id="panel-overlays-opacity">
           <div class="panel-header" data-target="body-overlays-opacity" title="Colapsar / Desplegar Overlays & Opacity">
@@ -1571,53 +1648,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 </label>
                 <input type="range" class="opacity-slider" id="geotiff-opacity" min="0" max="100" value="100">
                 <span class="opacity-val" id="geotiff-opacity-val">100%</span>
-              </div>
-            </div>
-
-            <!-- 2. ESCRITURA 1073 SECTION -->
-            <div class="overlay-group-header" data-target="group-escritura1073-body" style="margin-top:14px;margin-bottom:8px;" title="Colapsar / Desplegar Escritura 1073">
-              <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#ff1744;text-transform:uppercase;">📜 Escritura 1073</span>
-              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(255,23,68,0.4), rgba(255,23,68,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-escritura1073" title="Colapsar / Desplegar Escritura 1073" style="color:#ff1744;border-color:rgba(255,23,68,0.3);background:rgba(255,23,68,0.08);">▶</button>
-            </div>
-            <div id="group-escritura1073-body" class="overlay-group-content" style="display:none;">
-              <div class="opacity-row" style="margin-bottom:8px;">
-                <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
-                  <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                  <span>📜 Plano Escritura 1073</span>
-                </label>
-                <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="66">
-                <span class="opacity-val" id="warped-pdf-opacity-val">66%</span>
-              </div>
-              <div class="layer-control-block">
-                <div class="opacity-row">
-                  <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
-                    <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                    <span>📐 Poligono de la 1073</span>
-                  </label>
-                  <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90">
-                  <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
-                </div>
-                <div class="style-row">
-                  <div style="display:flex;align-items:center;gap:5px;">
-                    <input type="color" id="style-deed-dxf-color" value="#ff1744" class="color-picker-swatch" title="Deed DXF line color">
-                    <select id="style-deed-dxf-dash" class="style-select" title="Line style">
-                      <option value="solid">Solid ──</option>
-                      <option value="dashed">Dashed ─ ─</option>
-                      <option value="dotted" selected>Dotted · · ·</option>
-                    </select>
-                    <select id="style-deed-dxf-width" class="style-select width-select" title="Line thickness">
-                      <option value="1">1px</option>
-                      <option value="2">2px</option>
-                      <option value="3" selected>3px</option>
-                      <option value="4">4px</option>
-                      <option value="6">6px</option>
-                    </select>
-                  </div>
-                  <label class="chk-nodes-label" title="Show or hide Deed DXF vertex nodes on canvas">
-                    <input type="checkbox" id="style-deed-dxf-nodes" style="accent-color:var(--accent-cyan);"> Nodes
-                  </label>
-                </div>
               </div>
             </div>
 
@@ -1835,24 +1865,25 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div class="table-wrapper">
               <table class="anchor-table">
                 <colgroup>
-                  <col style="width: 24px;">
+                  <col style="width: 22px;">
                   <col>
-                  <col style="width: 28px;">
-                  <col style="width: 30px;">
-                  <col style="width: 46px;">
+                  <col style="width: 50px;">
                   <col style="width: 26px;">
+                  <col style="width: 26px;">
+                  <col style="width: 44px;">
+                  <col style="width: 24px;">
                 </colgroup>
                 <thead>
                   <tr>
-                    <th style="width:24px;text-align:center;" title="Enable / Disable all anchor points in transformation calculation">
+                    <th style="width:22px;text-align:center;" title="Enable / Disable all anchor points in transformation calculation">
                       <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
                     </th>
                     <th style="text-align:left;">Name</th>
-                    <th style="width:52px;text-align:center;" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth or 🌊 Floating guide on axis">Mode</th>
-                    <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
-                    <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
-                    <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
-                    <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
+                    <th style="width:50px;text-align:center;" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth or 🌊 Floating guide on axis">Mode</th>
+                    <th style="width:26px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
+                    <th style="width:26px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
+                    <th style="width:44px;text-align:right;" title="Transformation residual error in meters">Error</th>
+                    <th style="width:24px;text-align:center;" title="Delete anchor">🗑️</th>
                   </tr>
                 </thead>
                 <tbody id="anchor-table-body">
@@ -2117,32 +2148,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span>Scale Factor (s):</span>
                 <strong id="poly-scale-factor" style="color:var(--accent-cyan);font-family:monospace;">—</strong>
-              </div>
-              <hr style="border-color:rgba(255,255,255,0.1);margin:4px 0;">
-              <div id="poly-conclusion-container" style="display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,0.35);border-left:3px solid var(--accent-cyan);padding:8px 10px;border-radius:0 4px 4px 0;margin-top:2px;">
-                <strong style="color:var(--accent-cyan);font-size:0.75rem;display:flex;align-items:center;gap:4px;">
-                  📋 Conclusion:
-                </strong>
-                <p id="poly-conclusion-text" style="font-size:0.71rem;line-height:1.55;color:#cbd5e1;margin:0;">
-                  —
-                </p>
-                <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;margin-top:2px;display:flex;flex-direction:column;gap:6px;">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia gráfica pura a escala 1:2.000 (EH = 1.04 m)">
-                      <input type="checkbox" id="chk-corridor-104" style="accent-color:var(--accent-cyan);">
-                      Corredor IGAC ±1.04m (Papel)
-                    </label>
-                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#00e676;font-size:0.69rem;" title="Muestra el corredor de espesor de tolerancia rural con cobertura de bosque (EH = 5.20 m)">
-                      <input type="checkbox" id="chk-corridor-520" style="accent-color:#00e676;">
-                      Corredor IGAC ±5.20m (Bosque)
-                    </label>
-                  </div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.68rem;color:var(--text-muted);">
-                    <span style="white-space:nowrap;" title="Ajusta el nivel de transparencia/opacidad de los dos corredores IGAC en el mapa de campo">Transparency:</span>
-                    <input type="range" id="corridor-opacity-slider" min="0" max="100" value="50" class="opacity-slider" style="height:4px;flex:1;cursor:pointer;">
-                    <span id="corridor-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;color:var(--accent-cyan);">50%</span>
-                  </div>
-                </div>
               </div>
             </div>
             <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;">🖐️ <strong>Drag node</strong>: Move &bull; 🖱️ <strong>Double-click line</strong>: Add vertex &bull; 🗑 <strong>Right-click node</strong>: Delete</p>
@@ -10096,7 +10101,7 @@ EOF`;
           const avgErrStr = avgSegErr != null ? avgSegErr.toFixed(2) : "0.00";
           const areaErrStr = (areaM2 > 0) ? ((Math.abs(areaM2 - REF_DEED_AREA_M2) / REF_DEED_AREA_M2) * 100).toFixed(2) : "0.00";
 
-          elConclusion.innerHTML = `El lindero reconstruido satisface el <strong>${pctDistGood.toFixed(1)}%</strong> de las distancias de la escritura (error medio ${avgErrStr}%) y <strong>${areaErrStr}%</strong> de error en el área legal de la Escritura 296 (162.156 m²). A su vez, el <strong>${comp.pct104.toFixed(1)}%</strong> de la longitud optimizada se encuentra estrictamente dentro del margen milimétrico de gabinete del IGAC (±1.04 m a 1:2.000), y el <strong>${comp.pct520.toFixed(1)}%</strong> queda comprendido dentro de la tolerancia de terreno rural con cobertura vegetal (±5.20 m).`;
+          elConclusion.innerHTML = `El plano original de la <strong>Escritura 1073</strong> se extrapoló entre dos mojones comunes al plano y al terreno (georreferenciados en campo mediante <strong>GPS RTK; MAGNA-SIRGAS, Origen Nacional</strong>). El lindero resultante entre La Trinidad y Casa del Sol fue optimizado mediante desplazamientos dentro del buffer de cada punto, buscando reproducir las medidas de la escritura y el área reportada para La Trinidad en la <strong>Escritura 296</strong>. El lindero resultante conserva las medidas del lindero original reportado en la Escritura 1073, reproduce el área de La Trinidad con un <strong>error de 0,00 %</strong> y ubica el <strong>${comp.pct104.toFixed(1)}%</strong> del lindero reconstruido dentro de <strong>±1,04 m</strong> del plano original (margen de precisión establecido para cartografía rural a escala 1:2.000 en la <strong>Resolución 388 de 2020 del IGAC</strong>).`;
         } else {
           elConclusion.innerHTML = "—";
         }

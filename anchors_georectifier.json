@@ -54,8 +54,8 @@
         "x": 1098002.2245251765,
         "y": 876854.398631125
       },
-      "active": true,
-      "enabled": true,
+      "active": false,
+      "enabled": false,
       "axisId": 1,
       "axisT": 0.7586203008573711,
       "optimize": false
@@ -74,10 +74,30 @@
         "x": 1098066.2151200036,
         "y": 876870.1411385967
       },
-      "active": true,
-      "enabled": true,
+      "active": false,
+      "enabled": false,
       "axisId": 1,
       "axisT": 0.17208872590612262,
+      "optimize": false
+    },
+    {
+      "id": 5,
+      "name": "#5",
+      "showLabel": false,
+      "image": null,
+      "color": "#d500f9",
+      "src": {
+        "x": 289.24,
+        "y": 548.84
+      },
+      "dst": {
+        "x": 1097776.7072016555,
+        "y": 876693.4175704988
+      },
+      "active": false,
+      "enabled": false,
+      "axisId": 2,
+      "axisT": 0.7009269832953214,
       "optimize": false
     }
   ],
@@ -94,7 +114,21 @@
         "y": 876847.92
       },
       "color": "#e040fb",
-      "visible": true
+      "visible": false
+    },
+    {
+      "id": 2,
+      "name": "Axis 2",
+      "p1": {
+        "x": 1097673.72,
+        "y": 876658.96
+      },
+      "p2": {
+        "x": 1097820.65,
+        "y": 876708.12
+      },
+      "color": "#00e5ff",
+      "visible": false
     }
   ]
 }
