@@ -1527,7 +1527,50 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <!-- Hidden file input for anchor photo uploads -->
             <input type="file" id="anchor-photo-file-input" accept="image/*" style="display:none;">
           </div>
-          <div class="viewport-hint" id="true-hint">🖐️ Left click and drag to pan field survey. Click '🎯 Anchor Mode' to drop points.</div>
+          <!-- Toolbar under True Field Canvas: Controles Escritura 1073 -->
+          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 12px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(255,23,68,0.3);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
+                📜 Escritura 1073
+              </span>
+            </div>
+            <!-- Plano PDF overlay control -->
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
+                <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
+                <span>Plano PDF</span>
+              </label>
+              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="66" style="width:60px;">
+              <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">66%</span>
+            </div>
+            <!-- Polígono DXF boundary control & styling -->
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
+                <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
+                <span>Polígono DXF</span>
+              </label>
+              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:60px;">
+              <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">90%</span>
+              <div style="display:flex;align-items:center;gap:4px;margin-left:4px;">
+                <input type="color" id="style-deed-dxf-color" value="#ff1744" class="color-picker-swatch" title="Deed DXF line color" style="width:20px;height:20px;padding:0;border:none;border-radius:3px;cursor:pointer;">
+                <select id="style-deed-dxf-dash" class="style-select" title="Line style" style="padding:2px 4px;font-size:0.68rem;">
+                  <option value="solid">Solid ──</option>
+                  <option value="dashed">Dashed ─ ─</option>
+                  <option value="dotted" selected>Dotted · · ·</option>
+                </select>
+                <select id="style-deed-dxf-width" class="style-select width-select" title="Line thickness" style="padding:2px 4px;font-size:0.68rem;">
+                  <option value="1">1px</option>
+                  <option value="2">2px</option>
+                  <option value="3" selected>3px</option>
+                  <option value="4">4px</option>
+                  <option value="6">6px</option>
+                </select>
+                <label class="chk-nodes-label" title="Show or hide Deed DXF vertex nodes on canvas" style="display:flex;align-items:center;gap:3px;font-size:0.68rem;margin:0;cursor:pointer;">
+                  <input type="checkbox" id="style-deed-dxf-nodes" style="accent-color:var(--accent-cyan);"> Nodes
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1604,53 +1647,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 </label>
                 <input type="range" class="opacity-slider" id="geotiff-opacity" min="0" max="100" value="100">
                 <span class="opacity-val" id="geotiff-opacity-val">100%</span>
-              </div>
-            </div>
-
-            <!-- 2. ESCRITURA 1073 SECTION -->
-            <div class="overlay-group-header" data-target="group-escritura1073-body" style="margin-top:14px;margin-bottom:8px;" title="Colapsar / Desplegar Escritura 1073">
-              <span style="font-size:0.73rem;font-weight:800;letter-spacing:0.5px;color:#ff1744;text-transform:uppercase;">📜 Escritura 1073</span>
-              <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(255,23,68,0.4), rgba(255,23,68,0.05));"></div>
-              <button type="button" class="btn-group-toggle" id="btn-toggle-group-escritura1073" title="Colapsar / Desplegar Escritura 1073" style="color:#ff1744;border-color:rgba(255,23,68,0.3);background:rgba(255,23,68,0.08);">▶</button>
-            </div>
-            <div id="group-escritura1073-body" class="overlay-group-content" style="display:none;">
-              <div class="opacity-row" style="margin-bottom:8px;">
-                <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
-                  <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                  <span>📜 Plano Escritura 1073</span>
-                </label>
-                <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="66">
-                <span class="opacity-val" id="warped-pdf-opacity-val">66%</span>
-              </div>
-              <div class="layer-control-block">
-                <div class="opacity-row">
-                  <label style="min-width:130px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-main);font-weight:600;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
-                    <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                    <span>📐 Poligono de la 1073</span>
-                  </label>
-                  <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90">
-                  <span class="opacity-val" id="warped-dxf-opacity-val">90%</span>
-                </div>
-                <div class="style-row">
-                  <div style="display:flex;align-items:center;gap:5px;">
-                    <input type="color" id="style-deed-dxf-color" value="#ff1744" class="color-picker-swatch" title="Deed DXF line color">
-                    <select id="style-deed-dxf-dash" class="style-select" title="Line style">
-                      <option value="solid">Solid ──</option>
-                      <option value="dashed">Dashed ─ ─</option>
-                      <option value="dotted" selected>Dotted · · ·</option>
-                    </select>
-                    <select id="style-deed-dxf-width" class="style-select width-select" title="Line thickness">
-                      <option value="1">1px</option>
-                      <option value="2">2px</option>
-                      <option value="3" selected>3px</option>
-                      <option value="4">4px</option>
-                      <option value="6">6px</option>
-                    </select>
-                  </div>
-                  <label class="chk-nodes-label" title="Show or hide Deed DXF vertex nodes on canvas">
-                    <input type="checkbox" id="style-deed-dxf-nodes" style="accent-color:var(--accent-cyan);"> Nodes
-                  </label>
-                </div>
               </div>
             </div>
 
