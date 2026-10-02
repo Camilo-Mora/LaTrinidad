@@ -456,6 +456,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
       font-size: 0.73rem;
       font-weight: 600;
       width: 75px;
+      min-width: 40px;
       flex: 1;
       padding: 1px 3px;
       border-radius: 3px;
@@ -1528,7 +1529,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <input type="file" id="anchor-photo-file-input" accept="image/*" style="display:none;">
           </div>
           <!-- Toolbar under True Field Canvas: Controles Escritura 1073 -->
-          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 12px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(255,23,68,0.3);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;">
+          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:14px;padding:6px 14px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(255,23,68,0.3);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
                 📜 Escritura 1073
@@ -1785,11 +1786,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   </div>
                 </div>
                 <div style="flex:1;height:1px;background:linear-gradient(90deg, rgba(0,229,255,0.3), rgba(0,229,255,0.02));"></div>
-                <button type="button" class="btn-group-toggle" id="btn-toggle-group-lindero" title="Colapsar / Desplegar Lindero La Trinidad Reconstruido" style="color:var(--accent-cyan);border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▼</button>
+                <button type="button" class="btn-group-toggle" id="btn-toggle-group-lindero" title="Colapsar / Desplegar Lindero La Trinidad Reconstruido" style="color:var(--accent-cyan);border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.08);width:18px;height:18px;font-size:0.6rem;padding:0;">▶</button>
               </div>
 
               <!-- LINDERO RECONSTRUIDO BODY -->
-              <div id="group-lindero-reconstruido-body" class="overlay-group-content" style="display:flex;flex-direction:column;gap:5px;">
+              <div id="group-lindero-reconstruido-body" class="overlay-group-content" style="display:none;flex-direction:column;gap:5px;">
                 <!-- Polygon Dynamic Styling Controls (By Sección) -->
                 <div id="poly-styling-container" style="display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;">
                   <div style="font-size:0.71rem;font-weight:700;color:var(--text-main);display:flex;align-items:center;justify-content:space-between;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,0.08);">
@@ -1864,23 +1865,25 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <div class="table-wrapper">
               <table class="anchor-table">
                 <colgroup>
-                  <col style="width: 24px;">
+                  <col style="width: 22px;">
                   <col>
-                  <col style="width: 28px;">
-                  <col style="width: 30px;">
-                  <col style="width: 46px;">
+                  <col style="width: 50px;">
                   <col style="width: 26px;">
+                  <col style="width: 26px;">
+                  <col style="width: 44px;">
+                  <col style="width: 24px;">
                 </colgroup>
                 <thead>
                   <tr>
-                    <th style="width:24px;text-align:center;" title="Enable / Disable all anchor points in transformation calculation">
+                    <th style="width:22px;text-align:center;" title="Enable / Disable all anchor points in transformation calculation">
                       <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
                     </th>
                     <th style="text-align:left;">Name</th>
-                    <th style="width:28px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
-                    <th style="width:30px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
-                    <th style="width:46px;text-align:right;" title="Transformation residual error in meters">Error</th>
-                    <th style="width:26px;text-align:center;" title="Delete anchor">🗑️</th>
+                    <th style="width:50px;text-align:center;" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth or 🌊 Floating guide on axis">Mode</th>
+                    <th style="width:26px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
+                    <th style="width:26px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
+                    <th style="width:44px;text-align:right;" title="Transformation residual error in meters">Error</th>
+                    <th style="width:24px;text-align:center;" title="Delete anchor">🗑️</th>
                   </tr>
                 </thead>
                 <tbody id="anchor-table-body">
@@ -1899,6 +1902,37 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 <input type="range" id="range-anchor-photo-size" min="40" max="320" step="4" value="180" style="flex:1;accent-color:var(--accent-cyan);cursor:pointer;height:5px;" title="Drag to scale photo cards on canvas for screenshots">
                 <button type="button" id="btn-reset-anchor-photo-size" class="btn-fit-view" style="padding:1px 6px;font-size:0.68rem;line-height:1;" title="Reset Photo Size to Default (180px)">↺</button>
               </div>
+            </div>
+
+            <!-- Test Axes (Hypothesis Testing) Section -->
+            <div style="margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,255,255,0.15);display:flex;flex-direction:column;gap:5px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:0.73rem;font-weight:700;color:#e040fb;display:flex;align-items:center;gap:4px;">
+                  <span>📐 Test Axes</span>
+                  <span id="test-axes-count-badge" style="font-size:0.62rem;padding:1px 5px;border-radius:10px;background:rgba(224,64,251,0.2);color:#e040fb;font-family:monospace;">0</span>
+                </span>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <button type="button" id="btn-add-test-axis" class="btn btn-secondary btn-sm" style="font-size:0.68rem;padding:2px 7px;background:rgba(224,64,251,0.15);border:1px solid rgba(224,64,251,0.4);color:#e040fb;" title="Click 2 points on field canvas to create a test axis">➕ Add Axis</button>
+                  <button type="button" id="btn-cancel-test-axis" class="btn btn-secondary btn-sm" style="display:none;font-size:0.68rem;padding:2px 6px;background:rgba(255,23,68,0.2);border:1px solid #ff1744;color:#ff1744;" title="Cancel axis creation">✕ Cancel</button>
+                </div>
+              </div>
+
+              <!-- Snapping checkbox -->
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.70rem;">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-muted);" title="When active, new anchors placed near a test axis automatically snap and bind to it">
+                  <input type="checkbox" id="chk-snap-anchor-axis" checked style="accent-color:#e040fb;">
+                  <span>🧲 Snap new anchors to axis</span>
+                </label>
+                <span style="font-size:0.63rem;color:var(--text-muted);font-family:monospace;">(±18px)</span>
+              </div>
+
+              <!-- Test Axes List -->
+              <div id="test-axes-list" style="display:flex;flex-direction:column;gap:3px;max-height:105px;overflow-y:auto;padding-right:2px;">
+                <!-- Dynamically rendered axis rows -->
+              </div>
+              <p style="font-size:0.65rem;color:var(--text-muted);margin:0;line-height:1.3;">
+                💡 <em>Click <strong>Add Axis</strong> and pick 2 points on field. Dragging handles <strong>A</strong> or <strong>B</strong> carries snapped anchors along.</em>
+              </p>
             </div>
           </div>
         </section>
@@ -2038,9 +2072,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     <input type="checkbox" id="chk-auto-min-buffer" checked style="accent-color:var(--accent-cyan);">
                     ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
                   </label>
-                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:#00e676;font-weight:600;" title="Al ejecutar Auto-Tune, busca adicionalmente maximizar el % de longitud dentro de la tolerancia de gabinete IGAC (±1.04m a 1:2.000), deteniéndose tras 15 generaciones sin mejora ≥0.1%">
-                    <input type="checkbox" id="chk-maximize-igac" style="accent-color:#00e676;">
-                    🎯 Maximizar IGAC ±1.04m (Meseta 15 gen)
+                  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:#00e676;font-weight:600;" title="Cuando el error de perímetro y área es ≤ 0.01% (o en el menor radio convergente), selecciona la combinación con mayor porcentaje dentro del corredor IGAC ±1.04m, maximizando la fidelidad al plano original de la escritura">
+                    <input type="checkbox" id="chk-opt-igac-filter" checked style="accent-color:#00e676;">
+                    🎯 Filtrar por IGAC ±1.04m (si error ≤ 0.01%)
                   </label>
                   <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);margin-top:2px;">
                     <span style="font-size:0.70rem;color:var(--text-muted);">Auto-Tune Search:</span>
@@ -2054,6 +2088,20 @@ Do NOT modify dormant/parked sections unless specifically requested.
                         <span id="lbl-opt-genetic" style="color:var(--accent-cyan);font-weight:600;">Genetic</span>
                       </label>
                     </div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(224,64,251,0.06);border:1px solid rgba(224,64,251,0.25);margin-top:2px;">
+                    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.70rem;color:#e040fb;font-weight:600;margin:0;" title="Restringe la optimización a desplazamientos 1D a lo largo de los ejes de prueba vinculados a los anclajes (los anclajes sin eje quedan fijos)">
+                      <input type="checkbox" id="chk-opt-along-axis" style="accent-color:#e040fb;">
+                      <span>📐 1D Test Axis Constraint</span>
+                    </label>
+                    <span id="opt-axis-count-badge" style="font-size:0.62rem;font-family:monospace;color:var(--text-muted);">0 axes</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(255,179,0,0.06);border:1px solid rgba(255,179,0,0.25);margin-top:2px;">
+                    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.70rem;color:#ffb300;font-weight:600;margin:0;" title="Optimiza exclusivamente el error de área de los lotes de Casa del Sol (ignora distancias perimetrales y área master de La Trinidad)">
+                      <input type="checkbox" id="chk-opt-casa-del-sol-only" style="accent-color:#ffb300;">
+                      <span>☀️ Optimize Casa del Sol Area Only</span>
+                    </label>
+                    <span id="opt-cds-count-badge" style="font-size:0.62rem;font-family:monospace;color:var(--text-muted);">0 lotes</span>
                   </div>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:6px;">
@@ -2080,7 +2128,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <button type="button" class="btn-help-bubble" aria-label="Help Auto-Tune Anchors" title="Help: Auto-Tune Anchors">?</button>
                       <div class="opt-hover-card align-right" style="width:280px;">
                         <div class="opt-hover-title">⚡ Auto-Tune Anchors (Global Search)</div>
-                        <div class="opt-hover-body">Explores anchor positions within their Field buffers using either <strong>Genetic Algorithm (Differential Evolution)</strong> or <strong>All Combinations (exhaustive grid)</strong> to find the anchor alignment that minimizes overall boundary and area error (and optionally maximizes IGAC ±1.04m compliance). Live-animates the polygon during execution.</div>
+                        <div class="opt-hover-body">Explores anchor positions within their Field buffers using either <strong>Genetic Algorithm (Differential Evolution)</strong> or <strong>All Combinations (exhaustive grid)</strong> to find the anchor alignment that minimizes overall boundary and area error. Live-animates the polygon during execution.</div>
                       </div>
                     </div>
                   </div>
@@ -2128,10 +2176,18 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-custom-poly" title="Colapsar / Desplegar">▶</button>
           </div>
           <div id="body-custom-polygon" style="display:none;flex-direction:column;gap:8px;">
-            <!-- + New Polygon button -->
-            <button id="btn-add-new-custom-poly" class="btn btn-primary btn-sm" style="background:linear-gradient(135deg,#00e5ff,#00b0ff);border-color:#00e5ff;color:#050d1a;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;" title="Create a new independent polygon on the field map and subpanel">
-              ➕ New Polygon
-            </button>
+            <!-- Action Toolbar: New, Save & Load -->
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button id="btn-add-new-custom-poly" class="btn btn-primary btn-sm" style="flex:1;background:linear-gradient(135deg,#00e5ff,#00b0ff);border-color:#00e5ff;color:#050d1a;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;padding:3px 6px;font-size:0.71rem;" title="Create a new independent polygon on the field map and subpanel">
+                ➕ New Poly
+              </button>
+              <button id="btn-save-custom-poly-json" class="btn btn-sm" style="background:rgba(0,200,83,0.20);border:1px solid rgba(0,200,83,0.45);color:#00e676;padding:3px 8px;font-size:0.70rem;" title="Download &amp; Save Custom Polygons to JSON">
+                💾 Save JSON
+              </button>
+              <label for="custom-poly-file-input" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;gap:3px;padding:3px 8px;font-size:0.70rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;" title="Load Custom Polygons from JSON file">
+                📂 Load JSON<input type="file" id="custom-poly-file-input" accept=".json" style="display:none;">
+              </label>
+            </div>
 
             <!-- Multi-polygon list container -->
             <div id="custom-poly-list" class="custom-poly-list">
@@ -2163,7 +2219,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
             </div>
 
             <!-- Area & Metrics display -->
-            <div id="custom-poly-metrics" style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,179,0,0.25);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+            <div id="custom-poly-metrics" style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,179,0,0.25);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;box-sizing:border-box;max-width:100%;overflow:hidden;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span id="custom-poly-selected-name" style="font-size:0.72rem;font-weight:700;color:#ffb300;display:flex;align-items:center;gap:5px;">
                   <span id="custom-poly-selected-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ffb300;"></span>
@@ -2186,6 +2242,52 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
                 <span style="color:var(--text-muted);">Anchored Vertices:</span>
                 <span id="custom-poly-anchored-count" style="font-family:monospace;color:#ffb300;font-weight:600;">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;border-top:1px dashed rgba(255,255,255,0.1);padding-top:4px;margin-top:2px;">
+                <span style="color:var(--text-muted);">Target Cabida:</span>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <input type="number" id="custom-poly-target-input" step="0.1" style="width:85px;background:rgba(15,20,32,0.9);border:1px solid rgba(0,229,255,0.3);color:var(--accent-cyan);font-family:monospace;font-size:0.72rem;border-radius:3px;padding:1px 4px;text-align:right;" placeholder="Deed m²">
+                  <span style="color:var(--text-muted);font-size:0.68rem;">m²</span>
+                </div>
+              </div>
+              <div id="custom-poly-target-diff-row" style="display:none;justify-content:space-between;align-items:center;font-size:0.72rem;">
+                <span style="color:var(--text-muted);">Cabida Error:</span>
+                <span id="custom-poly-target-diff-val" style="font-family:monospace;font-weight:700;">—</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;padding-top:2px;">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--accent-cyan);font-weight:600;" title="Check to include this polygon in the area optimization loss function">
+                  <input type="checkbox" id="chk-custom-poly-include-opt" checked style="accent-color:var(--accent-cyan);">
+                  🎯 Include in Area Optimization
+                </label>
+              </div>
+
+              <!-- Visual Styling Controls (Color, Dash, Thickness, Opacity) -->
+              <div style="border-top:1px dashed rgba(255,255,255,0.12);padding-top:5px;margin-top:2px;display:flex;flex-direction:column;gap:5px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;">
+                  <span style="color:var(--text-muted);flex-shrink:0;">Color &amp; Line:</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="color" id="custom-poly-style-color" class="color-picker-swatch" style="width:24px;height:20px;padding:0;border:1px solid rgba(255,255,255,0.25);border-radius:3px;cursor:pointer;background:transparent;" title="Polygon border &amp; fill color">
+                    <select id="custom-poly-style-dash" class="style-select" style="font-size:0.68rem;padding:1px 4px;height:22px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,255,255,0.15);color:var(--text-main);border-radius:3px;cursor:pointer;" title="Line style">
+                      <option value="solid">Solid ───</option>
+                      <option value="dashed">Dashed ╌╌</option>
+                      <option value="dotted">Dotted ┈ ┈</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;gap:6px;">
+                  <span style="color:var(--text-muted);flex-shrink:0;">Thickness:</span>
+                  <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:115px;min-width:0;">
+                    <input type="range" id="custom-poly-style-width" min="1.0" max="8.0" step="0.5" value="2.5" class="opacity-slider" style="height:3px;flex:1;min-width:0;width:100%;">
+                    <span id="custom-poly-style-width-val" style="font-family:monospace;color:var(--accent-cyan);min-width:28px;text-align:right;flex-shrink:0;">2.5px</span>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;gap:6px;">
+                  <span style="color:var(--text-muted);flex-shrink:0;">Fill Opacity:</span>
+                  <div style="display:flex;align-items:center;gap:6px;flex:1;max-width:115px;min-width:0;">
+                    <input type="range" id="custom-poly-style-opacity" min="0" max="100" step="5" value="20" class="opacity-slider" style="height:3px;flex:1;min-width:0;width:100%;">
+                    <span id="custom-poly-style-opacity-val" style="font-family:monospace;color:var(--accent-cyan);min-width:28px;text-align:right;flex-shrink:0;">20%</span>
+                  </div>
+                </div>
               </div>
               <div id="custom-poly-total-summary" style="display:none;border-top:1px dashed rgba(255,255,255,0.12);padding-top:4px;margin-top:2px;justify-content:space-between;font-size:0.70rem;color:var(--accent-cyan);">
                 <span>Total All Polygons:</span>
@@ -2286,6 +2388,24 @@ Do NOT modify dormant/parked sections unless specifically requested.
       </div>
       <div style="padding:10px 18px;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);display:flex;justify-content:flex-end;">
         <button id="btn-ok-legal-help" class="btn btn-primary btn-sm" style="padding:5px 16px;">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Recordatorio de Archivo Complementario y Replicabilidad -->
+  <div id="modal-save-companion-reminder" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.80);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#0c1220;border:1px solid rgba(0,229,255,0.45);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,0.85),0 0 20px rgba(0,229,255,0.15);width:100%;max-width:520px;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(0,229,255,0.06);">
+        <span id="save-companion-modal-title" style="font-size:0.86rem;font-weight:700;color:var(--accent-cyan);display:flex;align-items:center;gap:6px;">
+          💾 Archivo Guardado
+        </span>
+        <button id="btn-close-save-companion-x" style="background:transparent;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:2px 6px;">✕</button>
+      </div>
+      <div id="save-companion-modal-body" style="padding:16px 18px;font-size:0.75rem;line-height:1.6;color:#cbd5e1;display:flex;flex-direction:column;gap:12px;">
+        <!-- Dynamic content filled by JS -->
+      </div>
+      <div style="padding:10px 18px;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);display:flex;justify-content:flex-end;">
+        <button id="btn-close-save-companion" class="btn btn-primary btn-sm" style="padding:5px 22px;">Entendido</button>
       </div>
     </div>
   </div>
@@ -4926,7 +5046,10 @@ EOF`;
           src: { x: a.src.x, y: a.src.y },
           dst: { x: a.dst.x, y: a.dst.y },
           active: a.active !== false && a.enabled !== false,
-          enabled: a.active !== false && a.enabled !== false
+          enabled: a.active !== false && a.enabled !== false,
+          axisId: a.axisId !== undefined ? a.axisId : null,
+          axisT: a.axisT !== undefined ? a.axisT : null,
+          optimize: a.optimize === true
         };
         if (anc.image) {
           const img = new Image();
@@ -4946,6 +5069,9 @@ EOF`;
 
     function applyUserPolygon(obj) {
       if (!obj || !Array.isArray(obj.vertices) || obj.vertices.length === 0) return false;
+      if (obj._simulation_metadata && typeof restoreSimulationMetadata === "function") {
+        restoreSimulationMetadata(obj._simulation_metadata);
+      }
       if (obj.sectionStyles) state.sectionStyles = { ...obj.sectionStyles };
       if (obj.defaultPolyStyle) state.defaultPolyStyle = { ...obj.defaultPolyStyle };
       state.userPolygon = {
@@ -4983,18 +5109,98 @@ EOF`;
       return true;
     }
 
+    const EMBEDDED_CASADELSOL_PARCELS = [{"id":"poly_casadelsol_lote_7","name":"Casa del Sol - Lote 7","color":"#76ff03","targetArea":33727.85,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097954.0825,"y":877187.4389,"origX":1097954.0825,"origY":877187.4389,"anchor":{"type":"deed","entIdx":0,"ptIdx":0,"deedPt":{"x":461.39,"y":141.81}}},{"x":1097793.4334,"y":877147.7537,"origX":1097793.4334,"origY":877147.7537,"anchor":{"type":"deed","entIdx":0,"ptIdx":1,"deedPt":{"x":525.83,"y":273.81}}},{"x":1097803.3437,"y":876955.0459,"origX":1097803.3437,"origY":876955.0459,"anchor":{"type":"deed","entIdx":0,"ptIdx":2,"deedPt":{"x":388.95,"y":376.78}}},{"x":1097751.1564,"y":876903.2513,"origX":1097751.1564,"origY":876903.2513,"anchor":{"type":"deed","entIdx":0,"ptIdx":3,"deedPt":{"x":383.39,"y":441.81}}},{"x":1097928.028,"y":877020.0804,"origX":1097928.028,"origY":877020.0804,"anchor":{"type":"deed","entIdx":0,"ptIdx":4,"deedPt":{"x":362.25,"y":254.84}}},{"x":1097985.6233,"y":877004.548,"origX":1097985.6233,"origY":877004.548,"anchor":{"type":"deed","entIdx":0,"ptIdx":5,"deedPt":{"x":318.88,"y":224.46}}}]},{"id":"poly_casadelsol_lote_6","name":"Casa del Sol - Lote 6","color":"#00e5ff","targetArea":2735.61,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097928.028,"y":877020.0804,"origX":1097928.028,"origY":877020.0804,"anchor":{"type":"deed","entIdx":1,"ptIdx":0,"deedPt":{"x":362.25,"y":254.84}}},{"x":1097920.2844,"y":876991.5806,"origX":1097920.2844,"origY":876991.5806,"anchor":{"type":"deed","entIdx":1,"ptIdx":1,"deedPt":{"x":347.25,"y":276.34}}},{"x":1097734.439,"y":876886.0299,"origX":1097734.439,"origY":876886.0299,"anchor":{"type":"deed","entIdx":1,"ptIdx":2,"deedPt":{"x":381.18,"y":463}}},{"x":1097751.1564,"y":876903.2513,"origX":1097751.1564,"origY":876903.2513,"anchor":{"type":"deed","entIdx":1,"ptIdx":3,"deedPt":{"x":383.39,"y":441.81}}}]},{"id":"poly_casadelsol_lote_5","name":"Casa del Sol - Lote 5","color":"#ffb300","targetArea":17964.45,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097920.2844,"y":876991.5806,"origX":1097920.2844,"origY":876991.5806,"anchor":{"type":"deed","entIdx":2,"ptIdx":0,"deedPt":{"x":347.25,"y":276.34}}},{"x":1097734.439,"y":876886.0299,"origX":1097734.439,"origY":876886.0299,"anchor":{"type":"deed","entIdx":2,"ptIdx":1,"deedPt":{"x":381.18,"y":463}}},{"x":1097622.1075,"y":876777.433,"origX":1097622.1075,"origY":876777.433,"anchor":{"type":"deed","entIdx":2,"ptIdx":2,"deedPt":{"x":371.18,"y":601.33}}},{"x":1097585.3786,"y":876758.1357,"origX":1097585.3786,"origY":876758.1357,"anchor":{"type":"deed","entIdx":2,"ptIdx":3,"deedPt":{"x":378.95,"y":637.33}}},{"x":1097793.6945,"y":876808.8476,"origX":1097793.6945,"origY":876808.8476,"anchor":{"type":"deed","entIdx":2,"ptIdx":4,"deedPt":{"x":294.88,"y":466.59}}},{"x":1097857.0189,"y":876868.5729,"origX":1097857.0189,"origY":876868.5729,"anchor":{"type":"deed","entIdx":2,"ptIdx":5,"deedPt":{"x":299.5,"y":389.46}}},{"x":1097854.8295,"y":876891.1618,"origX":1097854.8295,"origY":876891.1618,"anchor":{"type":"deed","entIdx":2,"ptIdx":6,"deedPt":{"x":316.13,"y":378.09}}},{"x":1097863.7045,"y":876902.0617,"origX":1097863.7045,"origY":876902.0617,"anchor":{"type":"deed","entIdx":2,"ptIdx":7,"deedPt":{"x":318.5,"y":365.84}}},{"x":1097864.5627,"y":876918.3881,"origX":1097864.5627,"origY":876918.3881,"anchor":{"type":"deed","entIdx":2,"ptIdx":8,"deedPt":{"x":329.13,"y":355.96}}},{"x":1097891.8643,"y":876952.0352,"origX":1097891.8643,"origY":876952.0352,"anchor":{"type":"deed","entIdx":2,"ptIdx":9,"deedPt":{"x":336.5,"y":318.21}}},{"x":1097911.2318,"y":876956.3038,"origX":1097911.2318,"origY":876956.3038,"anchor":{"type":"deed","entIdx":2,"ptIdx":10,"deedPt":{"x":328.38,"y":302.59}}}]},{"id":"poly_casadelsol_lote_8","name":"Casa del Sol - Lote 8","color":"#e040fb","targetArea":29555.19,"optArea":true,"closed":true,"visible":true,"showNodes":true,"showLabels":true,"snapEnabled":true,"vertices":[{"x":1097985.6233,"y":877004.548,"origX":1097985.6233,"origY":877004.548,"anchor":{"type":"deed","entIdx":5,"ptIdx":0,"deedPt":{"x":318.88,"y":224.46}}},{"x":1097954.0825,"y":877187.4389,"origX":1097954.0825,"origY":877187.4389,"anchor":{"type":"deed","entIdx":5,"ptIdx":1,"deedPt":{"x":461.39,"y":141.81}}},{"x":1098094.6041,"y":877230.0173,"origX":1098094.6041,"origY":877230.0173,"anchor":{"type":"deed","entIdx":5,"ptIdx":2,"deedPt":{"x":410.38,"y":21.87}}},{"x":1098130.8214,"y":877073.2528,"origX":1098130.8214,"origY":877073.2528,"anchor":{"type":"deed","entIdx":5,"ptIdx":3,"deedPt":{"x":283,"y":86.46}}},{"x":1098143.5773,"y":877020.2331,"origX":1098143.5773,"origY":877020.2331,"anchor":{"type":"deed","entIdx":5,"ptIdx":4,"deedPt":{"x":239.63,"y":107.96}}},{"x":1098110.3309,"y":877019.6032,"origX":1098110.3309,"origY":877019.6032,"anchor":{"type":"deed","entIdx":5,"ptIdx":5,"deedPt":{"x":258.13,"y":130.96}}},{"x":1098029.6281,"y":876965.5246,"origX":1098029.6281,"origY":876965.5246,"anchor":{"type":"deed","entIdx":5,"ptIdx":6,"deedPt":{"x":267.25,"y":216.71}}},{"x":1098022.803,"y":876994.3257,"origX":1098022.803,"origY":876994.3257,"anchor":{"type":"deed","entIdx":5,"ptIdx":7,"deedPt":{"x":290.75,"y":204.96}}}]}];
+
+    function applyCustomPolygons(parcels) {
+      if (!parcels || !Array.isArray(parcels) || parcels.length === 0) return false;
+      state.customPolygons = JSON.parse(JSON.stringify(parcels));
+      state.customPolygons.forEach((p, idx) => {
+        if (!p.color) p.color = CUSTOM_POLY_PALETTE[idx % CUSTOM_POLY_PALETTE.length];
+        if (p.optArea === undefined) p.optArea = true;
+        if (p.visible === undefined) p.visible = true;
+        if (p.closed === undefined) p.closed = true;
+        if (p.showNodes === undefined) p.showNodes = true;
+        if (p.showLabels === undefined) p.showLabels = true;
+      });
+      state.activeCustomPolyIndex = 0;
+      state.customPolygon = state.customPolygons[0];
+      if (typeof updateCustomPolygonAnchors === "function") {
+        updateCustomPolygonAnchors();
+      }
+      if (typeof renderCustomPolyList === "function") {
+        renderCustomPolyList();
+      }
+      if (typeof recomputeCustomPolygonMetrics === "function") {
+        recomputeCustomPolygonMetrics();
+      }
+      if (typeof updateCustomPolyButtonStates === "function") {
+        updateCustomPolyButtonStates();
+      }
+      if (typeof redrawTrueCanvas === "function") {
+        redrawTrueCanvas();
+      }
+      return true;
+    }
 
     // [/SECTION: JS_PRELOAD_DATA]
 
     // ============================================================================
     // [SECTION: JS_BOUNDARY_OPTIMIZER_ENGINE] (DORMANT / PARKED)
     // ============================================================================
+    /**
+     * Identify polygon vertices that correspond to active fixed anchors (optimize:false and no axis).
+     * These vertices must have buffer = 0 and remain strictly locked to their nominal anchor coordinates.
+     */
+    function getFixedVertexIndices(polygonVertices, anchors = (typeof state !== "undefined" ? state.anchors : [])) {
+      const fixedSet = new Set();
+      if (!polygonVertices || !anchors) return fixedSet;
+      const activeFixed = (anchors || []).filter(a => a.active !== false && a.enabled !== false && a.optimize !== true && a.axisId == null);
+      if (activeFixed.length === 0) return fixedSet;
+
+      polygonVertices.forEach((v, idx) => {
+        for (const anc of activeFixed) {
+          if (v.deedPt && Math.hypot(v.deedPt.x - anc.src.x, v.deedPt.y - anc.src.y) <= 1.5) {
+            fixedSet.add(idx);
+            break;
+          }
+          const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
+          const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
+          if (Math.hypot(ox - anc.dst.x, oy - anc.dst.y) <= 2.0 || Math.hypot(v.x - anc.dst.x, v.y - anc.dst.y) <= 2.0) {
+            fixedSet.add(idx);
+            break;
+          }
+        }
+      });
+      return fixedSet;
+    }
+
+    function isVertexFixedAnchor(poly, i, anchors = (typeof state !== "undefined" ? state.anchors : [])) {
+      if (!poly || !poly.vertices) return false;
+      const v = poly.vertices[i];
+      if (!v) return false;
+      const activeFixed = (anchors || []).filter(a => a.active !== false && a.enabled !== false && a.optimize !== true && a.axisId == null);
+      if (activeFixed.length === 0) return false;
+
+      for (const anc of activeFixed) {
+        if (v.deedPt && Math.hypot(v.deedPt.x - anc.src.x, v.deedPt.y - anc.src.y) <= 1.5) {
+          return true;
+        }
+        const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
+        const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
+        if (Math.hypot(ox - anc.dst.x, oy - anc.dst.y) <= 2.0 || Math.hypot(v.x - anc.dst.x, v.y - anc.dst.y) <= 2.0) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     /* ==========================================================================
        3.5. BOUNDARY OPTIMIZATION ENGINE (Constrained Relaxation: Spring & Area Model)
        ========================================================================== */
     class BoundaryOptimizer {
       /**
        * Optimize dynamic vertices of userPolygon within buffer radius R.
+       * Vertices corresponding to fixed anchors are locked to nominal with 0 buffer.
        * @param {Object} options
        *   - vertices: Array<{ x, y, deedPt, origX?, origY? }>
        *   - segmentLengths: Array<number|null>
@@ -5002,6 +5208,7 @@ EOF`;
        *   - balance: number (0 = distance focus, 50 = balanced, 100 = area focus)
        *   - targetArea: number (default 162156.0 m²)
        *   - iterations: number (default 220)
+       *   - fixedIndices: Set<number>
        * @returns {{ success: boolean, vertices: Array, maxDisplacement: number, initialLoss: number, finalLoss: number, reason?: string }}
        */
       static optimize(options) {
@@ -5020,17 +5227,24 @@ EOF`;
         }
 
         const N = vertices.length;
+        const fixedIndices = options.fixedIndices || (typeof getFixedVertexIndices === "function" ? getFixedVertexIndices(vertices) : new Set());
 
         // Clone vertices and ensure baseline nominal coordinates (origX, origY)
-        const pts = vertices.map(v => ({
-          x: v.x,
-          y: v.y,
-          deedPt: v.deedPt ? { ...v.deedPt } : null,
-          origX: (v.origX !== undefined && v.origX !== null) ? v.origX : v.x,
-          origY: (v.origY !== undefined && v.origY !== null) ? v.origY : v.y,
-        }));
+        const pts = vertices.map((v, idx) => {
+          const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
+          const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
+          const isFixed = fixedIndices.has(idx) || v.isFixed === true;
+          return {
+            x: isFixed ? ox : v.x,
+            y: isFixed ? oy : v.y,
+            deedPt: v.deedPt ? { ...v.deedPt } : null,
+            origX: ox,
+            origY: oy,
+            isFixed
+          };
+        });
 
-        // Identify dynamic vertex indices (strictly deed-anchored vertices adjacent to segments selected for optimization)
+        // Identify dynamic vertex indices (strictly deed-anchored vertices adjacent to segments selected for optimization, NOT fixed)
         const dynamicIndices = [];
         for (let i = 0; i < N; i++) {
           const prevIdx = (i - 1 + N) % N;
@@ -5039,8 +5253,14 @@ EOF`;
             (segmentOptimize[prevIdx] && segmentLengths[prevIdx] > 0)
           ) : (pts[i].deedPt !== null);
 
-          if (pts[i].deedPt !== null && isAdjToOpt) {
+          const isFixed = pts[i].isFixed === true;
+
+          if (pts[i].deedPt !== null && isAdjToOpt && !isFixed) {
             dynamicIndices.push(i);
+          } else if (isFixed) {
+            // Strictly clamp fixed vertex to nominal
+            pts[i].x = pts[i].origX;
+            pts[i].y = pts[i].origY;
           }
         }
 
@@ -5349,6 +5569,17 @@ EOF`;
       markerToolActive: false,
       draggingTempMarker: null,    // { idx, marker, origPt: {x,y} }
       hoverTempMarker: null,       // { idx, marker, screenPt }
+      // Test Axes for 1D Parametric Hypothesis Optimization
+      testAxes: [],                // [ { id: 1, name: "Axis 1", p1: {x,y}, p2: {x,y}, color: "#e040fb", visible: true } ]
+      testAxisCounter: 0,
+      creatingTestAxis: false,
+      testAxisDrawStart: null,     // { x, y } Point A during creation
+      testAxisCursorPt: null,      // live mouse position during creation
+      draggingTestAxisHandle: null,// { axisId, handle: 'p1'|'p2' }
+      hoverTestAxisHandle: null,   // { axisId, handle: 'p1'|'p2' }
+      snapNewAnchorsToAxis: true,
+      optAlongAxisOnly: false,
+      optCasaDelSolOnly: false,
       // Layer & Polygon Visual Styles
       styleDeedDxf: {
         color: "#ff1744",
@@ -5420,6 +5651,44 @@ EOF`;
       return anchors.filter(a => a.active !== false && a.enabled !== false);
     }
 
+    /**
+     * Auto-relaxes floating guide anchors (anchors snapped to an axis with optimize:false).
+     * Solves as a zero-force "bead on a wire" (orthogonal projection onto the axis).
+     */
+    function updateFloatingGuideAnchors() {
+      if (!state.anchors || state.anchors.length === 0) return false;
+      const active = getActiveAnchors();
+      const floating = active.filter(a => a.axisId != null && a.optimize !== true);
+      if (floating.length === 0) return false;
+
+      // Base anchors: active anchors that are NOT floating guides
+      const base = active.filter(a => !(a.axisId != null && a.optimize !== true));
+      let warper = null;
+      if (base.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, base); } catch (_) {}
+      }
+      if (!warper && active.length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, active); } catch (_) {}
+      }
+      if (!warper) return false;
+
+      let anyChanged = false;
+      floating.forEach(anc => {
+        const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+        if (ax) {
+          const pNat = warper(anc.src);
+          const pr = projectPointOnAxis(pNat, ax);
+          const clampedT = Math.max(0.0, Math.min(1.0, pr.t));
+          if (anc.axisT !== clampedT || Math.hypot(anc.dst.x - pr.projPt.x, anc.dst.y - pr.projPt.y) > 0.001) {
+            anc.axisT = clampedT;
+            anc.dst = { x: pr.projPt.x, y: pr.projPt.y };
+            anyChanged = true;
+          }
+        }
+      });
+      return anyChanged;
+    }
+
     const histCanvas = document.getElementById("hist-canvas");
     const histCtx    = histCanvas.getContext("2d");
     const trueCanvas = document.getElementById("true-canvas");
@@ -5464,23 +5733,13 @@ EOF`;
       return { minX, minY, maxX, maxY, width:maxX-minX, height:maxY-minY };
     }
 
-    function fitViewport(canvas, bbox, padOptions) {
-      let pL = 40, pR = 40, pT = 40, pB = 40;
-      if (typeof padOptions === "number") {
-        pL = pR = pT = pB = padOptions;
-      } else if (padOptions && typeof padOptions === "object") {
-        pL = padOptions.left ?? 40;
-        pR = padOptions.right ?? 40;
-        pT = padOptions.top ?? 40;
-        pB = padOptions.bottom ?? 40;
-      }
-      const w = Math.max(10, canvas.width - pL - pR);
-      const h = Math.max(10, canvas.height - pT - pB);
-      const scale = Math.min(w / (bbox.width || 1), h / (bbox.height || 1));
+    function fitViewport(canvas, bbox) {
+      const pad = 40, w = canvas.width-pad*2, h = canvas.height-pad*2;
+      const scale = Math.min(w/(bbox.width||1), h/(bbox.height||1));
       return {
         scale,
-        offsetX: pL + (w - bbox.width * scale) / 2 - bbox.minX * scale,
-        offsetY: pB + (h - bbox.height * scale) / 2 - bbox.minY * scale,
+        offsetX: pad + (w - bbox.width*scale)/2 - bbox.minX*scale,
+        offsetY: pad + (h - bbox.height*scale)/2 - bbox.minY*scale,
         bbox
       };
     }
@@ -5513,58 +5772,11 @@ EOF`;
 
     function fitTrueFieldView() {
       if (!trueCanvas || trueCanvas.width <= 0) return;
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
-      // 1. Focus / center primarily on user reconstructed polygon
-      if (state.userPolygon && state.userPolygon.vertices && state.userPolygon.vertices.length >= 3) {
-        state.userPolygon.vertices.forEach(v => {
-          if (typeof v.x === "number" && typeof v.y === "number") {
-            minX = Math.min(minX, v.x);
-            minY = Math.min(minY, v.y);
-            maxX = Math.max(maxX, v.x);
-            maxY = Math.max(maxY, v.y);
-          }
-        });
-      } else {
-        // Fallback 1: Include field survey entities
-        if (state.trueEntities && state.trueEntities.length > 0) {
-          const bb = computeBoundingBox(state.trueEntities);
-          if (bb && bb.minX !== Infinity) {
-            minX = Math.min(minX, bb.minX);
-            minY = Math.min(minY, bb.minY);
-            maxX = Math.max(maxX, bb.maxX);
-            maxY = Math.max(maxY, bb.maxY);
-          }
-        }
-
-        // Fallback 2: Include all active/enabled anchor field locations
-        const activeAnchors = (state.anchors || []).filter(a => a.active !== false && a.enabled !== false && a.dst);
-        activeAnchors.forEach(a => {
-          if (typeof a.dst.x === "number" && typeof a.dst.y === "number") {
-            minX = Math.min(minX, a.dst.x);
-            minY = Math.min(minY, a.dst.y);
-            maxX = Math.max(maxX, a.dst.x);
-            maxY = Math.max(maxY, a.dst.y);
-          }
-        });
+      if (state.trueEntities && state.trueEntities.length > 0) {
+        state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+      } else if (state.geoTiff && state.geoTiff.bbox) {
+        state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
       }
-
-      // Fallback if no vectors loaded
-      if (minX === Infinity || minX === maxX) {
-        if (state.geoTiff && state.geoTiff.bbox) {
-          state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox, 50);
-          return;
-        }
-        minX = 1097650; maxX = 1098220; minY = 876520; maxY = 877280;
-      }
-
-      const bbox = { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
-
-      // 5% buffer from the side (left/right) and 5% buffer at top and bottom, centered in the X axis
-      const pSide = Math.round(trueCanvas.width * 0.05);
-      const pTop = Math.round(trueCanvas.height * 0.05);
-      const pBottom = Math.round(trueCanvas.height * 0.05);
-      state.trueViewport = fitViewport(trueCanvas, bbox, { left: pSide, right: pSide, top: pTop, bottom: pBottom });
     }
 
     // ── Canvas resize ─────────────────────────────────────────────────
@@ -5590,7 +5802,10 @@ EOF`;
           state.histViewport = fitViewport(histCanvas, {minX:0,minY:0,maxX:state.histPdfW,maxY:state.histPdfH,width:state.histPdfW,height:state.histPdfH});
       }
       if ((!state.trueViewport.bbox || state.trueViewport.scale <= 0) && trueCanvas.width > 0) {
-        fitTrueFieldView();
+        if (state.trueEntities.length > 0)
+          state.trueViewport = fitViewport(trueCanvas, computeBoundingBox(state.trueEntities));
+        else if (state.geoTiff)
+          state.trueViewport = fitViewport(trueCanvas, state.geoTiff.bbox);
       }
       redrawAll();
     }
@@ -5598,6 +5813,7 @@ EOF`;
 
     // ── Redraw ────────────────────────────────────────────────────────
     function redrawAll() {
+      updateFloatingGuideAnchors();
       const histCard = document.getElementById("hist-card");
       const trueCard = document.getElementById("true-card");
       if (!histCard || !histCard.classList.contains("hidden")) {
@@ -6806,6 +7022,11 @@ EOF`;
       // Layer 4c: Temporary Reference Checkpoint Markers
       drawTempMarkersGIS(trueCtx, vp, h);
 
+      // Layer 4d: Parametric 1D Test Axes (Hypothesis Testing)
+      if (typeof drawTestAxesGIS === "function") {
+        drawTestAxesGIS(trueCtx, vp, h);
+      }
+
       // Layer 5: Target anchor pen buffer disks & residual lines
       state.anchors.forEach(anc => {
         const isEnabled = anc.active !== false && anc.enabled !== false;
@@ -6884,6 +7105,27 @@ EOF`;
         if (!isEnabled) trueCtx.setLineDash([2, 2]);
         trueCtx.stroke();
         trueCtx.setLineDash([]);
+
+        // Distinct visual aura/indicator based on anchor mode
+        if (isEnabled) {
+          if (anc.axisId != null && anc.optimize !== true) {
+            // Floating Guide (Rubber band on axis): cyan dotted rail ring
+            trueCtx.beginPath();
+            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+            trueCtx.strokeStyle = "#00e5ff";
+            trueCtx.lineWidth = 1.6;
+            trueCtx.setLineDash([3, 3]);
+            trueCtx.stroke();
+            trueCtx.setLineDash([]);
+          } else if (anc.optimize === true) {
+            // Actively optimized: glowing target ring
+            trueCtx.beginPath();
+            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+            trueCtx.strokeStyle = (anc.axisId != null) ? "#e040fb" : "#76ff03";
+            trueCtx.lineWidth = 1.6;
+            trueCtx.stroke();
+          }
+        }
 
         if (anc.showLabel !== false) {
           drawAnchorLabelCard(trueCtx, anc, tp, false);
@@ -7903,6 +8145,26 @@ EOF`;
           // If no deed vertex is associated with this polygon vertex, DO NOT draw buffer around polygon vertex!
           if (!deedCenter) return;
 
+          // If this vertex corresponds to a fixed anchor, lock vertex strictly to deed center (0 buffer)
+          if (isVertexFixedAnchor(poly, idx)) {
+            v.x = deedCenter.x;
+            v.y = deedCenter.y;
+            const sOrig = worldToScreenGIS(deedCenter, vp, canvasH);
+            const key = `${Math.round(deedCenter.x * 100)}_${Math.round(deedCenter.y * 100)}`;
+            if (!drawnDeedBuffers.has(key)) {
+              drawnDeedBuffers.add(key);
+              // Draw locked fixed pin indicator (solid pin dot, no buffer halo)
+              ctx.beginPath();
+              ctx.arc(sOrig.x, sOrig.y, 4, 0, Math.PI * 2);
+              ctx.fillStyle = "#78909c";
+              ctx.fill();
+              ctx.strokeStyle = "#ffffff";
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+            }
+            return;
+          }
+
           const sOrig = worldToScreenGIS(deedCenter, vp, canvasH);
           const key = `${Math.round(deedCenter.x * 100)}_${Math.round(deedCenter.y * 100)}`;
 
@@ -8080,7 +8342,7 @@ EOF`;
         }
       }
 
-      // Area callout HUD box pinned to top-left of the field frame (when polygon is closed)
+      // Real-time Metrics HUD Card pinned to top-left of the field frame (when polygon is closed)
       if (poly.closed && verts.length >= 3) {
         let areaM2 = 0;
         for (let i = 0; i < verts.length; i++) {
@@ -8088,38 +8350,144 @@ EOF`;
           areaM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
         }
         areaM2 = Math.abs(areaM2) / 2;
-        const plazas = areaM2 / 6400;
+        const REF_AREA = 162156.0;
+        const areaErrPct = (Math.abs(areaM2 - REF_AREA) / REF_AREA) * 100;
 
-        const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-        const txt2 = `${plazas.toFixed(2)} plazas`;
+        // Compute segment lengths stats for segments in 1073 (assigned deed lengths)
+        let sumDeedLen = 0, sumFieldLen = 0, countDeedSegs = 0, segErrSum = 0;
+        for (let i = 0; i < nSegs; i++) {
+          const a = verts[i], b = verts[(i + 1) % verts.length];
+          const deedLen = poly.segmentLengths ? poly.segmentLengths[i] : null;
+          const isOpt = poly.segmentOptimize ? (poly.segmentOptimize[i] === true) : (a.deedPt !== null && b.deedPt !== null);
+          if (deedLen != null && deedLen > 0 && isOpt) {
+            const mLen = Math.hypot(b.x - a.x, b.y - a.y);
+            sumDeedLen += deedLen;
+            sumFieldLen += mLen;
+            segErrSum += (Math.abs(mLen - deedLen) / deedLen) * 100;
+            countDeedSegs++;
+          }
+        }
+        const avgDeedLen = countDeedSegs > 0 ? (sumDeedLen / countDeedSegs) : 0;
+        const avgFieldLen = countDeedSegs > 0 ? (sumFieldLen / countDeedSegs) : 0;
+        const avgSegErrPct = countDeedSegs > 0 ? (segErrSum / countDeedSegs) : 0;
+
+        // Overall simulation error
+        const simAvgError = countDeedSegs > 0 ? (areaErrPct + avgSegErrPct) / 2 : areaErrPct;
 
         const boxX = 14;
         const boxY = 14;
-        const bw = 130;
-        const bh = 34;
+        const bw = 276;
+        const bh = 80;
 
         ctx.save();
-        ctx.fillStyle = "rgba(6, 9, 16, 0.90)";
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
-        ctx.lineWidth = 1.5;
+        // Background card with blur and subtle glow
+        ctx.fillStyle = "rgba(8, 14, 26, 0.92)";
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
+        ctx.lineWidth = 1.4;
 
         ctx.beginPath();
         if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(boxX, boxY, bw, bh, 6);
+          ctx.roundRect(boxX, boxY, bw, bh, 7);
         } else {
           ctx.rect(boxX, boxY, bw, bh);
         }
         ctx.fill();
         ctx.stroke();
 
-        const centerX = boxX + bw / 2;
-        ctx.fillStyle = "#00e5ff";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(txt1, centerX, boxY + 14);
+        // Column X coordinates (compact layout with tight margins)
+        const colLabelX = boxX + 8;
+        const colDeedX = boxX + 154;
+        const colFieldX = boxX + 220;
+        const colErrX = boxX + bw - 8;
+
+        // 1. Column Headers
+        ctx.fillStyle = "#64748b";
+        ctx.font = "bold 9px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText("En Escritura", colDeedX, boxY + 14);
+        ctx.fillText("En Campo", colFieldX, boxY + 14);
+        ctx.fillText("Error", colErrX, boxY + 14);
+
+        // Divider under headers
+        ctx.beginPath();
+        ctx.moveTo(boxX + 6, boxY + 18);
+        ctx.lineTo(boxX + bw - 6, boxY + 18);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Helper for error color
+        function getErrColor(err) {
+          if (err <= 0.05) return "#00e676";
+          if (err <= 1.0) return "#ffd600";
+          return "#ff5252";
+        }
+
+        // 2. Row 1: Área in 296
+        const yRow1 = boxY + 31;
+        ctx.textAlign = "left";
         ctx.fillStyle = "#cbd5e1";
-        ctx.font = "10px sans-serif";
-        ctx.fillText(txt2, centerX, boxY + 28);
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.fillText("Área in 296", colLabelX, yRow1);
+
+        ctx.textAlign = "right";
+        ctx.font = "9.5px monospace";
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillText("162,156 m²", colDeedX, yRow1);
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillText(`${Math.round(areaM2).toLocaleString('en-US')} m²`, colFieldX, yRow1);
+
+        ctx.fillStyle = getErrColor(areaErrPct);
+        ctx.font = "bold 9.5px monospace";
+        ctx.fillText(`${areaErrPct.toFixed(2)}%`, colErrX, yRow1);
+
+        // 3. Row 2: Tramo x̄ in 1073
+        const yRow2 = boxY + 47;
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#cbd5e1";
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.fillText("Tramo x̄ in 1073", colLabelX, yRow2);
+
+        ctx.textAlign = "right";
+        ctx.font = "9.5px monospace";
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillText(`${avgDeedLen.toFixed(1)} m`, colDeedX, yRow2);
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillText(`${avgFieldLen.toFixed(1)} m`, colFieldX, yRow2);
+
+        ctx.fillStyle = getErrColor(avgSegErrPct);
+        ctx.font = "bold 9.5px monospace";
+        ctx.fillText(`${avgSegErrPct.toFixed(2)}%`, colErrX, yRow2);
+
+        // 4. Row 3: Bottom Highlight Pill — Error x̄ simulación
+        const pillY = boxY + 54;
+        const pillH = 20;
+        ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.28)";
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(boxX + 5, pillY, bw - 10, pillH, 4);
+        } else {
+          ctx.rect(boxX + 5, pillY, bw - 10, pillH);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "bold 9px sans-serif";
+        ctx.fillText("⚡ Error x̄ simulación:", boxX + 10, pillY + 13.5);
+
+        const simErrColor = getErrColor(simAvgError);
+        ctx.textAlign = "right";
+        ctx.font = "bold 10.5px monospace";
+        ctx.fillStyle = simErrColor;
+        ctx.fillText(`${simAvgError.toFixed(2)}%`, boxX + bw - 10, pillY + 14);
+
         ctx.restore();
       }
 
@@ -8298,20 +8666,70 @@ EOF`;
           redrawTrueCanvas();
         });
 
+        // Visibility Checkbox directly beside lote number (Show or not in main canvas)
+        const chkVis = document.createElement("input");
+        chkVis.type = "checkbox";
+        chkVis.checked = (p.visible !== false);
+        chkVis.title = p.visible !== false ? "Visible on main canvas (uncheck to hide)" : "Hidden on main canvas (check to show)";
+        chkVis.style.accentColor = p.color || "var(--accent-cyan)";
+        chkVis.style.cursor = "pointer";
+        chkVis.style.margin = "0 1px 0 0";
+        chkVis.style.flexShrink = "0";
+        chkVis.addEventListener("click", e => e.stopPropagation());
+        chkVis.addEventListener("change", () => {
+          toggleCustomPolyVisibility(idx);
+        });
+
+        if (p.visible === false) {
+          row.style.opacity = "0.55";
+        }
+
+        // Opt Checkbox (Tickmark to include in optimization)
+        const lblOpt = document.createElement("label");
+        lblOpt.style.display = "inline-flex";
+        lblOpt.style.alignItems = "center";
+        lblOpt.style.gap = "2px";
+        lblOpt.style.cursor = "pointer";
+        lblOpt.style.margin = "0 3px";
+        lblOpt.style.flexShrink = "0";
+        lblOpt.title = "Include this parcel in area optimization loss [Tickmark]";
+
+        const chkOpt = document.createElement("input");
+        chkOpt.type = "checkbox";
+        chkOpt.checked = (p.optArea !== false);
+        chkOpt.style.accentColor = "var(--accent-cyan)";
+        chkOpt.style.cursor = "pointer";
+        chkOpt.style.margin = "0";
+        chkOpt.addEventListener("click", e => e.stopPropagation());
+        chkOpt.addEventListener("change", e => {
+          p.optArea = e.target.checked;
+          optTxt.style.color = p.optArea ? "var(--accent-cyan)" : "var(--text-muted)";
+          recomputeCustomPolygonMetrics();
+        });
+
+        const optTxt = document.createElement("span");
+        optTxt.textContent = "Opt";
+        optTxt.style.fontSize = "0.61rem";
+        optTxt.style.fontWeight = "700";
+        optTxt.style.color = (p.optArea !== false) ? "var(--accent-cyan)" : "var(--text-muted)";
+
+        lblOpt.appendChild(chkOpt);
+        lblOpt.appendChild(optTxt);
+
+        // Area & Delta % readout
+        let deltaHtml = "";
+        if (areaM2 > 0 && p.targetArea > 0) {
+          const diffPct = ((areaM2 - p.targetArea) / p.targetArea) * 100;
+          const absDiff = Math.abs(diffPct);
+          const color = absDiff <= 4.0 ? "#00e676" : (absDiff <= 8.0 ? "#ffb300" : "#ff1744");
+          const sign = diffPct > 0 ? "+" : "";
+          deltaHtml = `<span style="color:${color};font-size:0.62rem;font-weight:700;margin-left:3px;" title="Cabida Target: ${p.targetArea.toFixed(1)} m² (${sign}${diffPct.toFixed(2)}%)">${sign}${diffPct.toFixed(1)}%</span>`;
+        }
+
         const meta = document.createElement("span");
         meta.className = "custom-poly-meta-badge";
         meta.style.color = p.closed ? (isActive ? p.color : "var(--text-muted)") : "#ff9100";
-        meta.textContent = areaStr;
-
-        const btnVis = document.createElement("button");
-        btnVis.type = "button";
-        btnVis.className = "custom-poly-btn-icon";
-        btnVis.title = p.visible !== false ? "Hide on map" : "Show on map";
-        btnVis.innerHTML = p.visible !== false ? "👁️" : "<span style='opacity:0.35;'>👁️</span>";
-        btnVis.addEventListener("click", e => {
-          e.stopPropagation();
-          toggleCustomPolyVisibility(idx);
-        });
+        meta.innerHTML = areaStr + deltaHtml;
 
         const btnDel = document.createElement("button");
         btnDel.type = "button";
@@ -8324,9 +8742,10 @@ EOF`;
         });
 
         row.appendChild(dot);
+        row.appendChild(chkVis);
         row.appendChild(inp);
+        row.appendChild(lblOpt);
         row.appendChild(meta);
-        row.appendChild(btnVis);
         row.appendChild(btnDel);
 
         row.addEventListener("click", () => {
@@ -8335,6 +8754,12 @@ EOF`;
 
         container.appendChild(row);
       });
+
+      const optCdsBadge = document.getElementById("opt-cds-count-badge");
+      if (optCdsBadge) {
+        const optCount = polys.filter(p => p.optArea !== false && p.targetArea > 0 && p.closed && p.vertices && p.vertices.length >= 3).length;
+        optCdsBadge.textContent = `${optCount} ${optCount === 1 ? 'lote' : 'lotes'}`;
+      }
     }
 
     /** Ray-casting point in polygon test */
@@ -8767,6 +9192,55 @@ EOF`;
           totalWrap.style.display = "none";
         }
       }
+
+      // Target Cabida & Optimization Checkbox in Metrics subpanel
+      const targetInput = document.getElementById("custom-poly-target-input");
+      const targetDiffRow = document.getElementById("custom-poly-target-diff-row");
+      const targetDiffVal = document.getElementById("custom-poly-target-diff-val");
+      const chkIncludeOpt = document.getElementById("chk-custom-poly-include-opt");
+
+      if (targetInput) {
+        targetInput.value = (poly.targetArea !== undefined && poly.targetArea !== null && poly.targetArea > 0) ? poly.targetArea : "";
+      }
+      if (chkIncludeOpt) {
+        chkIncludeOpt.checked = (poly.optArea !== false);
+      }
+      if (targetDiffRow && targetDiffVal) {
+        if (areaM2 > 0 && poly.targetArea > 0) {
+          targetDiffRow.style.display = "flex";
+          const diffM2 = areaM2 - poly.targetArea;
+          const diffPct = (diffM2 / poly.targetArea) * 100;
+          const absDiff = Math.abs(diffPct);
+          const color = absDiff <= 4.0 ? "#00e676" : (absDiff <= 8.0 ? "#ffb300" : "#ff1744");
+          const sign = diffM2 > 0 ? "+" : "";
+          targetDiffVal.style.color = color;
+          targetDiffVal.textContent = `${sign}${diffM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (${sign}${diffPct.toFixed(2)}%)`;
+        } else {
+          targetDiffRow.style.display = "none";
+        }
+      }
+
+      // Visual Styling Controls in Metrics subpanel
+      const colorPicker = document.getElementById("custom-poly-style-color");
+      const dashSelect = document.getElementById("custom-poly-style-dash");
+      const widthSlider = document.getElementById("custom-poly-style-width");
+      const widthVal = document.getElementById("custom-poly-style-width-val");
+      const opacitySlider = document.getElementById("custom-poly-style-opacity");
+      const opacityVal = document.getElementById("custom-poly-style-opacity-val");
+
+      if (colorPicker) {
+        colorPicker.value = poly.color || "#ffb300";
+      }
+      if (dashSelect) {
+        dashSelect.value = poly.dash || "solid";
+      }
+      const curWidth = (poly.width !== undefined && poly.width !== null) ? poly.width : 2.5;
+      if (widthSlider) widthSlider.value = curWidth;
+      if (widthVal) widthVal.textContent = `${curWidth.toFixed(1)}px`;
+
+      const curOpacity = (poly.fillOpacity !== undefined && poly.fillOpacity !== null) ? poly.fillOpacity : 20;
+      if (opacitySlider) opacitySlider.value = curOpacity;
+      if (opacityVal) opacityVal.textContent = `${curOpacity}%`;
     }
 
     /** Update button states and status badge for Custom Polygon */
@@ -8893,6 +9367,90 @@ EOF`;
       ctx.restore();
     }
 
+    /** Draw centroid label badge displaying polygon name, area and deed error statistics on main canvas */
+    function drawCustomPolyCentroidLabel(ctx, poly, verts, vp, canvasH, isActive) {
+      if (!poly.closed || !verts || verts.length < 3) return;
+
+      let cx = 0, cy = 0;
+      for (let i = 0; i < verts.length; i++) { cx += verts[i].x; cy += verts[i].y; }
+      cx /= verts.length; cy /= verts.length;
+      const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
+
+      let aM2 = 0;
+      for (let i = 0; i < verts.length; i++) {
+        const j = (i + 1) % verts.length;
+        aM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
+      }
+      aM2 = Math.abs(aM2) / 2;
+
+      const pColor = poly.color || "#ffb300";
+      const hasTarget = (poly.targetArea > 0);
+
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      if (hasTarget) {
+        const diffM2 = aM2 - poly.targetArea;
+        const diffPct = (diffM2 / poly.targetArea) * 100;
+        const sign = diffM2 >= 0 ? "+" : "";
+        const absPct = Math.abs(diffPct);
+        const errColor = absPct <= 2.0 ? "#00e676" : (absPct <= 5.0 ? "#ffb300" : "#ff1744");
+
+        const line1 = `${poly.name}: ${aM2.toLocaleString('en-US', { maximumFractionDigits: 1 })} m²`;
+        const line2 = `Δ: ${sign}${diffPct.toFixed(2)}% (${sign}${diffM2.toFixed(1)} m²) • Deed: ${poly.targetArea.toLocaleString('en-US', { maximumFractionDigits: 0 })} m²`;
+
+        ctx.font = "bold 9.5px sans-serif";
+        const w1 = ctx.measureText(line1).width;
+        ctx.font = "bold 8.5px monospace";
+        const w2 = ctx.measureText(line2).width;
+        const bw = Math.max(w1, w2) + 14;
+        const bh = 28;
+
+        ctx.fillStyle = "rgba(8, 12, 22, 0.90)";
+        ctx.strokeStyle = isActive ? pColor : errColor;
+        ctx.lineWidth = isActive ? 2.0 : 1.2;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh, 4);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+          ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        }
+
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.fillStyle = pColor;
+        ctx.fillText(line1, sc.x, sc.y - 6);
+
+        ctx.font = "bold 8.5px monospace";
+        ctx.fillStyle = errColor;
+        ctx.fillText(line2, sc.x, sc.y + 7);
+      } else {
+        const line1 = `${poly.name}: ${aM2.toLocaleString('en-US', { maximumFractionDigits: 1 })} m²`;
+        ctx.font = "bold 9px sans-serif";
+        const tw = ctx.measureText(line1).width;
+        const bw = tw + 8, bh = 15;
+
+        ctx.fillStyle = "rgba(10, 14, 23, 0.88)";
+        ctx.strokeStyle = hexToRgba(pColor, 0.75);
+        ctx.lineWidth = isActive ? 1.8 : 1;
+        if (typeof ctx.roundRect === "function") {
+          ctx.beginPath();
+          ctx.roundRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh, 3);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+          ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        }
+        ctx.fillStyle = pColor;
+        ctx.fillText(line1, sc.x, sc.y);
+      }
+      ctx.restore();
+    }
+
     /** Render Autonomous Custom Polygons on trueCanvas */
     function drawCustomPolygon(ctx, vp, canvasH) {
       const polys = state.customPolygons || (state.customPolygon ? [state.customPolygon] : []);
@@ -8913,9 +9471,12 @@ EOF`;
         if (!verts || verts.length === 0) continue;
 
         const pColor = poly.color || "#ffb300";
+        const lineW = (poly.width !== undefined && poly.width !== null) ? poly.width : 2.0;
+        const dash = (poly.dash === "dashed") ? [6, 4] : ((poly.dash === "dotted") ? [2, 3] : []);
+        const fillAlpha = (poly.fillOpacity !== undefined && poly.fillOpacity !== null) ? (poly.fillOpacity / 100) : 0.12;
 
         // Fill interior if closed
-        if (poly.closed && verts.length >= 3) {
+        if (poly.closed && verts.length >= 3 && fillAlpha > 0) {
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -8924,13 +9485,14 @@ EOF`;
             ctx.lineTo(s.x, s.y);
           }
           ctx.closePath();
-          ctx.fillStyle = hexToRgba(pColor, 0.12);
+          ctx.fillStyle = hexToRgba(pColor, fillAlpha);
           ctx.fill();
         }
 
         // Perimeter stroke
         const nSegs = poly.closed ? verts.length : verts.length - 1;
         if (nSegs > 0) {
+          ctx.save();
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -8940,41 +9502,16 @@ EOF`;
           }
           if (poly.closed) ctx.closePath();
           ctx.strokeStyle = pColor;
-          ctx.lineWidth = 2.0;
+          ctx.lineWidth = lineW;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
+          ctx.setLineDash(dash);
           ctx.stroke();
-        }
-
-        // Centroid name & area badge for closed non-active polygons
-        if (poly.closed && verts.length >= 3) {
-          let cx = 0, cy = 0;
-          for (let i = 0; i < verts.length; i++) { cx += verts[i].x; cy += verts[i].y; }
-          cx /= verts.length; cy /= verts.length;
-          const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
-
-          let aM2 = 0;
-          for (let i = 0; i < verts.length; i++) {
-            const j = (i + 1) % verts.length;
-            aM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
-          }
-          aM2 = Math.abs(aM2) / 2;
-
-          const badgeTxt = `${poly.name}: ${aM2.toLocaleString('en-US', { maximumFractionDigits: 1 })} m²`;
-          ctx.save();
-          ctx.font = "bold 9px sans-serif";
-          ctx.textAlign = "center";
-          const tw = ctx.measureText(badgeTxt).width;
-          const bw = tw + 8, bh = 14;
-          ctx.fillStyle = "rgba(10, 14, 23, 0.85)";
-          ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-          ctx.strokeStyle = hexToRgba(pColor, 0.7);
-          ctx.lineWidth = 1;
-          ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-          ctx.fillStyle = pColor;
-          ctx.fillText(badgeTxt, sc.x, sc.y + 3);
           ctx.restore();
         }
+
+        // Centroid name & error statistic badge for closed non-active polygons
+        drawCustomPolyCentroidLabel(ctx, poly, verts, vp, canvasH, false);
 
         // Subtle node dots for non-active polygons
         if (poly.showNodes) {
@@ -8996,9 +9533,12 @@ EOF`;
         const poly = activePoly;
         const verts = poly.vertices;
         const pColor = poly.color || "#ffb300";
+        const lineW = (poly.width !== undefined && poly.width !== null) ? poly.width : 2.8;
+        const dash = (poly.dash === "dashed") ? [6, 4] : ((poly.dash === "dotted") ? [2, 3] : []);
+        const fillAlpha = (poly.fillOpacity !== undefined && poly.fillOpacity !== null) ? (poly.fillOpacity / 100) : 0.18;
 
         // Fill interior if closed
-        if (poly.closed && verts.length >= 3) {
+        if (poly.closed && verts.length >= 3 && fillAlpha > 0) {
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -9007,7 +9547,7 @@ EOF`;
             ctx.lineTo(s.x, s.y);
           }
           ctx.closePath();
-          ctx.fillStyle = hexToRgba(pColor, 0.18);
+          ctx.fillStyle = hexToRgba(pColor, fillAlpha);
           ctx.fill();
         }
 
@@ -9015,6 +9555,7 @@ EOF`;
         const nSegs = poly.closed ? verts.length : verts.length - 1;
         if (nSegs > 0) {
           // Glow halo
+          ctx.save();
           ctx.beginPath();
           const s0 = worldToScreenGIS(verts[0], vp, canvasH);
           ctx.moveTo(s0.x, s0.y);
@@ -9024,15 +9565,17 @@ EOF`;
           }
           if (poly.closed) ctx.closePath();
           ctx.strokeStyle = hexToRgba(pColor, 0.4);
-          ctx.lineWidth = 5.5;
+          ctx.lineWidth = lineW + 2.7;
           ctx.stroke();
 
           // Sharp stroke
           ctx.strokeStyle = pColor;
-          ctx.lineWidth = 2.8;
+          ctx.lineWidth = lineW;
           ctx.lineCap = "round";
           ctx.lineJoin = "round";
+          ctx.setLineDash(dash);
           ctx.stroke();
+          ctx.restore();
         }
 
         // Rubber-band line from last placed vertex to cursor in drawMode
@@ -9180,6 +9723,9 @@ EOF`;
           ctx.restore();
         }
 
+        // Centroid name & error statistic badge for active polygon
+        drawCustomPolyCentroidLabel(ctx, poly, verts, vp, canvasH, true);
+
         // Area HUD callout box pinned to top-left of the field canvas
         if (poly.closed && verts.length >= 3) {
           let areaM2 = 0;
@@ -9190,18 +9736,31 @@ EOF`;
           areaM2 = Math.abs(areaM2) / 2;
           const plazas = areaM2 / 6400;
 
+          const hasTarget = (poly.targetArea > 0);
+          let diffM2 = 0, diffPct = 0, sign = "", absPct = 0, errColor = "#00e676";
+          if (hasTarget) {
+            diffM2 = areaM2 - poly.targetArea;
+            diffPct = (diffM2 / poly.targetArea) * 100;
+            sign = diffM2 >= 0 ? "+" : "";
+            absPct = Math.abs(diffPct);
+            errColor = absPct <= 2.0 ? "#00e676" : (absPct <= 5.0 ? "#ffb300" : "#ff1744");
+          }
+
           const txt1 = `📐 ${poly.name}: ${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-          const txt2 = `${plazas.toFixed(2)} plazas (${verts.length} nodes)`;
+          const txt2 = hasTarget
+            ? `Deed: ${poly.targetArea.toLocaleString('en-US', { maximumFractionDigits: 1 })} m² • Δ: ${sign}${diffPct.toFixed(2)}% (${sign}${diffM2.toFixed(1)} m²)`
+            : `${plazas.toFixed(2)} plazas (${verts.length} nodes)`;
+          const txt3 = hasTarget ? `${plazas.toFixed(2)} plazas (${verts.length} nodes)` : "";
 
           const hasUserPolyHud = state.userPolygon && state.userPolygon.closed && state.userPolygon.vertices && state.userPolygon.vertices.length >= 3;
           const boxX = 14;
           const boxY = hasUserPolyHud ? 54 : 14;
-          const bw = 155;
-          const bh = 34;
+          const bw = hasTarget ? 240 : 160;
+          const bh = hasTarget ? 48 : 34;
 
           ctx.save();
-          ctx.fillStyle = "rgba(6, 9, 16, 0.90)";
-          ctx.strokeStyle = hexToRgba(pColor, 0.65);
+          ctx.fillStyle = "rgba(6, 9, 16, 0.92)";
+          ctx.strokeStyle = hasTarget ? errColor : hexToRgba(pColor, 0.65);
           ctx.lineWidth = 1.5;
 
           ctx.beginPath();
@@ -9218,9 +9777,16 @@ EOF`;
           ctx.font = "bold 11px monospace";
           ctx.textAlign = "center";
           ctx.fillText(txt1, centerX, boxY + 14);
-          ctx.fillStyle = "#cbd5e1";
-          ctx.font = "10px sans-serif";
+
+          ctx.fillStyle = hasTarget ? errColor : "#cbd5e1";
+          ctx.font = hasTarget ? "bold 9.5px monospace" : "10px sans-serif";
           ctx.fillText(txt2, centerX, boxY + 28);
+
+          if (hasTarget && txt3) {
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "9px sans-serif";
+            ctx.fillText(txt3, centerX, boxY + 41);
+          }
           ctx.restore();
         }
       }
@@ -9828,6 +10394,7 @@ EOF`;
     document.getElementById("btn-save-polygon").addEventListener("click", () => {
       state.userPolygon.sectionStyles = { ...state.sectionStyles };
       state.userPolygon.defaultPolyStyle = { ...state.defaultPolyStyle };
+      state.userPolygon._simulation_metadata = getSimulationMetadata();
       const data = JSON.stringify(state.userPolygon, null, 2);
       const blob = new Blob([data], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -9836,45 +10403,8 @@ EOF`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
       updateStatus("💾 Saved polygon to user_polygon.json.");
+      openSaveCompanionReminderModal("polygon");
     });
-
-    // Helper to load and apply user reconstructed polygon object
-    function applyUserPolygon(obj) {
-      if (!obj || !Array.isArray(obj.vertices)) return false;
-      if (obj.sectionColors) { state.sectionColors = { ...obj.sectionColors }; }
-      if (obj.sectionStyles) { state.sectionStyles = { ...obj.sectionStyles }; }
-      if (obj.defaultPolyStyle) { state.defaultPolyStyle = { ...obj.defaultPolyStyle }; }
-      state.userPolygon = {
-        vertices: (obj.vertices || []).map(v => ({
-          x: v.x,
-          y: v.y,
-          deedPt: v.deedPt || null,
-          origX: v.origX != null ? v.origX : null,
-          origY: v.origY != null ? v.origY : null
-        })),
-        segmentLengths: obj.segmentLengths || [],
-        segmentSections: obj.segmentSections || obj.segmentNames || [],
-        segmentParts: obj.segmentParts || [],
-        segmentOptimize: obj.segmentOptimize || [],
-        closed: !!obj.closed,
-        drawMode: false,
-        show: document.getElementById("chk-show-user-polygon") ? document.getElementById("chk-show-user-polygon").checked : true,
-      };
-      while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
-        state.userPolygon.segmentLengths.push(null);
-      }
-      const btnCancel = document.getElementById("btn-cancel-polygon");
-      const btnClose = document.getElementById("btn-close-polygon");
-      if (btnCancel) btnCancel.style.display = "none";
-      if (btnClose) btnClose.style.display = "none";
-      rebuildSegmentInputs();
-      recomputeUserPolygonMetrics();
-      updatePolygonButtonStates();
-      if (state.constrainPolyToDeed) {
-        applyDeedConstraints(false);
-      }
-      return true;
-    }
 
     // Helper to load polygon from DXF text
     function loadUserPolygonFromDXF(dxfText, filename) {
@@ -9918,12 +10448,44 @@ EOF`;
             loadUserPolygonFromDXF(content, file.name);
           } else {
             const obj = JSON.parse(content);
-            if (!applyUserPolygon(obj)) throw new Error("Invalid polygon JSON");
+            if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
+            if (obj._simulation_metadata) {
+              restoreSimulationMetadata(obj._simulation_metadata);
+            }
+            if (obj.sectionColors) { state.sectionColors = { ...obj.sectionColors }; }
+            state.userPolygon = {
+              vertices: (obj.vertices || []).map(v => ({
+                x: v.x,
+                y: v.y,
+                deedPt: v.deedPt || null,
+                origX: v.origX != null ? v.origX : null,
+                origY: v.origY != null ? v.origY : null
+              })),
+              segmentLengths: obj.segmentLengths || [],
+              segmentSections: obj.segmentSections || obj.segmentNames || [],
+              segmentParts: obj.segmentParts || [],
+              segmentOptimize: obj.segmentOptimize || [],
+              closed: !!obj.closed,
+              drawMode: false,
+              show: document.getElementById("chk-show-user-polygon") ? document.getElementById("chk-show-user-polygon").checked : true,
+            };
+            while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
+              state.userPolygon.segmentLengths.push(null);
+            }
+            document.getElementById("btn-cancel-polygon").style.display = "none";
+            document.getElementById("btn-close-polygon").style.display = "none";
+            rebuildSegmentInputs();
+            recomputeUserPolygonMetrics();
+            updatePolygonButtonStates();
             if (state.userPolygon.vertices.length > 0 && !state.trueViewport.bbox) {
               const bb = computeBoundingBox([{ points: state.userPolygon.vertices }]);
               state.trueViewport = fitViewport(trueCanvas, bb);
             }
-            redrawTrueCanvas();
+            if (state.constrainPolyToDeed) {
+              applyDeedConstraints(false);
+            } else {
+              redrawTrueCanvas();
+            }
             updateStatus(`📂 Loaded polygon with ${state.userPolygon.vertices.length} vertices from ${file.name}`);
           }
         } catch(err) {
@@ -10084,6 +10646,119 @@ EOF`;
     const btnDlCustomPolyDxf = document.getElementById("btn-download-custom-poly-dxf");
     if (btnDlCustomPolyDxf) {
       btnDlCustomPolyDxf.addEventListener("click", downloadCustomPolygonDxf);
+    }
+
+    const btnSaveCustomPolyJson = document.getElementById("btn-save-custom-poly-json");
+    if (btnSaveCustomPolyJson) {
+      btnSaveCustomPolyJson.addEventListener("click", () => {
+        const polys = state.customPolygons || [];
+        const str = JSON.stringify(polys, null, 2);
+        const blob = new Blob([str], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "casadelsol_parcels.json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        updateStatus("💾 Saved Custom Polygons to casadelsol_parcels.json.");
+      });
+    }
+
+    const customPolyFileInput = document.getElementById("custom-poly-file-input");
+    if (customPolyFileInput) {
+      customPolyFileInput.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (Array.isArray(data) && data.length > 0) {
+              applyCustomPolygons(data);
+              updateStatus(`📂 Loaded ${data.length} custom polygons from ${file.name}.`);
+            } else {
+              alert("Invalid custom polygons JSON file: expected array of polygons.");
+            }
+          } catch(err) {
+            alert("Error parsing JSON file: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    const customPolyTargetInput = document.getElementById("custom-poly-target-input");
+    if (customPolyTargetInput) {
+      customPolyTargetInput.addEventListener("change", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        const val = parseFloat(e.target.value);
+        poly.targetArea = (!isNaN(val) && val > 0) ? val : null;
+        recomputeCustomPolygonMetrics();
+        renderCustomPolyList();
+      });
+    }
+
+    const chkCustomPolyIncludeOpt = document.getElementById("chk-custom-poly-include-opt");
+    if (chkCustomPolyIncludeOpt) {
+      chkCustomPolyIncludeOpt.addEventListener("change", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        poly.optArea = e.target.checked;
+        recomputeCustomPolygonMetrics();
+        renderCustomPolyList();
+      });
+    }
+
+    const customPolyColorPicker = document.getElementById("custom-poly-style-color");
+    if (customPolyColorPicker) {
+      customPolyColorPicker.addEventListener("input", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        poly.color = e.target.value;
+        const dot = document.getElementById("custom-poly-selected-dot");
+        if (dot) {
+          dot.style.background = poly.color;
+          dot.style.boxShadow = `0 0 5px ${poly.color}`;
+        }
+        renderCustomPolyList();
+        redrawTrueCanvas();
+      });
+    }
+
+    const customPolyDashSelect = document.getElementById("custom-poly-style-dash");
+    if (customPolyDashSelect) {
+      customPolyDashSelect.addEventListener("change", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        poly.dash = e.target.value;
+        redrawTrueCanvas();
+      });
+    }
+
+    const customPolyWidthSlider = document.getElementById("custom-poly-style-width");
+    const customPolyWidthVal = document.getElementById("custom-poly-style-width-val");
+    if (customPolyWidthSlider) {
+      customPolyWidthSlider.addEventListener("input", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        const val = parseFloat(e.target.value) || 2.5;
+        poly.width = val;
+        if (customPolyWidthVal) customPolyWidthVal.textContent = `${val.toFixed(1)}px`;
+        redrawTrueCanvas();
+      });
+    }
+
+    const customPolyOpacitySlider = document.getElementById("custom-poly-style-opacity");
+    const customPolyOpacityVal = document.getElementById("custom-poly-style-opacity-val");
+    if (customPolyOpacitySlider) {
+      customPolyOpacitySlider.addEventListener("input", e => {
+        const poly = getActiveCustomPolygon();
+        if (!poly) return;
+        const val = parseInt(e.target.value, 10) || 0;
+        poly.fillOpacity = val;
+        if (customPolyOpacityVal) customPolyOpacityVal.textContent = `${val}%`;
+        redrawTrueCanvas();
+      });
     }
 
     // Initial render of custom polygon list
@@ -10263,6 +10938,7 @@ EOF`;
         }
 
         setTimeout(() => {
+          const fixedIndices = getFixedVertexIndices(poly.vertices);
           const result = BoundaryOptimizer.optimize({
             vertices: poly.vertices,
             segmentLengths: poly.segmentLengths,
@@ -10270,7 +10946,8 @@ EOF`;
             bufferRadius: state.optBufferRadius,
             balance: state.optBalance,
             targetArea: 162156.0,
-            iterations: 240
+            iterations: 240,
+            fixedIndices
           });
 
           if (!result.success) {
@@ -10348,14 +11025,34 @@ EOF`;
       const M = state.anchors.length;
       const chkAutoMin = document.getElementById("chk-auto-min-buffer");
       const isAutoMin = chkAutoMin ? chkAutoMin.checked : false;
-      const chkMaxIgac = document.getElementById("chk-maximize-igac");
-      const isMaxIgac = chkMaxIgac ? chkMaxIgac.checked : false;
 
-      // If Auto-Detect Min Buffer is ticked, sweep from 0.1m up to 3.0m in increments of 0.1m.
-      // Otherwise, use current slider buffer radius (default 3.0m).
-      const rSweepList = isAutoMin
-        ? Array.from({ length: 30 }, (_, i) => +(0.1 * (i + 1)).toFixed(1))
-        : [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0];
+      const chkOptAlongAxis = document.getElementById("chk-opt-along-axis");
+      const useAxisOnly = chkOptAlongAxis ? chkOptAlongAxis.checked : (state.optAlongAxisOnly || false);
+
+      const chkOptCdsOnly = document.getElementById("chk-opt-casa-del-sol-only");
+      const useCdsOnly = chkOptCdsOnly ? chkOptCdsOnly.checked : (state.optCasaDelSolOnly || false);
+
+      const chkOptIgacFilter = document.getElementById("chk-opt-igac-filter");
+      const isFilterIgac = chkOptIgacFilter ? chkOptIgacFilter.checked : true;
+
+      const optimizableAnchors = state.anchors.filter(anc => anc.active !== false && anc.enabled !== false && anc.optimize === true);
+      const isAllAnchorsFixed = optimizableAnchors.length === 0;
+
+      if (useCdsOnly) {
+        const activeCdsPolys = (state.customPolygons || []).filter(cp => cp.optArea !== false && cp.targetArea > 0 && cp.closed && cp.vertices && cp.vertices.length >= 3);
+        if (activeCdsPolys.length === 0) {
+          alert("Optimize for Casa del Sol Area is enabled, but no custom polygons with a Target Area are active.\n\nPlease define/enable Casa del Sol parcels with target areas or untick 'Optimize Casa del Sol Area Only'.");
+          return;
+        }
+      }
+
+      // If in 1D Axis Mode, perform a single sweep across the entire length [0.0, 1.0] of each axis.
+      // Otherwise, if Auto-Detect Min Buffer is ticked, sweep from 0.1m up to 3.0m in increments of 0.1m.
+      const rSweepList = useAxisOnly
+        ? [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0]
+        : (isAutoMin
+            ? Array.from({ length: 30 }, (_, i) => +(0.1 * (i + 1)).toFixed(1))
+            : [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0]);
 
       // Identify buffer centers for each anchor:
       // If "Constrain to Vertices / Markers" is ticked, start/center from the snapped vertex or temporary marker.
@@ -10384,13 +11081,28 @@ EOF`;
       if (btnRunOpt) btnRunOpt.disabled = true;
       if (btnResetOpt) btnResetOpt.disabled = true;
 
-      const POP_SIZE = isMaxIgac ? 18 : 16;
-      const MAX_GEN = isMaxIgac ? (isAutoMin ? 18 : 60) : (isAutoMin ? 10 : 22);
+      const POP_SIZE = isAllAnchorsFixed ? 2 : 16;
+      const MAX_GEN = isAllAnchorsFixed ? 1 : (isAutoMin ? 10 : 22);
 
-      function sampleDisk() {
+      function sampleCandidateOffset(ancIdx) {
+        const anc = state.anchors[ancIdx];
+        if (!anc) return { u: 0, v: 0, t: 0.5 };
+        if (anc.optimize !== true) {
+          if (anc.axisId != null) {
+            return { isFloating: true, t: anc.axisT ?? 0.5, u: 0, v: 0 };
+          }
+          return { isFixed: true, u: 0, v: 0, t: 0.5 };
+        }
+        if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+          return { t: Math.random(), u: 0, v: 0 };
+        }
         const theta = Math.random() * 2 * Math.PI;
         const rad = Math.sqrt(Math.random());
-        return { u: rad * Math.cos(theta), v: rad * Math.sin(theta) };
+        return { u: rad * Math.cos(theta), v: rad * Math.sin(theta), t: 0.5 };
+      }
+
+      function sampleDisk() {
+        return sampleCandidateOffset(0);
       }
 
       const chkOptAll = document.getElementById("chk-opt-all");
@@ -10413,31 +11125,30 @@ EOF`;
       function getGridOffsetsForM(numAnchors) {
         if (numAnchors <= 2) {
           // 17 ordered points: Center (0,0), then inner ring r=0.50 (8 pts), then outer ring r=0.92 (8 pts)
-          // Sequential circular sweep through 0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°
-          const pts = [{ u: 0, v: 0 }];
+          const pts = [{ u: 0, v: 0, t: 0.5 }];
           const r1 = 0.50;
           const r2 = 0.92;
           for (let k = 0; k < 8; k++) {
             const th = (k * Math.PI) / 4;
-            pts.push({ u: +(r1 * Math.cos(th)).toFixed(4), v: +(r1 * Math.sin(th)).toFixed(4) });
+            pts.push({ u: +(r1 * Math.cos(th)).toFixed(4), v: +(r1 * Math.sin(th)).toFixed(4), t: 0.5 });
           }
           for (let k = 0; k < 8; k++) {
             const th = (k * Math.PI) / 4;
-            pts.push({ u: +(r2 * Math.cos(th)).toFixed(4), v: +(r2 * Math.sin(th)).toFixed(4) });
+            pts.push({ u: +(r2 * Math.cos(th)).toFixed(4), v: +(r2 * Math.sin(th)).toFixed(4), t: 0.5 });
           }
           return pts;
         } else if (numAnchors === 3) {
           return [
-            { u: 0, v: 0 },
-            { u: 0.80, v: 0 }, { u: -0.80, v: 0 },
-            { u: 0.40, v: 0.69 }, { u: -0.40, v: 0.69 },
-            { u: 0.40, v: -0.69 }, { u: -0.40, v: -0.69 }
+            { u: 0, v: 0, t: 0.5 },
+            { u: 0.80, v: 0, t: 0.5 }, { u: -0.80, v: 0, t: 0.5 },
+            { u: 0.40, v: 0.69, t: 0.5 }, { u: -0.40, v: 0.69, t: 0.5 },
+            { u: 0.40, v: -0.69, t: 0.5 }, { u: -0.40, v: -0.69, t: 0.5 }
           ];
         } else {
           return [
-            { u: 0, v: 0 },
-            { u: 0.80, v: 0 }, { u: -0.80, v: 0 },
-            { u: 0, v: 0.80 }, { u: 0, v: -0.80 }
+            { u: 0, v: 0, t: 0.5 },
+            { u: 0.80, v: 0, t: 0.5 }, { u: -0.80, v: 0, t: 0.5 },
+            { u: 0, v: 0.80, t: 0.5 }, { u: 0, v: -0.80, t: 0.5 }
           ];
         }
       }
@@ -10456,26 +11167,109 @@ EOF`;
         if (optBufferSlider) optBufferSlider.value = currentR;
         if (optBufferVal) optBufferVal.textContent = `±${currentR.toFixed(1)} m`;
 
-        // Current normalized offsets inside unit disk for this currentR
+        // Current normalized offsets inside unit disk or full-axis parameter t
         const currentOffsets = state.anchors.map((anc, idx) => {
+          if (anc.axisId != null) {
+            const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+            if (ax) {
+              let t = anc.axisT;
+              if (typeof t !== "number") {
+                const pr = projectPointOnAxis(anc.dst, ax);
+                t = pr.t;
+              }
+              t = Math.max(0.0, Math.min(1.0, t));
+              return { t, u: 0, v: 0, isFloating: (anc.optimize !== true) };
+            }
+          }
+          if (anc.optimize !== true) {
+            return { u: 0, v: 0, t: 0.5, isFixed: true };
+          }
           const center = anchorCenters[idx];
           let du = (anc.dst.x - center.x) / currentR;
           let dv = (anc.dst.y - center.y) / currentR;
           const d = Math.hypot(du, dv);
           if (d > 1) { du /= d; dv /= d; }
-          return { u: du, v: dv };
+          return { u: du, v: dv, t: 0.5 };
         });
 
         // Candidate fitness evaluation function for currentR
         function evaluateCandidate(offsets) {
           try {
-            const candAnchors = state.anchors.map((anc, idx) => ({
-              ...anc,
-              dst: {
-                x: anchorCenters[idx].x + offsets[idx].u * currentR,
-                y: anchorCenters[idx].y + offsets[idx].v * currentR
+            const candAnchors = state.anchors.map((anc, idx) => {
+              const off = offsets[idx] || {};
+              // 1. If anchor is on an axis:
+              if (anc.axisId != null) {
+                const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+                if (ax) {
+                  if (anc.optimize === true) {
+                    let t = off.t !== undefined ? off.t : (off.u !== undefined ? (off.u + 1) / 2 : 0.5);
+                    t = Math.max(0.0, Math.min(1.0, t));
+                    return {
+                      ...anc,
+                      axisT: t,
+                      dst: {
+                        x: ax.p1.x + t * (ax.p2.x - ax.p1.x),
+                        y: ax.p1.y + t * (ax.p2.y - ax.p1.y)
+                      }
+                    };
+                  }
+                  // Otherwise: Floating Guide (relaxed below)
+                  return { ...anc, isFloatingGuide: true };
+                }
               }
-            }));
+              // 2. Normal anchor with optimization enabled:
+              if (anc.optimize === true) {
+                const u = off.u || 0;
+                const v = off.v || 0;
+                return {
+                  ...anc,
+                  dst: {
+                    x: anchorCenters[idx].x + u * currentR,
+                    y: anchorCenters[idx].y + v * currentR
+                  }
+                };
+              }
+              // 3. Fixed anchor (0 DOF):
+              return {
+                ...anc,
+                dst: { x: anc.dst.x, y: anc.dst.y }
+              };
+            });
+
+            // Relax floating guide anchors to orthogonal projection of current candidate warper
+            const hasFloating = candAnchors.some(a => a.isFloatingGuide);
+            if (hasFloating) {
+              const nonFloating = candAnchors.filter(a => !a.isFloatingGuide && a.active !== false && a.enabled !== false);
+              let tempWarper = null;
+              if (nonFloating.length >= 2) {
+                try { tempWarper = TransformMath.createWarper(state.algorithm, nonFloating); } catch(_) {}
+              }
+              if (!tempWarper) {
+                const allActive = candAnchors.filter(a => a.active !== false && a.enabled !== false);
+                if (allActive.length >= 2) {
+                  try { tempWarper = TransformMath.createWarper(state.algorithm, allActive); } catch(_) {}
+                }
+              }
+              candAnchors.forEach((ca, ci) => {
+                if (ca.isFloatingGuide) {
+                  const ax = (state.testAxes || []).find(a => a.id === ca.axisId);
+                  if (ax) {
+                    let pNat = ca.dst;
+                    if (tempWarper) {
+                      try { pNat = tempWarper(ca.src); } catch(_) {}
+                    }
+                    const pr = projectPointOnAxis(pNat, ax);
+                    const clampedT = Math.max(0.0, Math.min(1.0, pr.t));
+                    candAnchors[ci] = {
+                      ...ca,
+                      axisT: clampedT,
+                      dst: { x: pr.projPt.x, y: pr.projPt.y },
+                      isFloatingGuide: false
+                    };
+                  }
+                }
+              });
+            }
 
             const candWarper = TransformMath.createWarper(state.algorithm, candAnchors);
 
@@ -10487,6 +11281,7 @@ EOF`;
               return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
             });
 
+            const fixedIndices = getFixedVertexIndices(candVertices, candAnchors);
             const optRes = BoundaryOptimizer.optimize({
               vertices: candVertices,
               segmentLengths: poly.segmentLengths,
@@ -10494,7 +11289,8 @@ EOF`;
               bufferRadius: currentR,
               balance: state.optBalance,
               targetArea: 162156.0,
-              iterations: 120
+              iterations: 120,
+              fixedIndices
             });
 
             if (!optRes.success) {
@@ -10508,7 +11304,36 @@ EOF`;
               areaM2 += V[i].x * V[j].y - V[j].x * V[i].y;
             }
             areaM2 = Math.abs(areaM2) / 2;
-            const areaDiffPct = (Math.abs(areaM2 - 162156.0) / 162156.0) * 100;
+            const trinidadAreaDiffPct = (Math.abs(areaM2 - 162156.0) / 162156.0) * 100;
+
+            // Multi-parcel area evaluation for Custom Polygons (e.g. Casa del Sol Lotes 5-8)
+            let customAreaErrSum = 0;
+            let countOptPolys = 0;
+            const customPolys = state.customPolygons || [];
+            for (let pIdx = 0; pIdx < customPolys.length; pIdx++) {
+              const cp = customPolys[pIdx];
+              if (cp.optArea !== false && cp.targetArea > 0 && cp.closed && cp.vertices && cp.vertices.length >= 3) {
+                let cpArea = 0;
+                const cpLen = cp.vertices.length;
+                for (let k = 0; k < cpLen; k++) {
+                  const m = (k + 1) % cpLen;
+                  const vk = cp.vertices[k];
+                  const vm = cp.vertices[m];
+                  const ptk = (vk.anchor && vk.anchor.type === 'deed' && vk.anchor.deedPt) ? candWarper(vk.anchor.deedPt) : vk;
+                  const ptm = (vm.anchor && vm.anchor.type === 'deed' && vm.anchor.deedPt) ? candWarper(vm.anchor.deedPt) : vm;
+                  cpArea += ptk.x * ptm.y - ptm.x * ptk.y;
+                }
+                cpArea = Math.abs(cpArea) / 2;
+                const pErr = (Math.abs(cpArea - cp.targetArea) / cp.targetArea) * 100;
+                customAreaErrSum += pErr;
+                countOptPolys++;
+              }
+            }
+
+            const avgCdsErr = countOptPolys > 0 ? (customAreaErrSum / countOptPolys) : 0;
+            const combinedAreaDiffPct = (countOptPolys > 0)
+              ? (trinidadAreaDiffPct + customAreaErrSum) / (1 + countOptPolys)
+              : trinidadAreaDiffPct;
 
             const nSegs = V.length;
             let segErrSum = 0, countSegs = 0;
@@ -10523,58 +11348,104 @@ EOF`;
             }
             const avgSegErr = countSegs > 0 ? (segErrSum / countSegs) : 0;
 
-            const b = Math.max(0, Math.min(100, state.optBalance));
-            const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
-            const wArea = b >= 50 ? 1.0 : b / 50;
-            const compositeLoss = (wDist * avgSegErr + wArea * areaDiffPct) / (wDist + wArea);
-            const overallErr = countSegs > 0 ? (avgSegErr + areaDiffPct) / 2 : areaDiffPct;
+            let compositeLoss, overallErr;
+            if (useCdsOnly) {
+              compositeLoss = avgCdsErr;
+              overallErr = avgCdsErr;
+            } else {
+              const b = Math.max(0, Math.min(100, state.optBalance));
+              const wDist = b <= 50 ? 1.0 : (100 - b) / 50;
+              const wArea = b >= 50 ? 1.0 : b / 50;
+              compositeLoss = (wDist * avgSegErr + wArea * combinedAreaDiffPct) / (wDist + wArea);
+              overallErr = countSegs > 0 ? (avgSegErr + combinedAreaDiffPct) / 2 : combinedAreaDiffPct;
+            }
 
             let pct104 = 0;
-            let finalLoss = compositeLoss;
-
-            if (isMaxIgac) {
-              const dummyVertices = optRes.vertices.map((v, i) => ({
-                ...v,
-                origX: candVertices[i].origX,
-                origY: candVertices[i].origY,
-                deedPt: candVertices[i].deedPt
-              }));
-              const dummyPoly = {
-                vertices: dummyVertices,
-                closed: poly.closed,
-                segmentLengths: poly.segmentLengths,
-                segmentOptimize: poly.segmentOptimize
-              };
-              const igac = computeIgacCompliance(dummyPoly);
-              pct104 = igac.pct104 || 0;
-              // Lexicographic fitness: legal error gate (<1.0%), then maximize pct104
-              const legalPenalty = overallErr > 1.0 ? (overallErr * 50) : (overallErr * 0.1);
-              finalLoss = (100 - pct104) + legalPenalty;
+            if (optRes && optRes.vertices) {
+              try {
+                const evalPoly = {
+                  vertices: optRes.vertices.map((v, idx) => ({
+                    ...v,
+                    origX: candVertices[idx]?.origX ?? v.origX ?? v.x,
+                    origY: candVertices[idx]?.origY ?? v.origY ?? v.y,
+                    deedPt: candVertices[idx]?.deedPt ?? v.deedPt
+                  })),
+                  closed: poly.closed,
+                  segmentLengths: poly.segmentLengths,
+                  segmentOptimize: poly.segmentOptimize
+                };
+                const igac = computeIgacCompliance(evalPoly);
+                pct104 = igac ? (igac.pct104 || 0) : 0;
+              } catch (_) {}
             }
 
             return {
-              loss: finalLoss,
-              pct104,
+              loss: compositeLoss,
               overallErr,
+              pct104,
               optRes,
               candAnchors,
-              candVertices,
-              areaDiffPct,
+              areaDiffPct: useCdsOnly ? avgCdsErr : combinedAreaDiffPct,
+              avgCdsErr,
+              trinidadAreaDiffPct,
               avgSegErr,
               radius: currentR,
               offsets: offsets.map(o => ({ ...o }))
             };
           } catch (e) {
-            return { loss: 999999, pct104: 0, overallErr: 999, optRes: null, candAnchors: null, candVertices: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
+            return { loss: 999999, overallErr: 999, pct104: 0, optRes: null, candAnchors: null, offsets, areaDiffPct: 999, avgSegErr: 999, radius: currentR };
           }
+        }
+
+        // Comparison helper: determines if candidate A is strictly better than candidate B
+        function isCandidateBetter(candA, candB) {
+          if (!candA || candA.loss >= 99999) return false;
+          if (!candB || candB.loss >= 99999) return true;
+
+          if (isFilterIgac) {
+            // Strict legal gate: both distance and area errors are virtually zero (<= 0.01%)
+            const aInGate = (candA.avgSegErr <= 0.01 && candA.areaDiffPct <= 0.01) || (candA.overallErr <= 0.01);
+            const bInGate = (candB.avgSegErr <= 0.01 && candB.areaDiffPct <= 0.01) || (candB.overallErr <= 0.01);
+
+            if (aInGate && bInGate) {
+              // Both satisfy <= 0.01%: secondary optimization objective is to maximize IGAC ±1.04m compliance
+              if (Math.abs(candA.pct104 - candB.pct104) > 0.05) {
+                return candA.pct104 > candB.pct104;
+              }
+              // If IGAC % is tied, pick smaller overall error / loss
+              return candA.loss < candB.loss;
+            }
+            if (aInGate && !bInGate) return true;
+            if (!aInGate && bInGate) return false;
+          }
+
+          return candA.loss < candB.loss;
         }
 
         let globalBest = null;
 
         if (useAllCombos) {
           // ── STRATEGY A: ALL COMBINATIONS (ORDERED GRID SEARCH) ──────────────
-          const baseGrid = getGridOffsetsForM(M);
-          const pointSets = anchorCenters.map(() => [...baseGrid]);
+          const optAnchors = state.anchors.filter(a => a.active !== false && a.enabled !== false && a.optimize === true);
+          const optCount = Math.max(1, optAnchors.length);
+          const baseGrid = getGridOffsetsForM(optCount);
+
+          let pointSets = state.anchors.map((anc, idx) => {
+            if (anc.optimize !== true) {
+              return [{ u: 0, v: 0, t: anc.axisT ?? 0.5, isFixed: anc.axisId == null, isFloating: anc.axisId != null }];
+            }
+            if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+              let nSteps = 25;
+              if (optCount >= 3) nSteps = 11;
+              if (optCount >= 4) nSteps = 6;
+              const tVals = [];
+              for (let s = 0; s < nSteps; s++) {
+                tVals.push(+(s / (nSteps - 1)).toFixed(4));
+              }
+              return tVals.map(t => ({ t, u: 0, v: 0 }));
+            }
+            return [...baseGrid];
+          });
 
           const allCombos = cartesianProduct(pointSets);
           globalBest = evaluateCandidate(currentOffsets);
@@ -10589,17 +11460,20 @@ EOF`;
             const trialOffsets = allCombos[cIdx];
             const trialEval = evaluateCandidate(trialOffsets);
 
-            const isNewBest = trialEval.loss < globalBest.loss;
+            const isNewBest = isCandidateBetter(trialEval, globalBest);
             if (isNewBest) {
               globalBest = trialEval;
             }
 
-            // Animate orderly movement across buffer disks so the user sees the sequential sweep
+            // Animate orderly movement across buffer disks / axes so the user sees the sequential sweep
             if (cIdx % yieldInterval === 0 || cIdx === totalCombos - 1 || isNewBest) {
               for (let k = 0; k < M; k++) {
                 if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
                   state.anchors[k].dst.x = trialEval.candAnchors[k].dst.x;
                   state.anchors[k].dst.y = trialEval.candAnchors[k].dst.y;
+                  if (trialEval.candAnchors[k].axisT !== undefined) {
+                    state.anchors[k].axisT = trialEval.candAnchors[k].axisT;
+                  }
                 }
               }
               if (trialEval.optRes) {
@@ -10609,8 +11483,13 @@ EOF`;
               redrawTrueCanvas();
 
               if (optStatusBadge) {
-                const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Combos`;
-                optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (Best: ${globalBest.loss.toFixed(2)}%)`;
+                let prefix = "";
+                if (isAllAnchorsFixed) prefix = isAutoMin ? `Fixed MinR ±${currentR.toFixed(1)}m` : `Fixed ±${currentR.toFixed(1)}m`;
+                else if (useCdsOnly) prefix = "CdS Area";
+                else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
+                else prefix = "Combos";
+                const igacInfo = (isFilterIgac && globalBest.pct104 != null) ? ` | IGAC: ${globalBest.pct104.toFixed(1)}%` : "";
+                optStatusBadge.textContent = `${prefix} [${cIdx + 1}/${totalCombos}] (Best: ${globalBest.loss.toFixed(2)}%${igacInfo})`;
                 optStatusBadge.style.color = "#ffb300";
                 optStatusBadge.style.background = "rgba(255, 179, 0, 0.15)";
               }
@@ -10624,6 +11503,9 @@ EOF`;
               if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
                 state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
                 state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+                if (globalBest.candAnchors[k].axisT !== undefined) {
+                  state.anchors[k].axisT = globalBest.candAnchors[k].axisT;
+                }
               }
             }
             poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
@@ -10634,43 +11516,13 @@ EOF`;
           // ── STRATEGY B: GENETIC ALGORITHM (DIFFERENTIAL EVOLUTION) ───────────
           const population = [];
           population.push(evaluateCandidate(currentOffsets));
-          population.push(evaluateCandidate(Array.from({ length: M }, () => ({ u: 0, v: 0 }))));
-
-          if (isMaxIgac) {
-            const jitters = [0.08, -0.08, 0.15, -0.15, 0.25, -0.25];
-            for (const j of jitters) {
-              if (population.length >= POP_SIZE) break;
-              const jArr = currentOffsets.map(o => {
-                let u = Math.max(-1, Math.min(1, o.u + (Math.random() - 0.5) * j * 2));
-                let v = Math.max(-1, Math.min(1, o.v + (Math.random() - 0.5) * j * 2));
-                const len = Math.hypot(u, v);
-                if (len > 1) { u /= len; v /= len; }
-                return { u, v };
-              });
-              population.push(evaluateCandidate(jArr));
-            }
-          }
-
-          const cardinals = [
-            { u: 0.8, v: 0 }, { u: -0.8, v: 0 },
-            { u: 0, v: 0.8 }, { u: 0, v: -0.8 },
-            { u: 0.55, v: 0.55 }, { u: -0.55, v: 0.55 },
-            { u: 0.55, v: -0.55 }, { u: -0.55, v: -0.55 }
-          ];
-          for (let i = 0; i < cardinals.length && population.length < POP_SIZE; i++) {
-            const offsetArr = Array.from({ length: M }, () => ({ ...cardinals[i] }));
-            population.push(evaluateCandidate(offsetArr));
-          }
 
           while (population.length < POP_SIZE) {
-            const offsetArr = Array.from({ length: M }, () => sampleDisk());
+            const offsetArr = Array.from({ length: M }, (_, k) => sampleCandidateOffset(k));
             population.push(evaluateCandidate(offsetArr));
           }
 
           globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
-
-          let bestPct104SoFar = globalBest.pct104 || 0;
-          let consecutiveNoImprove = 0;
 
           // Evolutionary generations loop for this radius
           for (let gen = 1; gen <= MAX_GEN; gen++) {
@@ -10689,46 +11541,56 @@ EOF`;
               const trialOffsets = [];
 
               for (let k = 0; k < M; k++) {
-                let u, v;
-                if (Math.random() < CR || k === 0) {
-                  u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
-                      + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
-                  v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
-                      + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
-                  if (Math.random() < 0.12) {
-                    u += (Math.random() - 0.5) * 0.18;
-                    v += (Math.random() - 0.5) * 0.18;
+                const anc = state.anchors[k];
+                if (anc.optimize !== true) {
+                  trialOffsets.push(sampleCandidateOffset(k));
+                } else if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+                  let t;
+                  if (Math.random() < CR || k === 0) {
+                    const t1 = population[r1].offsets[k].t ?? 0.5;
+                    const t2 = population[r2].offsets[k].t ?? 0.5;
+                    const t3 = population[r3].offsets[k].t ?? 0.5;
+                    const tBest = globalBest.offsets[k].t ?? 0.5;
+                    const tCur = population[i].offsets[k].t ?? 0.5;
+                    t = t1 + F * (t2 - t3) + 0.15 * (tBest - tCur);
+                    if (Math.random() < 0.15) {
+                      t += (Math.random() - 0.5) * 0.12;
+                    }
+                  } else {
+                    t = population[i].offsets[k].t ?? 0.5;
                   }
+                  t = Math.max(0.0, Math.min(1.0, t));
+                  trialOffsets.push({ t, u: 0, v: 0 });
                 } else {
-                  u = population[i].offsets[k].u;
-                  v = population[i].offsets[k].v;
+                  let u, v;
+                  if (Math.random() < CR || k === 0) {
+                    u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
+                        + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
+                    v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
+                        + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
+                    if (Math.random() < 0.12) {
+                      u += (Math.random() - 0.5) * 0.18;
+                      v += (Math.random() - 0.5) * 0.18;
+                    }
+                  } else {
+                    u = population[i].offsets[k].u;
+                    v = population[i].offsets[k].v;
+                  }
+                  const dist = Math.hypot(u, v);
+                  if (dist > 1.0) {
+                    u /= dist;
+                    v /= dist;
+                  }
+                  trialOffsets.push({ u, v, t: 0.5 });
                 }
-
-                const dist = Math.hypot(u, v);
-                if (dist > 1.0) {
-                  u /= dist;
-                  v /= dist;
-                }
-                trialOffsets.push({ u, v });
               }
 
               const trialEval = evaluateCandidate(trialOffsets);
-              if (trialEval.loss < population[i].loss) {
+              if (isCandidateBetter(trialEval, population[i])) {
                 population[i] = trialEval;
               }
-              if (population[i].loss < globalBest.loss) {
+              if (isCandidateBetter(population[i], globalBest)) {
                 globalBest = population[i];
-              }
-            }
-
-            // Option 2 (Plateau / Convergence Stagnation Limit) for IGAC mode
-            if (isMaxIgac) {
-              const curPct = globalBest.pct104 || 0;
-              if (curPct >= bestPct104SoFar + 0.1) {
-                bestPct104SoFar = curPct;
-                consecutiveNoImprove = 0;
-              } else {
-                consecutiveNoImprove++;
               }
             }
 
@@ -10738,47 +11600,31 @@ EOF`;
                 if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
                   state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
                   state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+                  if (globalBest.candAnchors[k].axisT !== undefined) {
+                    state.anchors[k].axisT = globalBest.candAnchors[k].axisT;
+                  }
                 }
               }
-              poly.vertices = globalBest.optRes.vertices.map((v, idx) => ({
-                ...v,
-                origX: globalBest.candVertices ? globalBest.candVertices[idx].origX : v.origX,
-                origY: globalBest.candVertices ? globalBest.candVertices[idx].origY : v.origY,
-                deedPt: poly.vertices[idx]?.deedPt || null
-              }));
+              poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
               recomputeUserPolygonMetrics();
               redrawTrueCanvas();
 
               if (optStatusBadge) {
-                if (isMaxIgac) {
-                  const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Gen ${gen}`;
-                  optStatusBadge.textContent = `${prefix} (${(globalBest.pct104 || 0).toFixed(1)}% IGAC)`;
-                  optStatusBadge.style.color = "#00e676";
-                  optStatusBadge.style.background = "rgba(0, 200, 83, 0.20)";
-                } else {
-                  const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Tune ${gen}/${MAX_GEN}`;
-                  optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
-                  optStatusBadge.style.color = "var(--accent-cyan)";
-                  optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
-                }
+                let prefix = "";
+                if (isAllAnchorsFixed) prefix = isAutoMin ? `Fixed MinR ±${currentR.toFixed(1)}m` : `Fixed ±${currentR.toFixed(1)}m`;
+                else if (useCdsOnly && useAxisOnly) prefix = `1D+CdS ${gen}/${MAX_GEN}`;
+                else if (useCdsOnly) prefix = `CdS ${gen}/${MAX_GEN}`;
+                else if (useAxisOnly) prefix = `1D Axis Gen ${gen}/${MAX_GEN}`;
+                else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
+                else prefix = `Tune ${gen}/${MAX_GEN}`;
+                const igacInfo = (isFilterIgac && globalBest.pct104 != null) ? ` | IGAC: ${globalBest.pct104.toFixed(1)}%` : "";
+                optStatusBadge.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%${igacInfo})`;
+                optStatusBadge.style.color = "var(--accent-cyan)";
+                optStatusBadge.style.background = "rgba(0, 229, 255, 0.15)";
               }
             }
 
-            if (isMaxIgac) {
-              updateStatus(`🎯 Auto-Tune + IGAC (Gen ${gen}): Mejor ±1.04m = ${bestPct104SoFar.toFixed(1)}% | Sin mejora: ${consecutiveNoImprove}/15`);
-            }
-
-            await new Promise(resolve => setTimeout(resolve, isAutoMin ? 15 : 35));
-
-            // Option 2 Stagnation check: stop when after 15 consecutive generations without >= 0.1% improvement
-            if (isMaxIgac && consecutiveNoImprove >= 15) {
-              updateStatus(`🎯 Auto-Tune + IGAC: Meseta de convergencia alcanzada (15 generaciones sin mejora ≥0.1%). Techo fijado en ${bestPct104SoFar.toFixed(1)}%.`);
-              break;
-            }
-            if (isMaxIgac && (globalBest.pct104 || 0) >= 100.0) {
-              updateStatus(`🎯 Auto-Tune + IGAC: 100.0% de cumplimiento IGAC alcanzado.`);
-              break;
-            }
+            await new Promise(resolve => setTimeout(resolve, isAutoMin ? 15 : 40));
           }
         }
 
@@ -10791,7 +11637,7 @@ EOF`;
         // Convergence check: stops ONLY when the overall error reaches zero (< 0.005%)
         const isZeroError = currentOverallErr < 0.005;
 
-        if (!globalOverallBest || globalBest.loss < globalOverallBest.loss) {
+        if (!globalOverallBest || isCandidateBetter(globalBest, globalOverallBest)) {
           globalOverallBest = globalBest;
           winningR = currentR;
         }
@@ -10800,7 +11646,8 @@ EOF`;
         if (isAutoMin && isZeroError) {
           winningR = currentR;
           globalOverallBest = globalBest;
-          updateStatus(`⚡ Auto-Detect: Overall error cero (0.00%) alcanzado en radio mínimo de ±${currentR.toFixed(1)}m.`);
+          const igacMsg = (isFilterIgac && globalBest.pct104 != null) ? ` (IGAC ±1.04m: ${globalBest.pct104.toFixed(1)}%)` : "";
+          updateStatus(`⚡ Auto-Detect: Overall error cero (0.00%) alcanzado en radio mínimo de ±${currentR.toFixed(1)}m${igacMsg}.`);
           break;
         }
       }
@@ -10815,6 +11662,9 @@ EOF`;
           if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
             state.anchors[k].dst.x = globalOverallBest.candAnchors[k].dst.x;
             state.anchors[k].dst.y = globalOverallBest.candAnchors[k].dst.y;
+            if (globalOverallBest.candAnchors[k].axisT !== undefined) {
+              state.anchors[k].axisT = globalOverallBest.candAnchors[k].axisT;
+            }
           }
         }
 
@@ -10827,6 +11677,7 @@ EOF`;
           return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
         });
 
+        const fixedIndices = getFixedVertexIndices(finalNominal, state.anchors);
         const finalOpt = BoundaryOptimizer.optimize({
           vertices: finalNominal,
           segmentLengths: poly.segmentLengths,
@@ -10834,16 +11685,12 @@ EOF`;
           bufferRadius: winningR,
           balance: state.optBalance,
           targetArea: 162156.0,
-          iterations: 240
+          iterations: 240,
+          fixedIndices
         });
 
         if (finalOpt.success) {
-          poly.vertices = finalOpt.vertices.map((v, idx) => ({
-            ...v,
-            origX: finalNominal[idx].origX,
-            origY: finalNominal[idx].origY,
-            deedPt: finalNominal[idx].deedPt
-          }));
+          poly.vertices = finalOpt.vertices;
         }
 
         state.tuningAnchorsActive = false;
@@ -10851,25 +11698,21 @@ EOF`;
         rebuildSegmentInputs();
         redrawAll();
 
-        const finalIgac = computeIgacCompliance(poly);
-        const finalOverall = document.getElementById("overall-error")?.textContent || (globalOverallBest.overallErr != null ? globalOverallBest.overallErr.toFixed(2) : "0.00");
+        const finalOverall = document.getElementById("overall-error")?.textContent || globalOverallBest.loss.toFixed(2);
+        const finalIgacStr = (isFilterIgac && globalOverallBest.pct104 != null) ? ` | IGAC: ${globalOverallBest.pct104.toFixed(1)}%` : "";
         if (optStatusBadge) {
-          if (isMaxIgac) {
-            optStatusBadge.textContent = `✓ IGAC ${finalIgac.pct104.toFixed(1)}% (Err: ${finalOverall}%)`;
-            optStatusBadge.style.background = "rgba(0, 200, 83, 0.22)";
-            optStatusBadge.style.color = "#00e676";
-          } else {
-            const badgeText = isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%)` : `✓ Auto-Tuned (${finalOverall}%)`;
-            optStatusBadge.textContent = badgeText;
-            optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
-            optStatusBadge.style.color = "#00e676";
-          }
+          const badgeText = isAllAnchorsFixed
+            ? (isAutoMin ? `✓ Fixed Anchors: Min R ±${winningR.toFixed(1)}m (${finalOverall}%${finalIgacStr})` : `✓ Fixed Anchors Fitted (${finalOverall}%${finalIgacStr})`)
+            : (useCdsOnly
+                ? `✓ CdS Area Fitted (${globalOverallBest.loss.toFixed(2)}%)`
+                : (useAxisOnly
+                    ? `✓ 1D Axis Fitted (${finalOverall}%${finalIgacStr})`
+                    : (isAutoMin ? `✓ Min R: ±${winningR.toFixed(1)}m (${finalOverall}%${finalIgacStr})` : `✓ Auto-Tuned (${finalOverall}%${finalIgacStr})`)));
+          optStatusBadge.textContent = badgeText;
+          optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
+          optStatusBadge.style.color = "#00e676";
         }
-        if (isMaxIgac) {
-          updateStatus(`⚡ Auto-Tune finalizado con IGAC maximizado: ${finalIgac.pct104.toFixed(1)}% en ±1.04m (radio ±${winningR.toFixed(1)}m, error = ${finalOverall}%).`);
-        } else {
-          updateStatus(`⚡ Auto-Tune finalizado: solución óptima con radio ±${winningR.toFixed(1)}m y error = ${finalOverall}%.`);
-        }
+        updateStatus(`⚡ Auto-Tune finalizado: solución óptima ${isAllAnchorsFixed ? 'con anclajes fijos (optimizando buffers de nodos)' : (useCdsOnly ? 'para áreas Casa del Sol' : (useAxisOnly ? 'a lo largo de ejes de prueba' : `con radio ±${winningR.toFixed(1)}m`))}, error = ${(useCdsOnly ? globalOverallBest.loss.toFixed(2) : finalOverall)}%${(isFilterIgac && globalOverallBest.pct104 != null) ? ` (Cumplimiento IGAC ±1.04m: ${globalOverallBest.pct104.toFixed(1)}%)` : ''}.`);
       }
 
       // Cleanup state & UI
@@ -10922,10 +11765,129 @@ EOF`;
         if (e.target === modalLegalHelp) closeLegalHelpModal();
       });
     }
+
+    // ── Simulation Metadata & Save Companion Reminder Modal ──
+    function getSimulationMetadata() {
+      const chkOptIgacFilter = document.getElementById("chk-opt-igac-filter");
+      return {
+        optBufferRadius: typeof state.optBufferRadius === "number" ? state.optBufferRadius : 3.0,
+        algorithm: state.algorithm || "SIMILARITY",
+        optBalance: typeof state.optBalance === "number" ? state.optBalance : 50,
+        optIgacFilter: chkOptIgacFilter ? chkOptIgacFilter.checked : true,
+        savedAt: new Date().toISOString()
+      };
+    }
+
+    function restoreSimulationMetadata(metadata) {
+      if (!metadata || typeof metadata !== "object") return [];
+      const restored = [];
+      if (typeof metadata.optBufferRadius === "number") {
+        state.optBufferRadius = metadata.optBufferRadius;
+        const s = document.getElementById("opt-buffer-slider");
+        const v = document.getElementById("opt-buffer-val");
+        if (s) s.value = metadata.optBufferRadius;
+        if (v) v.textContent = `±${metadata.optBufferRadius.toFixed(1)} m`;
+        const constrainHint = document.getElementById("anchor-constrain-hint");
+        if (constrainHint) constrainHint.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
+        const deedHint = document.getElementById("deed-constrain-hint");
+        if (deedHint) deedHint.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
+        restored.push(`Buffer ±${metadata.optBufferRadius.toFixed(1)}m`);
+      }
+      if (metadata.algorithm && typeof metadata.algorithm === "string") {
+        state.algorithm = metadata.algorithm;
+        const a = document.getElementById("algorithm-select");
+        if (a) a.value = metadata.algorithm;
+        restored.push(`Algoritmo ${metadata.algorithm}`);
+      }
+      if (typeof metadata.optBalance === "number") {
+        state.optBalance = metadata.optBalance;
+        const b = document.getElementById("opt-balance-slider");
+        const bv = document.getElementById("opt-balance-val");
+        if (b) b.value = metadata.optBalance;
+        if (bv) {
+          const val = metadata.optBalance;
+          if (val === 50) bv.textContent = "Balanced (50/50)";
+          else if (val < 50) bv.textContent = `Dist Focus (${100 - val}% / ${val}%)`;
+          else bv.textContent = `Area Focus (${100 - val}% / ${val}%)`;
+        }
+        restored.push(`Balance ${metadata.optBalance}%`);
+      }
+      if (typeof metadata.optIgacFilter === "boolean") {
+        state.optIgacFilter = metadata.optIgacFilter;
+        const chk = document.getElementById("chk-opt-igac-filter");
+        if (chk) chk.checked = metadata.optIgacFilter;
+        restored.push(`Filtro IGAC: ${metadata.optIgacFilter ? "ON" : "OFF"}`);
+      }
+      return restored;
+    }
+
+    const modalSaveComp = document.getElementById("modal-save-companion-reminder");
+    const btnCloseSaveComp = document.getElementById("btn-close-save-companion");
+    const btnCloseSaveCompX = document.getElementById("btn-close-save-companion-x");
+
+    function openSaveCompanionReminderModal(type) {
+      if (!modalSaveComp) return;
+      const titleEl = document.getElementById("save-companion-modal-title");
+      const bodyEl = document.getElementById("save-companion-modal-body");
+      if (!bodyEl) return;
+
+      const isPoly = type === "polygon";
+      const savedFileName = isPoly ? "user_polygon.json" : "anchors_georectifier.json";
+      const neededFileName = isPoly ? "anchors_georectifier.json" : "user_polygon.json";
+      const neededLocation = isPoly ? "tabla de Puntos de Control (Anchors)" : "panel 🎨 Lindero La Trinidad Reconstruido";
+
+      if (titleEl) {
+        titleEl.innerHTML = `💾 ${savedFileName} Guardado`;
+      }
+
+      const bufRadius = (typeof state.optBufferRadius === "number" ? state.optBufferRadius : 3.0).toFixed(1);
+      const curAlgo = state.algorithm || "SIMILARITY";
+      const curBal = typeof state.optBalance === "number" ? state.optBalance : 50;
+      const chkIgac = document.getElementById("chk-opt-igac-filter");
+      const curIgac = chkIgac ? chkIgac.checked : true;
+
+      bodyEl.innerHTML = `
+        <div style="background:rgba(0,230,118,0.1);border-left:3px solid #00e676;padding:8px 12px;border-radius:4px;color:#e8f5e9;">
+          ✅ Se descargó exitosamente <strong>${savedFileName}</strong> con la configuración actual y los parámetros de simulación incrustados.
+        </div>
+        <div style="background:rgba(255,179,0,0.12);border:1px solid rgba(255,179,0,0.35);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:6px;color:#fff8e1;">
+          <div style="font-weight:700;color:#ffb300;font-size:0.80rem;display:flex;align-items:center;gap:6px;">
+            ⚠️ Recordatorio para Replicar la Simulación
+          </div>
+          <div>
+            Para replicar con exactitud los mismos resultados numéricos en una sesión futura, recuerda guardar también el archivo complementario:
+          </div>
+          <div style="background:rgba(0,0,0,0.4);border:1px dashed rgba(255,179,0,0.45);padding:8px 10px;border-radius:4px;font-family:monospace;color:#00e5ff;font-size:0.80rem;">
+            📁 ${neededFileName} <span style="color:var(--text-muted);font-family:sans-serif;font-size:0.72rem;">(en el botón "💾 Save JSON" de la ${neededLocation})</span>
+          </div>
+        </div>
+        <div style="color:var(--text-muted);font-size:0.71rem;line-height:1.45;">
+          ℹ️ <em>Nota:</em> Al cargar ambos archivos en el futuro, los parámetros de optimización (Buffer ±${bufRadius}m, Algoritmo ${curAlgo}, Balance ${curBal}% y Filtro IGAC: ${curIgac ? "ON" : "OFF"}) se restaurarán de forma totalmente automática.
+        </div>
+      `;
+
+      modalSaveComp.style.display = "flex";
+    }
+
+    function closeSaveCompModal() {
+      if (modalSaveComp) modalSaveComp.style.display = "none";
+    }
+
+    if (btnCloseSaveComp) btnCloseSaveComp.addEventListener("click", closeSaveCompModal);
+    if (btnCloseSaveCompX) btnCloseSaveCompX.addEventListener("click", closeSaveCompModal);
+    if (modalSaveComp) {
+      modalSaveComp.addEventListener("click", e => {
+        if (e.target === modalSaveComp) closeSaveCompModal();
+      });
+    }
+
     window.addEventListener("keydown", e => {
       if (e.key === "Escape") {
         if (modalLegalHelp && modalLegalHelp.style.display === "flex") {
           closeLegalHelpModal();
+        }
+        if (modalSaveComp && modalSaveComp.style.display === "flex") {
+          closeSaveCompModal();
         }
         document.querySelectorAll(".opt-hover-wrap.active").forEach(w => w.classList.remove("active"));
       }
@@ -10993,6 +11955,52 @@ EOF`;
           return;
         }
       }
+
+      // 0a. Test Axis Creation (Point A & Point B picking)
+      if (e.button === 0 && !spacePressed && state.creatingTestAxis) {
+        const rect = trueCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const worldPt = screenToWorldGIS(sx, sy, state.trueViewport, trueCanvas.height);
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        if (!state.testAxisDrawStart) {
+          state.testAxisDrawStart = worldPt;
+          state.testAxisCursorPt = worldPt;
+          const btnAdd = document.getElementById("btn-add-test-axis");
+          if (btnAdd) btnAdd.textContent = "📍 Click Point B...";
+          updateStatus(`Point A set at (${worldPt.x.toFixed(1)}, ${worldPt.y.toFixed(1)}). Now click Point B on field canvas to create Test Axis.`);
+          redrawTrueCanvas();
+        } else {
+          addTestAxis(state.testAxisDrawStart, worldPt);
+          state.creatingTestAxis = false;
+          state.testAxisDrawStart = null;
+          state.testAxisCursorPt = null;
+          const btnAdd = document.getElementById("btn-add-test-axis");
+          const btnCancel = document.getElementById("btn-cancel-test-axis");
+          if (btnAdd) { btnAdd.style.background = ""; btnAdd.textContent = "➕ Add Axis"; }
+          if (btnCancel) btnCancel.style.display = "none";
+          trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+          redrawTrueCanvas();
+        }
+        return;
+      }
+
+      // 0b. Test Axis Handle Dragging (Handles A & B)
+      if (e.button === 0 && !spacePressed && (state.testAxes || []).length > 0) {
+        const rect = trueCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const axisHit = findTestAxisHandleAt(sx, sy, state.trueViewport, trueCanvas.height);
+        if (axisHit) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          state.draggingTestAxisHandle = { axisId: axisHit.axis.id, handle: axisHit.handle };
+          trueCanvas.style.cursor = "move";
+          updateStatus(`Dragging ${axisHit.axis.name} Handle ${axisHit.handle.toUpperCase()} — attached anchors slide parametrically with this line.`);
+          return;
+        }
+      }
+
       // In Anchor Mode: block ALL polygon interactions — move, create, delete — anchors have exclusive control
       if (state.toolMode === "anchor") {
         return;
@@ -11648,6 +12656,15 @@ EOF`;
         const pt = isHist ? worldToScreen(anc.src, vp, h) : worldToScreenGIS(anc.dst, vp, h);
         if (!pt || !isFinite(pt.x) || !isFinite(pt.y)) continue;
 
+        const isEnabled = anc.enabled !== false;
+        const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+        const fullText = labelName + (isEnabled ? "" : " (off)");
+
+        const defDx = 10, defDy = -10;
+        const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
+        const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
+        const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
+
         const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
         if (sx >= bounds.cardX && sx <= bounds.cardX + bounds.cardW && sy >= bounds.cardY && sy <= bounds.cardY + bounds.cardH) {
           return { anc, isHist, offX: bounds.offX, offY: bounds.offY, cardX: bounds.cardX, cardY: bounds.cardY, cardW: bounds.cardW, cardH: bounds.cardH };
@@ -11815,12 +12832,22 @@ EOF`;
         }
         let worldPt = screenToWorldGIS(sx, sy, viewport, canvas.height);
 
-        // Snap to nearest vertex (Field survey or added reference DXFs)
-        const nearestField = findNearestFieldVertex(worldPt);
-        if (nearestField) {
-          const snapDistPx = nearestField.dist * viewport.scale;
-          if (snapDistPx <= 18 || (state.constrainAnchorsToField && nearestField.dist <= state.optBufferRadius)) {
-            worldPt = { x: nearestField.x, y: nearestField.y };
+        // Check snapping to active test axis (parametric coupling)
+        let snappedAxisInfo = null;
+        if (state.snapNewAnchorsToAxis && typeof findNearestTestAxis === "function" && (state.testAxes || []).some(a => a.visible !== false)) {
+          snappedAxisInfo = findNearestTestAxis(worldPt, viewport, 20);
+        }
+
+        if (snappedAxisInfo) {
+          worldPt = snappedAxisInfo.projPt;
+        } else {
+          // Snap to nearest vertex (Field survey or added reference DXFs)
+          const nearestField = findNearestFieldVertex(worldPt);
+          if (nearestField) {
+            const snapDistPx = nearestField.dist * viewport.scale;
+            if (snapDistPx <= 18 || (state.constrainAnchorsToField && nearestField.dist <= state.optBufferRadius)) {
+              worldPt = { x: nearestField.x, y: nearestField.y };
+            }
           }
         }
 
@@ -11835,11 +12862,18 @@ EOF`;
           src: { ...state.pendingSource },
           dst: worldPt,
           active: true,
-          enabled: true
+          enabled: true,
+          axisId: snappedAxisInfo ? snappedAxisInfo.axis.id : null,
+          axisT: snappedAxisInfo ? snappedAxisInfo.t : null
         });
         state.pendingSource = null;
         redrawAll();
-        updateStatus(`Anchor Pair #${nextId} created! Transformation updating live.`);
+        if (snappedAxisInfo) {
+          if (typeof renderTestAxesList === "function") renderTestAxesList();
+          updateStatus(`Anchor Pair #${nextId} created & coupled to ${snappedAxisInfo.axis.name}! Dragging axis handles carries this anchor.`);
+        } else {
+          updateStatus(`Anchor Pair #${nextId} created! Transformation updating live.`);
+        }
       }
     }
 
@@ -11937,6 +12971,19 @@ EOF`;
                 }
                 // When nearestField.dist <= R, targetPt remains free inside the circle!
               }
+            }
+          }
+
+          if (draggingAnchor.anc.axisId != null) {
+            const ax = (state.testAxes || []).find(a => a.id === draggingAnchor.anc.axisId);
+            if (ax) {
+              const pr = projectPointOnAxis(targetPt, ax);
+              const clampedT = Math.max(0.0, Math.min(1.0, pr.t));
+              draggingAnchor.anc.axisT = clampedT;
+              targetPt = {
+                x: ax.p1.x + clampedT * (ax.p2.x - ax.p1.x),
+                y: ax.p1.y + clampedT * (ax.p2.y - ax.p1.y)
+              };
             }
           }
 
@@ -12195,6 +13242,42 @@ EOF`;
         return;
       }
 
+      // 0a. Test Axis creation in progress (rubber-band from Point A to mouse)
+      if (state.creatingTestAxis && state.testAxisDrawStart) {
+        state.testAxisCursorPt = screenToWorldGIS(mouseX, mouseY, vp, h);
+        const dx = state.testAxisCursorPt.x - state.testAxisDrawStart.x;
+        const dy = state.testAxisCursorPt.y - state.testAxisDrawStart.y;
+        const len = Math.hypot(dx, dy);
+        const brg = computeAxisBearing(state.testAxisDrawStart, state.testAxisCursorPt);
+        coordsBar.textContent = `📐 Test Axis: Point A (${state.testAxisDrawStart.x.toFixed(1)}, ${state.testAxisDrawStart.y.toFixed(1)}) → Length ${len.toFixed(1)}m, Bearing ${brg.toFixed(1)}° • Click to set Point B`;
+        redrawTrueCanvas();
+        return;
+      }
+
+      // 0b. Test Axis handle dragging (A or B)
+      if (state.draggingTestAxisHandle) {
+        const mouseWorld = screenToWorldGIS(mouseX, mouseY, vp, h);
+        const ax = (state.testAxes || []).find(a => a.id === state.draggingTestAxisHandle.axisId);
+        if (ax) {
+          ax[state.draggingTestAxisHandle.handle] = mouseWorld;
+          updateAnchorsOnAxis(ax);
+          redrawTrueCanvas();
+          const geom = computeAxisGeometry(ax);
+          coordsBar.textContent = `📐 ${ax.name} [Handle ${state.draggingTestAxisHandle.handle.toUpperCase()}]: (${mouseWorld.x.toFixed(1)}, ${mouseWorld.y.toFixed(1)}) • Length ${geom.len.toFixed(1)}m, Bearing ${geom.bearing.toFixed(1)}°`;
+        }
+        return;
+      }
+
+      // 0c. Test Axis Handle Hover detection
+      if (!isPanning && !draggingAnchor && !state.creatingTestAxis && (state.testAxes || []).length > 0) {
+        const axisHit = findTestAxisHandleAt(mouseX, mouseY, vp, h);
+        if (axisHit) {
+          trueCanvas.style.cursor = "move";
+          coordsBar.textContent = `📐 ${axisHit.axis.name} Handle ${axisHit.handle.toUpperCase()}: Drag to rotate/move axis (attached anchors slide with it).`;
+          return;
+        }
+      }
+
       // Anchor Label Hover detection (drag label or double-click to reset)
       if (!isPanning && !draggingAnchor && !draggingAnchorLabel && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
         const labelHit = hitTestAnchorLabel(mouseX, mouseY, false);
@@ -12227,10 +13310,19 @@ EOF`;
         }
       }
 
-      // Segment Hover & Tooltip detection (only when hovering directly over a recreated polygon segment)
+      // Segment Hover & Tooltip detection (only when hovering directly over a recreated polygon segment or its label)
       let hitSeg = null;
       if (state.userPolygon && state.userPolygon.vertices && state.userPolygon.vertices.length >= 2 && state.userPolygon.show !== false && !isPanning && !draggingAnchor && state.draggingUserPolyNode === null && state.draggingCustomPolyNode === null && !state.draggingDeedNode && !state.draggingFieldNode && !state.draggingTempMarker && (!state.measureTool || !state.measureTool.active)) {
         hitSeg = findUserPolySegmentAt(mouseX, mouseY, vp, h, 10);
+        if (!hitSeg && state.userPolyLabelBoxes && state.userPolyLabelBoxes.length > 0) {
+          const hitBox = state.userPolyLabelBoxes.find(b =>
+            mouseX >= b.box.x && mouseX <= b.box.x + b.box.w &&
+            mouseY >= b.box.y && mouseY <= b.box.y + b.box.h
+          );
+          if (hitBox) {
+            hitSeg = { segIdx: hitBox.segIdx, screenPt: { x: mouseX, y: mouseY }, worldPt: null, distPx: 0 };
+          }
+        }
       }
       const labelTooltipEl = document.getElementById("segment-label-tooltip");
       if (hitSeg && labelTooltipEl) {
@@ -12456,6 +13548,38 @@ EOF`;
       // 1. Node dragging active
       if (state.draggingUserPolyNode !== null) {
         const curVertex = state.userPolygon.vertices[state.draggingUserPolyNode];
+        const isFixed = isVertexFixedAnchor(state.userPolygon, state.draggingUserPolyNode);
+
+        if (isFixed) {
+          let deedAnchor = state.dragDeedAnchor;
+          if (!deedAnchor && curVertex && curVertex.deedPt) {
+            let warper = null;
+            const activeAnchors = getActiveAnchors();
+            if (activeAnchors.length >= 2) {
+              try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
+            }
+            const w = warper ? warper(curVertex.deedPt) : { x: curVertex.deedPt.x, y: curVertex.deedPt.y };
+            deedAnchor = { x: w.x, y: w.y, deedPt: curVertex.deedPt };
+            curVertex.origX = w.x;
+            curVertex.origY = w.y;
+            state.dragDeedAnchor = deedAnchor;
+          }
+          const ox = deedAnchor ? deedAnchor.x : (curVertex.origX ?? curVertex.x);
+          const oy = deedAnchor ? deedAnchor.y : (curVertex.origY ?? curVertex.y);
+          const targetPt = {
+            x: ox,
+            y: oy,
+            deedPt: curVertex ? curVertex.deedPt : null,
+            origX: ox,
+            origY: oy
+          };
+          state.userPolygon.vertices[state.draggingUserPolyNode] = targetPt;
+          coordsBar.textContent = `Polygon Node #${state.draggingUserPolyNode + 1}: Locked to Fixed Anchor (0.00m buffer)`;
+          recomputeUserPolygonMetrics();
+          redrawTrueCanvas();
+          return;
+        }
+
         const isConstrained = state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(state.userPolygon, state.draggingUserPolyNode);
         const snap = (!state.constrainPolyToDeed) ? getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode) : null;
         state.currentSnapTarget = snap;
@@ -12736,6 +13860,13 @@ EOF`;
         updateCustomPolygonAnchors();
         const ratioVal = state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0);
         updateStatus(`📐 Deed Squeeze adjusted: ${(ratioVal * 100).toFixed(1)}%. Anchors 1 & 2 locked (0.0 m drift).`);
+        return;
+      }
+      if (state.draggingTestAxisHandle) {
+        state.draggingTestAxisHandle = null;
+        trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+        updateStatus("📐 Test axis handle updated. Attached anchors adjusted.");
+        redrawAll();
         return;
       }
       handleMouseUp(e, trueCanvas, state.trueViewport, false);
@@ -13076,24 +14207,6 @@ EOF`;
     });
 
     // Anchor management: Save, Load, Clear, Delete
-    function applyAnchors(list) {
-      if (!Array.isArray(list) || list.length === 0) return;
-      state.anchors = list.map((a, idx) => ({
-        id: a.id != null ? a.id : (idx + 1),
-        name: a.name || (`#${a.id != null ? a.id : (idx + 1)}`),
-        showLabel: a.showLabel !== false,
-        image: a.image || null,
-        color: a.color || (anchorColors && anchorColors[idx % anchorColors.length]) || "#00e5ff",
-        src: { x: Number(a.src.x), y: Number(a.src.y) },
-        dst: { x: Number(a.dst.x), y: Number(a.dst.y) },
-        active: a.active !== false && a.enabled !== false,
-        enabled: a.active !== false && a.enabled !== false,
-        labelOffsetSrc: a.labelOffsetSrc || null,
-        labelOffsetDst: a.labelOffsetDst || null
-      }));
-      updateAnalyticsUI();
-    }
-
     const btnSaveAnchors = document.getElementById("btn-save-anchors");
     if (btnSaveAnchors) {
       btnSaveAnchors.addEventListener("click", () => {
@@ -13101,19 +14214,34 @@ EOF`;
           updateStatus("⚠️ No anchors to save. Place anchor pairs first using 🎯 Anchor Mode.");
           return;
         }
-        const toSave = state.anchors.map(a => ({
-          id: a.id,
-          name: a.name || (`#${a.id}`),
-          showLabel: a.showLabel !== false,
-          image: a.image || null,
-          color: a.color,
-          src: { x: a.src.x, y: a.src.y },
-          dst: { x: a.dst.x, y: a.dst.y },
-          active: a.active !== false && a.enabled !== false,
-          enabled: a.active !== false && a.enabled !== false,
-          labelOffsetSrc: a.labelOffsetSrc || undefined,
-          labelOffsetDst: a.labelOffsetDst || undefined
-        }));
+        const toSave = {
+          _simulation_metadata: getSimulationMetadata(),
+          anchors: state.anchors.map(a => ({
+            id: a.id,
+            name: a.name || (`#${a.id}`),
+            showLabel: a.showLabel !== false,
+            image: a.image || null,
+            color: a.color,
+            src: { x: a.src.x, y: a.src.y },
+            dst: { x: a.dst.x, y: a.dst.y },
+            active: a.active !== false && a.enabled !== false,
+            enabled: a.active !== false && a.enabled !== false,
+            axisId: a.axisId !== undefined ? a.axisId : null,
+            axisT: a.axisT !== undefined ? a.axisT : null,
+            optimize: a.optimize === true
+          })),
+          testAxes: (state.testAxes || []).map(ax => ({
+            id: ax.id,
+            name: ax.name,
+            p1: { x: ax.p1.x, y: ax.p1.y },
+            p2: { x: ax.p2.x, y: ax.p2.y },
+            color: ax.color,
+            visible: ax.visible !== false
+          }))
+        };
+        try {
+          localStorage.setItem("georectifier_axes_anchors", JSON.stringify(toSave));
+        } catch (_) {}
         const jsonStr = JSON.stringify(toSave, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -13124,7 +14252,8 @@ EOF`;
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        updateStatus(`💾 Saved ${state.anchors.length} anchors (${getActiveAnchors().length} active) to anchors_georectifier.json.`);
+        updateStatus(`💾 Saved ${state.anchors.length} anchors & ${(state.testAxes || []).length} axes to anchors_georectifier.json.`);
+        openSaveCompanionReminderModal("anchors");
       });
     }
 
@@ -13137,12 +14266,21 @@ EOF`;
         reader.onload = ev => {
           try {
             const data = JSON.parse(ev.target.result);
+            if (data._simulation_metadata) {
+              restoreSimulationMetadata(data._simulation_metadata);
+            }
+            if (data.testAxes && Array.isArray(data.testAxes)) {
+              state.testAxes = data.testAxes.map(ax => ({ ...ax }));
+              if (typeof ensureUniqueTestAxisIds === "function") ensureUniqueTestAxisIds();
+              else if (typeof syncTestAxisCounter === "function") syncTestAxisCounter();
+              if (typeof renderTestAxesList === "function") renderTestAxesList();
+            }
             const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
             if (list.length > 0) {
               applyAnchors(list);
               state.pendingSource = null;
               redrawAll();
-              updateStatus(`✅ Loaded ${state.anchors.length} anchors (${getActiveAnchors().length} active) from ${file.name}`);
+              updateStatus(`✅ Loaded ${state.anchors.length} anchors & ${(state.testAxes || []).length} axes from ${file.name}`);
             } else {
               updateStatus("⚠️ No valid anchor pairs found in file.");
             }
@@ -13196,6 +14334,10 @@ EOF`;
                 const w = warper(v.deedPt);
                 v.origX = w.x;
                 v.origY = w.y;
+                if (isVertexFixedAnchor(state.userPolygon, idx)) {
+                  v.x = w.x;
+                  v.y = w.y;
+                }
               }
             }
           });
@@ -13337,6 +14479,30 @@ EOF`;
         const showLabel = anc.showLabel !== false;
         const hasPhoto = !!anc.image;
 
+        let axisBadgeHtml = "";
+        if (anc.axisId != null) {
+          const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+          if (ax) {
+            axisBadgeHtml = `<span class="anchor-axis-badge" data-anc-id="${anc.id}" style="font-size:0.59rem;background:${hexToRgba(ax.color, 0.20)};border:1px solid ${ax.color};color:${ax.color};padding:1px 3px;border-radius:2px;cursor:pointer;flex-shrink:0;" title="Coupled to ${ax.name}. Click to detach anchor.">📐${ax.name}</span>`;
+          }
+        }
+
+        const isOpt = anc.optimize === true;
+        let modeBtnHtml = "";
+        if (anc.axisId != null) {
+          if (isOpt) {
+            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #e040fb;background:rgba(224,64,251,0.22);color:#e040fb;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="1D Auto-Tune active: optimizer actively sweeps along axis. Click to switch to Floating Guide (zero-force rubber band).">🎯 Tune</button>`;
+          } else {
+            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #00e5ff;background:rgba(0,229,255,0.18);color:#00e5ff;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Floating Guide active: slides freely along axis to natural projection (rubber band). Click to enable 1D Auto-Tune.">🌊 Float</button>`;
+          }
+        } else {
+          if (isOpt) {
+            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #76ff03;background:rgba(118,255,3,0.20);color:#76ff03;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="2D Auto-Tune active: optimizer searches in buffer. Click to lock anchor as Fixed Ground Truth.">🎯 Tune</button>`;
+          } else {
+            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #78909c;background:rgba(120,144,156,0.20);color:#b0bec5;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Fixed Ground Truth: anchor coordinate is locked (0 movement). Click to enable 2D Auto-Tune.">🔒 Fixed</button>`;
+          }
+        }
+
         tr.innerHTML = `
           <td style="text-align:center;">
             <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
@@ -13345,7 +14511,11 @@ EOF`;
             <div style="display:flex;align-items:center;gap:3px;min-width:0;">
               <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;">#${anc.id}</span>
               <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
+              ${axisBadgeHtml}
             </div>
+          </td>
+          <td style="text-align:center;">
+            ${modeBtnHtml}
           </td>
           <td style="text-align:center;">
             <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
@@ -13367,6 +14537,40 @@ EOF`;
           </td>`;
         anchorTableBody.appendChild(tr);
       });
+
+      // Toggle anchor optimize mode listener
+      anchorTableBody.querySelectorAll(".btn-toggle-anchor-opt").forEach(btn => {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          const ancId = parseInt(btn.getAttribute("data-id"), 10);
+          const anc = (state.anchors || []).find(a => a.id === ancId);
+          if (anc) {
+            anc.optimize = !anc.optimize;
+            updateAnalyticsUI();
+            redrawAll();
+            const modeText = anc.optimize ? (anc.axisId != null ? "1D Auto-Tune" : "2D Auto-Tune") : (anc.axisId != null ? "Floating Guide (Rubber Band)" : "Fixed Ground Truth");
+            updateStatus(`Anchor #${ancId} mode set to: ${modeText}`);
+          }
+        });
+      });
+
+      // Detach anchor from axis click listener
+      anchorTableBody.querySelectorAll(".anchor-axis-badge").forEach(badge => {
+        badge.addEventListener("click", e => {
+          e.stopPropagation();
+          const ancId = parseInt(badge.getAttribute("data-anc-id"), 10);
+          const anc = (state.anchors || []).find(a => a.id === ancId);
+          if (anc) {
+            anc.axisId = null;
+            anc.axisT = null;
+            updateAnalyticsUI();
+            if (typeof renderTestAxesList === "function") renderTestAxesList();
+            redrawAll();
+            updateStatus(`Anchor #${ancId} detached from axis.`);
+          }
+        });
+      });
+
       updateAlgoComparePanel();
     }
 
@@ -14428,6 +15632,504 @@ EOF`;
     // [/SECTION: JS_MEASURING_TOOL]
 
     // ============================================================================
+    // [SECTION: JS_TEST_AXIS_ENGINE]
+    // ============================================================================
+    /* ============================================================================
+       PARAMETRIC 1D TEST AXIS ENGINE (HYPOTHESIS TESTING)
+       Allows defining manual test axes with draggable handles A & B.
+       Anchors placed near an axis dynamically snap and couple parametrically:
+       moving the axis handles carries the anchors along!
+       ============================================================================ */
+
+    function computeAxisBearing(p1, p2) {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      return (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+    }
+
+    function computeAxisGeometry(axis) {
+      const dx = axis.p2.x - axis.p1.x;
+      const dy = axis.p2.y - axis.p1.y;
+      const len = Math.hypot(dx, dy);
+      const safeLen = len > 1e-6 ? len : 1e-6;
+      const u = { x: dx / safeLen, y: dy / safeLen };
+      const n = { x: -u.y, y: u.x };
+      const bearing = computeAxisBearing(axis.p1, axis.p2);
+      return { len, u, n, bearing };
+    }
+
+    function projectPointOnAxis(pt, axis) {
+      const vx = axis.p2.x - axis.p1.x;
+      const vy = axis.p2.y - axis.p1.y;
+      const L2 = vx * vx + vy * vy;
+      if (L2 < 1e-8) {
+        return { projPt: { ...axis.p1 }, t: 0, dist: Math.hypot(pt.x - axis.p1.x, pt.y - axis.p1.y) };
+      }
+      const t = ((pt.x - axis.p1.x) * vx + (pt.y - axis.p1.y) * vy) / L2;
+      const projPt = { x: axis.p1.x + t * vx, y: axis.p1.y + t * vy };
+      const dist = Math.hypot(pt.x - projPt.x, pt.y - projPt.y);
+      return { projPt, t, dist };
+    }
+
+    function findNearestTestAxis(worldPt, vp, maxScreenPx = 18) {
+      const axes = (state.testAxes || []).filter(a => a.visible !== false);
+      if (axes.length === 0) return null;
+      let best = null;
+      let bestScreenDist = Infinity;
+      for (const ax of axes) {
+        const pr = projectPointOnAxis(worldPt, ax);
+        const sDist = pr.dist * vp.scale;
+        if (sDist <= maxScreenPx && sDist < bestScreenDist) {
+          bestScreenDist = sDist;
+          best = { axis: ax, projPt: pr.projPt, t: pr.t, screenDist: sDist };
+        }
+      }
+      return best;
+    }
+
+    function findTestAxisHandleAt(sx, sy, vp, canvasH, hitRadiusPx = 12) {
+      const axes = (state.testAxes || []).filter(a => a.visible !== false);
+      for (let i = axes.length - 1; i >= 0; i--) {
+        const ax = axes[i];
+        const s1 = worldToScreenGIS(ax.p1, vp, canvasH);
+        if (Math.hypot(sx - s1.x, sy - s1.y) <= hitRadiusPx) {
+          return { axis: ax, handle: 'p1' };
+        }
+        const s2 = worldToScreenGIS(ax.p2, vp, canvasH);
+        if (Math.hypot(sx - s2.x, sy - s2.y) <= hitRadiusPx) {
+          return { axis: ax, handle: 'p2' };
+        }
+      }
+      return null;
+    }
+
+    function syncTestAxisCounter() {
+      const maxId = (state.testAxes || []).reduce((max, a) => Math.max(max, Number(a.id) || 0), 0);
+      state.testAxisCounter = Math.max(state.testAxisCounter || 0, maxId);
+      return state.testAxisCounter;
+    }
+
+    function ensureUniqueTestAxisIds() {
+      const seen = new Set();
+      let nextId = 1;
+      (state.testAxes || []).forEach(ax => {
+        const numId = Number(ax.id);
+        if (!numId || isNaN(numId) || seen.has(numId)) {
+          while (seen.has(nextId) || (state.testAxes || []).some(other => other !== ax && Number(other.id) === nextId)) {
+            nextId++;
+          }
+          const oldId = ax.id;
+          ax.id = nextId;
+          if (oldId != null) {
+            (state.anchors || []).forEach(anc => {
+              if (anc.axisId === oldId) anc.axisId = ax.id;
+            });
+          }
+          if (!ax.name || /^Axis\s+\d+$/i.test(ax.name)) {
+            ax.name = `Axis ${ax.id}`;
+          }
+        }
+        seen.add(Number(ax.id));
+      });
+      syncTestAxisCounter();
+    }
+
+    function updateAnchorsOnAxis(axis) {
+      const vx = axis.p2.x - axis.p1.x;
+      const vy = axis.p2.y - axis.p1.y;
+      let changed = false;
+      (state.anchors || []).forEach(anc => {
+        if (anc.axisId === axis.id && typeof anc.axisT === "number") {
+          anc.dst = {
+            x: axis.p1.x + anc.axisT * vx,
+            y: axis.p1.y + anc.axisT * vy
+          };
+          changed = true;
+        }
+      });
+      if (changed) {
+        redrawAll();
+      }
+    }
+
+    function addTestAxis(p1, p2) {
+      ensureUniqueTestAxisIds();
+      const id = syncTestAxisCounter() + 1;
+      state.testAxisCounter = id;
+      const colors = ["#e040fb", "#00e5ff", "#ffd600", "#ff6d00", "#76ff03", "#d500f9"];
+      const color = colors[(id - 1) % colors.length];
+      const ax = {
+        id,
+        name: `Axis ${id}`,
+        p1: { x: p1.x, y: p1.y },
+        p2: { x: p2.x, y: p2.y },
+        color,
+        visible: true
+      };
+      state.testAxes.push(ax);
+      renderTestAxesList();
+      redrawTrueCanvas();
+      const geom = computeAxisGeometry(ax);
+      updateStatus(`📐 Created ${ax.name}: ${geom.len.toFixed(1)}m at ${geom.bearing.toFixed(1)}°. Drag handles A or B to reposition.`);
+      return ax;
+    }
+
+    function deleteTestAxis(id) {
+      const idx = (state.testAxes || []).findIndex(a => a.id === id);
+      if (idx < 0) return;
+      const ax = state.testAxes[idx];
+      state.testAxes.splice(idx, 1);
+      // Detach any anchors bound to this axis
+      let detached = 0;
+      (state.anchors || []).forEach(anc => {
+        if (anc.axisId === id) {
+          anc.axisId = null;
+          anc.axisT = null;
+          detached++;
+        }
+      });
+      renderTestAxesList();
+      updateAnalyticsUI();
+      redrawAll();
+      updateStatus(`Deleted ${ax.name}${detached > 0 ? ` (detached ${detached} anchor(s))` : ''}.`);
+    }
+
+    function startAddTestAxis() {
+      state.creatingTestAxis = true;
+      state.testAxisDrawStart = null;
+      state.testAxisCursorPt = null;
+      const btnAdd = document.getElementById("btn-add-test-axis");
+      const btnCancel = document.getElementById("btn-cancel-test-axis");
+      if (btnAdd) {
+        btnAdd.style.background = "rgba(224,64,251,0.35)";
+        btnAdd.textContent = "📍 Click Point A...";
+      }
+      if (btnCancel) btnCancel.style.display = "inline-flex";
+      updateStatus("📐 Click Point A on the Field Survey map to start the test axis.");
+      trueCanvas.style.cursor = "crosshair";
+    }
+
+    function cancelAddTestAxis() {
+      state.creatingTestAxis = false;
+      state.testAxisDrawStart = null;
+      state.testAxisCursorPt = null;
+      const btnAdd = document.getElementById("btn-add-test-axis");
+      const btnCancel = document.getElementById("btn-cancel-test-axis");
+      if (btnAdd) {
+        btnAdd.style.background = "";
+        btnAdd.textContent = "➕ Add Axis";
+      }
+      if (btnCancel) btnCancel.style.display = "none";
+      updateStatus("Test axis creation cancelled.");
+      trueCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+      redrawTrueCanvas();
+    }
+
+    function renderTestAxesList() {
+      const container = document.getElementById("test-axes-list");
+      const countBadge = document.getElementById("test-axes-count-badge");
+      const optAxisBadge = document.getElementById("opt-axis-count-badge");
+      const axes = state.testAxes || [];
+
+      if (countBadge) countBadge.textContent = axes.length;
+      if (optAxisBadge) {
+        const boundAnchors = (state.anchors || []).filter(a => a.axisId != null && a.active !== false).length;
+        optAxisBadge.textContent = `${axes.length} axis (${boundAnchors} anc)`;
+      }
+
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (axes.length === 0) {
+        container.innerHTML = `<div style="font-size:0.68rem;color:var(--text-muted);font-style:italic;padding:3px 2px;">No test axes defined yet.</div>`;
+        return;
+      }
+
+      axes.forEach(ax => {
+        const geom = computeAxisGeometry(ax);
+        const boundAnchors = (state.anchors || []).filter(a => a.axisId === ax.id);
+        const row = document.createElement("div");
+        row.style.cssText = `display:flex;align-items:center;justify-content:space-between;gap:5px;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid ${hexToRgba(ax.color, 0.35)};font-size:0.71rem;`;
+        if (ax.visible === false) row.style.opacity = "0.55";
+
+        // Dot & Checkbox
+        const leftWrap = document.createElement("div");
+        leftWrap.style.cssText = "display:flex;align-items:center;gap:4px;min-width:0;flex:1;";
+
+        const dot = document.createElement("span");
+        dot.style.cssText = `width:8px;height:8px;border-radius:50%;background:${ax.color};box-shadow:0 0 6px ${ax.color};flex-shrink:0;`;
+
+        const chkVis = document.createElement("input");
+        chkVis.type = "checkbox";
+        chkVis.checked = (ax.visible !== false);
+        chkVis.title = ax.visible !== false ? "Visible on canvas (uncheck to hide)" : "Hidden (check to show)";
+        chkVis.style.cssText = `accent-color:${ax.color};cursor:pointer;margin:0;flex-shrink:0;`;
+        chkVis.addEventListener("change", () => {
+          ax.visible = chkVis.checked;
+          renderTestAxesList();
+          redrawTrueCanvas();
+        });
+
+        const nameInp = document.createElement("input");
+        nameInp.type = "text";
+        nameInp.value = ax.name;
+        nameInp.title = "Click to rename axis";
+        nameInp.style.cssText = "background:transparent;border:none;color:inherit;font-size:0.71rem;font-weight:600;min-width:45px;flex:1;padding:1px 2px;";
+        nameInp.addEventListener("change", e => {
+          ax.name = e.target.value.trim() || `Axis ${ax.id}`;
+          updateAnalyticsUI();
+          redrawTrueCanvas();
+        });
+
+        leftWrap.appendChild(dot);
+        leftWrap.appendChild(chkVis);
+        leftWrap.appendChild(nameInp);
+
+        // Right details: Bearing / Len badge & Anchors attached
+        const rightWrap = document.createElement("div");
+        rightWrap.style.cssText = "display:flex;align-items:center;gap:4px;flex-shrink:0;";
+
+        const badgeGeom = document.createElement("span");
+        badgeGeom.style.cssText = "font-family:monospace;font-size:0.62rem;color:var(--text-muted);";
+        badgeGeom.textContent = `${geom.len.toFixed(0)}m ${geom.bearing.toFixed(0)}°`;
+        badgeGeom.title = `Length: ${geom.len.toFixed(2)}m • Bearing: ${geom.bearing.toFixed(1)}°`;
+
+        if (boundAnchors.length > 0) {
+          const badgeAnc = document.createElement("span");
+          badgeAnc.style.cssText = `font-family:monospace;font-size:0.60rem;background:${hexToRgba(ax.color, 0.25)};color:${ax.color};padding:0 3px;border-radius:2px;font-weight:700;`;
+          badgeAnc.textContent = boundAnchors.map(a => `#${a.id}`).join(",");
+          badgeAnc.title = `Coupled Anchors: ${boundAnchors.map(a => `#${a.id}`).join(", ")}`;
+          rightWrap.appendChild(badgeAnc);
+        }
+
+        const btnDel = document.createElement("button");
+        btnDel.type = "button";
+        btnDel.className = "custom-poly-btn-icon custom-poly-btn-del";
+        btnDel.title = `Delete ${ax.name}`;
+        btnDel.innerHTML = "✕";
+        btnDel.style.cssText = "padding:0 4px;font-size:0.68rem;cursor:pointer;";
+        btnDel.addEventListener("click", () => deleteTestAxis(ax.id));
+
+        rightWrap.appendChild(badgeGeom);
+        rightWrap.appendChild(btnDel);
+
+        row.appendChild(leftWrap);
+        row.appendChild(rightWrap);
+        container.appendChild(row);
+      });
+    }
+
+    function drawTestAxesGIS(ctx, vp, canvasH) {
+      const axes = (state.testAxes || []).filter(a => a.visible !== false);
+
+      // 1. Draw defined test axes
+      axes.forEach(ax => {
+        const geom = computeAxisGeometry(ax);
+        const s1 = worldToScreenGIS(ax.p1, vp, canvasH);
+        const s2 = worldToScreenGIS(ax.p2, vp, canvasH);
+
+        // Extended guideline (dashed ray extending ±150m along axis direction)
+        const extDist = Math.max(150, geom.len * 1.5);
+        const pExt1 = { x: ax.p1.x - extDist * geom.u.x, y: ax.p1.y - extDist * geom.u.y };
+        const pExt2 = { x: ax.p2.x + extDist * geom.u.x, y: ax.p2.y + extDist * geom.u.y };
+        const sExt1 = worldToScreenGIS(pExt1, vp, canvasH);
+        const sExt2 = worldToScreenGIS(pExt2, vp, canvasH);
+
+        ctx.save();
+        // Faint extended guideline
+        ctx.beginPath();
+        ctx.moveTo(sExt1.x, sExt1.y);
+        ctx.lineTo(sExt2.x, sExt2.y);
+        ctx.strokeStyle = hexToRgba(ax.color, 0.35);
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([8, 6]);
+        ctx.stroke();
+
+        // Core solid line between A and B
+        ctx.beginPath();
+        ctx.moveTo(s1.x, s1.y);
+        ctx.lineTo(s2.x, s2.y);
+        ctx.strokeStyle = ax.color;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([]);
+        ctx.shadowColor = ax.color;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Metric distance tickmarks along axis (every 5m sub-tick, 10m labeled tick)
+        const tickStep = (geom.len >= 60) ? 10 : 5;
+        const tickSpan = Math.ceil(geom.len / tickStep) * tickStep;
+        ctx.font = "9px monospace";
+        ctx.fillStyle = ax.color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        for (let d = 0; d <= tickSpan; d += tickStep) {
+          const tPt = { x: ax.p1.x + d * geom.u.x, y: ax.p1.y + d * geom.u.y };
+          const sTick = worldToScreenGIS(tPt, vp, canvasH);
+          const tickLen = (d % 10 === 0) ? 6 : 3.5;
+
+          // Perpendicular tick
+          const tx = -geom.n.x * tickLen;
+          const ty = geom.n.y * tickLen; // Screen Y is inverted
+          ctx.beginPath();
+          ctx.moveTo(sTick.x - tx, sTick.y - ty);
+          ctx.lineTo(sTick.x + tx, sTick.y + ty);
+          ctx.strokeStyle = ax.color;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          // Numeric label at 10m intervals
+          if (d % 10 === 0 && d > 0 && d < geom.len) {
+            ctx.fillText(`${d}m`, sTick.x + geom.n.x * 12, sTick.y - geom.n.y * 12);
+          }
+        }
+
+        // Handles A and B
+        function drawHandle(sPt, label) {
+          ctx.beginPath();
+          ctx.arc(sPt.x, sPt.y, 6.5, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+          ctx.strokeStyle = ax.color;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(sPt.x, sPt.y, 2, 0, Math.PI * 2);
+          ctx.fillStyle = ax.color;
+          ctx.fill();
+
+          // Label
+          ctx.font = "bold 9px sans-serif";
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "rgba(0,0,0,0.85)";
+          ctx.lineWidth = 2.5;
+          ctx.strokeText(label, sPt.x + 9, sPt.y - 7);
+          ctx.fillText(label, sPt.x + 9, sPt.y - 7);
+        }
+        drawHandle(s1, "A");
+        drawHandle(s2, "B");
+
+        // Connected Anchors markers on axis
+        (state.anchors || []).forEach(anc => {
+          if (anc.axisId === ax.id && anc.dst) {
+            const sAnc = worldToScreenGIS(anc.dst, vp, canvasH);
+            ctx.beginPath();
+            ctx.arc(sAnc.x, sAnc.y, 10, 0, Math.PI * 2);
+            ctx.strokeStyle = ax.color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.font = "bold 8px monospace";
+            ctx.fillStyle = ax.color;
+            ctx.fillText(`⚓ #${anc.id}`, sAnc.x, sAnc.y + 14);
+          }
+        });
+
+        ctx.restore();
+      });
+
+      // 2. Draw active creation rubber-band
+      if (state.creatingTestAxis && state.testAxisDrawStart && state.testAxisCursorPt) {
+        const sA = worldToScreenGIS(state.testAxisDrawStart, vp, canvasH);
+        const sB = worldToScreenGIS(state.testAxisCursorPt, vp, canvasH);
+        const dx = state.testAxisCursorPt.x - state.testAxisDrawStart.x;
+        const dy = state.testAxisCursorPt.y - state.testAxisDrawStart.y;
+        const len = Math.hypot(dx, dy);
+        const bearing = computeAxisBearing(state.testAxisDrawStart, state.testAxisCursorPt);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(sA.x, sA.y);
+        ctx.lineTo(sB.x, sB.y);
+        ctx.strokeStyle = "#e040fb";
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+
+        // Point A handle
+        ctx.beginPath();
+        ctx.arc(sA.x, sA.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.strokeStyle = "#e040fb";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Midpoint badge
+        const midX = (sA.x + sB.x) / 2;
+        const midY = (sA.y + sB.y) / 2;
+        const label = `${len.toFixed(1)}m • ${bearing.toFixed(1)}°`;
+        ctx.font = "bold 10px monospace";
+        ctx.fillStyle = "#e040fb";
+        ctx.strokeStyle = "#0f1420";
+        ctx.lineWidth = 3;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.strokeText(label, midX, midY - 6);
+        ctx.fillText(label, midX, midY - 6);
+
+        ctx.restore();
+      }
+    }
+
+    // Attach button listeners for Test Axes
+    const btnAddTestAxis = document.getElementById("btn-add-test-axis");
+    const btnCancelTestAxis = document.getElementById("btn-cancel-test-axis");
+    const chkSnapAnchorAxis = document.getElementById("chk-snap-anchor-axis");
+    const chkOptAlongAxis = document.getElementById("chk-opt-along-axis");
+
+    if (btnAddTestAxis) {
+      btnAddTestAxis.addEventListener("click", () => {
+        if (state.creatingTestAxis) cancelAddTestAxis();
+        else startAddTestAxis();
+      });
+    }
+    if (btnCancelTestAxis) {
+      btnCancelTestAxis.addEventListener("click", cancelAddTestAxis);
+    }
+    if (chkSnapAnchorAxis) {
+      chkSnapAnchorAxis.addEventListener("change", e => {
+        state.snapNewAnchorsToAxis = e.target.checked;
+      });
+    }
+    if (chkOptAlongAxis) {
+      chkOptAlongAxis.addEventListener("change", e => {
+        state.optAlongAxisOnly = e.target.checked;
+      });
+    }
+    const chkOptCdsOnly = document.getElementById("chk-opt-casa-del-sol-only");
+    if (chkOptCdsOnly) {
+      chkOptCdsOnly.addEventListener("change", e => {
+        state.optCasaDelSolOnly = e.target.checked;
+        const balanceSlider = document.getElementById("opt-balance-slider");
+        const balanceVal = document.getElementById("opt-balance-val");
+        if (balanceSlider) {
+          balanceSlider.disabled = e.target.checked;
+          balanceSlider.style.opacity = e.target.checked ? "0.45" : "1.0";
+        }
+        if (balanceVal) {
+          if (e.target.checked) {
+            balanceVal.textContent = "☀️ Casa del Sol Area Only (100%)";
+            balanceVal.style.color = "#ffb300";
+          } else {
+            const val = state.optBalance;
+            if (val === 50) balanceVal.textContent = "Balanced (50/50)";
+            else if (val < 50) balanceVal.textContent = `Dist Focus (${100 - val}% / ${val}%)`;
+            else balanceVal.textContent = `Area Focus (${100 - val}% / ${val}%)`;
+            balanceVal.style.color = "";
+          }
+        }
+        updateStatus(`Optimización de áreas Casa del Sol: ${e.target.checked ? "ACTIVADA (100% peso a lotes Casa del Sol, 0% a distancias y master)" : "DESACTIVADA (ponderación estándar balanceada)"}.`);
+      });
+    }
+    // [/SECTION: JS_TEST_AXIS_ENGINE]
+
+    // ============================================================================
     // [SECTION: JS_TEMP_REFERENCE_DXF]
     // ============================================================================
     /* ======================================================
@@ -15080,6 +16782,15 @@ EOF`;
       try {
         const text = await fetchText("anchors_georectifier.json");
         const data = JSON.parse(text);
+        if (data._simulation_metadata && typeof restoreSimulationMetadata === "function") {
+          restoreSimulationMetadata(data._simulation_metadata);
+        }
+        if (data.testAxes && Array.isArray(data.testAxes) && data.testAxes.length > 0) {
+          state.testAxes = data.testAxes.map(ax => ({ ...ax }));
+          if (typeof ensureUniqueTestAxisIds === "function") ensureUniqueTestAxisIds();
+          else if (typeof syncTestAxisCounter === "function") syncTestAxisCounter();
+          if (typeof renderTestAxesList === "function") renderTestAxesList();
+        }
         const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
         if (list.length > 0) {
           applyAnchors(list);
@@ -15090,6 +16801,21 @@ EOF`;
       }
       if (!loadedAnchors && typeof EMBEDDED_ANCHORS !== "undefined" && EMBEDDED_ANCHORS.length > 0) {
         applyAnchors(EMBEDDED_ANCHORS);
+      }
+      // Also restore axes from localStorage if anchors_georectifier.json was legacy without axes
+      if ((!state.testAxes || state.testAxes.length === 0)) {
+        try {
+          const cached = localStorage.getItem("georectifier_axes_anchors");
+          if (cached) {
+            const cachedObj = JSON.parse(cached);
+            if (cachedObj.testAxes && Array.isArray(cachedObj.testAxes) && cachedObj.testAxes.length > 0) {
+              state.testAxes = cachedObj.testAxes.map(ax => ({ ...ax }));
+              if (typeof ensureUniqueTestAxisIds === "function") ensureUniqueTestAxisIds();
+              else if (typeof syncTestAxisCounter === "function") syncTestAxisCounter();
+              if (typeof renderTestAxesList === "function") renderTestAxesList();
+            }
+          }
+        } catch (_) {}
       }
 
       // 4. User polygon preload (user_polygon.json or user_polygon.dxf)
@@ -15116,13 +16842,28 @@ EOF`;
         }
       }
 
+      // 4.5. Custom Polygons / Casa del Sol Parcels preload (casadelsol_parcels.json)
+      let loadedCustom = false;
+      try {
+        const textCustom = await fetchText("casadelsol_parcels.json");
+        const dataCustom = JSON.parse(textCustom);
+        if (Array.isArray(dataCustom) && dataCustom.length > 0) {
+          applyCustomPolygons(dataCustom);
+          loadedCustom = true;
+        }
+      } catch(e) {
+        console.warn("casadelsol_parcels.json preload:", e.message);
+      }
+      if (!loadedCustom && typeof EMBEDDED_CASADELSOL_PARCELS !== "undefined" && EMBEDDED_CASADELSOL_PARCELS.length > 0) {
+        applyCustomPolygons(EMBEDDED_CASADELSOL_PARCELS);
+      }
+
       // 5. Initialize constraints, subpanels, metrics and redraw immediately
       initConstraintsAndBuffers();
       renderCustomPolyList();
       updateCustomPolyButtonStates();
       recomputeCustomPolygonMetrics();
       updateDeedScaleDisplay();
-      fitTrueFieldView();
       redrawAll();
 
       const activeAnc = getActiveAnchors().length;
