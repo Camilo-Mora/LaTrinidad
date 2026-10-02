@@ -8321,7 +8321,7 @@ EOF`;
         }
       }
 
-      // Area callout HUD box pinned to top-left of the field frame (when polygon is closed)
+      // Real-time Metrics HUD Card pinned to top-left of the field frame (when polygon is closed)
       if (poly.closed && verts.length >= 3) {
         let areaM2 = 0;
         for (let i = 0; i < verts.length; i++) {
@@ -8329,38 +8329,144 @@ EOF`;
           areaM2 += verts[i].x * verts[j].y - verts[j].x * verts[i].y;
         }
         areaM2 = Math.abs(areaM2) / 2;
-        const plazas = areaM2 / 6400;
+        const REF_AREA = 162156.0;
+        const areaErrPct = (Math.abs(areaM2 - REF_AREA) / REF_AREA) * 100;
 
-        const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-        const txt2 = `${plazas.toFixed(2)} plazas`;
+        // Compute segment lengths stats for segments in 1073 (assigned deed lengths)
+        let sumDeedLen = 0, sumFieldLen = 0, countDeedSegs = 0, segErrSum = 0;
+        for (let i = 0; i < nSegs; i++) {
+          const a = verts[i], b = verts[(i + 1) % verts.length];
+          const deedLen = poly.segmentLengths ? poly.segmentLengths[i] : null;
+          const isOpt = poly.segmentOptimize ? (poly.segmentOptimize[i] === true) : (a.deedPt !== null && b.deedPt !== null);
+          if (deedLen != null && deedLen > 0 && isOpt) {
+            const mLen = Math.hypot(b.x - a.x, b.y - a.y);
+            sumDeedLen += deedLen;
+            sumFieldLen += mLen;
+            segErrSum += (Math.abs(mLen - deedLen) / deedLen) * 100;
+            countDeedSegs++;
+          }
+        }
+        const avgDeedLen = countDeedSegs > 0 ? (sumDeedLen / countDeedSegs) : 0;
+        const avgFieldLen = countDeedSegs > 0 ? (sumFieldLen / countDeedSegs) : 0;
+        const avgSegErrPct = countDeedSegs > 0 ? (segErrSum / countDeedSegs) : 0;
+
+        // Overall simulation error
+        const simAvgError = countDeedSegs > 0 ? (areaErrPct + avgSegErrPct) / 2 : areaErrPct;
 
         const boxX = 14;
         const boxY = 14;
-        const bw = 130;
-        const bh = 34;
+        const bw = 336;
+        const bh = 82;
 
         ctx.save();
-        ctx.fillStyle = "rgba(6, 9, 16, 0.90)";
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
-        ctx.lineWidth = 1.5;
+        // Background card with blur and subtle glow
+        ctx.fillStyle = "rgba(8, 14, 26, 0.92)";
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
+        ctx.lineWidth = 1.4;
 
         ctx.beginPath();
         if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(boxX, boxY, bw, bh, 6);
+          ctx.roundRect(boxX, boxY, bw, bh, 7);
         } else {
           ctx.rect(boxX, boxY, bw, bh);
         }
         ctx.fill();
         ctx.stroke();
 
-        const centerX = boxX + bw / 2;
-        ctx.fillStyle = "#00e5ff";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(txt1, centerX, boxY + 14);
+        // Column X coordinates
+        const colLabelX = boxX + 10;
+        const colDeedX = boxX + 188;
+        const colFieldX = boxX + 264;
+        const colErrX = boxX + bw - 10;
+
+        // 1. Column Headers
+        ctx.fillStyle = "#64748b";
+        ctx.font = "bold 9px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText("En Escritura", colDeedX, boxY + 14);
+        ctx.fillText("En Campo", colFieldX, boxY + 14);
+        ctx.fillText("Error", colErrX, boxY + 14);
+
+        // Divider under headers
+        ctx.beginPath();
+        ctx.moveTo(boxX + 8, boxY + 18);
+        ctx.lineTo(boxX + bw - 8, boxY + 18);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Helper for error color
+        function getErrColor(err) {
+          if (err <= 0.05) return "#00e676";
+          if (err <= 1.0) return "#ffd600";
+          return "#ff5252";
+        }
+
+        // 2. Row 1: Área in 296
+        const yRow1 = boxY + 31;
+        ctx.textAlign = "left";
         ctx.fillStyle = "#cbd5e1";
-        ctx.font = "10px sans-serif";
-        ctx.fillText(txt2, centerX, boxY + 28);
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.fillText("Área in 296", colLabelX, yRow1);
+
+        ctx.textAlign = "right";
+        ctx.font = "9.5px monospace";
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillText("162,156 m²", colDeedX, yRow1);
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillText(`${Math.round(areaM2).toLocaleString('en-US')} m²`, colFieldX, yRow1);
+
+        ctx.fillStyle = getErrColor(areaErrPct);
+        ctx.font = "bold 9.5px monospace";
+        ctx.fillText(`${areaErrPct.toFixed(2)}%`, colErrX, yRow1);
+
+        // 3. Row 2: Tramo x̄ in 1073
+        const yRow2 = boxY + 47;
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#cbd5e1";
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.fillText("Tramo x̄ in 1073", colLabelX, yRow2);
+
+        ctx.textAlign = "right";
+        ctx.font = "9.5px monospace";
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillText(`${avgDeedLen.toFixed(1)} m`, colDeedX, yRow2);
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillText(`${avgFieldLen.toFixed(1)} m`, colFieldX, yRow2);
+
+        ctx.fillStyle = getErrColor(avgSegErrPct);
+        ctx.font = "bold 9.5px monospace";
+        ctx.fillText(`${avgSegErrPct.toFixed(2)}%`, colErrX, yRow2);
+
+        // 4. Row 3: Bottom Highlight Pill — Error x̄ simulación
+        const pillY = boxY + 54;
+        const pillH = 20;
+        ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.28)";
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(boxX + 6, pillY, bw - 12, pillH, 4);
+        } else {
+          ctx.rect(boxX + 6, pillY, bw - 12, pillH);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "bold 9px sans-serif";
+        ctx.fillText("⚡ Error x̄ simulación:", boxX + 12, pillY + 13.5);
+
+        const simErrColor = getErrColor(simAvgError);
+        ctx.textAlign = "right";
+        ctx.font = "bold 10.5px monospace";
+        ctx.fillStyle = simErrColor;
+        ctx.fillText(`${simAvgError.toFixed(2)}%`, boxX + bw - 14, pillY + 14);
+
         ctx.restore();
       }
 
