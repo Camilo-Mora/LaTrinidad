@@ -932,22 +932,28 @@
           <div class="canvas-container" id="container-true">
             <canvas id="canvas-true"></canvas>
           </div>
-          <!-- Toolbar under True Field Canvas: Controles Escritura 1073 -->
-          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 10px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(255,23,68,0.3);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;z-index:10;">
+          <!-- Toolbar under True Field Canvas: Controles Lindero La Trinidad & Escritura 1073 -->
+          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 10px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(0,229,255,0.25);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;z-index:10;">
+            <!-- 1. Lindero La Trinidad Control (First) -->
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,229,255,0.08);padding:3px 8px;border-radius:4px;border:1px solid rgba(0,229,255,0.3);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Lindero La Trinidad (user_polygon.json)">
+                <input type="checkbox" id="chk-show-reconstructed-poly" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
+                <span style="color:var(--accent-cyan);font-weight:700;">🔷 Lindero La Trinidad</span>
+              </label>
+              <input type="range" class="opacity-slider" id="reconstructed-poly-opacity" min="0" max="100" value="100" style="width:50px;">
+              <span class="opacity-val" id="reconstructed-poly-opacity-val" style="min-width:26px;text-align:right;font-family:monospace;">100%</span>
+            </div>
+
+            <!-- Divider -->
+            <div style="height:18px;width:1px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
+
+            <!-- 2. Escritura 1073 Title Group -->
             <div style="display:flex;align-items:center;gap:6px;">
               <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
                 📜 Escritura 1073
               </span>
             </div>
-            <!-- Lindero Reconstruido Control -->
-            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(0,229,255,0.25);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Lindero La Trinidad Reconstruido (user_polygon.json)">
-                <input type="checkbox" id="chk-show-reconstructed-poly" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
-                <span style="color:var(--accent-cyan);font-weight:700;">🔷 Lindero Reconstruido</span>
-              </label>
-              <input type="range" class="opacity-slider" id="reconstructed-poly-opacity" min="0" max="100" value="100" style="width:50px;">
-              <span class="opacity-val" id="reconstructed-poly-opacity-val" style="min-width:26px;text-align:right;font-family:monospace;">100%</span>
-            </div>
+
             <!-- Plano PDF overlay control (50% default) -->
             <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
               <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
@@ -957,13 +963,7 @@
               <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50" style="width:60px;">
               <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">50%</span>
             </div>
-            <!-- Mojones (GCP Anchor Labels & Connecting Arrows) Toggle -->
-            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar los dos mojones de referencia (GCP Anchors) y sus flechas indicadoras">
-                <input type="checkbox" id="chk-show-mojones-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
-                <span>👁️ Mojones</span>
-              </label>
-            </div>
+
             <!-- Polígono DXF boundary control & styling -->
             <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
               <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
@@ -972,6 +972,14 @@
               </label>
               <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:60px;">
               <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">90%</span>
+            </div>
+
+            <!-- 3. Mojones Toggle (At the end) -->
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar los dos mojones de referencia (GCP Anchors) y sus flechas indicadoras">
+                <input type="checkbox" id="chk-show-mojones-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
+                <span>👁️ Mojones</span>
+              </label>
             </div>
           </div>
           <div class="viewport-hint" id="hint-true">
