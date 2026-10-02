@@ -769,15 +769,6 @@
       color: #ff1744;
     }
     .btn-danger-sm:hover { background: rgba(255,23,68,0.3); }
-    .opacity-slider {
-      flex: 1; -webkit-appearance: none; height: 4px;
-      border-radius: 2px; background: rgba(255,255,255,0.12); outline: none;
-    }
-    .opacity-slider::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 12px; height: 12px;
-      border-radius: 50%; background: var(--accent-cyan); cursor: pointer;
-    }
-    .opacity-val { font-size: 0.68rem; color: var(--accent-cyan); font-family: monospace; min-width: 28px; text-align: right; }
   </style>
 </head>
 <body>
@@ -931,51 +922,6 @@
           </div>
           <div class="canvas-container" id="container-true">
             <canvas id="canvas-true"></canvas>
-          </div>
-          <!-- Toolbar under True Field Canvas: Controles Escritura 1073 -->
-          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 10px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(255,23,68,0.3);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;z-index:10;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
-                📜 Escritura 1073
-              </span>
-            </div>
-            <!-- Plano PDF overlay control (50% default) -->
-            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
-                <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                <span>Plano PDF</span>
-              </label>
-              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50" style="width:60px;">
-              <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">50%</span>
-            </div>
-            <!-- Mojones (GCP Anchor Labels & Connecting Arrows) Toggle -->
-            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar los dos mojones de referencia (GCP Anchors) y sus flechas indicadoras">
-                <input type="checkbox" id="chk-show-mojones-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
-                <span>👁️ Mojones</span>
-              </label>
-            </div>
-            <!-- Mesh deformation grid & wireframe control -->
-            <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar malla de deformación spline (Rubber-Sheet Wireframe Grid)">
-                <input type="checkbox" id="chk-show-deed-mesh-wireframe" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
-                <span>👁️ Wireframe</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:5px;" title="Densidad / Resolución de la malla de deformación (8 a 64 celdas)">
-                <span style="font-size:0.68rem;color:var(--text-muted);">Malla:</span>
-                <input type="range" class="opacity-slider" id="slider-deed-mesh-res" min="8" max="64" step="2" value="64" style="width:55px;accent-color:var(--accent-cyan);cursor:pointer;">
-                <span id="deed-mesh-res-val" style="min-width:18px;text-align:right;font-family:monospace;font-size:0.68rem;color:var(--text-main);">64</span>
-              </div>
-            </div>
-            <!-- Polígono DXF boundary control & styling -->
-            <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
-                <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                <span>Polígono DXF</span>
-              </label>
-              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:60px;">
-              <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">90%</span>
-            </div>
           </div>
           <div class="viewport-hint" id="hint-true">
             <button class="vp-tool-btn active" data-map="true" data-mode="pan" title="Pan Mode [P]">🖐️</button>
@@ -1912,25 +1858,6 @@ class TransformMath {
 }
 
 /* 3. APPLICATION STATE */
-const DEFAULT_ANCHORS_1073 = [
-  {
-    "id": 1,
-    "name": "Entrada",
-    "active": true,
-    "color": "#ff1744",
-    "src": { "x": 252.71, "y": 606.42 },
-    "dst": { "x": 1097703.3119, "y": 876671.3626 }
-  },
-  {
-    "id": 2,
-    "name": "Tres cercos",
-    "active": true,
-    "color": "#00e676",
-    "src": { "x": 283, "y": 86.45 },
-    "dst": { "x": 1098130.83, "y": 877073.26 }
-  }
-];
-
 const state = {
   snapEnabled: true,
   snapRadius: 15,
@@ -1940,18 +1867,13 @@ const state = {
   entities196: [],
   entitiesTrue: [],
   anchors296: [],
-  anchors1073: JSON.parse(JSON.stringify(DEFAULT_ANCHORS_1073)),
+  anchors1073: [],
   anchors196: [],
   showAnchors296: false,
   showAnchors1073: false,
   showAnchors196: false,
   showWarped296OnField: true,
   showWarped1073OnField: true,
-  showWarpedPdf1073: true,
-  warpedPdf1073Opacity: 0.50, // 50% default transparency as requested
-  showMojones1073: true,      // true by default to show the two anchor labels and arrows
-  deedMeshRes1073: 64,        // 64 finest resolution default
-  showDeedMeshWireframe1073: false,
   showWarped196OnField: true,
   showFieldDXFOnField: true,
   overlayLayer: {
@@ -2308,28 +2230,12 @@ async function autoLoadAnchors() {
       if (data.anchors296  && Array.isArray(data.anchors296))  state.anchors296  = data.anchors296;
       if (data.anchors1073 && Array.isArray(data.anchors1073)) state.anchors1073 = data.anchors1073;
       if (data.anchors196  && Array.isArray(data.anchors196))  state.anchors196  = data.anchors196;
+      redrawAll();
+      statusBar.textContent = "✅ Anchors loaded from anchors.json";
     }
   } catch (err) {
     console.log("anchors.json auto-load skipped (CORS or missing file).");
   }
-
-  // Load dedicated calibrated anchors for Escritura 1073 (anchors_georectifier.json)
-  try {
-    const rGeo = await fetch("anchors_georectifier.json?_t=" + Date.now(), { cache: "no-store" });
-    if (rGeo.ok) {
-      const dGeo = await rGeo.json();
-      const list = Array.isArray(dGeo) ? dGeo : (dGeo.anchors || dGeo.anchors1073 || []);
-      if (list.length > 0) {
-        state.anchors1073 = list;
-        console.log(`Loaded ${list.length} anchors for Escritura 1073 from anchors_georectifier.json`);
-      }
-    }
-  } catch (err) {
-    console.warn("anchors_georectifier.json auto-load skipped:", err);
-  }
-
-  redrawAll();
-  statusBar.textContent = "✅ Anchors & Escritura 1073 loaded";
 }
 
 async function autoLoadPolygons() {
@@ -2909,24 +2815,14 @@ function drawLayerByKey(key, ctx, vp, h) {
       break;
     }
     case "dxf_1073": {
-      const isDxfVisible = ac ? (ac.layers?.dxf1073 !== false) : (state.showWarped1073OnField !== false);
-      const isPdfVisible = (state.showWarpedPdf1073 !== false);
-      if ((isDxfVisible || isPdfVisible) && getActiveAnchors(state.anchors1073).length >= 2) {
+      const isVisible = ac ? (ac.layers?.dxf1073 !== false) : (state.showWarped1073OnField !== false);
+      if (isVisible && getActiveAnchors(state.anchors1073).length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
-
-          // 1. Draw warped deed PDF image if enabled (default 50% opacity)
-          if (isPdfVisible && state.pdf1073Canvas && state.pdf1073Width > 0) {
-            drawWarpedPdfImage1073(ctx, warper, vp, canvasTrue.width, h);
-          }
-
-          // 2. Draw warped DXF vector polygon if enabled
-          if (isDxfVisible) {
-            const op = ac ? (ac.dxfOpacity?.dxf_1073 ?? 1) : (state.dxfOpacity?.dxf_1073 ?? 0.9);
-            drawWithOffscreen(ctx, op, offCtx =>
-              drawWarpedEntitiesGIS(offCtx, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.9)")
-            );
-          }
+          const op = ac ? (ac.dxfOpacity?.dxf_1073 ?? 1) : (state.dxfOpacity.dxf_1073 ?? 1);
+          drawWithOffscreen(ctx, op, offCtx =>
+            drawWarpedEntitiesGIS(offCtx, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)")
+          );
         } catch (_) {}
       }
       break;
@@ -2936,7 +2832,7 @@ function drawLayerByKey(key, ctx, vp, h) {
       if (isVisible && getActiveAnchors(state.anchors196).length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-          const op = ac ? (ac.dxfOpacity?.dxf_196 ?? 1) : (state.dxfOpacity?.dxf_196 ?? 0.85);
+          const op = ac ? (ac.dxfOpacity?.dxf_196 ?? 1) : (state.dxfOpacity.dxf_196 ?? 1);
           drawWithOffscreen(ctx, op, offCtx =>
             drawWarpedEntitiesGIS(offCtx, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)")
           );
@@ -2948,7 +2844,7 @@ function drawLayerByKey(key, ctx, vp, h) {
       if (ac) break; // Suppress anchors in Case mode
       const visibleDestAnchors = [];
       if (state.showAnchors296)  visibleDestAnchors.push(...state.anchors296);
-      if (!state.showMojones1073 && state.showAnchors1073) visibleDestAnchors.push(...state.anchors1073);
+      if (state.showAnchors1073) visibleDestAnchors.push(...state.anchors1073);
       if (state.showAnchors196)  visibleDestAnchors.push(...state.anchors196);
       drawDestinationAnchorsGIS(ctx, visibleDestAnchors, vp, h);
       break;
@@ -2976,11 +2872,6 @@ function drawViewportTrue() {
   // Draw layers in user-configured stack order
   const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
   order.forEach(key => drawLayerByKey(key, ctxTrue, vp, h));
-
-  // Draw 1073 Mojones (Anchors #1 & #2 in corners with connecting arrows) if enabled
-  if (state.showMojones1073 !== false) {
-    drawMojones1073(ctxTrue, vp, h);
-  }
 
   if (state.caseMode) {
     drawCaseLabels(ctxTrue, vp, h);
@@ -3130,513 +3021,6 @@ function drawDestinationAnchorsGIS(ctx, anchors, vp, h) {
     ctx.fillStyle = isActive ? "#ffffff" : "#aaaaaa"; ctx.font = "bold 11px sans-serif";
     ctx.fillText(`#${anc.id}${isActive ? "" : " (off)"}`, sp.x + 9, sp.y - 5);
     ctx.restore();
-  });
-}
-
-/* -----------------------------------------------------------------------
-   Draw warped deed PDF image (Escritura 1073) on True Field Canvas.
-   Uses Piecewise Triangle Mesh Warper with offscreen 1.0 alpha buffer
-   to eliminate all white seam lines, preserving 1:1 square grid cells.
------------------------------------------------------------------------ */
-function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
-  if (!state.pdf1073Canvas || !state.pdf1073Width) return;
-  const pdfW = state.pdf1073Width, pdfH = state.pdf1073Height;
-  const opacity = state.warpedPdf1073Opacity !== undefined ? state.warpedPdf1073Opacity : 0.50;
-  if (opacity <= 0) return;
-
-  const baseRes = state.deedMeshRes1073 || 64;
-  const maxDim = Math.max(pdfW, pdfH);
-  const cellSize = maxDim / baseRes;
-  const gridCols = Math.max(2, Math.round(pdfW / cellSize));
-  const gridRows = Math.max(2, Math.round(pdfH / cellSize));
-  const showWireframe = !!state.showDeedMeshWireframe1073;
-
-  // Linear fast-path for Pure Helmert without wireframe
-  const isPureHelmert = (state.algorithm === "SIMILARITY");
-  if (isPureHelmert && !showWireframe) {
-    const corners = [
-      { px: 0, py: 0 },
-      { px: pdfW, py: 0 },
-      { px: 0, py: pdfH }
-    ].map(c => worldToScreenGIS(warper({ x: c.px, y: c.py }), vp, canvasH));
-
-    const [s0, s1, s3] = corners;
-    const a  = (s1.x - s0.x) / pdfW;
-    const b  = (s1.y - s0.y) / pdfW;
-    const c_ = (s3.x - s0.x) / pdfH;
-    const d_ = (s3.y - s0.y) / pdfH;
-    const e  = s0.x;
-    const f  = s0.y;
-
-    ctx.save();
-    ctx.globalAlpha = opacity;
-    ctx.setTransform(a, b, c_, d_, e, f);
-    ctx.drawImage(state.pdf1073Canvas, 0, 0, pdfW, pdfH);
-    ctx.restore();
-    return;
-  }
-
-  // Piecewise mesh warper: precalculate vertices
-  const pts = [];
-  for (let r = 0; r <= gridRows; r++) {
-    const row = [];
-    const v = (r / gridRows) * pdfH;
-    for (let c = 0; c <= gridCols; c++) {
-      const u = (c / gridCols) * pdfW;
-      const wGis = warper({ x: u, y: v });
-      const sScr = worldToScreenGIS(wGis, vp, canvasH);
-      row.push(sScr);
-    }
-    pts.push(row);
-  }
-
-  // Offscreen buffer at full 1.0 alpha to eliminate seam artifacts
-  if (!drawWarpedPdfImage1073._offCanvas) {
-    drawWarpedPdfImage1073._offCanvas = document.createElement("canvas");
-  }
-  const offCanvas = drawWarpedPdfImage1073._offCanvas;
-  if (offCanvas.width !== canvasW || offCanvas.height !== canvasH) {
-    offCanvas.width = canvasW;
-    offCanvas.height = canvasH;
-  }
-  const targetCtx = offCanvas.getContext("2d");
-  targetCtx.clearRect(0, 0, canvasW, canvasH);
-  targetCtx.save();
-  targetCtx.globalAlpha = 1.0;
-
-  const cellW = pdfW / gridCols;
-  const cellH = pdfH / gridRows;
-
-  function drawTriangle(u0, v0, u1, v1, u2, v2, p0, p1, p2) {
-    const du1 = u1 - u0, dv1 = v1 - v0;
-    const du2 = u2 - u0, dv2 = v2 - v0;
-    const dx1 = p1.x - p0.x, dy1 = p1.y - p0.y;
-    const dx2 = p2.x - p0.x, dy2 = p2.y - p0.y;
-    const det = du1 * dv2 - du2 * dv1;
-    if (Math.abs(det) < 1e-9) return;
-
-    const a  = (dx1 * dv2 - dx2 * dv1) / det;
-    const c_ = (dx2 * du1 - dx1 * du2) / det;
-    const b  = (dy1 * dv2 - dy2 * dv1) / det;
-    const d_ = (dy2 * du1 - dy1 * du2) / det;
-    const e  = p0.x - a * u0 - c_ * v0;
-    const f  = p0.y - b * u0 - d_ * v0;
-
-    const cx = (p0.x + p1.x + p2.x) / 3;
-    const cy = (p0.y + p1.y + p2.y) / 3;
-    const pad = 0.5;
-    const d0x = p0.x - cx, d0y = p0.y - cy, l0 = Math.hypot(d0x, d0y) || 1;
-    const d1x = p1.x - cx, d1y = p1.y - cy, l1 = Math.hypot(d1x, d1y) || 1;
-    const d2x = p2.x - cx, d2y = p2.y - cy, l2 = Math.hypot(d2x, d2y) || 1;
-
-    targetCtx.save();
-    targetCtx.beginPath();
-    targetCtx.moveTo(p0.x + (d0x / l0) * pad, p0.y + (d0y / l0) * pad);
-    targetCtx.lineTo(p1.x + (d1x / l1) * pad, p1.y + (d1y / l1) * pad);
-    targetCtx.lineTo(p2.x + (d2x / l2) * pad, p2.y + (d2y / l2) * pad);
-    targetCtx.closePath();
-    targetCtx.clip();
-
-    targetCtx.setTransform(a, b, c_, d_, e, f);
-    targetCtx.drawImage(state.pdf1073Canvas, 0, 0, pdfW, pdfH);
-    targetCtx.restore();
-  }
-
-  for (let r = 0; r < gridRows; r++) {
-    for (let c = 0; c < gridCols; c++) {
-      const u0 = c * cellW,       v0 = r * cellH;
-      const u1 = (c + 1) * cellW, v1 = (r + 1) * cellH;
-
-      const p00 = pts[r][c];
-      const p10 = pts[r][c + 1];
-      const p01 = pts[r + 1][c];
-      const p11 = pts[r + 1][c + 1];
-
-      drawTriangle(u0, v0, u1, v0, u0, v1, p00, p10, p01);
-      drawTriangle(u1, v0, u1, v1, u0, v1, p10, p11, p01);
-    }
-  }
-
-  targetCtx.restore();
-
-  // Composite seamless warped deed to main canvas with user opacity
-  ctx.save();
-  ctx.globalAlpha = opacity;
-  ctx.drawImage(offCanvas, 0, 0);
-  ctx.restore();
-
-  // Optional Wireframe overlay
-  if (showWireframe) {
-    ctx.save();
-    ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
-    ctx.lineWidth = 0.8;
-    for (let r = 0; r < gridRows; r++) {
-      for (let c = 0; c < gridCols; c++) {
-        const p00 = pts[r][c];
-        const p10 = pts[r][c + 1];
-        const p01 = pts[r + 1][c];
-        const p11 = pts[r + 1][c + 1];
-
-        ctx.beginPath();
-        ctx.moveTo(p00.x, p00.y);
-        ctx.lineTo(p10.x, p10.y);
-        ctx.lineTo(p01.x, p01.y);
-        ctx.closePath();
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(p10.x, p10.y);
-        ctx.lineTo(p11.x, p11.y);
-        ctx.lineTo(p01.x, p01.y);
-        ctx.closePath();
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
-}
-
-// ── Helpers: Anchor Label Card and Connecting Arrows (Mojones) ───────
-function getDefaultAnchorOffset(anc, isHist) {
-  const id = anc.id != null ? Number(anc.id) : null;
-  if (id === 1) {
-    return { dx: -215, dy: -60 };
-  } else if (id === 2) {
-    return { dx: 35, dy: -135 };
-  }
-  return { dx: 25, dy: -25 };
-}
-
-function getAnchorCardBounds(anc, pt, isHist, ctx) {
-  const isEnabled = anc.active !== false && anc.enabled !== false;
-  const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
-  const fullText = labelName + (isEnabled ? "" : " (off)");
-  const defOff = getDefaultAnchorOffset(anc, isHist);
-  const defDx = defOff.dx, defDy = defOff.dy;
-  const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
-  const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
-  const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
-
-  const hasImg = anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0;
-  if (hasImg) {
-    const natW = anc._imgElement.naturalWidth;
-    const natH = anc._imgElement.naturalHeight;
-    const baseW = 80;
-    const maxH = Math.max(50, Math.round(baseW * 1.35));
-    const scale = Math.min(baseW / natW, maxH / natH);
-    const imgW = Math.max(35, Math.round(natW * scale));
-    const imgH = Math.max(35, Math.round(natH * scale));
-
-    const padX = 8, padTop = 7, padBottom = 8;
-    const headerH = 18;
-    const dividerGap = 5;
-    const imgGap = 6;
-    const fontSize = 11;
-    const badgeR = 8.5;
-
-    ctx.save();
-    ctx.font = "bold " + fontSize + "px sans-serif";
-    const textW = ctx.measureText(fullText).width;
-    ctx.restore();
-
-    const cardInnerW = Math.max(imgW, (badgeR * 2) + 6 + textW + 4);
-    const cardW = cardInnerW + padX * 2;
-    const cardH = padTop + headerH + dividerGap + imgGap + imgH + padBottom;
-
-    let cardX = pt.x + offX;
-    let cardY = pt.y + offY - (cardH / 2) + 10;
-    let finalOffX = offX, finalOffY = offY;
-
-    const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
-    const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : canvasTrue.width;
-    const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : canvasTrue.height;
-    const margin = 24;
-
-    if (!isHist && !hasCustom && anc.id === 1) {
-      cardX = margin;
-      cardY = canvasH - cardH - margin;
-      finalOffX = cardX - pt.x;
-      finalOffY = cardY - pt.y + (cardH / 2) - 10;
-    } else if (!isHist && !hasCustom && anc.id === 2) {
-      cardX = canvasW - cardW - margin;
-      cardY = margin;
-      finalOffX = cardX - pt.x;
-      finalOffY = cardY - pt.y + (cardH / 2) - 10;
-    }
-
-    return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
-  } else {
-    const padX = 8;
-    const cardH = 24;
-    const fontSize = 11;
-    const badgeR = 8;
-
-    ctx.save();
-    ctx.font = "bold " + fontSize + "px sans-serif";
-    const textWithIcon = (anc.image ? "📷 " : "") + fullText;
-    const textW = ctx.measureText(textWithIcon).width;
-    ctx.restore();
-
-    const cardW = (badgeR * 2) + 8 + textW + padX * 2;
-    let cardX = pt.x + offX;
-    let cardY = pt.y + offY;
-    let finalOffX = offX, finalOffY = offY;
-
-    const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
-    const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : canvasTrue.width;
-    const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : canvasTrue.height;
-    const margin = 24;
-
-    if (!isHist && !hasCustom && anc.id === 1) {
-      cardX = margin;
-      cardY = canvasH - cardH - margin;
-      finalOffX = cardX - pt.x;
-      finalOffY = cardY - pt.y;
-    } else if (!isHist && !hasCustom && anc.id === 2) {
-      cardX = canvasW - cardW - margin;
-      cardY = margin;
-      finalOffX = cardX - pt.x;
-      finalOffY = cardY - pt.y;
-    }
-
-    return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
-  }
-}
-
-function drawAnchorLabelCard(ctx, anc, pt, isHist) {
-  const isEnabled = anc.active !== false && anc.enabled !== false;
-  const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
-  const fullText = labelName + (isEnabled ? "" : " (off)");
-  if (anc.image && !anc._imgElement) {
-    const img = new Image();
-    img.onload = () => {
-      redrawAll();
-    };
-    img.src = anc.image;
-    anc._imgElement = img;
-  }
-
-  const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
-  const cardX = bounds.cardX;
-  const cardY = bounds.cardY;
-  const cardW = bounds.cardW;
-  const cardH = bounds.cardH;
-  const offX = bounds.offX;
-  const offY = bounds.offY;
-
-  // Draw 3px connector arrow pointing towards the anchor
-  if (Math.hypot(offX, offY) > 20 || (anc.labelOffsetDst && typeof anc.labelOffsetDst.dx === "number")) {
-    const startX = Math.max(cardX, Math.min(cardX + cardW, pt.x));
-    const startY = Math.max(cardY, Math.min(cardY + cardH, pt.y));
-    const dx = pt.x - startX;
-    const dy = pt.y - startY;
-    const dist = Math.hypot(dx, dy);
-
-    if (dist >= 10) {
-      const ux = dx / dist;
-      const uy = dy / dist;
-      const tipX = pt.x - ux * 6.5;
-      const tipY = pt.y - uy * 6.5;
-
-      const headLen = 12;
-      const headHalfW = 6.5;
-      const baseX = tipX - ux * headLen;
-      const baseY = tipY - uy * headLen;
-      const px = -uy;
-      const py = ux;
-
-      const arrowCol = isEnabled ? (anc.color || "#00e5ff") : "#888888";
-
-      ctx.save();
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetY = 1;
-
-      // 3px solid arrow stem
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(baseX + ux * 2, baseY + uy * 2);
-      ctx.strokeStyle = arrowCol;
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      // Arrowhead pointing towards the anchor
-      ctx.beginPath();
-      ctx.moveTo(tipX, tipY);
-      ctx.lineTo(baseX + px * headHalfW, baseY + py * headHalfW);
-      ctx.lineTo(baseX - px * headHalfW, baseY - py * headHalfW);
-      ctx.closePath();
-      ctx.fillStyle = arrowCol;
-      ctx.fill();
-
-      ctx.restore();
-    }
-  }
-
-  const hasImg = anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0;
-
-  if (hasImg) {
-    const natW = anc._imgElement.naturalWidth;
-    const natH = anc._imgElement.naturalHeight;
-    const baseW = 80;
-    const maxH = Math.max(50, Math.round(baseW * 1.35));
-    const scale = Math.min(baseW / natW, maxH / natH);
-    const imgW = Math.max(35, Math.round(natW * scale));
-    const imgH = Math.max(35, Math.round(natH * scale));
-
-    const padX = 8, padTop = 7;
-    const headerH = 18;
-    const dividerGap = 5;
-    const imgGap = 6;
-    const fontSize = 11;
-    const badgeR = 8.5;
-
-    ctx.save();
-
-    // Outer Frame (Label Card with Rounded Curvature & Shadow)
-    ctx.fillStyle = "rgba(11, 20, 36, 0.95)";
-    ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
-    ctx.shadowBlur = 9;
-    ctx.shadowOffsetY = 3;
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(cardX, cardY, cardW, cardH, 9);
-    else ctx.rect(cardX, cardY, cardW, cardH);
-    ctx.fill();
-
-    // Outer Frame Cyan Border
-    ctx.shadowColor = "transparent";
-    ctx.strokeStyle = isEnabled ? "#00e5ff" : "#64748b";
-    ctx.lineWidth = 1.6;
-    ctx.stroke();
-
-    // Header Row
-    const badgeCenterX = cardX + padX + badgeR;
-    const badgeCenterY = cardY + padTop + badgeR;
-
-    // Circular Anchor Color Pin Badge
-    ctx.beginPath();
-    ctx.arc(badgeCenterX, badgeCenterY, badgeR, 0, Math.PI * 2);
-    ctx.fillStyle = anc.color || "#ff1744";
-    ctx.fill();
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 9px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("#" + anc.id, badgeCenterX, badgeCenterY);
-
-    // Header Title in Bold Cyan
-    ctx.fillStyle = isEnabled ? "#00e5ff" : "#94a3b8";
-    ctx.font = "bold " + fontSize + "px sans-serif";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(fullText, badgeCenterX + badgeR + 6, badgeCenterY);
-
-    // Header Divider Line
-    const divY = cardY + padTop + headerH + dividerGap;
-    ctx.beginPath();
-    ctx.moveTo(cardX + padX, divY);
-    ctx.lineTo(cardX + cardW - padX, divY);
-    ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Inner Frame (Image Box with Rounded Curvature & Cyan Border)
-    const innerX = cardX + (cardW - imgW) / 2;
-    const innerY = divY + imgGap;
-    const innerR = 7;
-
-    ctx.save();
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(innerX, innerY, imgW, imgH, innerR);
-    else ctx.rect(innerX, innerY, imgW, imgH);
-    ctx.clip();
-    ctx.drawImage(anc._imgElement, innerX, innerY, imgW, imgH);
-    ctx.restore();
-
-    // Inner Frame Cyan Border
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(innerX, innerY, imgW, imgH, innerR);
-    else ctx.rect(innerX, innerY, imgW, imgH);
-    ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
-    ctx.lineWidth = 1.3;
-    ctx.stroke();
-
-    ctx.restore();
-  } else {
-    // Compact Badge without image (or loading fallback)
-    const padX = 8;
-    const fontSize = 11;
-    const badgeR = 8;
-    const textWithIcon = (anc.image ? "📷 " : "") + fullText;
-
-    ctx.save();
-    ctx.fillStyle = "rgba(11, 20, 36, 0.94)";
-    ctx.shadowColor = "rgba(0, 0, 0, 0.55)";
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetY = 2;
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(cardX, cardY, cardW, cardH, 6);
-    else ctx.rect(cardX, cardY, cardW, cardH);
-    ctx.fill();
-
-    ctx.shadowColor = "transparent";
-    ctx.strokeStyle = isEnabled ? "#00e5ff" : "#64748b";
-    ctx.lineWidth = 1.3;
-    ctx.stroke();
-
-    const badgeCenterX = cardX + padX + badgeR;
-    const badgeCenterY = cardY + cardH / 2;
-    ctx.beginPath();
-    ctx.arc(badgeCenterX, badgeCenterY, badgeR, 0, Math.PI * 2);
-    ctx.fillStyle = anc.color || "#ff1744";
-    ctx.fill();
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 9px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("#" + anc.id, badgeCenterX, badgeCenterY);
-
-    ctx.fillStyle = isEnabled ? "#00e5ff" : "#94a3b8";
-    ctx.font = "bold " + fontSize + "px sans-serif";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(textWithIcon, badgeCenterX + badgeR + 6, badgeCenterY);
-
-    ctx.restore();
-  }
-}
-
-function drawMojones1073(ctx, vp, h) {
-  if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length < 2) return;
-  const activeList = state.anchors1073.filter(a => a.active !== false);
-  if (activeList.length < 2) return;
-
-  activeList.forEach(anc => {
-    const sp = worldToScreenGIS(anc.dst, vp, h);
-
-    // Anchor pin on ground
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
-    ctx.fillStyle = anc.color || "#ff1744";
-    ctx.fill();
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-
-    // Corner card and connecting arrow
-    drawAnchorLabelCard(ctx, anc, sp, false);
   });
 }
 
@@ -4619,81 +4003,6 @@ function setupPolygonSummaryListeners() {
 }
 function setupEventListeners() {
   setupCasesPanel();
-
-  // ── Bottom Toolbar: Escritura 1073 Controls ──────────────────────
-  const chkWarpedPdf = document.getElementById("chk-show-warped-pdf");
-  const rngWarpedPdfOp = document.getElementById("warped-pdf-opacity");
-  const valWarpedPdfOp = document.getElementById("warped-pdf-opacity-val");
-  if (chkWarpedPdf) {
-    chkWarpedPdf.addEventListener("change", e => {
-      state.showWarpedPdf1073 = e.target.checked;
-      redrawAll();
-    });
-  }
-  if (rngWarpedPdfOp) {
-    rngWarpedPdfOp.addEventListener("input", e => {
-      const val = parseInt(e.target.value, 10);
-      state.warpedPdf1073Opacity = val / 100;
-      if (valWarpedPdfOp) valWarpedPdfOp.textContent = val + "%";
-      if (chkWarpedPdf && !chkWarpedPdf.checked && val > 0) {
-        chkWarpedPdf.checked = true;
-        state.showWarpedPdf1073 = true;
-      }
-      redrawAll();
-    });
-  }
-
-  const chkShowMojones = document.getElementById("chk-show-mojones-1073");
-  if (chkShowMojones) {
-    chkShowMojones.addEventListener("change", e => {
-      state.showMojones1073 = e.target.checked;
-      redrawAll();
-    });
-  }
-
-  const chkDeedMeshWf = document.getElementById("chk-show-deed-mesh-wireframe");
-  if (chkDeedMeshWf) {
-    chkDeedMeshWf.addEventListener("change", e => {
-      state.showDeedMeshWireframe1073 = e.target.checked;
-      redrawAll();
-    });
-  }
-
-  const sliderDeedMeshRes = document.getElementById("slider-deed-mesh-res");
-  const deedMeshResVal = document.getElementById("deed-mesh-res-val");
-  if (sliderDeedMeshRes) {
-    sliderDeedMeshRes.addEventListener("input", e => {
-      const val = parseInt(e.target.value, 10) || 64;
-      state.deedMeshRes1073 = val;
-      if (deedMeshResVal) deedMeshResVal.textContent = val;
-      redrawAll();
-    });
-  }
-
-  const chkWarpedDxf = document.getElementById("chk-show-warped-dxf");
-  const rngWarpedDxfOp = document.getElementById("warped-dxf-opacity");
-  const valWarpedDxfOp = document.getElementById("warped-dxf-opacity-val");
-  if (chkWarpedDxf) {
-    chkWarpedDxf.addEventListener("change", e => {
-      state.showWarped1073OnField = e.target.checked;
-      const sumChk = document.getElementById("sum-vis-dxf-1073");
-      if (sumChk) sumChk.checked = e.target.checked;
-      redrawAll();
-    });
-  }
-  if (rngWarpedDxfOp) {
-    rngWarpedDxfOp.addEventListener("input", e => {
-      const val = parseInt(e.target.value, 10);
-      if (!state.dxfOpacity) state.dxfOpacity = {};
-      state.dxfOpacity.dxf_1073 = val / 100;
-      if (valWarpedDxfOp) valWarpedDxfOp.textContent = val + "%";
-      if (chkWarpedDxf && !chkWarpedDxf.checked && val > 0) {
-        chkWarpedDxf.checked = true;
-        state.showWarped1073OnField = true;
-      }
-      redrawAll();
-    });
-  }
 
   function updateSnapButtonUI() {
     const text = state.snapEnabled ? "🧲 Snap: ON" : "🧲 Snap: OFF";
