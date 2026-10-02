@@ -2392,6 +2392,24 @@ Do NOT modify dormant/parked sections unless specifically requested.
     </div>
   </div>
 
+  <!-- Modal: Recordatorio de Archivo Complementario y Replicabilidad -->
+  <div id="modal-save-companion-reminder" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.80);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#0c1220;border:1px solid rgba(0,229,255,0.45);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,0.85),0 0 20px rgba(0,229,255,0.15);width:100%;max-width:520px;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(0,229,255,0.06);">
+        <span id="save-companion-modal-title" style="font-size:0.86rem;font-weight:700;color:var(--accent-cyan);display:flex;align-items:center;gap:6px;">
+          💾 Archivo Guardado
+        </span>
+        <button id="btn-close-save-companion-x" style="background:transparent;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:2px 6px;">✕</button>
+      </div>
+      <div id="save-companion-modal-body" style="padding:16px 18px;font-size:0.75rem;line-height:1.6;color:#cbd5e1;display:flex;flex-direction:column;gap:12px;">
+        <!-- Dynamic content filled by JS -->
+      </div>
+      <div style="padding:10px 18px;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);display:flex;justify-content:flex-end;">
+        <button id="btn-close-save-companion" class="btn btn-primary btn-sm" style="padding:5px 22px;">Entendido</button>
+      </div>
+    </div>
+  </div>
+
   <!-- [/SECTION: HTML_MODALS_STATUS] -->
 
   <!-- ============================================================================
@@ -5051,6 +5069,9 @@ EOF`;
 
     function applyUserPolygon(obj) {
       if (!obj || !Array.isArray(obj.vertices) || obj.vertices.length === 0) return false;
+      if (obj._simulation_metadata && typeof restoreSimulationMetadata === "function") {
+        restoreSimulationMetadata(obj._simulation_metadata);
+      }
       if (obj.sectionStyles) state.sectionStyles = { ...obj.sectionStyles };
       if (obj.defaultPolyStyle) state.defaultPolyStyle = { ...obj.defaultPolyStyle };
       state.userPolygon = {
@@ -8355,8 +8376,8 @@ EOF`;
 
         const boxX = 14;
         const boxY = 14;
-        const bw = 336;
-        const bh = 82;
+        const bw = 276;
+        const bh = 80;
 
         ctx.save();
         // Background card with blur and subtle glow
@@ -8373,11 +8394,11 @@ EOF`;
         ctx.fill();
         ctx.stroke();
 
-        // Column X coordinates
-        const colLabelX = boxX + 10;
-        const colDeedX = boxX + 188;
-        const colFieldX = boxX + 264;
-        const colErrX = boxX + bw - 10;
+        // Column X coordinates (compact layout with tight margins)
+        const colLabelX = boxX + 8;
+        const colDeedX = boxX + 154;
+        const colFieldX = boxX + 220;
+        const colErrX = boxX + bw - 8;
 
         // 1. Column Headers
         ctx.fillStyle = "#64748b";
@@ -8389,8 +8410,8 @@ EOF`;
 
         // Divider under headers
         ctx.beginPath();
-        ctx.moveTo(boxX + 8, boxY + 18);
-        ctx.lineTo(boxX + bw - 8, boxY + 18);
+        ctx.moveTo(boxX + 6, boxY + 18);
+        ctx.lineTo(boxX + bw - 6, boxY + 18);
         ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -8449,9 +8470,9 @@ EOF`;
 
         ctx.beginPath();
         if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(boxX + 6, pillY, bw - 12, pillH, 4);
+          ctx.roundRect(boxX + 5, pillY, bw - 10, pillH, 4);
         } else {
-          ctx.rect(boxX + 6, pillY, bw - 12, pillH);
+          ctx.rect(boxX + 5, pillY, bw - 10, pillH);
         }
         ctx.fill();
         ctx.stroke();
@@ -8459,13 +8480,13 @@ EOF`;
         ctx.textAlign = "left";
         ctx.fillStyle = "#94a3b8";
         ctx.font = "bold 9px sans-serif";
-        ctx.fillText("⚡ Error x̄ simulación:", boxX + 12, pillY + 13.5);
+        ctx.fillText("⚡ Error x̄ simulación:", boxX + 10, pillY + 13.5);
 
         const simErrColor = getErrColor(simAvgError);
         ctx.textAlign = "right";
         ctx.font = "bold 10.5px monospace";
         ctx.fillStyle = simErrColor;
-        ctx.fillText(`${simAvgError.toFixed(2)}%`, boxX + bw - 14, pillY + 14);
+        ctx.fillText(`${simAvgError.toFixed(2)}%`, boxX + bw - 10, pillY + 14);
 
         ctx.restore();
       }
@@ -10373,6 +10394,7 @@ EOF`;
     document.getElementById("btn-save-polygon").addEventListener("click", () => {
       state.userPolygon.sectionStyles = { ...state.sectionStyles };
       state.userPolygon.defaultPolyStyle = { ...state.defaultPolyStyle };
+      state.userPolygon._simulation_metadata = getSimulationMetadata();
       const data = JSON.stringify(state.userPolygon, null, 2);
       const blob = new Blob([data], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -10381,6 +10403,7 @@ EOF`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(url);
       updateStatus("💾 Saved polygon to user_polygon.json.");
+      openSaveCompanionReminderModal("polygon");
     });
 
     // Helper to load polygon from DXF text
@@ -10426,6 +10449,9 @@ EOF`;
           } else {
             const obj = JSON.parse(content);
             if (!Array.isArray(obj.vertices)) throw new Error("Invalid polygon JSON");
+            if (obj._simulation_metadata) {
+              restoreSimulationMetadata(obj._simulation_metadata);
+            }
             if (obj.sectionColors) { state.sectionColors = { ...obj.sectionColors }; }
             state.userPolygon = {
               vertices: (obj.vertices || []).map(v => ({
@@ -11739,10 +11765,129 @@ EOF`;
         if (e.target === modalLegalHelp) closeLegalHelpModal();
       });
     }
+
+    // ── Simulation Metadata & Save Companion Reminder Modal ──
+    function getSimulationMetadata() {
+      const chkOptIgacFilter = document.getElementById("chk-opt-igac-filter");
+      return {
+        optBufferRadius: typeof state.optBufferRadius === "number" ? state.optBufferRadius : 3.0,
+        algorithm: state.algorithm || "SIMILARITY",
+        optBalance: typeof state.optBalance === "number" ? state.optBalance : 50,
+        optIgacFilter: chkOptIgacFilter ? chkOptIgacFilter.checked : true,
+        savedAt: new Date().toISOString()
+      };
+    }
+
+    function restoreSimulationMetadata(metadata) {
+      if (!metadata || typeof metadata !== "object") return [];
+      const restored = [];
+      if (typeof metadata.optBufferRadius === "number") {
+        state.optBufferRadius = metadata.optBufferRadius;
+        const s = document.getElementById("opt-buffer-slider");
+        const v = document.getElementById("opt-buffer-val");
+        if (s) s.value = metadata.optBufferRadius;
+        if (v) v.textContent = `±${metadata.optBufferRadius.toFixed(1)} m`;
+        const constrainHint = document.getElementById("anchor-constrain-hint");
+        if (constrainHint) constrainHint.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
+        const deedHint = document.getElementById("deed-constrain-hint");
+        if (deedHint) deedHint.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
+        restored.push(`Buffer ±${metadata.optBufferRadius.toFixed(1)}m`);
+      }
+      if (metadata.algorithm && typeof metadata.algorithm === "string") {
+        state.algorithm = metadata.algorithm;
+        const a = document.getElementById("algorithm-select");
+        if (a) a.value = metadata.algorithm;
+        restored.push(`Algoritmo ${metadata.algorithm}`);
+      }
+      if (typeof metadata.optBalance === "number") {
+        state.optBalance = metadata.optBalance;
+        const b = document.getElementById("opt-balance-slider");
+        const bv = document.getElementById("opt-balance-val");
+        if (b) b.value = metadata.optBalance;
+        if (bv) {
+          const val = metadata.optBalance;
+          if (val === 50) bv.textContent = "Balanced (50/50)";
+          else if (val < 50) bv.textContent = `Dist Focus (${100 - val}% / ${val}%)`;
+          else bv.textContent = `Area Focus (${100 - val}% / ${val}%)`;
+        }
+        restored.push(`Balance ${metadata.optBalance}%`);
+      }
+      if (typeof metadata.optIgacFilter === "boolean") {
+        state.optIgacFilter = metadata.optIgacFilter;
+        const chk = document.getElementById("chk-opt-igac-filter");
+        if (chk) chk.checked = metadata.optIgacFilter;
+        restored.push(`Filtro IGAC: ${metadata.optIgacFilter ? "ON" : "OFF"}`);
+      }
+      return restored;
+    }
+
+    const modalSaveComp = document.getElementById("modal-save-companion-reminder");
+    const btnCloseSaveComp = document.getElementById("btn-close-save-companion");
+    const btnCloseSaveCompX = document.getElementById("btn-close-save-companion-x");
+
+    function openSaveCompanionReminderModal(type) {
+      if (!modalSaveComp) return;
+      const titleEl = document.getElementById("save-companion-modal-title");
+      const bodyEl = document.getElementById("save-companion-modal-body");
+      if (!bodyEl) return;
+
+      const isPoly = type === "polygon";
+      const savedFileName = isPoly ? "user_polygon.json" : "anchors_georectifier.json";
+      const neededFileName = isPoly ? "anchors_georectifier.json" : "user_polygon.json";
+      const neededLocation = isPoly ? "tabla de Puntos de Control (Anchors)" : "panel 🎨 Lindero La Trinidad Reconstruido";
+
+      if (titleEl) {
+        titleEl.innerHTML = `💾 ${savedFileName} Guardado`;
+      }
+
+      const bufRadius = (typeof state.optBufferRadius === "number" ? state.optBufferRadius : 3.0).toFixed(1);
+      const curAlgo = state.algorithm || "SIMILARITY";
+      const curBal = typeof state.optBalance === "number" ? state.optBalance : 50;
+      const chkIgac = document.getElementById("chk-opt-igac-filter");
+      const curIgac = chkIgac ? chkIgac.checked : true;
+
+      bodyEl.innerHTML = `
+        <div style="background:rgba(0,230,118,0.1);border-left:3px solid #00e676;padding:8px 12px;border-radius:4px;color:#e8f5e9;">
+          ✅ Se descargó exitosamente <strong>${savedFileName}</strong> con la configuración actual y los parámetros de simulación incrustados.
+        </div>
+        <div style="background:rgba(255,179,0,0.12);border:1px solid rgba(255,179,0,0.35);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:6px;color:#fff8e1;">
+          <div style="font-weight:700;color:#ffb300;font-size:0.80rem;display:flex;align-items:center;gap:6px;">
+            ⚠️ Recordatorio para Replicar la Simulación
+          </div>
+          <div>
+            Para replicar con exactitud los mismos resultados numéricos en una sesión futura, recuerda guardar también el archivo complementario:
+          </div>
+          <div style="background:rgba(0,0,0,0.4);border:1px dashed rgba(255,179,0,0.45);padding:8px 10px;border-radius:4px;font-family:monospace;color:#00e5ff;font-size:0.80rem;">
+            📁 ${neededFileName} <span style="color:var(--text-muted);font-family:sans-serif;font-size:0.72rem;">(en el botón "💾 Save JSON" de la ${neededLocation})</span>
+          </div>
+        </div>
+        <div style="color:var(--text-muted);font-size:0.71rem;line-height:1.45;">
+          ℹ️ <em>Nota:</em> Al cargar ambos archivos en el futuro, los parámetros de optimización (Buffer ±${bufRadius}m, Algoritmo ${curAlgo}, Balance ${curBal}% y Filtro IGAC: ${curIgac ? "ON" : "OFF"}) se restaurarán de forma totalmente automática.
+        </div>
+      `;
+
+      modalSaveComp.style.display = "flex";
+    }
+
+    function closeSaveCompModal() {
+      if (modalSaveComp) modalSaveComp.style.display = "none";
+    }
+
+    if (btnCloseSaveComp) btnCloseSaveComp.addEventListener("click", closeSaveCompModal);
+    if (btnCloseSaveCompX) btnCloseSaveCompX.addEventListener("click", closeSaveCompModal);
+    if (modalSaveComp) {
+      modalSaveComp.addEventListener("click", e => {
+        if (e.target === modalSaveComp) closeSaveCompModal();
+      });
+    }
+
     window.addEventListener("keydown", e => {
       if (e.key === "Escape") {
         if (modalLegalHelp && modalLegalHelp.style.display === "flex") {
           closeLegalHelpModal();
+        }
+        if (modalSaveComp && modalSaveComp.style.display === "flex") {
+          closeSaveCompModal();
         }
         document.querySelectorAll(".opt-hover-wrap.active").forEach(w => w.classList.remove("active"));
       }
@@ -14070,6 +14215,7 @@ EOF`;
           return;
         }
         const toSave = {
+          _simulation_metadata: getSimulationMetadata(),
           anchors: state.anchors.map(a => ({
             id: a.id,
             name: a.name || (`#${a.id}`),
@@ -14107,6 +14253,7 @@ EOF`;
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         updateStatus(`💾 Saved ${state.anchors.length} anchors & ${(state.testAxes || []).length} axes to anchors_georectifier.json.`);
+        openSaveCompanionReminderModal("anchors");
       });
     }
 
@@ -14119,6 +14266,9 @@ EOF`;
         reader.onload = ev => {
           try {
             const data = JSON.parse(ev.target.result);
+            if (data._simulation_metadata) {
+              restoreSimulationMetadata(data._simulation_metadata);
+            }
             if (data.testAxes && Array.isArray(data.testAxes)) {
               state.testAxes = data.testAxes.map(ax => ({ ...ax }));
               if (typeof ensureUniqueTestAxisIds === "function") ensureUniqueTestAxisIds();
@@ -16632,6 +16782,9 @@ EOF`;
       try {
         const text = await fetchText("anchors_georectifier.json");
         const data = JSON.parse(text);
+        if (data._simulation_metadata && typeof restoreSimulationMetadata === "function") {
+          restoreSimulationMetadata(data._simulation_metadata);
+        }
         if (data.testAxes && Array.isArray(data.testAxes) && data.testAxes.length > 0) {
           state.testAxes = data.testAxes.map(ax => ({ ...ax }));
           if (typeof ensureUniqueTestAxisIds === "function") ensureUniqueTestAxisIds();
