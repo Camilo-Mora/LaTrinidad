@@ -1544,23 +1544,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="66" style="width:60px;">
               <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">66%</span>
             </div>
-            <!-- Mesh deformation grid & wireframe control -->
-            <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar malla de deformación spline (Rubber-Sheet Wireframe Grid)">
-                <input type="checkbox" id="chk-show-deed-mesh-wireframe" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
-                <span>👁️ Wireframe</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:4px;" title="Resolución de la malla de deformación (Subdivisiones del grid)">
-                <span style="font-size:0.68rem;color:var(--text-muted);">Malla:</span>
-                <select id="sel-deed-mesh-res" class="style-select" style="padding:2px 4px;font-size:0.68rem;background:#0f172a;color:var(--text-main);border:1px solid rgba(255,255,255,0.15);border-radius:3px;">
-                  <option value="8">8×8</option>
-                  <option value="12">12×12</option>
-                  <option value="16" selected>16×16</option>
-                  <option value="24">24×24</option>
-                  <option value="32">32×32</option>
-                </select>
-              </div>
-            </div>
             <!-- Polígono DXF boundary control & styling -->
             <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
               <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
@@ -5508,8 +5491,6 @@ EOF`;
       lastGeoTiffBlob: null,   // cached blob for instant resolution toggling without re-downloading
       geoTiffOpacity: 1.0,     // Drone TIF slider set to 100% by default
       warpedPdfOpacity: 0.66,  // deed PDF image: 34% opacity = 66% transparent
-      deedMeshRes: 16,         // Piecewise triangle mesh resolution (16x16 = 512 tris)
-      showDeedMeshWireframe: false, // Wireframe overlay: false by default
       warpedDxfOpacity: 0.9,   // deed DXF drawn on true field canvas
       trueDxfOpacity: 0.5,     // Field DXF opacity slider set to 50% by default
       surveyValoy2025Opacity: 0.5,
@@ -7350,151 +7331,46 @@ EOF`;
 
     /* -----------------------------------------------------------------------
        Draw the deed PDF image warped into GIS space on the true-field canvas.
-       Uses high-performance Piecewise Triangle Mesh Warping by default so that
-       non-linear TPS rubber-sheeting, homography, and affine transforms deform
-       the raster image to stay 100% pinned to the vector boundaries.
+       For Helmert/Affine this is an exact hardware-accelerated affine transform.
+       For TPS we fall back to sampling a grid of corner points.
     ----------------------------------------------------------------------- */
     function drawWarpedPdfImage(ctx, warper, vp, canvasW, canvasH) {
       if (!state.histPdfCanvas || state.histPdfW <= 0) return;
       const pdfW = state.histPdfW, pdfH = state.histPdfH;
-      const opacity = state.warpedPdfOpacity;
-      if (opacity <= 0) return;
 
-      const gridCols = state.deedMeshRes || 16;
-      const gridRows = state.deedMeshRes || 16;
-      const showWireframe = !!state.showDeedMeshWireframe;
+      // Map the four PDF corners through the warper → GIS → screen
+      const corners = [
+        {px:0,     py:0     },
+        {px:pdfW,  py:0     },
+        {px:pdfW,  py:pdfH  },
+        {px:0,     py:pdfH  },
+      ].map(c => {
+        const gis = warper({x:c.px, y:c.py});
+        const scr = worldToScreenGIS(gis, vp, canvasH);
+        return scr;
+      });
 
-      // Fast-path: for purely linear models (Helmert Similarity with no aspect squeeze)
-      // and when wireframe is not requested, a single affine transform is mathematically exact:
-      const hasScale = state.deedScale && Math.abs((state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0)) - 1.0) > 1e-5;
-      const isPureHelmert = (state.algorithm === "SIMILARITY" && !hasScale);
-
-      if (isPureHelmert && !showWireframe) {
-        const corners = [
-          { px: 0,    py: 0 },
-          { px: pdfW, py: 0 },
-          { px: 0,    py: pdfH }
-        ].map(c => worldToScreenGIS(warper({ x: c.px, y: c.py }), vp, canvasH));
-
-        const [s0, s1, s3] = corners;
-        const a  = (s1.x - s0.x) / pdfW;
-        const b  = (s1.y - s0.y) / pdfW;
-        const c_ = (s3.x - s0.x) / pdfH;
-        const d_ = (s3.y - s0.y) / pdfH;
-        const e  = s0.x;
-        const f  = s0.y;
-
-        ctx.save();
-        ctx.globalAlpha = opacity;
-        ctx.setTransform(a, b, c_, d_, e, f);
-        ctx.drawImage(state.histPdfCanvas, 0, 0, pdfW, pdfH);
-        ctx.restore();
-        return;
-      }
-
-      // Piecewise triangle mesh warping (for TPS rubber-sheeting, homography, or wireframe grid display)
-      // 1. Precalculate screen coordinates for all grid vertices
-      const pts = [];
-      for (let r = 0; r <= gridRows; r++) {
-        const row = [];
-        const v = (r / gridRows) * pdfH;
-        for (let c = 0; c <= gridCols; c++) {
-          const u = (c / gridCols) * pdfW;
-          const wGis = warper({ x: u, y: v });
-          const sScr = worldToScreenGIS(wGis, vp, canvasH);
-          row.push(sScr);
-        }
-        pts.push(row);
-      }
+      // Check if the transform is a valid affine (3 unique corners produce a non-degenerate triangle)
+      const [s0,s1,s2,s3] = corners;
 
       ctx.save();
-      ctx.globalAlpha = opacity;
+      ctx.globalAlpha = state.warpedPdfOpacity;
 
-      const cellW = pdfW / gridCols;
-      const cellH = pdfH / gridRows;
+      // Use canvas setTransform with the affine computed from the corner mapping.
+      // The affine that maps (0,0)→s0, (pdfW,0)→s1, (0,pdfH)→s3:
+      //   | a  c  e |   pdfW·[a,c,e] = s1-s0
+      //   | b  d  f |   pdfH·[b,d,f] = s3-s0
+      const a  = (s1.x - s0.x) / pdfW;
+      const b  = (s1.y - s0.y) / pdfW;
+      const c_ = (s3.x - s0.x) / pdfH;
+      const d_ = (s3.y - s0.y) / pdfH;
+      const e  = s0.x;
+      const f  = s0.y;
 
-      function drawTriangle(u0, v0, u1, v1, u2, v2, p0, p1, p2) {
-        const du1 = u1 - u0, dv1 = v1 - v0;
-        const du2 = u2 - u0, dv2 = v2 - v0;
-        const dx1 = p1.x - p0.x, dy1 = p1.y - p0.y;
-        const dx2 = p2.x - p0.x, dy2 = p2.y - p0.y;
-        const det = du1 * dv2 - du2 * dv1;
-        if (Math.abs(det) < 1e-9) return;
-
-        const a  = (dx1 * dv2 - dx2 * dv1) / det;
-        const c_ = (dx2 * du1 - dx1 * du2) / det;
-        const b  = (dy1 * dv2 - dy2 * dv1) / det;
-        const d_ = (dy2 * du1 - dy1 * du2) / det;
-        const e  = p0.x - a * u0 - c_ * v0;
-        const f  = p0.y - b * u0 - d_ * v0;
-
-        // Seam dilation: expand clip path outward by 0.5px from centroid to eliminate antialiased edge cracks
-        const cx = (p0.x + p1.x + p2.x) / 3;
-        const cy = (p0.y + p1.y + p2.y) / 3;
-        const pad = 0.5;
-        const d0x = p0.x - cx, d0y = p0.y - cy, l0 = Math.hypot(d0x, d0y) || 1;
-        const d1x = p1.x - cx, d1y = p1.y - cy, l1 = Math.hypot(d1x, d1y) || 1;
-        const d2x = p2.x - cx, d2y = p2.y - cy, l2 = Math.hypot(d2x, d2y) || 1;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(p0.x + (d0x / l0) * pad, p0.y + (d0y / l0) * pad);
-        ctx.lineTo(p1.x + (d1x / l1) * pad, p1.y + (d1y / l1) * pad);
-        ctx.lineTo(p2.x + (d2x / l2) * pad, p2.y + (d2y / l2) * pad);
-        ctx.closePath();
-        ctx.clip();
-
-        ctx.setTransform(a, b, c_, d_, e, f);
-        ctx.drawImage(state.histPdfCanvas, 0, 0, pdfW, pdfH);
-        ctx.restore();
-      }
-
-      for (let r = 0; r < gridRows; r++) {
-        for (let c = 0; c < gridCols; c++) {
-          const u0 = c * cellW,       v0 = r * cellH;
-          const u1 = (c + 1) * cellW, v1 = (r + 1) * cellH;
-
-          const p00 = pts[r][c];
-          const p10 = pts[r][c + 1];
-          const p01 = pts[r + 1][c];
-          const p11 = pts[r + 1][c + 1];
-
-          drawTriangle(u0, v0, u1, v0, u0, v1, p00, p10, p01);
-          drawTriangle(u1, v0, u1, v1, u0, v1, p10, p11, p01);
-        }
-      }
-
+      ctx.setTransform(a, b, c_, d_, e, f);
+      // Clip to canvas bounds to avoid drawing far outside
+      ctx.drawImage(state.histPdfCanvas, 0, 0, pdfW, pdfH);
       ctx.restore();
-
-      // Optional Wireframe overlay
-      if (showWireframe) {
-        ctx.save();
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
-        ctx.lineWidth = 0.8;
-        for (let r = 0; r < gridRows; r++) {
-          for (let c = 0; c < gridCols; c++) {
-            const p00 = pts[r][c];
-            const p10 = pts[r][c + 1];
-            const p01 = pts[r + 1][c];
-            const p11 = pts[r + 1][c + 1];
-
-            ctx.beginPath();
-            ctx.moveTo(p00.x, p00.y);
-            ctx.lineTo(p10.x, p10.y);
-            ctx.lineTo(p01.x, p01.y);
-            ctx.closePath();
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(p10.x, p10.y);
-            ctx.lineTo(p11.x, p11.y);
-            ctx.lineTo(p01.x, p01.y);
-            ctx.closePath();
-            ctx.stroke();
-          }
-        }
-        ctx.restore();
-      }
     }
 
     // ── Pan / Zoom / Anchor interactions ──────────────────────────────
@@ -14217,22 +14093,6 @@ EOF`;
         state.showWarpedPdf = e.target.checked;
         redrawAll();
         syncGlobalOverlaysCheckbox();
-      });
-    }
-
-    const chkShowDeedMeshWireframe = document.getElementById("chk-show-deed-mesh-wireframe");
-    if (chkShowDeedMeshWireframe) {
-      chkShowDeedMeshWireframe.addEventListener("change", e => {
-        state.showDeedMeshWireframe = e.target.checked;
-        redrawTrueCanvas();
-      });
-    }
-
-    const selDeedMeshRes = document.getElementById("sel-deed-mesh-res");
-    if (selDeedMeshRes) {
-      selDeedMeshRes.addEventListener("change", e => {
-        state.deedMeshRes = parseInt(e.target.value, 10) || 16;
-        redrawTrueCanvas();
       });
     }
 
