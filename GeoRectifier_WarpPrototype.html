@@ -438,9 +438,9 @@
         <div class="control-row">
           <div class="control-label">
             <span>Grid Subdivisions:</span>
-            <span class="val" id="lbl-grid-res">16 × 16 (512 tris)</span>
+            <span class="val" id="lbl-grid-res">64 (Finest)</span>
           </div>
-          <input type="range" id="rng-grid-res" min="4" max="32" step="4" value="16">
+          <input type="range" id="rng-grid-res" min="8" max="64" step="2" value="64">
         </div>
         <div style="display:flex; align-items:center; gap:8px; font-size:0.72rem; margin-top:2px;">
           <input type="checkbox" id="chk-wireframe" checked style="accent-color:var(--accent-cyan); cursor:pointer;">
@@ -2231,8 +2231,14 @@ EOF
        * Subdivides deed into an M x N grid.
        * Evaluates warper(pt) per vertex and renders piecewise affine triangles via Canvas 2D.
        */
-      static drawPiecewiseMesh(ctx, img, pdfW, pdfH, warper, vp, canvasH, opacity, gridCols = 16, gridRows = 16, showWireframe = false) {
+      static drawPiecewiseMesh(ctx, img, pdfW, pdfH, warper, vp, canvasH, opacity, baseRes = 64, showWireframe = false) {
         if (!img || pdfW <= 0) return;
+
+        // Aspect-ratio-preserving square grid cells
+        const maxDim = Math.max(pdfW, pdfH);
+        const cellSize = maxDim / (baseRes || 64);
+        const gridCols = Math.max(2, Math.round(pdfW / cellSize));
+        const gridRows = Math.max(2, Math.round(pdfH / cellSize));
 
         // 1. Precalculate screen coordinates for all grid vertices
         const pts = [];
@@ -2350,7 +2356,7 @@ EOF
     const state = {
       algorithm: "TPS",
       warperEngine: "mesh", // "mesh" or "legacy"
-      meshRes: 16,
+      meshRes: 64,
       showWireframe: true,
       opPdf: 0.75,
       opDeedDxf: 1.0,
@@ -2651,7 +2657,6 @@ EOF
             h,
             state.opPdf,
             state.meshRes,
-            state.meshRes,
             state.showWireframe
           );
         } else {
@@ -2933,8 +2938,12 @@ EOF
       rngMesh.addEventListener("input", () => {
         const val = parseInt(rngMesh.value, 10);
         state.meshRes = val;
-        const tris = val * val * 2;
-        document.getElementById("lbl-grid-res").textContent = `${val} × ${val} (${tris} tris)`;
+        const maxDim = Math.max(state.pdfW || 1, state.pdfH || 1);
+        const cellSize = maxDim / (val || 64);
+        const cols = Math.max(2, Math.round((state.pdfW || 1) / cellSize));
+        const rows = Math.max(2, Math.round((state.pdfH || 1) / cellSize));
+        const tris = cols * rows * 2;
+        document.getElementById("lbl-grid-res").textContent = `${cols} × ${rows} (${tris} tris)`;
         document.getElementById("stat-tris").textContent = tris;
         redrawTrueField();
       });

@@ -1550,15 +1550,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 <input type="checkbox" id="chk-show-deed-mesh-wireframe" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
                 <span>👁️ Wireframe</span>
               </label>
-              <div style="display:flex;align-items:center;gap:4px;" title="Resolución de la malla de deformación (Subdivisiones del grid)">
+              <div style="display:flex;align-items:center;gap:5px;" title="Densidad / Resolución de la malla de deformación (8 a 64 celdas)">
                 <span style="font-size:0.68rem;color:var(--text-muted);">Malla:</span>
-                <select id="sel-deed-mesh-res" class="style-select" style="padding:2px 4px;font-size:0.68rem;background:#0f172a;color:var(--text-main);border:1px solid rgba(255,255,255,0.15);border-radius:3px;">
-                  <option value="8">8×8</option>
-                  <option value="12">12×12</option>
-                  <option value="16" selected>16×16</option>
-                  <option value="24">24×24</option>
-                  <option value="32">32×32</option>
-                </select>
+                <input type="range" class="opacity-slider" id="slider-deed-mesh-res" min="8" max="64" step="2" value="64" style="width:55px;accent-color:var(--accent-cyan);cursor:pointer;">
+                <span id="deed-mesh-res-val" style="min-width:18px;text-align:right;font-family:monospace;font-size:0.68rem;color:var(--text-main);">64</span>
               </div>
             </div>
             <!-- Polígono DXF boundary control & styling -->
@@ -5508,7 +5503,7 @@ EOF`;
       lastGeoTiffBlob: null,   // cached blob for instant resolution toggling without re-downloading
       geoTiffOpacity: 1.0,     // Drone TIF slider set to 100% by default
       warpedPdfOpacity: 0.66,  // deed PDF image: 34% opacity = 66% transparent
-      deedMeshRes: 16,         // Piecewise triangle mesh resolution (16x16 = 512 tris)
+      deedMeshRes: 64,         // Piecewise triangle mesh resolution (64 subdivisions on longest axis - finest)
       showDeedMeshWireframe: false, // Wireframe overlay: false by default
       warpedDxfOpacity: 0.9,   // deed DXF drawn on true field canvas
       trueDxfOpacity: 0.5,     // Field DXF opacity slider set to 50% by default
@@ -7360,8 +7355,14 @@ EOF`;
       const opacity = state.warpedPdfOpacity;
       if (opacity <= 0) return;
 
-      const gridCols = state.deedMeshRes || 16;
-      const gridRows = state.deedMeshRes || 16;
+      // Aspect-ratio-preserving square grid cells:
+      // When the deed image is non-square (e.g. landscape or portrait), compute cols and rows
+      // proportionally so that every single cell in deed image space is an authentic square.
+      const baseRes = state.deedMeshRes || 64;
+      const maxDim = Math.max(pdfW, pdfH);
+      const cellSize = maxDim / baseRes;
+      const gridCols = Math.max(2, Math.round(pdfW / cellSize));
+      const gridRows = Math.max(2, Math.round(pdfH / cellSize));
       const showWireframe = !!state.showDeedMeshWireframe;
 
       // Fast-path: for purely linear models (Helmert Similarity with no aspect squeeze)
@@ -14228,10 +14229,13 @@ EOF`;
       });
     }
 
-    const selDeedMeshRes = document.getElementById("sel-deed-mesh-res");
-    if (selDeedMeshRes) {
-      selDeedMeshRes.addEventListener("change", e => {
-        state.deedMeshRes = parseInt(e.target.value, 10) || 16;
+    const sliderDeedMeshRes = document.getElementById("slider-deed-mesh-res");
+    const deedMeshResVal = document.getElementById("deed-mesh-res-val");
+    if (sliderDeedMeshRes) {
+      sliderDeedMeshRes.addEventListener("input", e => {
+        const val = parseInt(e.target.value, 10) || 64;
+        state.deedMeshRes = val;
+        if (deedMeshResVal) deedMeshResVal.textContent = val;
         redrawTrueCanvas();
       });
     }
