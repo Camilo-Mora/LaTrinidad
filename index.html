@@ -964,18 +964,6 @@
                 <span>👁️ Mojones</span>
               </label>
             </div>
-            <!-- Mesh deformation grid & wireframe control -->
-            <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar malla de deformación spline (Rubber-Sheet Wireframe Grid)">
-                <input type="checkbox" id="chk-show-deed-mesh-wireframe" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
-                <span>👁️ Wireframe</span>
-              </label>
-              <div style="display:flex;align-items:center;gap:5px;" title="Densidad / Resolución de la malla de deformación (8 a 64 celdas)">
-                <span style="font-size:0.68rem;color:var(--text-muted);">Malla:</span>
-                <input type="range" class="opacity-slider" id="slider-deed-mesh-res" min="8" max="64" step="2" value="64" style="width:55px;accent-color:var(--accent-cyan);cursor:pointer;">
-                <span id="deed-mesh-res-val" style="min-width:18px;text-align:right;font-family:monospace;font-size:0.68rem;color:var(--text-main);">64</span>
-              </div>
-            </div>
             <!-- Polígono DXF boundary control & styling -->
             <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
               <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
@@ -3209,11 +3197,9 @@ function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
   const cellSize = maxDim / baseRes;
   const gridCols = Math.max(2, Math.round(pdfW / cellSize));
   const gridRows = Math.max(2, Math.round(pdfH / cellSize));
-  const showWireframe = !!state.showDeedMeshWireframe1073;
-
-  // Linear fast-path for Pure Helmert without wireframe
+  // Linear fast-path for Pure Helmert
   const isPureHelmert = (state.algorithm === "SIMILARITY");
-  if (isPureHelmert && !showWireframe) {
+  if (isPureHelmert) {
     const corners = [
       { px: 0, py: 0 },
       { px: pdfW, py: 0 },
@@ -3325,35 +3311,6 @@ function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
   ctx.drawImage(offCanvas, 0, 0);
   ctx.restore();
 
-  // Optional Wireframe overlay
-  if (showWireframe) {
-    ctx.save();
-    ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
-    ctx.lineWidth = 0.8;
-    for (let r = 0; r < gridRows; r++) {
-      for (let c = 0; c < gridCols; c++) {
-        const p00 = pts[r][c];
-        const p10 = pts[r][c + 1];
-        const p01 = pts[r + 1][c];
-        const p11 = pts[r + 1][c + 1];
-
-        ctx.beginPath();
-        ctx.moveTo(p00.x, p00.y);
-        ctx.lineTo(p10.x, p10.y);
-        ctx.lineTo(p01.x, p01.y);
-        ctx.closePath();
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(p10.x, p10.y);
-        ctx.lineTo(p11.x, p11.y);
-        ctx.lineTo(p01.x, p01.y);
-        ctx.closePath();
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
 }
 
 // ── Helpers: Anchor Label Card and Connecting Arrows (Mojones) ───────
@@ -4943,25 +4900,6 @@ function setupEventListeners() {
   if (chkShowMojones) {
     chkShowMojones.addEventListener("change", e => {
       state.showMojones1073 = e.target.checked;
-      redrawAll();
-    });
-  }
-
-  const chkDeedMeshWf = document.getElementById("chk-show-deed-mesh-wireframe");
-  if (chkDeedMeshWf) {
-    chkDeedMeshWf.addEventListener("change", e => {
-      state.showDeedMeshWireframe1073 = e.target.checked;
-      redrawAll();
-    });
-  }
-
-  const sliderDeedMeshRes = document.getElementById("slider-deed-mesh-res");
-  const deedMeshResVal = document.getElementById("deed-mesh-res-val");
-  if (sliderDeedMeshRes) {
-    sliderDeedMeshRes.addEventListener("input", e => {
-      const val = parseInt(e.target.value, 10) || 64;
-      state.deedMeshRes1073 = val;
-      if (deedMeshResVal) deedMeshResVal.textContent = val;
       redrawAll();
     });
   }
