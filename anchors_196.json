@@ -1,122 +1,191 @@
-[
-  {
-    "id": 1,
-    "name": "#1",
-    "src": {
-      "x": 343.92929101566915,
-      "y": 322.34439559311085
+{
+  "anchors": [
+    {
+      "id": 1,
+      "name": "#1",
+      "showLabel": false,
+      "image": null,
+      "color": "#ff1744",
+      "src": {
+        "x": 343.92929101566915,
+        "y": 322.34439559311085
+      },
+      "dst": {
+        "x": 1097928.79,
+        "y": 876837.4
+      },
+      "active": true,
+      "enabled": true
     },
-    "dst": {
-      "x": 1097928.3270456218,
-      "y": 876837.6845958328
+    {
+      "id": 2,
+      "name": "#2",
+      "showLabel": false,
+      "image": null,
+      "color": "#00e676",
+      "src": {
+        "x": 188.2925991057936,
+        "y": 369.8195219170869
+      },
+      "dst": {
+        "x": 1097887.7,
+        "y": 876849.01
+      },
+      "active": false,
+      "enabled": false
     },
-    "color": "#ff1744",
-    "active": true,
-    "showLabel": false
-  },
-  {
-    "id": 2,
-    "name": "#2",
-    "src": {
-      "x": 188.2925991057936,
-      "y": 369.8195219170869
+    {
+      "id": 3,
+      "name": "#3",
+      "showLabel": false,
+      "image": null,
+      "color": "#00e5ff",
+      "src": {
+        "x": 147.05095519391904,
+        "y": 498.3083978076609
+      },
+      "dst": {
+        "x": 1097849.26,
+        "y": 876799.21
+      },
+      "active": true,
+      "enabled": true
     },
-    "dst": {
-      "x": 1097887.5881605686,
-      "y": 876848.6473334116
+    {
+      "id": 4,
+      "name": "#4",
+      "showLabel": false,
+      "image": null,
+      "color": "#ff9100",
+      "src": {
+        "x": 299.64771789243923,
+        "y": 509.9625325155747
+      },
+      "dst": {
+        "x": 1097885.0849472824,
+        "y": 876780.791843335
+      },
+      "active": true,
+      "enabled": true
     },
-    "color": "#00e676",
-    "active": true,
-    "showLabel": false
-  },
-  {
-    "id": 3,
-    "name": "#3",
-    "src": {
-      "x": 147.05095519391904,
-      "y": 498.3083978076609
+    {
+      "id": 5,
+      "name": "#5",
+      "showLabel": false,
+      "image": null,
+      "color": "#d500f9",
+      "src": {
+        "x": 295.90629784158097,
+        "y": 327.9250488807793
+      },
+      "dst": {
+        "x": 1097918.92,
+        "y": 876844.72
+      },
+      "active": true,
+      "enabled": true
     },
-    "dst": {
-      "x": 1097849.872023554,
-      "y": 876799.7362752687
+    {
+      "id": 6,
+      "name": "#6",
+      "showLabel": false,
+      "image": null,
+      "color": "#ffff00",
+      "src": {
+        "x": 378.0667969667827,
+        "y": 648.0958369438254
+      },
+      "dst": {
+        "x": 1097880.94,
+        "y": 876722.52
+      },
+      "active": true,
+      "enabled": true
     },
-    "color": "#00e5ff",
-    "active": true,
-    "showLabel": false
-  },
-  {
-    "id": 4,
-    "name": "#4",
-    "src": {
-      "x": 299.64771789243923,
-      "y": 509.9625325155747
+    {
+      "id": 7,
+      "name": "#7",
+      "showLabel": false,
+      "image": null,
+      "color": "#76ff03",
+      "src": {
+        "x": 418.7040310159035,
+        "y": 310.99688953766366
+      },
+      "dst": {
+        "x": 1097951.26,
+        "y": 876824.71
+      },
+      "active": false,
+      "enabled": false
     },
-    "dst": {
-      "x": 1097885.0849472824,
-      "y": 876780.791843335
+    {
+      "id": 8,
+      "name": "#8",
+      "showLabel": false,
+      "image": null,
+      "color": "#f50057",
+      "src": {
+        "x": 223.53,
+        "y": 362.22
+      },
+      "dst": {
+        "x": 1097898.71,
+        "y": 876847.47
+      },
+      "active": true,
+      "enabled": true
     },
-    "color": "#ff9100",
-    "active": true,
-    "showLabel": false
-  },
-  {
-    "id": 5,
-    "name": "#5",
-    "src": {
-      "x": 295.90629784158097,
-      "y": 327.9250488807793
+    {
+      "id": 9,
+      "name": "#9",
+      "showLabel": true,
+      "image": null,
+      "color": "#ff1744",
+      "src": {
+        "x": 129.5,
+        "y": 516.98
+      },
+      "dst": {
+        "x": 1097840.53,
+        "y": 876796.64
+      },
+      "active": true,
+      "enabled": true
     },
-    "dst": {
-      "x": 1097918.7082852083,
-      "y": 876844.8890666695
+    {
+      "id": 10,
+      "name": "#10",
+      "showLabel": true,
+      "image": null,
+      "color": "#00e676",
+      "src": {
+        "x": 126.5,
+        "y": 559.48
+      },
+      "dst": {
+        "x": 1097830.89,
+        "y": 876782.06
+      },
+      "active": true,
+      "enabled": true
     },
-    "color": "#d500f9",
-    "active": true,
-    "showLabel": false
-  },
-  {
-    "id": 6,
-    "name": "#6",
-    "src": {
-      "x": 378.0667969667827,
-      "y": 648.0958369438254
-    },
-    "dst": {
-      "x": 1097874.6382776932,
-      "y": 876715.0517921222
-    },
-    "color": "#ffff00",
-    "active": true,
-    "showLabel": false
-  },
-  {
-    "id": 7,
-    "name": "#7",
-    "src": {
-      "x": 418.7040310159035,
-      "y": 310.99688953766366
-    },
-    "dst": {
-      "x": 1097949.032742566,
-      "y": 876825.2716951575
-    },
-    "color": "#76ff03",
-    "active": true,
-    "showLabel": false
-  },
-  {
-    "id": 8,
-    "name": "#8",
-    "src": {
-      "x": 223.53,
-      "y": 362.22
-    },
-    "dst": {
-      "x": 1097897.277111427,
-      "y": 876847.4102684789
-    },
-    "color": "#f50057",
-    "active": true,
-    "showLabel": false
-  }
-]
+    {
+      "id": 11,
+      "name": "#11",
+      "showLabel": true,
+      "image": null,
+      "color": "#00e5ff",
+      "src": {
+        "x": 154.7,
+        "y": 581.51
+      },
+      "dst": {
+        "x": 1097830.74,
+        "y": 876770.61
+      },
+      "active": true,
+      "enabled": true
+    }
+  ]
+}
