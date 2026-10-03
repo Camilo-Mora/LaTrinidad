@@ -1583,6 +1583,13 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 </label>
               </div>
             </div>
+            <!-- Mojones Toggle -->
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar los mojones de referencia (GCP Anchors) y sus flechas indicadoras">
+                <input type="checkbox" id="chk-show-mojones-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
+                <span>👁️ Mojones</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -1810,6 +1817,18 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <input type="checkbox" id="chk-show-user-polygon" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
                       <span>Mostrar polígono en mapa</span>
                     </label>
+                  </div>
+                  <!-- Interior Fill / Background Color & Transparency Slider -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0 6px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.69rem;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span style="color:var(--text-muted);font-weight:600;" title="Color de fondo interior del polígono reconstruido">Fondo:</span>
+                      <input type="color" id="user-poly-fill-color" value="#00e5ff" class="color-picker-swatch" title="Color de fondo interior" style="width:20px;height:20px;padding:0;border:none;border-radius:3px;cursor:pointer;">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;" title="Transparencia / Opacidad del fondo del polígono reconstruido (0% a 100%)">
+                      <span style="color:var(--text-muted);font-size:0.68rem;">Opacidad:</span>
+                      <input type="range" class="opacity-slider" id="user-poly-fill-opacity" min="0" max="100" value="8" style="width:75px;accent-color:var(--accent-cyan);cursor:pointer;">
+                      <span id="user-poly-fill-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;font-size:0.68rem;color:var(--text-main);">8%</span>
+                    </div>
                   </div>
                   <!-- Dynamic Sections Styling List -->
                   <div id="section-styling-list" style="display:flex;flex-direction:column;gap:5px;"></div>
@@ -5101,7 +5120,18 @@ EOF`;
         closed: !!obj.closed,
         drawMode: false,
         show: document.getElementById("chk-show-user-polygon") ? document.getElementById("chk-show-user-polygon").checked : true,
+        fillColor: obj.fillColor || (obj.defaultPolyStyle && obj.defaultPolyStyle.fillColor) || (state.userPolygon && state.userPolygon.fillColor) || "#00e5ff",
+        fillOpacity: (obj.fillOpacity != null) ? obj.fillOpacity : ((obj.defaultPolyStyle && obj.defaultPolyStyle.fillOpacity != null) ? obj.defaultPolyStyle.fillOpacity : (state.userPolygon && state.userPolygon.fillOpacity != null ? state.userPolygon.fillOpacity : 0.08)),
       };
+      const inputFillCol = document.getElementById("user-poly-fill-color");
+      if (inputFillCol) inputFillCol.value = state.userPolygon.fillColor;
+      const sliderFillOp = document.getElementById("user-poly-fill-opacity");
+      const valFillOp = document.getElementById("user-poly-fill-opacity-val");
+      if (sliderFillOp) {
+        const pct = Math.round(state.userPolygon.fillOpacity * 100);
+        sliderFillOp.value = pct;
+        if (valFillOp) valFillOp.textContent = pct + "%";
+      }
       while (state.userPolygon.segmentLengths.length < state.userPolygon.vertices.length) {
         state.userPolygon.segmentLengths.push(null);
       }
@@ -5490,6 +5520,7 @@ EOF`;
       showOverlay: true,
       showGeoTiff: true,
       showWarpedPdf: true,
+      showMojones1073: true,
       showWarpedDxf: true,
       showTrueDxf: false,
       showSurveyValoy2025: false,
@@ -5519,6 +5550,8 @@ EOF`;
         closed: false,
         drawMode: false,
         show: true,
+        fillColor: "#00e5ff",
+        fillOpacity: 0.08,
       },
       draggingUserPolyNode: null,
       hoverPolyNode: null,
@@ -7042,59 +7075,61 @@ EOF`;
       }
 
       // Layer 5: Target anchor pen buffer disks & residual lines
-      state.anchors.forEach(anc => {
-        const isEnabled = anc.active !== false && anc.enabled !== false;
-        const tp = worldToScreenGIS(anc.dst, vp, h);
-        if (warper) {
-          const wp = worldToScreenGIS(warper(anc.src), vp, h);
-          trueCtx.beginPath(); trueCtx.moveTo(wp.x,wp.y); trueCtx.lineTo(tp.x,tp.y);
-          trueCtx.strokeStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.25)";
-          trueCtx.lineWidth = isEnabled ? 1.5 : 1;
-          trueCtx.setLineDash(isEnabled ? [3,3] : [2,4]); trueCtx.stroke(); trueCtx.setLineDash([]);
-          trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y, isEnabled ? 4 : 3, 0, Math.PI*2);
-          trueCtx.fillStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.3)"; trueCtx.fill();
-        }
-        // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor origin during unconstrained simulation)
-        if (isEnabled && state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
-          let centerPt = null;
-          if (state.constrainAnchorsToField) {
-            const nearestField = findNearestFieldVertex(anc.dst);
-            if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
-              centerPt = nearestField;
+      if (state.showMojones1073 !== false) {
+        state.anchors.forEach(anc => {
+          const isEnabled = anc.active !== false && anc.enabled !== false;
+          const tp = worldToScreenGIS(anc.dst, vp, h);
+          if (warper) {
+            const wp = worldToScreenGIS(warper(anc.src), vp, h);
+            trueCtx.beginPath(); trueCtx.moveTo(wp.x,wp.y); trueCtx.lineTo(tp.x,tp.y);
+            trueCtx.strokeStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.25)";
+            trueCtx.lineWidth = isEnabled ? 1.5 : 1;
+            trueCtx.setLineDash(isEnabled ? [3,3] : [2,4]); trueCtx.stroke(); trueCtx.setLineDash([]);
+            trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y, isEnabled ? 4 : 3, 0, Math.PI*2);
+            trueCtx.fillStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.3)"; trueCtx.fill();
+          }
+          // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor origin during unconstrained simulation)
+          if (isEnabled && state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
+            let centerPt = null;
+            if (state.constrainAnchorsToField) {
+              const nearestField = findNearestFieldVertex(anc.dst);
+              if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
+                centerPt = nearestField;
+              }
+            } else if (state.tuningAnchorsActive && state.tuningAnchorCenters) {
+              const ancIdx = state.anchors.indexOf(anc);
+              if (ancIdx >= 0 && state.tuningAnchorCenters[ancIdx]) {
+                centerPt = state.tuningAnchorCenters[ancIdx];
+              }
             }
-          } else if (state.tuningAnchorsActive && state.tuningAnchorCenters) {
-            const ancIdx = state.anchors.indexOf(anc);
-            if (ancIdx >= 0 && state.tuningAnchorCenters[ancIdx]) {
-              centerPt = state.tuningAnchorCenters[ancIdx];
+
+            if (centerPt) {
+              const sCenter = worldToScreenGIS(centerPt, vp, h);
+              const rPx = state.optBufferRadius * vp.scale;
+              trueCtx.save();
+              trueCtx.beginPath();
+              trueCtx.arc(sCenter.x, sCenter.y, rPx, 0, Math.PI * 2);
+              trueCtx.fillStyle = "rgba(0, 229, 255, 0.08)";
+              trueCtx.fill();
+              trueCtx.strokeStyle = "rgba(0, 229, 255, 0.55)";
+              trueCtx.lineWidth = 1.5;
+              trueCtx.setLineDash([4, 4]);
+              trueCtx.stroke();
+              trueCtx.setLineDash([]);
+
+              // Center crosshair marker on the buffer disk center
+              trueCtx.beginPath();
+              trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
+              trueCtx.fillStyle = "#00e5ff";
+              trueCtx.fill();
+              trueCtx.strokeStyle = "#ffffff";
+              trueCtx.lineWidth = 1;
+              trueCtx.stroke();
+              trueCtx.restore();
             }
           }
-
-          if (centerPt) {
-            const sCenter = worldToScreenGIS(centerPt, vp, h);
-            const rPx = state.optBufferRadius * vp.scale;
-            trueCtx.save();
-            trueCtx.beginPath();
-            trueCtx.arc(sCenter.x, sCenter.y, rPx, 0, Math.PI * 2);
-            trueCtx.fillStyle = "rgba(0, 229, 255, 0.08)";
-            trueCtx.fill();
-            trueCtx.strokeStyle = "rgba(0, 229, 255, 0.55)";
-            trueCtx.lineWidth = 1.5;
-            trueCtx.setLineDash([4, 4]);
-            trueCtx.stroke();
-            trueCtx.setLineDash([]);
-
-            // Center crosshair marker on the buffer disk center
-            trueCtx.beginPath();
-            trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
-            trueCtx.fillStyle = "#00e5ff";
-            trueCtx.fill();
-            trueCtx.strokeStyle = "#ffffff";
-            trueCtx.lineWidth = 1;
-            trueCtx.stroke();
-            trueCtx.restore();
-          }
-        }
-      });
+        });
+      }
 
       // Layer 6: Hand-crafted user polygon
       drawUserPolygon(trueCtx, vp, h);
@@ -7104,48 +7139,50 @@ EOF`;
       drawCustomPolygon(trueCtx, vp, h);
 
       // Layer 7: Target anchor pins + white label cards + photos (BRING TO VERY FRONT OVER POLYGON LINES)
-      state.anchors.forEach(anc => {
-        const isEnabled = anc.active !== false && anc.enabled !== false;
-        const tp = worldToScreenGIS(anc.dst, vp, h);
+      if (state.showMojones1073 !== false) {
+        state.anchors.forEach(anc => {
+          const isEnabled = anc.active !== false && anc.enabled !== false;
+          const tp = worldToScreenGIS(anc.dst, vp, h);
 
-        trueCtx.save();
-        if (!isEnabled) {
-          trueCtx.globalAlpha = 0.35;
-        }
-        trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
-        trueCtx.fillStyle=anc.color; trueCtx.fill();
-        trueCtx.strokeStyle = isEnabled ? "#fff" : "#999";
-        trueCtx.lineWidth=2;
-        if (!isEnabled) trueCtx.setLineDash([2, 2]);
-        trueCtx.stroke();
-        trueCtx.setLineDash([]);
-
-        // Distinct visual aura/indicator based on anchor mode
-        if (isEnabled) {
-          if (anc.axisId != null && anc.optimize !== true) {
-            // Floating Guide (Rubber band on axis): cyan dotted rail ring
-            trueCtx.beginPath();
-            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
-            trueCtx.strokeStyle = "#00e5ff";
-            trueCtx.lineWidth = 1.6;
-            trueCtx.setLineDash([3, 3]);
-            trueCtx.stroke();
-            trueCtx.setLineDash([]);
-          } else if (anc.optimize === true) {
-            // Actively optimized: glowing target ring
-            trueCtx.beginPath();
-            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
-            trueCtx.strokeStyle = (anc.axisId != null) ? "#e040fb" : "#76ff03";
-            trueCtx.lineWidth = 1.6;
-            trueCtx.stroke();
+          trueCtx.save();
+          if (!isEnabled) {
+            trueCtx.globalAlpha = 0.35;
           }
-        }
+          trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
+          trueCtx.fillStyle=anc.color; trueCtx.fill();
+          trueCtx.strokeStyle = isEnabled ? "#fff" : "#999";
+          trueCtx.lineWidth=2;
+          if (!isEnabled) trueCtx.setLineDash([2, 2]);
+          trueCtx.stroke();
+          trueCtx.setLineDash([]);
 
-        if (anc.showLabel !== false) {
-          drawAnchorLabelCard(trueCtx, anc, tp, false);
-        }
-        trueCtx.restore();
-      });
+          // Distinct visual aura/indicator based on anchor mode
+          if (isEnabled) {
+            if (anc.axisId != null && anc.optimize !== true) {
+              // Floating Guide (Rubber band on axis): cyan dotted rail ring
+              trueCtx.beginPath();
+              trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+              trueCtx.strokeStyle = "#00e5ff";
+              trueCtx.lineWidth = 1.6;
+              trueCtx.setLineDash([3, 3]);
+              trueCtx.stroke();
+              trueCtx.setLineDash([]);
+            } else if (anc.optimize === true) {
+              // Actively optimized: glowing target ring
+              trueCtx.beginPath();
+              trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+              trueCtx.strokeStyle = (anc.axisId != null) ? "#e040fb" : "#76ff03";
+              trueCtx.lineWidth = 1.6;
+              trueCtx.stroke();
+            }
+          }
+
+          if (anc.showLabel !== false) {
+            drawAnchorLabelCard(trueCtx, anc, tp, false);
+          }
+          trueCtx.restore();
+        });
+      }
 
       // Layer 8: Snap target ring indicator
       if (state.currentSnapTarget) {
@@ -8144,16 +8181,23 @@ EOF`;
 
       // 1. Polygon interior fill (when closed)
       if (poly.closed && verts.length >= 3) {
-        ctx.beginPath();
-        const s0 = worldToScreenGIS(verts[0], vp, canvasH);
-        ctx.moveTo(s0.x, s0.y);
-        for (let i = 1; i < verts.length; i++) {
-          const s = worldToScreenGIS(verts[i], vp, canvasH);
-          ctx.lineTo(s.x, s.y);
+        const fillCol = poly.fillColor || "#00e5ff";
+        const fillOp = poly.fillOpacity != null ? poly.fillOpacity : 0.08;
+        if (fillOp > 0) {
+          ctx.beginPath();
+          const s0 = worldToScreenGIS(verts[0], vp, canvasH);
+          ctx.moveTo(s0.x, s0.y);
+          for (let i = 1; i < verts.length; i++) {
+            const s = worldToScreenGIS(verts[i], vp, canvasH);
+            ctx.lineTo(s.x, s.y);
+          }
+          ctx.closePath();
+          ctx.save();
+          ctx.globalAlpha = fillOp;
+          ctx.fillStyle = fillCol;
+          ctx.fill();
+          ctx.restore();
         }
-        ctx.closePath();
-        ctx.fillStyle = "rgba(0,229,255,0.08)";
-        ctx.fill();
       }
 
       // 2. Individual segment strokes color-coded or styled by user preferences
@@ -10484,7 +10528,20 @@ EOF`;
 
     /** Reset the polygon to a clean state */
     function resetUserPolygon() {
-      state.userPolygon = { vertices: [], segmentLengths: [], segmentSections: [], segmentParts: [], segmentOptimize: [], closed: false, drawMode: false, show: true };
+      const oldFillColor = state.userPolygon ? state.userPolygon.fillColor : "#00e5ff";
+      const oldFillOpacity = state.userPolygon && state.userPolygon.fillOpacity != null ? state.userPolygon.fillOpacity : 0.08;
+      state.userPolygon = {
+        vertices: [],
+        segmentLengths: [],
+        segmentSections: [],
+        segmentParts: [],
+        segmentOptimize: [],
+        closed: false,
+        drawMode: false,
+        show: true,
+        fillColor: oldFillColor,
+        fillOpacity: oldFillOpacity
+      };
       document.getElementById("polygon-seg-inputs").innerHTML = "";
       document.getElementById("polygon-segments-container").style.display = "none";
       const bufControls = document.getElementById("boundary-opt-buffer-controls");
@@ -10539,6 +10596,8 @@ EOF`;
     document.getElementById("btn-save-polygon").addEventListener("click", () => {
       state.userPolygon.sectionStyles = { ...state.sectionStyles };
       state.userPolygon.defaultPolyStyle = { ...state.defaultPolyStyle };
+      state.userPolygon.fillColor = state.userPolygon.fillColor || "#00e5ff";
+      state.userPolygon.fillOpacity = state.userPolygon.fillOpacity != null ? state.userPolygon.fillOpacity : 0.08;
       state.userPolygon._simulation_metadata = getSimulationMetadata();
       const data = JSON.stringify(state.userPolygon, null, 2);
       const blob = new Blob([data], { type: "application/json" });
@@ -12776,6 +12835,7 @@ EOF`;
     window.addEventListener("keyup", e => { if(e.code==="Space") spacePressed=false; });
 
     function hitTestAnchor(sx, sy, isHist) {
+      if (!isHist && state.showMojones1073 === false) return null;
       const radius = 14;
       const vp = isHist ? state.histViewport : state.trueViewport;
       const h = isHist ? histCanvas.height : trueCanvas.height;
@@ -12792,6 +12852,7 @@ EOF`;
     let draggingAnchorLabel = null; // { anc, isHist, startMouseX, startMouseY, origDx, origDy }
 
     function hitTestAnchorLabel(sx, sy, isHist) {
+      if (!isHist && state.showMojones1073 === false) return null;
       const vp = isHist ? state.histViewport : state.trueViewport;
       const h = isHist ? histCanvas.height : trueCanvas.height;
       const ctx = isHist ? histCtx : trueCtx;
@@ -14269,6 +14330,14 @@ EOF`;
       });
     }
 
+    const chkShowMojones1073 = document.getElementById("chk-show-mojones-1073");
+    if (chkShowMojones1073) {
+      chkShowMojones1073.addEventListener("change", e => {
+        state.showMojones1073 = e.target.checked;
+        redrawTrueCanvas();
+      });
+    }
+
     const chkShowTrueDxf = document.getElementById("chk-show-true-dxf");
     if (chkShowTrueDxf) {
       chkShowTrueDxf.addEventListener("change", e => {
@@ -14302,6 +14371,25 @@ EOF`;
         if (state.userPolygon) state.userPolygon.show = e.target.checked;
         redrawTrueCanvas();
         syncGlobalOverlaysCheckbox();
+      });
+    }
+
+    const inputUserPolyFillColor = document.getElementById("user-poly-fill-color");
+    if (inputUserPolyFillColor) {
+      inputUserPolyFillColor.addEventListener("input", e => {
+        if (state.userPolygon) state.userPolygon.fillColor = e.target.value;
+        redrawTrueCanvas();
+      });
+    }
+
+    const sliderUserPolyFillOpacity = document.getElementById("user-poly-fill-opacity");
+    const valUserPolyFillOpacity = document.getElementById("user-poly-fill-opacity-val");
+    if (sliderUserPolyFillOpacity) {
+      sliderUserPolyFillOpacity.addEventListener("input", e => {
+        const val = parseInt(e.target.value, 10) || 0;
+        if (valUserPolyFillOpacity) valUserPolyFillOpacity.textContent = val + "%";
+        if (state.userPolygon) state.userPolygon.fillOpacity = val / 100;
+        redrawTrueCanvas();
       });
     }
 
