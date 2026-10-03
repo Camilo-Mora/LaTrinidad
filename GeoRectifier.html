@@ -6469,14 +6469,35 @@ EOF`;
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Number centered inside badge
+      // Number with half-sized '#' prefix centered inside badge
       const numStr = String(anc.id != null ? anc.id : "");
       if (numStr) {
-        ctx.font = numStr.length > 2 ? "bold 8px sans-serif" : (numStr.length > 1 ? "bold 9px sans-serif" : "bold 10px sans-serif");
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        const numSize = numStr.length > 2 ? 8 : (numStr.length > 1 ? 9 : 10);
+        const hashSize = Math.round(numSize * 0.52); // half the size of the number
+
         ctx.fillStyle = getContrastColor(anc.color);
-        ctx.fillText(numStr, pt.x, pt.y + 0.5);
+        ctx.textBaseline = "alphabetic";
+
+        // Measure widths to center combined string
+        ctx.font = `bold ${hashSize}px sans-serif`;
+        const hashW = ctx.measureText("#").width;
+
+        ctx.font = `bold ${numSize}px sans-serif`;
+        const numW = ctx.measureText(numStr).width;
+
+        const gap = 0.6;
+        const totalW = hashW + gap + numW;
+        const startX = pt.x - (totalW / 2);
+        const baselineY = pt.y + (numSize * 0.35);
+
+        // Draw '#' at half size, slightly raised
+        ctx.font = `bold ${hashSize}px sans-serif`;
+        ctx.textAlign = "left";
+        ctx.fillText("#", startX, baselineY - (numSize * 0.08));
+
+        // Draw number at full size
+        ctx.font = `bold ${numSize}px sans-serif`;
+        ctx.fillText(numStr, startX + hashW + gap, baselineY);
       }
       ctx.restore();
     }
@@ -13432,7 +13453,7 @@ EOF`;
     let draggingAnchorLabel = null; // { anc, isHist, startMouseX, startMouseY, origDx, origDy }
 
     function hitTestAnchorLabel(sx, sy, isHist) {
-      if (!isHist && state.showMojones1073 === false) return null;
+      if (isHist || (!isHist && state.showMojones1073 === false)) return null;
       const vp = isHist ? state.histViewport : state.trueViewport;
       const h = isHist ? histCanvas.height : trueCanvas.height;
       const ctx = isHist ? histCtx : trueCtx;
@@ -14297,7 +14318,7 @@ EOF`;
         anchorTooltipEl.innerHTML = `
           <div style="font-weight:700;color:var(--accent-cyan);font-size:0.76rem;margin-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span class="anchor-badge" style="background:${hitAnchor.color};width:16px;height:16px;line-height:16px;font-size:0.65rem;">#${hitAnchor.id}</span>
+              <span class="anchor-badge" style="background:${hitAnchor.color};width:16px;height:16px;line-height:16px;font-size:0.65rem;"><span style="font-size:0.52em;opacity:0.85;vertical-align:0.12em;margin-right:0.5px;">#</span>${hitAnchor.id}</span>
               <span>${safeName}</span>
             </div>
             <span style="font-size:0.68rem;font-weight:600;color:${isEnabled ? '#00e676' : '#ff5252'};">${isEnabled ? 'Active' : 'Disabled'}</span>
@@ -15466,7 +15487,7 @@ EOF`;
           </td>
           <td style="overflow:hidden;">
             <div style="display:flex;align-items:center;gap:3px;min-width:0;">
-              <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;">#${anc.id}</span>
+              <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;"><span style="font-size:0.52em;opacity:0.85;vertical-align:0.12em;margin-right:0.5px;">#</span>${anc.id}</span>
               <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
               ${axisBadgeHtml}
             </div>
@@ -15929,10 +15950,11 @@ EOF`;
         id: idx + 1,
         name: ent.layer || `Polygon_${idx + 1}`,
         color: anchorColors[idx % anchorColors.length] || "#ff1744",
+        closed: ent.closed !== false,
         points: (ent.points || []).map(p => ({ x: p.x, y: p.y }))
       }));
       if (vecState.polygons.length === 0) {
-        vecState.polygons.push({ id: 1, name: "Polygon_1", color: "#ff1744", points: [] });
+        vecState.polygons.push({ id: 1, name: "Polygon_1", color: "#ff1744", closed: true, points: [] });
       }
       vecState.activePolyIndex = 0;
 
@@ -16015,7 +16037,9 @@ EOF`;
         for (let i = 1; i < poly.points.length; i++) {
           vecDrawCtx.lineTo(poly.points[i].x * vecState.scale, poly.points[i].y * vecState.scale);
         }
-        vecDrawCtx.closePath();
+        if (poly.closed !== false) {
+          vecDrawCtx.closePath();
+        }
         vecDrawCtx.strokeStyle = poly.color;
         vecDrawCtx.lineWidth = isActive ? baseThickness : Math.max(1, Math.round(baseThickness * 0.65 * 10) / 10);
         vecDrawCtx.stroke();
@@ -16071,29 +16095,69 @@ EOF`;
       container.innerHTML = "";
       vecState.polygons.forEach((poly, idx) => {
         const isActive = idx === vecState.activePolyIndex;
+        const isClosed = poly.closed !== false;
         const card = document.createElement("div");
         card.className = `layer-toggle-item ${isActive ? 'layer-active' : ''}`;
+
+        let metricStr = `${poly.points.length} Vertices`;
+        if (poly.points.length >= 2) {
+          if (isClosed && poly.points.length >= 3) {
+            let area = 0, perim = 0;
+            const pts = poly.points;
+            for (let i = 0; i < pts.length; i++) {
+              const j = (i + 1) % pts.length;
+              area += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+              perim += Math.hypot(pts[j].x - pts[i].x, pts[j].y - pts[i].y);
+            }
+            area = Math.abs(area) / 2;
+            metricStr = `${poly.points.length} pts • Area: ${area.toFixed(1)} m² • Perim: ${perim.toFixed(1)} m`;
+          } else {
+            let len = 0;
+            const pts = poly.points;
+            for (let i = 0; i < pts.length - 1; i++) {
+              len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+            }
+            metricStr = `${poly.points.length} pts • Length: ${len.toFixed(1)} m (Open)`;
+          }
+        }
+
         card.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="layer-title-row">
-              <span class="layer-dot" style="background:${poly.color}"></span>
+            <div class="layer-title-row" style="display:flex;align-items:center;gap:6px;min-width:0;">
+              <span class="layer-dot" style="background:${poly.color};flex-shrink:0;"></span>
               <input type="text" id="vec-poly-input-${idx}" value="${poly.name}" 
-                     style="background:transparent; border:none; border-bottom:1px solid transparent; color:inherit; font-weight:600; font-size:0.85rem; outline:none; width:120px;"
+                     style="background:transparent; border:none; border-bottom:1px solid transparent; color:inherit; font-weight:600; font-size:0.83rem; outline:none; width:100px;"
                      onfocus="this.style.borderBottom='1px dashed var(--text-muted)'"
                      onblur="this.style.borderBottom='1px solid transparent'"
                      onclick="event.stopPropagation();"
                      onkeydown="event.stopPropagation();">
             </div>
-            <button class="btn-del-anchor" title="Delete Polygon Layer" onclick="event.stopPropagation(); deleteVecPolygon(${idx})">✕</button>
+            <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+              <button type="button" class="btn-vec-toggle-type" data-idx="${idx}"
+                      style="font-size:0.65rem;padding:2px 6px;border-radius:4px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:3px;border:1px solid ${isClosed ? 'var(--accent-cyan)' : '#ffb300'};background:${isClosed ? 'rgba(0,229,255,0.14)' : 'rgba(255,179,0,0.14)'};color:${isClosed ? 'var(--accent-cyan)' : '#ffb300'};"
+                      title="Click to toggle between Polygon (closed) and Polyline (open)">
+                ${isClosed ? '⬡ Polygon' : '〰 Polyline'}
+              </button>
+              <button class="btn-del-anchor" title="Delete Layer" onclick="event.stopPropagation(); deleteVecPolygon(${idx})">✕</button>
+            </div>
           </div>
-          <div style="font-size:0.75rem; color:var(--text-muted); margin-left: 20px;">
-            ${poly.points.length} Vertices
+          <div style="font-size:0.68rem; color:var(--text-muted); margin-left: 20px; font-family:monospace; margin-top:2px;">
+            ${metricStr}
           </div>
         `;
         const inp = card.querySelector(`#vec-poly-input-${idx}`);
         if (inp) {
           inp.addEventListener("input", (e) => {
             if (vecState.polygons[idx]) vecState.polygons[idx].name = e.target.value;
+          });
+        }
+        const typeBtn = card.querySelector(".btn-vec-toggle-type");
+        if (typeBtn) {
+          typeBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            poly.closed = !(poly.closed !== false);
+            renderVecPolygonList();
+            redrawVecDrawCanvas();
           });
         }
         card.addEventListener("click", () => { 
@@ -16211,7 +16275,7 @@ EOF`;
     if (btnVecNewPoly) {
       btnVecNewPoly.addEventListener("click", () => {
         const newId = vecState.polygons.length + 1;
-        vecState.polygons.push({ id: newId, name: `Polygon_${newId}`, color: anchorColors[newId % anchorColors.length] || "#00e5ff", points: [] });
+        vecState.polygons.push({ id: newId, name: `Polygon_${newId}`, color: anchorColors[newId % anchorColors.length] || "#00e5ff", closed: true, points: [] });
         vecState.activePolyIndex = vecState.polygons.length - 1;
         renderVecPolygonList();
         redrawVecDrawCanvas();
@@ -16238,7 +16302,7 @@ EOF`;
         const newEntities = vecState.polygons.map((p) => ({
           type: "POLYLINE",
           layer: p.name,
-          closed: true,
+          closed: p.closed !== false,
           points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
         }));
 
@@ -16272,7 +16336,7 @@ EOF`;
         const entitiesToExport = vecState.polygons.map((p) => ({
           type: "POLYLINE",
           layer: p.name,
-          closed: true,
+          closed: p.closed !== false,
           points: p.points.map(pt => ({ x: pt.x, y: pt.y }))
         }));
 
@@ -16280,7 +16344,7 @@ EOF`;
         state.histEntities = entitiesToExport;
         if (histStatus) histStatus.textContent = `Deed DXF: ${state.histEntities.length} entities (vectorized)`;
 
-        const filename = state.histFileName || (vecState.activeMapKey === "296" ? "Polygon_Escritura296.dxf" : "Polygon_Escritura1073_FerminSuarez.dxf");
+        const filename = state.histFileName || (vecState.activeMapKey === "196" ? "Polygon_Escritura196.dxf" : (vecState.activeMapKey === "296" ? "Polygon_Escritura296.dxf" : "Polygon_Escritura1073_FerminSuarez.dxf"));
         const dxfContent = DXFParser.serialize(entitiesToExport);
         const blob = new Blob([dxfContent], { type: "application/dxf" });
         const a = document.createElement("a");
@@ -16446,10 +16510,11 @@ EOF`;
             id: idx + 1,
             name: ent.layer || `Polygon_${idx + 1}`,
             color: anchorColors[idx % anchorColors.length] || "#ff1744",
+            closed: ent.closed !== false,
             points: (ent.points || []).map(p => ({ x: p.x, y: p.y }))
           }));
           if (vecState.polygons.length === 0) {
-            vecState.polygons.push({ id: 1, name: "Polygon_1", color: "#ff1744", points: [] });
+            vecState.polygons.push({ id: 1, name: "Polygon_1", color: "#ff1744", closed: true, points: [] });
           }
           vecState.activePolyIndex = 0;
           renderVecPolygonList();
@@ -16486,7 +16551,7 @@ EOF`;
     if (btnEditDeedHist) {
       btnEditDeedHist.addEventListener("click", (e) => {
         e.stopPropagation();
-        openVectorizerModal("1073");
+        openVectorizerModal(state.activeDeed || "1073");
       });
     }
     // [/SECTION: JS_VECTORIZER_LOGIC]
