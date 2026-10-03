@@ -6992,6 +6992,10 @@ EOF`;
     // ── True Field Canvas ──────────────────────────────────────────────
     /** Update all deed-anchored polygon vertices using the current transformation warper */
     function updateUserPolygonWarp() {
+      // Reconstrucción Lindero La Trinidad (userPolygon) belongs strictly to Deed 1073.
+      // NEVER warp or mutate it when Deed 196 is active so it stays fixed as ground reference!
+      if (state.activeDeed && state.activeDeed !== "1073") return;
+
       const poly = state.userPolygon;
       if (!poly || !poly.vertices || poly.vertices.length === 0) return;
       const activeAnchors = getActiveAnchors();
@@ -9901,6 +9905,8 @@ EOF`;
               }
             }
           } else if (v.anchor.type === 'deed') {
+            // Deed-anchored vertices are tied to Deed 1073; do not re-warp when Deed 196 is active
+            if (state.activeDeed && state.activeDeed !== (v.anchor.deedKey || "1073")) continue;
             let rawPt = null;
             if (state.histEntities && v.anchor.entIdx < state.histEntities.length) {
               const ent = state.histEntities[v.anchor.entIdx];
@@ -13340,6 +13346,9 @@ EOF`;
       state.deeds[current].anchors = state.anchors ? JSON.parse(JSON.stringify(state.anchors)) : [];
       state.deeds[current].histViewport = state.histViewport ? { ...state.histViewport } : null;
       state.deeds[current].testAxes = state.testAxes ? JSON.parse(JSON.stringify(state.testAxes)) : [];
+      if (current === "1073" && state.userPolygon && state.userPolygon.vertices) {
+        state.deeds["1073"].userPolygon = JSON.parse(JSON.stringify(state.userPolygon));
+      }
     }
 
     async function switchDeed(deedKey, openWindow = null) {
@@ -13363,6 +13372,11 @@ EOF`;
         state.anchors = d.anchors ? JSON.parse(JSON.stringify(d.anchors)) : [];
         state.testAxes = d.testAxes ? JSON.parse(JSON.stringify(d.testAxes)) : [];
         if (d.histViewport) state.histViewport = { ...d.histViewport };
+        if (deedKey === "1073" && d.userPolygon) {
+          state.userPolygon = JSON.parse(JSON.stringify(d.userPolygon));
+          if (typeof recomputeUserPolygonMetrics === "function") recomputeUserPolygonMetrics();
+          if (typeof rebuildSegmentInputs === "function") rebuildSegmentInputs();
+        }
       } else {
         updateStatus(`⏳ Loading Escritura ${deedKey} assets (DXF, anchors, PDF)…`);
         if (deedKey === "196") {
@@ -14281,8 +14295,8 @@ EOF`;
           ent.points[state.draggingDeedNodeHist.ptIdx].x = deedPt.x;
           ent.points[state.draggingDeedNodeHist.ptIdx].y = deedPt.y;
 
-          // Synchronize any user polygon vertex linked to this deed point
-          if (state.userPolygon && state.userPolygon.vertices) {
+          // Synchronize any user polygon vertex linked to this deed point (only for Deed 1073)
+          if (state.activeDeed === "1073" && state.userPolygon && state.userPolygon.vertices) {
             let warper = null;
             const activeAnchors = getActiveAnchors();
             if (activeAnchors.length >= 2) {
@@ -14391,8 +14405,8 @@ EOF`;
             ent.points[state.draggingDeedNode.ptIdx].x = newDeedPt.x;
             ent.points[state.draggingDeedNode.ptIdx].y = newDeedPt.y;
 
-            // Synchronize any user polygon vertex linked to this deed point
-            if (state.userPolygon && state.userPolygon.vertices) {
+            // Synchronize any user polygon vertex linked to this deed point (only for Deed 1073)
+            if (state.activeDeed === "1073" && state.userPolygon && state.userPolygon.vertices) {
               state.userPolygon.vertices.forEach(v => {
                 if (v.deedPt && Math.hypot(v.deedPt.x - origDeed.x, v.deedPt.y - origDeed.y) < 0.05) {
                   v.deedPt.x = newDeedPt.x;
