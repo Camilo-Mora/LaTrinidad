@@ -714,15 +714,33 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       overflow: auto;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: flex-start;
       padding: 24px;
+    }
+    .vectorizer-viewport::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    .vectorizer-viewport::-webkit-scrollbar-track {
+      background: rgba(10, 14, 22, 0.95);
+      border: 1px solid var(--border-color);
+    }
+    .vectorizer-viewport::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--accent-cyan), #0091ea);
+      border-radius: 6px;
+      border: 2px solid rgba(10, 14, 22, 0.95);
+      box-shadow: 0 0 6px rgba(0, 229, 255, 0.35);
+    }
+    .vectorizer-viewport::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-green, #00e676);
     }
 
     .vectorizer-canvas-wrap {
       position: relative;
-      display: inline-block;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+      display: block;
+      margin: auto;
+      flex-shrink: 0;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
     }
 
     #vec-pdf-canvas { display: block; background: #fff; }
@@ -1615,11 +1633,13 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
 
           <section class="panel-card">
             <h3>Precision Zoom Controls</h3>
-            <div style="display:flex; gap:4px;">
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              <button class="preset-btn" id="btn-vec-zoom-fit" title="Fit deed to window">Fit</button>
               <button class="preset-btn" data-veczoom="1.0">100%</button>
               <button class="preset-btn" data-veczoom="2.0">200%</button>
               <button class="preset-btn" data-veczoom="4.0">400%</button>
               <button class="preset-btn" data-veczoom="8.0">800%</button>
+              <button class="preset-btn" id="btn-vec-pan-center" title="Center deed in viewport">⌖ Center</button>
             </div>
             <input type="range" id="vec-zoom-slider" min="0.5" max="8.0" step="0.1" value="1.5" style="margin-top:6px;accent-color:var(--accent-cyan);">
           </section>
@@ -1701,8 +1721,9 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
             <div id="vec-poly-list" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;"></div>
           </section>
 
-          <div style="font-size:0.7rem; color:var(--text-muted);">
-            💡 <strong>Tips:</strong> Left-click to drop polygon vertices. Click & drag vertices to move them. Right-click vertex to delete.
+          <div style="font-size:0.7rem; color:var(--text-muted); line-height:1.4;">
+            💡 <strong>Tips:</strong> Left-click to drop polygon vertices. Click & drag vertices to move them. Right-click vertex to delete.<br>
+            ✋ <strong>Pan View:</strong> Middle-click drag, Space+drag, or drag background.
           </div>
         </aside>
 
@@ -5508,12 +5529,77 @@ function setupEventListeners() {
     });
   }
 
+  // Center deed in vectorizer viewport
+  function centerVecViewport() {
+    const vecViewport = document.getElementById("vec-viewport");
+    if (!vecViewport) return;
+    const scrollW = vecViewport.scrollWidth;
+    const clientW = vecViewport.clientWidth;
+    const scrollH = vecViewport.scrollHeight;
+    const clientH = vecViewport.clientHeight;
+    vecViewport.scrollLeft = scrollW > clientW ? Math.max(0, (scrollW - clientW) / 2) : 0;
+    vecViewport.scrollTop = scrollH > clientH ? Math.max(0, (scrollH - clientH) / 2) : 0;
+  }
+
+  // Fit deed to window
+  function fitVecToWindow() {
+    const vecViewport = document.getElementById("vec-viewport");
+    if (!vecState.pdfDoc || !vecViewport) return;
+    vecState.pdfDoc.getPage(vecState.pageNum).then((page) => {
+      const unscaled = page.getViewport({ scale: 1.0 });
+      const pad = 64;
+      const availW = Math.max(200, vecViewport.clientWidth - pad);
+      const availH = Math.max(200, vecViewport.clientHeight - pad);
+      const fitScale = Math.max(0.4, Math.min(8.0, Math.round(Math.min(availW / unscaled.width, availH / unscaled.height) * 100) / 100));
+      vecState.scale = fitScale;
+      const vecZoomSlider = document.getElementById("vec-zoom-slider");
+      if (vecZoomSlider) vecZoomSlider.value = fitScale;
+      renderVecPdfPage(vecState.pageNum).then(() => {
+        centerVecViewport();
+      });
+    });
+  }
+
+  const btnVecFit = document.getElementById("btn-vec-zoom-fit");
+  if (btnVecFit) btnVecFit.addEventListener("click", fitVecToWindow);
+  const btnVecCenter = document.getElementById("btn-vec-pan-center");
+  if (btnVecCenter) btnVecCenter.addEventListener("click", centerVecViewport);
+
+  // Apply zoom keeping center stable
+  function applyVecZoom(newZoom) {
+    const vecViewport = document.getElementById("vec-viewport");
+    const vecCanvasWrap = document.querySelector(".vectorizer-canvas-wrap");
+    if (!vecViewport || !vecCanvasWrap) {
+      vecState.scale = newZoom;
+      const vecZoomSlider = document.getElementById("vec-zoom-slider");
+      if (vecZoomSlider) vecZoomSlider.value = newZoom;
+      renderVecPdfPage(vecState.pageNum);
+      return;
+    }
+    const oldScale = vecState.scale || 1.5;
+    const ratio = newZoom / oldScale;
+    const centerX = vecViewport.scrollLeft + vecViewport.clientWidth / 2;
+    const centerY = vecViewport.scrollTop + vecViewport.clientHeight / 2;
+    const canvasCenterX = Math.max(0, centerX - vecCanvasWrap.offsetLeft);
+    const canvasCenterY = Math.max(0, centerY - vecCanvasWrap.offsetTop);
+
+    vecState.scale = newZoom;
+    const vecZoomSlider = document.getElementById("vec-zoom-slider");
+    if (vecZoomSlider) vecZoomSlider.value = newZoom;
+
+    renderVecPdfPage(vecState.pageNum).then(() => {
+      const newCanvasCenterX = canvasCenterX * ratio;
+      const newCanvasCenterY = canvasCenterY * ratio;
+      vecViewport.scrollLeft = Math.max(0, (vecCanvasWrap.offsetLeft + newCanvasCenterX) - vecViewport.clientWidth / 2);
+      vecViewport.scrollTop = Math.max(0, (vecCanvasWrap.offsetTop + newCanvasCenterY) - vecViewport.clientHeight / 2);
+    });
+  }
+
   // Vectorizer zoom slider
   const vecZoomSlider = document.getElementById("vec-zoom-slider");
   if (vecZoomSlider) {
     vecZoomSlider.addEventListener("input", (e) => {
-      vecState.scale = parseFloat(e.target.value);
-      renderVecPdfPage(vecState.pageNum);
+      applyVecZoom(parseFloat(e.target.value));
     });
   }
 
@@ -5521,10 +5607,112 @@ function setupEventListeners() {
   document.querySelectorAll(".preset-btn[data-veczoom]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const zoomVal = parseFloat(btn.getAttribute("data-veczoom"));
-      vecState.scale = zoomVal;
-      if (vecZoomSlider) vecZoomSlider.value = zoomVal;
-      renderVecPdfPage(vecState.pageNum);
+      applyVecZoom(zoomVal);
     });
+  });
+
+  // Mouse wheel zoom on Vectorizer viewport & canvas
+  const vecViewport = document.getElementById("vec-viewport");
+  if (vecViewport) {
+    vecViewport.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const oldScale = vecState.scale || 1.5;
+      const zoomFactor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
+      let newScale = Math.round((oldScale * zoomFactor) * 100) / 100;
+      newScale = Math.max(0.4, Math.min(8.0, newScale));
+      if (Math.abs(newScale - oldScale) < 0.01) return;
+
+      const vpRect = vecViewport.getBoundingClientRect();
+      const vecCanvasWrap = document.querySelector(".vectorizer-canvas-wrap");
+      const wrapRect = vecCanvasWrap ? vecCanvasWrap.getBoundingClientRect() : vpRect;
+
+      const mouseX = e.clientX - vpRect.left;
+      const mouseY = e.clientY - vpRect.top;
+
+      // Position on the deed relative to canvas top-left
+      const canvasX = Math.max(0, Math.min(wrapRect.width, e.clientX - wrapRect.left));
+      const canvasY = Math.max(0, Math.min(wrapRect.height, e.clientY - wrapRect.top));
+
+      const ratio = newScale / oldScale;
+      const newCanvasX = canvasX * ratio;
+      const newCanvasY = canvasY * ratio;
+
+      vecState.scale = newScale;
+      const vecZoomSlider = document.getElementById("vec-zoom-slider");
+      if (vecZoomSlider) vecZoomSlider.value = newScale;
+
+      renderVecPdfPage(vecState.pageNum).then(() => {
+        if (vecCanvasWrap) {
+          const newWrapX = vecCanvasWrap.offsetLeft;
+          const newWrapY = vecCanvasWrap.offsetTop;
+          vecViewport.scrollLeft = Math.max(0, (newWrapX + newCanvasX) - mouseX);
+          vecViewport.scrollTop = Math.max(0, (newWrapY + newCanvasY) - mouseY);
+        }
+      });
+    }, { passive: false });
+  }
+
+  // Pan navigation helpers: Middle-click drag, Space+drag, or drag on viewport background
+  function startVecPan(e) {
+    const vecViewport = document.getElementById("vec-viewport");
+    const vecDrawCanvas = document.getElementById("vec-draw-canvas");
+    vecState.isPanning = true;
+    vecState.panStart = { x: e.clientX, y: e.clientY };
+    vecState.scrollStart = { x: vecViewport ? vecViewport.scrollLeft : 0, y: vecViewport ? vecViewport.scrollTop : 0 };
+    document.body.style.cursor = "grabbing";
+    if (vecDrawCanvas) vecDrawCanvas.style.cursor = "grabbing";
+  }
+
+  window.addEventListener("keydown", (e) => {
+    const vecModal = document.getElementById("vectorizer-modal");
+    if (e.code === "Space" && vecModal && vecModal.classList.contains("visible")) {
+      const tag = (document.activeElement && document.activeElement.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      e.preventDefault();
+      vecState.isSpacePressed = true;
+      const vecDrawCanvas = document.getElementById("vec-draw-canvas");
+      if (vecDrawCanvas && !vecState.isDraggingVertex) vecDrawCanvas.style.cursor = "grab";
+    }
+  });
+
+  window.addEventListener("keyup", (e) => {
+    if (e.code === "Space") {
+      vecState.isSpacePressed = false;
+      const vecDrawCanvas = document.getElementById("vec-draw-canvas");
+      if (vecDrawCanvas && !vecState.isDraggingVertex && !vecState.isPanning) {
+        vecDrawCanvas.style.cursor = "crosshair";
+      }
+    }
+  });
+
+  if (vecViewport) {
+    vecViewport.addEventListener("mousedown", (e) => {
+      if (e.button === 1 || (e.button === 0 && vecState.isSpacePressed) || (e.target === vecViewport && e.button === 0)) {
+        e.preventDefault();
+        startVecPan(e);
+      }
+    });
+  }
+
+  window.addEventListener("mousemove", (e) => {
+    const vecViewport = document.getElementById("vec-viewport");
+    if (vecState.isPanning && vecViewport) {
+      const dx = e.clientX - vecState.panStart.x;
+      const dy = e.clientY - vecState.panStart.y;
+      vecViewport.scrollLeft = vecState.scrollStart.x - dx;
+      vecViewport.scrollTop = vecState.scrollStart.y - dy;
+    }
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (vecState.isPanning) {
+      vecState.isPanning = false;
+      document.body.style.cursor = "";
+      const vecDrawCanvas = document.getElementById("vec-draw-canvas");
+      if (vecDrawCanvas) {
+        vecDrawCanvas.style.cursor = vecState.isSpacePressed ? "grab" : "crosshair";
+      }
+    }
   });
 
   // Vectorizer outline thickness controls
@@ -6619,7 +6807,11 @@ const vecState = {
   activePolyIndex: 0,
   isDraggingVertex: false,
   draggedVertexIndex: null,
-  currentSnapTarget: null
+  currentSnapTarget: null,
+  isPanning: false,
+  panStart: { x: 0, y: 0 },
+  scrollStart: { x: 0, y: 0 },
+  isSpacePressed: false
 };
 
 function syncVecStyleControls() {
@@ -6870,6 +7062,11 @@ function findVecPolygonAndVertexAt(canvasX, canvasY, radius = null) {
 
 // Vectorizer Canvas Interaction (Add, Move/Drag, Delete Vertex with Snapping)
 vecDrawCanvas.addEventListener("mousedown", (e) => {
+  if (e.button === 1 || (e.button === 0 && vecState.isSpacePressed)) {
+    e.preventDefault();
+    startVecPan(e);
+    return;
+  }
   const rect = vecDrawCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left, y = e.clientY - rect.top;
   
