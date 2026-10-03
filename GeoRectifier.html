@@ -5400,6 +5400,55 @@ EOF`;
   }
 };
 
+    function ensureAnchorImgElement(anc) {
+      if (!anc || !anc.image) {
+        delete anc._imgElement;
+        return;
+      }
+      if (anc._imgElement instanceof HTMLImageElement && anc._imgElement.src) {
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        const histCard = document.getElementById("hist-card");
+        const trueCard = document.getElementById("true-card");
+        if (!histCard || !histCard.classList.contains("hidden")) redrawHistoricalCanvas();
+        if (!trueCard || !trueCard.classList.contains("hidden")) redrawTrueCanvas();
+      };
+      img.src = anc.image;
+      anc._imgElement = img;
+    }
+
+    function cloneAnchor(a) {
+      if (!a) return null;
+      const copy = {
+        id: a.id,
+        name: (a.name && a.name !== `#${a.id}`) ? a.name : (`#${a.id}`),
+        showLabel: a.showLabel !== false,
+        image: a.image || null,
+        color: a.color || (typeof anchorColors !== "undefined" ? anchorColors[(a.id - 1) % anchorColors.length] : "#00e5ff"),
+        src: a.src ? { x: a.src.x, y: a.src.y } : { x: 0, y: 0 },
+        dst: a.dst ? { x: a.dst.x, y: a.dst.y } : { x: 0, y: 0 },
+        active: a.active !== false && a.enabled !== false,
+        enabled: a.active !== false && a.enabled !== false,
+        axisId: a.axisId !== undefined ? a.axisId : null,
+        axisT: a.axisT !== undefined ? a.axisT : null,
+        optimize: a.optimize === true
+      };
+      if (a.labelOffsetSrc && typeof a.labelOffsetSrc.dx === "number" && typeof a.labelOffsetSrc.dy === "number") {
+        copy.labelOffsetSrc = { dx: a.labelOffsetSrc.dx, dy: a.labelOffsetSrc.dy };
+      }
+      if (a.labelOffsetDst && typeof a.labelOffsetDst.dx === "number" && typeof a.labelOffsetDst.dy === "number") {
+        copy.labelOffsetDst = { dx: a.labelOffsetDst.dx, dy: a.labelOffsetDst.dy };
+      }
+      if (a._imgElement instanceof HTMLImageElement) {
+        copy._imgElement = a._imgElement;
+      } else if (copy.image) {
+        ensureAnchorImgElement(copy);
+      }
+      return copy;
+    }
+
     function applyAnchors(list) {
       if (!Array.isArray(list) || list.length === 0) return;
       const seenIds = new Set();
@@ -5419,7 +5468,7 @@ EOF`;
           name: name,
           showLabel: a.showLabel !== false,
           image: a.image || null,
-          color: a.color || anchorColors[i % anchorColors.length],
+          color: a.color || (typeof anchorColors !== "undefined" ? anchorColors[i % anchorColors.length] : "#00e5ff"),
           src: { x: a.src.x, y: a.src.y },
           dst: { x: a.dst.x, y: a.dst.y },
           active: a.active !== false && a.enabled !== false,
@@ -5428,16 +5477,16 @@ EOF`;
           axisT: a.axisT !== undefined ? a.axisT : null,
           optimize: a.optimize === true
         };
-        if (anc.image) {
-          const img = new Image();
-          img.onload = () => {
-            const histCard = document.getElementById("hist-card");
-            const trueCard = document.getElementById("true-card");
-            if (!histCard || !histCard.classList.contains("hidden")) redrawHistoricalCanvas();
-            if (!trueCard || !trueCard.classList.contains("hidden")) redrawTrueCanvas();
-          };
-          img.src = anc.image;
-          anc._imgElement = img;
+        if (a.labelOffsetSrc && typeof a.labelOffsetSrc.dx === "number" && typeof a.labelOffsetSrc.dy === "number") {
+          anc.labelOffsetSrc = { dx: a.labelOffsetSrc.dx, dy: a.labelOffsetSrc.dy };
+        }
+        if (a.labelOffsetDst && typeof a.labelOffsetDst.dx === "number" && typeof a.labelOffsetDst.dy === "number") {
+          anc.labelOffsetDst = { dx: a.labelOffsetDst.dx, dy: a.labelOffsetDst.dy };
+        }
+        if (a._imgElement instanceof HTMLImageElement) {
+          anc._imgElement = a._imgElement;
+        } else if (anc.image) {
+          ensureAnchorImgElement(anc);
         }
         return anc;
       });
@@ -6646,7 +6695,10 @@ EOF`;
       const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
       const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
 
-      const hasImg = anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0;
+      if (anc.image && (!(anc._imgElement instanceof HTMLImageElement) || !anc._imgElement.src)) {
+        ensureAnchorImgElement(anc);
+      }
+      const hasImg = !!(anc.image && anc._imgElement && (anc._imgElement instanceof HTMLImageElement) && anc._imgElement.complete && anc._imgElement.naturalWidth > 0);
       if (hasImg) {
         const natW = anc._imgElement.naturalWidth;
         const natH = anc._imgElement.naturalHeight;
@@ -6802,16 +6854,8 @@ EOF`;
       const isEnabled = anc.active !== false && anc.enabled !== false;
       const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
       const fullText = labelName + (isEnabled ? "" : " (off)");
-      if (anc.image && !anc._imgElement) {
-        const img = new Image();
-        img.onload = () => {
-          const c = isHist ? document.getElementById("hist-card") : document.getElementById("true-card");
-          if (!c || !c.classList.contains("hidden")) {
-            if (isHist) redrawHistoricalCanvas(); else redrawTrueCanvas();
-          }
-        };
-        img.src = anc.image;
-        anc._imgElement = img;
+      if (anc.image && (!(anc._imgElement instanceof HTMLImageElement) || !anc._imgElement.src)) {
+        ensureAnchorImgElement(anc);
       }
 
       const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
@@ -6874,7 +6918,7 @@ EOF`;
         }
       }
 
-      const hasImg = anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0;
+      const hasImg = !!(anc.image && anc._imgElement && (anc._imgElement instanceof HTMLImageElement) && anc._imgElement.complete && anc._imgElement.naturalWidth > 0);
 
       if (hasImg) {
         const natW = anc._imgElement.naturalWidth;
@@ -13437,7 +13481,7 @@ EOF`;
       state.deeds[current].histPdfCanvas = state.histPdfCanvas;
       state.deeds[current].histPdfW = state.histPdfW;
       state.deeds[current].histPdfH = state.histPdfH;
-      state.deeds[current].anchors = state.anchors ? JSON.parse(JSON.stringify(state.anchors)) : [];
+      state.deeds[current].anchors = (state.anchors || []).map(cloneAnchor).filter(Boolean);
       state.deeds[current].histViewport = state.histViewport ? { ...state.histViewport } : null;
       state.deeds[current].testAxes = state.testAxes ? JSON.parse(JSON.stringify(state.testAxes)) : [];
       state.deeds[current].algorithm = state.algorithm;
@@ -13464,7 +13508,8 @@ EOF`;
         state.histPdfCanvas = d.histPdfCanvas || null;
         state.histPdfW = d.histPdfW || 0;
         state.histPdfH = d.histPdfH || 0;
-        state.anchors = d.anchors ? JSON.parse(JSON.stringify(d.anchors)) : [];
+        state.anchors = (d.anchors || []).map(cloneAnchor).filter(Boolean);
+        state.anchors.forEach(ensureAnchorImgElement);
         state.testAxes = d.testAxes ? JSON.parse(JSON.stringify(d.testAxes)) : [];
         if (d.histViewport) state.histViewport = { ...d.histViewport };
         state.algorithm = d.algorithm || (deedKey === "196" ? "TPS" : "SIMILARITY");
@@ -16288,7 +16333,7 @@ EOF`;
         state.origHistEntities196 = JSON.parse(JSON.stringify(state.histEntities));
       }
       if (!state.origAnchors196) {
-        state.origAnchors196 = JSON.parse(JSON.stringify(state.anchors));
+        state.origAnchors196 = (state.anchors || []).map(cloneAnchor).filter(Boolean);
       }
 
       const activeAnchors = getActiveAnchors();
@@ -16714,7 +16759,8 @@ EOF`;
           restoredAny = true;
         }
         if (state.origAnchors196) {
-          state.anchors = JSON.parse(JSON.stringify(state.origAnchors196));
+          state.anchors = (state.origAnchors196 || []).map(cloneAnchor).filter(Boolean);
+          state.anchors.forEach(ensureAnchorImgElement);
           restoredAny = true;
         }
         if (restoredAny) {
