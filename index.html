@@ -846,7 +846,7 @@
             <span class="view-title title-296">📜 Escritura 296</span>
             <div class="view-controls">
               <button class="btn btn-accent btn-sm" id="btn-edit-296" title="Edit or Vectorize PDF for Escritura 296">✏️</button>
-              <span id="status-296" class="view-badge">Preloaded DXF</span>
+              <span id="status-296" class="view-badge" style="background:rgba(213,0,249,0.15);color:var(--accent-purple);border-color:rgba(213,0,249,0.3);">Plano PDF</span>
             </div>
           </div>
           <div class="canvas-container" id="container-296">
@@ -2211,7 +2211,6 @@ window.addEventListener("DOMContentLoaded", () => {
   loadDefaultPdf("Mapa2096_LaTrinidad.pdf", "296");
   loadDefaultPdf("Mapa1073_FerminSuarez.pdf", "1073");
   loadDefaultPdf("Mapa196_ErrorCasaDelSol.pdf", "196");
-  autoLoadDXF296();
   autoLoadDXF1073();
   autoLoadDXF196();
   autoLoadGeoTiff();
@@ -2250,6 +2249,11 @@ function renderPdfPage(pdfDoc, pageNum, target) {
         state.pdf296Canvas = offCanvas;
         state.pdf296Width = origViewport.width;
         state.pdf296Height = origViewport.height;
+        if (canvas296.width > 0 && (!state.entities296 || state.entities296.length === 0)) {
+          state.vp296 = fitViewport(canvas296, { minX: 0, minY: 0, maxX: origViewport.width, maxY: origViewport.height, width: origViewport.width, height: origViewport.height });
+        }
+        const st296 = document.getElementById("status-296");
+        if (st296) st296.textContent = "Plano PDF";
       }
       if (target === "1073") {
         state.pdf1073Canvas = offCanvas;
@@ -2318,7 +2322,10 @@ function resizeCanvases() {
   canvasTrue.width  = c4.clientWidth  || 300;
   canvasTrue.height = c4.clientHeight || 500;
 
-  if (!state.vp296.bbox  && state.entities296.length  > 0) state.vp296  = fitViewport(canvas296,  computeBoundingBox(state.entities296));
+  if (!state.vp296.bbox) {
+    if (state.entities296 && state.entities296.length > 0) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
+    else if (state.pdf296Width > 0 && state.pdf296Height > 0) state.vp296 = fitViewport(canvas296, { minX: 0, minY: 0, maxX: state.pdf296Width, maxY: state.pdf296Height, width: state.pdf296Width, height: state.pdf296Height });
+  }
   if (!state.vp1073.bbox && state.entities1073.length > 0) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
   if (!state.vp196.bbox  && state.entities196.length  > 0) state.vp196  = fitViewport(canvas196,  computeBoundingBox(state.entities196));
   if (!state.vpTrue.bbox && state.entitiesTrue.length > 0) state.vpTrue  = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue));
@@ -2427,25 +2434,6 @@ async function autoLoadTrueDXF() {
   }
 }
 
-async function autoLoadDXF296() {
-  try {
-    const response = await fetch("Polygon_Escritura296.dxf");
-    if (response.ok) {
-      const text = await response.text();
-      state.entities296 = DXFParser.parse(text);
-      if (state.entities296.length > 0) {
-        state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
-      }
-      const el = document.getElementById("status-296");
-      if (el) el.textContent = `DXF Loaded (${state.entities296.length} entities)`;
-      redrawAll();
-    } else {
-      console.warn("Polygon_Escritura296.dxf not found — panel will be empty.");
-    }
-  } catch (err) {
-    console.log("autoLoadDXF296 skipped (CORS or missing file):", err);
-  }
-}
 
 async function autoLoadDXF1073() {
   try {
@@ -5052,7 +5040,10 @@ function setupEventListeners() {
       const map  = btn.dataset.map;
       if (mode === "fit") {
         // Center the specific map
-        if (map === "296"  && state.entities296.length)  state.vp296  = fitViewport(canvas296,  computeBoundingBox(state.entities296));
+        if (map === "296") {
+          if (state.entities296 && state.entities296.length) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
+          else if (state.pdf296Width > 0 && state.pdf296Height > 0) state.vp296 = fitViewport(canvas296, { minX: 0, minY: 0, maxX: state.pdf296Width, maxY: state.pdf296Height, width: state.pdf296Width, height: state.pdf296Height });
+        }
         if (map === "1073" && state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
         if (map === "196"  && state.entities196.length)  state.vp196  = fitViewport(canvas196,  computeBoundingBox(state.entities196));
         if (map === "true") {
