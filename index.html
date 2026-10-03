@@ -1088,14 +1088,6 @@
                   <td colspan="6" style="padding-left:6px;">🎯 Anchor Points</td>
                 </tr>
                 <tr>
-                  <td><span class="poly-color-dot" style="background:var(--accent-purple);box-shadow:0 0 4px var(--accent-purple);"></span></td>
-                  <td class="col-name" style="color:var(--accent-purple);">Anchors 296</td>
-                  <td class="na-cell">—</td>
-                  <td><input type="checkbox" id="sum-show-anchors-296" title="Show/hide anchor points for Escritura 296" style="accent-color:var(--accent-purple);"></td>
-                  <td class="na-cell">—</td>
-                  <td class="na-cell">—</td>
-                </tr>
-                <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-red);box-shadow:0 0 4px var(--accent-red);"></span></td>
                   <td class="col-name" style="color:var(--accent-red);">Anchors 1073</td>
                   <td class="na-cell">—</td>
@@ -1333,9 +1325,8 @@
           </div>
           <div id="body-panel-rmse" class="panel-body-collapsed">
           <div style="display:flex; gap:8px; justify-content:space-between;">
-            <span id="rmse-296-display" class="badge-rmse" style="color:var(--accent-purple); border-color:var(--accent-purple);">296 RMSE: 0.00 m</span>
-            <span id="rmse-1073-display" class="badge-rmse" style="color:var(--accent-red); border-color:var(--accent-red);">1073 RMSE: 0.00 m</span>
-            <span id="rmse-196-display" class="badge-rmse" style="color:var(--accent-orange); border-color:var(--accent-orange);">196 RMSE: 0.00 m</span>
+            <span id="rmse-1073-display" class="badge-rmse" style="color:var(--accent-red); border-color:var(--accent-red); flex:1; text-align:center;">1073 RMSE: 0.00 m</span>
+            <span id="rmse-196-display" class="badge-rmse" style="color:var(--accent-orange); border-color:var(--accent-orange); flex:1; text-align:center;">196 RMSE: 0.00 m</span>
           </div>
           </div>
         </section>
@@ -1424,25 +1415,6 @@
           </div>
           <div id="body-panel-anchors" class="panel-body-collapsed">
           <div style="display:flex; flex-direction:column; gap:8px; flex:1;">
-            <div>
-              <div class="panel-header">
-                <div style="display:flex; align-items:center; gap:6px;">
-                  <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-purple); margin:0; cursor:pointer;" title="Display or hide anchor points for Escritura 296">
-                    <input type="checkbox" id="chk-show-anchors-296">
-                    <span>Show</span>
-                  </label>
-                  <h4 style="font-size:0.78rem;color:var(--accent-purple);margin:0;">Escritura 296 Anchors</h4>
-                </div>
-                <button id="btn-clear-anchors-296" class="btn-sm btn-secondary">Clear 296</button>
-              </div>
-              <div class="table-wrapper" style="margin-top:4px;">
-                <table class="anchor-table">
-                  <thead><tr><th>#</th><th title="Use point in TPS calculation">Use</th><th>296 (X, Y)</th><th>True (X, Y)</th><th>Err</th><th>✕</th></tr></thead>
-                  <tbody id="table-anchors-296"></tbody>
-                </table>
-              </div>
-            </div>
-
             <div>
               <div class="panel-header">
                 <div style="display:flex; align-items:center; gap:6px;">
@@ -4666,7 +4638,7 @@ function updateMasterCheckboxes() {
 
   // For Show: consider DXF layers, anchor rows, AND measurement polygons
   const dxfShowIds = ["sum-show-reconstructed-poly","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"];
-  const anchorShowIds = ["sum-show-anchors-296","sum-show-anchors-1073","sum-show-anchors-196"];
+  const anchorShowIds = ["sum-show-anchors-1073","sum-show-anchors-196"];
   const allShowChks = [...dxfShowIds, ...anchorShowIds].map(id => document.getElementById(id)).filter(Boolean);
   const measShowChks = Array.from(document.querySelectorAll(".sum-poly-show"));
   const allShow = [...allShowChks, ...measShowChks];
@@ -4789,7 +4761,6 @@ function setupPolygonSummaryListeners() {
     }, true);
   }
 
-  wireAnchorSummaryRow("sum-show-anchors-296",  "chk-show-anchors-296",  "showAnchors296");
   wireAnchorSummaryRow("sum-show-anchors-1073", "chk-show-anchors-1073", "showAnchors1073");
   wireAnchorSummaryRow("sum-show-anchors-196",  "chk-show-anchors-196",  "showAnchors196");
 
@@ -4804,7 +4775,7 @@ function setupPolygonSummaryListeners() {
         if (el) { el.checked = v; el.dispatchEvent(new Event("change")); }
       });
       // Anchor layers
-      ["sum-show-anchors-296","sum-show-anchors-1073","sum-show-anchors-196"].forEach(id => {
+      ["sum-show-anchors-1073","sum-show-anchors-196"].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.checked = v; el.dispatchEvent(new Event("change")); }
       });
@@ -5375,9 +5346,12 @@ function setupEventListeners() {
   }
 
   // Clear Anchors
-  document.getElementById("btn-clear-anchors-296").addEventListener("click", () => { state.anchors296 = []; state.pendingSource = null; redrawAll(); });
-  document.getElementById("btn-clear-anchors-1073").addEventListener("click", () => { state.anchors1073 = []; state.pendingSource = null; redrawAll(); });
-  document.getElementById("btn-clear-anchors-196").addEventListener("click", () => { state.anchors196 = []; state.pendingSource = null; redrawAll(); });
+  const btnClear296 = document.getElementById("btn-clear-anchors-296");
+  if (btnClear296) btnClear296.addEventListener("click", () => { state.anchors296 = []; state.pendingSource = null; redrawAll(); });
+  const btnClear1073 = document.getElementById("btn-clear-anchors-1073");
+  if (btnClear1073) btnClear1073.addEventListener("click", () => { state.anchors1073 = []; state.pendingSource = null; redrawAll(); });
+  const btnClear196 = document.getElementById("btn-clear-anchors-196");
+  if (btnClear196) btnClear196.addEventListener("click", () => { state.anchors196 = []; state.pendingSource = null; redrawAll(); });
 
   // Save Anchors JSON
   const btnSaveAnchors = document.getElementById("btn-save-anchors-json");
@@ -6056,11 +6030,11 @@ function updateAnalyticsUI() {
   const rmse1073 = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors1073), state.anchors1073);
   const rmse196  = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors196),  state.anchors196);
 
-  document.getElementById("rmse-296-display").textContent  = `296 RMSE: ${rmse296.toFixed(2)} m`;
+  const elRmse296 = document.getElementById("rmse-296-display");
+  if (elRmse296) elRmse296.textContent = `296 RMSE: ${rmse296.toFixed(2)} m`;
   document.getElementById("rmse-1073-display").textContent = `1073 RMSE: ${rmse1073.toFixed(2)} m`;
   document.getElementById("rmse-196-display").textContent  = `196 RMSE: ${rmse196.toFixed(2)} m`;
 
-  renderAnchorTable("table-anchors-296",  state.anchors296,  "296");
   renderAnchorTable("table-anchors-1073", state.anchors1073, "1073");
   renderAnchorTable("table-anchors-196",  state.anchors196,  "196");
 }
