@@ -5529,7 +5529,11 @@ EOF`;
       if (!poly || !poly.vertices) return false;
       const v = poly.vertices[i];
       if (!v) return false;
-      const activeFixed = (anchors || []).filter(a => a.active !== false && a.enabled !== false && a.optimize !== true && a.axisId == null);
+      let ancList = anchors;
+      if (typeof state !== "undefined" && state.activeDeed && state.activeDeed !== "1073" && poly === state.userPolygon) {
+        ancList = (state.deeds && state.deeds["1073"] && state.deeds["1073"].anchors) ? state.deeds["1073"].anchors : [];
+      }
+      const activeFixed = (ancList || []).filter(a => a.active !== false && a.enabled !== false && a.optimize !== true && a.axisId == null);
       if (activeFixed.length === 0) return false;
 
       for (const anc of activeFixed) {
@@ -8914,7 +8918,8 @@ EOF`;
       }
 
       // 2.3. IGAC Corridor Ribbons (Thickness Buffers around raw deed segments with distance data)
-      if ((state.showCorridor104 || state.showCorridor520) && poly && poly.segmentLengths) {
+      const is1073 = (!state.activeDeed || state.activeDeed === "1073");
+      if (is1073 && (state.showCorridor104 || state.showCorridor520) && poly && poly.segmentLengths) {
         ctx.save();
         ctx.globalAlpha = (state.corridorOpacity !== undefined ? state.corridorOpacity : 0.5);
         let warper = null;
@@ -8991,7 +8996,7 @@ EOF`;
       }
 
       // 2.5. Buffer halos and displacement vectors around DEED DXF vertices for segments with deed lengths!
-      if ((state.constrainPolyToDeed || state.showBufferDisks) && state.optBufferRadius > 0 && poly && poly.vertices) {
+      if (is1073 && (state.constrainPolyToDeed || state.showBufferDisks) && state.optBufferRadius > 0 && poly && poly.vertices) {
         ctx.save();
         let warper = null;
         const activeAnchors = getActiveAnchors();
@@ -13015,8 +13020,9 @@ EOF`;
         }
       }
 
-      let hitNode = findUserPolyNodeAt(sx, sy, vp, h);
-      if (hitNode < 0 && state.constrainPolyToDeed && poly && poly.vertices) {
+      const is1073 = (!state.activeDeed || state.activeDeed === "1073");
+      let hitNode = is1073 ? findUserPolyNodeAt(sx, sy, vp, h) : -1;
+      if (is1073 && hitNode < 0 && state.constrainPolyToDeed && poly && poly.vertices) {
         // Also hit-test the deed anchor centers of constrained vertices so clicking either marker grabs the node
         const HIT_RADIUS = 14;
         let warper = null;
@@ -13210,7 +13216,7 @@ EOF`;
           e.stopImmediatePropagation();
           state.draggingUserPolyNode = hitNode;
           const curVertex = poly.vertices[hitNode];
-          const isConstrained = state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(poly, hitNode);
+          const isConstrained = is1073 && state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(poly, hitNode);
           if (isConstrained && curVertex && curVertex.deedPt) {
             let warper = null;
             const activeAnchors = getActiveAnchors();
@@ -13532,6 +13538,10 @@ EOF`;
       }
       if (typeof updateAnalyticsUI === "function") {
         updateAnalyticsUI();
+      }
+
+      if (deedKey === "1073" && state.constrainPolyToDeed && typeof applyDeedConstraints === "function") {
+        applyDeedConstraints(false);
       }
 
       setTimeout(() => {
@@ -14930,7 +14940,8 @@ EOF`;
           return;
         }
 
-        const isConstrained = state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(state.userPolygon, state.draggingUserPolyNode);
+        const is1073 = (!state.activeDeed || state.activeDeed === "1073");
+        const isConstrained = is1073 && state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(state.userPolygon, state.draggingUserPolyNode);
         const snap = (!state.constrainPolyToDeed) ? getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode) : null;
         state.currentSnapTarget = snap;
         let targetPt = snap ? {
@@ -15043,7 +15054,8 @@ EOF`;
       }
 
       // 3. Pan Mode: Hovering/drawing user polygon (creating, snapping, and dragging nodes)
-      if (state.userPolygon && (state.userPolygon.drawMode || state.userPolygon.vertices.length > 0)) {
+      const is1073 = (!state.activeDeed || state.activeDeed === "1073");
+      if (is1073 && state.userPolygon && (state.userPolygon.drawMode || state.userPolygon.vertices.length > 0)) {
         const snap = getPolygonSnapTarget(mouseX, mouseY, vp, h);
         state.currentSnapTarget = snap;
         let hitNode = findUserPolyNodeAt(mouseX, mouseY, vp, h);
@@ -15710,6 +15722,10 @@ EOF`;
     const chkPolygonSnap = document.getElementById("chk-polygon-snap");
 
     function applyDeedConstraints(verbose = true) {
+      if (state.activeDeed && state.activeDeed !== "1073") {
+        redrawTrueCanvas();
+        return;
+      }
       const chkPolygonSnap = document.getElementById("chk-polygon-snap");
       if (state.constrainPolyToDeed) {
         if (chkPolygonSnap && chkPolygonSnap.checked) {
