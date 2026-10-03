@@ -1450,13 +1450,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
               </label>
               <button class="btn-fit-view btn-add-ref" id="btn-add-ref-dxf" title="Load temporary reference DXF file (+)">➕ Ref DXF</button>
               <input type="file" id="ref-dxf-input" accept=".dxf" style="display:none;" multiple>
-              <div class="btn-measure-group" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">
-                <button class="btn-fit-view btn-measure" id="btn-measure-tool">📏 Measure</button>
-                <label class="btn-measure-snap-label" title="Toggle vertex snapping (snaps to visible objects: Reconstructed Polygon, Surveys, Deed, Anchors)">
-                  <input type="checkbox" id="chk-measure-snap" checked style="accent-color:#ffb300;width:12px;height:12px;cursor:pointer;margin:0;">
-                  <span>🧲 Snap</span>
-                </label>
-              </div>
+              <button class="btn-fit-view btn-measure" id="btn-measure-tool" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">📏 Measure</button>
               
               <button class="btn-fit-view btn-squeeze" id="btn-toggle-deed-handles" title="PowerPoint-style Deed Aspect Squeeze (drag edge handles on field canvas to stretch X or Y)">📐 Squeeze</button>
               <button class="btn-fit-view btn-marker" id="btn-marker-tool" title="Add temporary reference markers on field canvas (Click to drop, drag to move, right-click to delete)">📍 Marker</button>
@@ -1553,7 +1547,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 <div id="measure-area-row" style="display:none;">Area: <strong id="measure-area-m2" style="color:#ffb300;">0.00 m²</strong> (<span id="measure-area-plazas" style="color:#ffd54f;">0.00 pl</span>)</div>
               </div>
               <div style="font-size:0.64rem;color:var(--text-muted);margin-top:4px;line-height:1.2;">
-                Click to place points • Esc to clear
+                Click to place • Drag point to move • Right-click point to delete • Esc to clear
               </div>
             </div>
 
@@ -5733,6 +5727,8 @@ EOF`;
         closed: false,
         snapEnabled: true
       },
+      draggingMeasureMarker: null,
+      hoverMeasureMarker: null,
     };
 
     const CUSTOM_POLY_PALETTE = ["#ffb300", "#00e5ff", "#76ff03", "#e040fb", "#ff5252", "#ffd600", "#18ffff", "#ff6e40", "#b388ff", "#69f0ae"];
@@ -7397,8 +7393,21 @@ EOF`;
       // 5. Point dots and index numbers
       pts.forEach((pt, idx) => {
         const s = worldToScreenGIS(pt, vp, canvasH);
+        const isHovered = (state.hoverMeasureMarker === idx);
+        const isDragged = (state.draggingMeasureMarker === idx);
+
+        if (isHovered || isDragged) {
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, 11, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255, 214, 0, 0.25)";
+          ctx.fill();
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
         ctx.beginPath();
-        ctx.arc(s.x, s.y, 5, 0, Math.PI * 2);
+        ctx.arc(s.x, s.y, (isHovered || isDragged) ? 6 : 5, 0, Math.PI * 2);
         ctx.fillStyle = idx === 0 ? "#00e676" : "#ffb300";
         ctx.fill();
         ctx.strokeStyle = "#ffffff";
@@ -7697,6 +7706,20 @@ EOF`;
       }
 
       return closest;
+    }
+
+    /** Hit test existing measurement points/markers on true canvas (for dragging or deleting) */
+    function findMeasureMarkerAt(mouseX, mouseY, vp, canvasH, hitRadiusPx = 14) {
+      if (!state.measureTool || !state.measureTool.points || state.measureTool.points.length === 0) return null;
+      const pts = state.measureTool.points;
+      for (let i = 0; i < pts.length; i++) {
+        const s = worldToScreenGIS(pts[i], vp, canvasH);
+        const dist = Math.hypot(s.x - mouseX, s.y - mouseY);
+        if (dist <= hitRadiusPx) {
+          return { idx: i, pt: pts[i], screenPt: s, dist };
+        }
+      }
+      return null;
     }
 
     /** Find nearest visible vertex across all active layers for Measuring Tool */
@@ -12437,9 +12460,24 @@ EOF`;
 
     // Context menu handler on trueCanvas (prevents context menu when clicking nodes or drawing)
     trueCanvas.addEventListener("contextmenu", e => {
-      // In Measure Mode: prevent browser context menu
+      // In Measure Mode: delete clicked measuring marker on right-click, prevent browser context menu
       if (state.measureTool && state.measureTool.active) {
         e.preventDefault();
+        const rect = trueCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const hitMeasure = findMeasureMarkerAt(sx, sy, state.trueViewport, trueCanvas.height, 14);
+        if (hitMeasure) {
+          const removedIdx = hitMeasure.idx;
+          state.measureTool.points.splice(removedIdx, 1);
+          if (state.measureTool.points.length < 3) {
+            state.measureTool.closed = false;
+          }
+          state.hoverMeasureMarker = null;
+          state.draggingMeasureMarker = null;
+          updateStatus(`📏 Removed Measuring Point #${removedIdx + 1}.`);
+          updateMeasureHUD();
+          redrawTrueCanvas();
+        }
         return;
       }
       // In Anchor Mode: block ALL polygon context menu interactions — anchors have exclusive control
@@ -13216,10 +13254,29 @@ EOF`;
       clickStart.y = e.clientY;
 
       // In Measuring mode on true canvas:
-      // Left click is dedicated to measuring points (avoids stealing by anchor labels or deeds).
-      // Pan only on right button, middle button, or Spacebar.
+      // Left click on an existing marker drags it; left click on empty canvas places a new point.
+      // Right click on a marker deletes it; right click on empty canvas or middle/Space pans.
       if (!isHist && state.measureTool && state.measureTool.active) {
-        if (e.button === 2 || e.button === 1 || spacePressed) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const hitMeasure = findMeasureMarkerAt(sx, sy, viewport, canvas.height, 14);
+
+        if (e.button === 0 && !spacePressed) {
+          const isCloseClick = (!state.measureTool.closed && state.measureTool.points.length >= 2 && hitMeasure && hitMeasure.idx === 0);
+          if (hitMeasure && !isCloseClick) {
+            state.draggingMeasureMarker = hitMeasure.idx;
+            canvas.style.cursor = "move";
+            updateStatus(`📏 Dragging Point #${hitMeasure.idx + 1} — release to reposition.`);
+            redrawTrueCanvas();
+            return;
+          }
+          return;
+        }
+
+        if (e.button === 2) {
+          if (hitMeasure) {
+            return; // Don't pan; contextmenu listener will delete the marker
+          }
           isPanning = true;
           panStart.x = e.clientX;
           panStart.y = e.clientY;
@@ -13227,6 +13284,18 @@ EOF`;
           vpStart.offsetY = viewport.offsetY;
           activePanViewport = viewport;
           canvas.style.cursor = "grabbing";
+          return;
+        }
+
+        if (e.button === 1 || spacePressed) {
+          isPanning = true;
+          panStart.x = e.clientX;
+          panStart.y = e.clientY;
+          vpStart.offsetX = viewport.offsetX;
+          vpStart.offsetY = viewport.offsetY;
+          activePanViewport = viewport;
+          canvas.style.cursor = "grabbing";
+          return;
         }
         return;
       }
@@ -13335,6 +13404,15 @@ EOF`;
         histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
         trueCanvas.style.cursor = trueCursor;
         redrawAll();
+        return;
+      }
+
+      if (state.draggingMeasureMarker !== null) {
+        const idx = state.draggingMeasureMarker;
+        state.draggingMeasureMarker = null;
+        updateStatus(`📏 Measuring Point #${idx + 1} repositioned.`);
+        updateMeasureHUD();
+        redrawTrueCanvas();
         return;
       }
 
@@ -13594,6 +13672,27 @@ EOF`;
         return;
       }
 
+      // Dragging measuring marker on true canvas
+      if (state.draggingMeasureMarker !== null) {
+        const vp = state.trueViewport;
+        const h = trueCanvas.height;
+        const rect = trueCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+        const p = screenToWorldGIS(mouseX, mouseY, vp, h);
+        const snap = (state.measureTool && state.measureTool.snapEnabled !== false) ? findMeasureSnapTarget(mouseX, mouseY, vp, h) : null;
+        state.currentSnapTarget = snap;
+        const targetPt = snap ? { x: snap.worldPt.x, y: snap.worldPt.y } : { x: p.x, y: p.y };
+        if (state.measureTool && state.measureTool.points && state.measureTool.points[state.draggingMeasureMarker]) {
+          state.measureTool.points[state.draggingMeasureMarker] = targetPt;
+          state.measureTool.cursorPt = targetPt;
+          updateMeasureHUD();
+          const snapBadge = snap ? ` [🧲 ${snap.label}]` : "";
+          coordsBar.textContent = `📏 Moving Point #${state.draggingMeasureMarker + 1}${snapBadge} | UTM: (${targetPt.x.toFixed(2)}, ${targetPt.y.toFixed(2)})`;
+          redrawTrueCanvas();
+        }
+        return;
+      }
+
       // Dragging temporary reference marker
       if (state.draggingTempMarker) {
         const vp = state.trueViewport;
@@ -13745,6 +13844,13 @@ EOF`;
         state.customPolySnapTarget = null;
         recomputeCustomPolygonMetrics();
         updateCustomPolyButtonStates();
+        redrawTrueCanvas();
+      }
+      if (state.draggingMeasureMarker !== null) {
+        const idx = state.draggingMeasureMarker;
+        state.draggingMeasureMarker = null;
+        updateStatus(`📏 Measuring Point #${idx + 1} repositioned.`);
+        updateMeasureHUD();
         redrawTrueCanvas();
       }
       if (isPanning) {
@@ -14010,9 +14116,36 @@ EOF`;
       const p = screenToWorldGIS(mouseX, mouseY, vp, h);
       coordsBar.textContent = `Field UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
 
-      // Measuring Tool active: track cursor, handle snapping, live distance
+      // Measuring Tool active: track cursor, handle snapping, live distance, hover & drag
       if (state.measureTool && state.measureTool.active) {
-        trueCanvas.style.cursor = "crosshair";
+        // 1. If currently dragging an existing measuring marker:
+        if (state.draggingMeasureMarker !== null) {
+          trueCanvas.style.cursor = "move";
+          state.hoverMeasureMarker = state.draggingMeasureMarker;
+          const snap = (state.measureTool.snapEnabled !== false) ? findMeasureSnapTarget(mouseX, mouseY, vp, h) : null;
+          state.currentSnapTarget = snap;
+          const targetPt = snap ? { x: snap.worldPt.x, y: snap.worldPt.y } : { x: p.x, y: p.y };
+          if (state.measureTool.points && state.measureTool.points[state.draggingMeasureMarker]) {
+            state.measureTool.points[state.draggingMeasureMarker] = targetPt;
+            state.measureTool.cursorPt = targetPt;
+            updateMeasureHUD();
+            const snapBadge = snap ? ` [🧲 ${snap.label}]` : "";
+            coordsBar.textContent = `📏 Moving Point #${state.draggingMeasureMarker + 1}${snapBadge} | UTM: (${targetPt.x.toFixed(2)}, ${targetPt.y.toFixed(2)})`;
+            redrawTrueCanvas();
+          }
+          return;
+        }
+
+        // 2. Check hover over existing marker:
+        const hitMarker = findMeasureMarkerAt(mouseX, mouseY, vp, h, 14);
+        state.hoverMeasureMarker = hitMarker ? hitMarker.idx : null;
+        if (hitMarker) {
+          trueCanvas.style.cursor = "move";
+        } else {
+          trueCanvas.style.cursor = "crosshair";
+        }
+
+        // 3. Snapping for cursor
         const snap = (state.measureTool.snapEnabled !== false) ? findMeasureSnapTarget(mouseX, mouseY, vp, h) : null;
         if (snap) {
           state.currentSnapTarget = snap;
@@ -14024,7 +14157,9 @@ EOF`;
 
         const pts = state.measureTool.points;
         const snapBadge = snap ? ` [🧲 ${snap.label}]` : "";
-        if (pts.length > 0 && !state.measureTool.closed) {
+        if (hitMarker) {
+          coordsBar.textContent = `📏 Point #${hitMarker.idx + 1} | Drag to reposition • Right-click to delete | UTM: (${hitMarker.pt.x.toFixed(2)}, ${hitMarker.pt.y.toFixed(2)})`;
+        } else if (pts.length > 0 && !state.measureTool.closed) {
           const lastPt = pts[pts.length - 1];
           const curDist = Math.hypot(state.measureTool.cursorPt.x - lastPt.x, state.measureTool.cursorPt.y - lastPt.y);
           coordsBar.textContent = `📏 Measure: ${curDist.toFixed(2)}m from Point #${pts.length}${snapBadge} | UTM: (${state.measureTool.cursorPt.x.toFixed(2)}, ${state.measureTool.cursorPt.y.toFixed(2)})`;
