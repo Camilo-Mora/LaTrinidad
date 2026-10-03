@@ -1953,14 +1953,14 @@ Do NOT modify dormant/parked sections unless specifically requested.
         </section>
 
         <!-- ========================================================================= -->
-        <!-- CLUSTER 1: RECONSTRUCCIÓN LINDERO (ESCRITURA 1073 vs 296)                 -->
+        <!-- CLUSTER 1: RECONSTRUCCIÓN LINDERO LA TRINIDAD (ESCRITURA 1073 vs 296)      -->
         <!-- ========================================================================= -->
         <div id="cluster-reconstruction-1073" class="reconstruction-cluster cluster-1073 active">
           <div class="cluster-master-header header-1073" id="header-cluster-1073">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;">
               <input type="checkbox" id="chk-cluster-1073" checked style="accent-color:#00e676;width:15px;height:15px;cursor:pointer;margin:0;">
               <span style="font-size:0.80rem;font-weight:800;color:#00e676;letter-spacing:0.3px;display:flex;align-items:center;gap:6px;">
-                <span>📜</span> Reconstrucción Lindero (1073 vs 296)
+                <span>📜</span> Reconstrucción Lindero La Trinidad
               </span>
             </label>
             <button type="button" class="btn-panel-toggle" id="btn-toggle-cluster-1073" title="Colapsar / Desplegar">▼</button>
@@ -13342,7 +13342,7 @@ EOF`;
       state.deeds[current].testAxes = state.testAxes ? JSON.parse(JSON.stringify(state.testAxes)) : [];
     }
 
-    async function switchDeed(deedKey, openWindow = true) {
+    async function switchDeed(deedKey, openWindow = null) {
       if (state.activeDeed && state.activeDeed !== deedKey) {
         saveCurrentDeedState();
       }
@@ -13429,7 +13429,22 @@ EOF`;
       const btnToggleCluster1073 = document.getElementById("btn-toggle-cluster-1073");
       const btnToggleCluster196 = document.getElementById("btn-toggle-cluster-196");
 
-      if (openWindow) {
+      // Activate field overlays for the active analysis (image/PDF, DXF, anchors)
+      state.showWarpedPdf = true;
+      state.showWarpedDxf = true;
+      const chkShowWarpedPdf = document.getElementById("chk-show-warped-pdf");
+      if (chkShowWarpedPdf) chkShowWarpedPdf.checked = true;
+      const chkShowWarpedDxf = document.getElementById("chk-show-warped-dxf");
+      if (chkShowWarpedDxf) chkShowWarpedDxf.checked = true;
+
+      // The historical deed window (histCard) should be opened ONLY with the checkbox at the top of the app.
+      // - openWindow === true: explicitly open deed window (user clicked top toolbar checkbox)
+      // - openWindow === false: explicitly close deed window (user unchecked top toolbar)
+      // - openWindow === null: preserve current deed window state (control panel cluster checkbox clicked)
+      const isTopDeedWindowAlreadyOpen = !!(state.showDeedPanel && histCard && !histCard.classList.contains("hidden"));
+      const shouldDisplayDeedWindow = (openWindow === true) || (openWindow === null && isTopDeedWindowAlreadyOpen);
+
+      if (shouldDisplayDeedWindow) {
         if (chk196) chk196.checked = (deedKey === "196");
         if (chk1073) chk1073.checked = (deedKey === "1073");
         state.showDeedPanel = true;
@@ -13570,10 +13585,17 @@ EOF`;
       chkCluster1073.addEventListener("change", async () => {
         if (chkCluster1073.checked) {
           if (chkCluster196) chkCluster196.checked = false;
-          await switchDeed("1073", true);
+          await switchDeed("1073", null);
         } else {
           if (clusterBody1073) clusterBody1073.style.display = "none";
           if (btnToggleCluster1073) btnToggleCluster1073.textContent = "▶";
+          state.showWarpedPdf = false;
+          state.showWarpedDxf = false;
+          const chkShowWarpedPdf = document.getElementById("chk-show-warped-pdf");
+          if (chkShowWarpedPdf) chkShowWarpedPdf.checked = false;
+          const chkShowWarpedDxf = document.getElementById("chk-show-warped-dxf");
+          if (chkShowWarpedDxf) chkShowWarpedDxf.checked = false;
+          redrawAll();
         }
       });
     }
@@ -13582,10 +13604,17 @@ EOF`;
       chkCluster196.addEventListener("change", async () => {
         if (chkCluster196.checked) {
           if (chkCluster1073) chkCluster1073.checked = false;
-          await switchDeed("196", true);
+          await switchDeed("196", null);
         } else {
           if (clusterBody196) clusterBody196.style.display = "none";
           if (btnToggleCluster196) btnToggleCluster196.textContent = "▶";
+          state.showWarpedPdf = false;
+          state.showWarpedDxf = false;
+          const chkShowWarpedPdf = document.getElementById("chk-show-warped-pdf");
+          if (chkShowWarpedPdf) chkShowWarpedPdf.checked = false;
+          const chkShowWarpedDxf = document.getElementById("chk-show-warped-dxf");
+          if (chkShowWarpedDxf) chkShowWarpedDxf.checked = false;
+          redrawAll();
         }
       });
     }
