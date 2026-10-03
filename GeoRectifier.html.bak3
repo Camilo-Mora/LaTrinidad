@@ -1361,18 +1361,13 @@ Do NOT modify dormant/parked sections unless specifically requested.
         </button>
       </div>
 
-      <!-- Panel Display / Layout Options: Deeds and Workspace Panels -->
-      <div class="panel-layout-group" title="Toggle active deed map or workspace panels">
-        <span style="font-size:0.67rem;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.5px;margin-right:2px;">Deeds:</span>
-        <label class="panel-tick-item" title="Show or hide Escritura 196 Deed Map Panel">
-          <input type="checkbox" id="chk-show-deed-196">
-          <span>📜 196</span>
+      <!-- Panel Display / Layout Options: Three Tickboxes -->
+      <div class="panel-layout-group" title="Toggle visible workspace panels">
+        <span style="font-size:0.67rem;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.5px;margin-right:2px;">Panels:</span>
+        <label class="panel-tick-item" title="Show or hide Historical Deed (Deep) Map Panel">
+          <input type="checkbox" id="chk-show-deed">
+          <span>📜 Deed</span>
         </label>
-        <label class="panel-tick-item" title="Show or hide Escritura 1073 Deed Map Panel">
-          <input type="checkbox" id="chk-show-deed-1073">
-          <span>📜 1073</span>
-        </label>
-        <span style="display:inline-block;width:1px;height:14px;background:rgba(255,255,255,0.15);margin:0 3px;"></span>
         <label class="panel-tick-item" title="Show or hide True Field Survey &amp; Drone Map Panel">
           <input type="checkbox" id="chk-show-field" checked>
           <span>📍 Field</span>
@@ -1403,7 +1398,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
         <!-- Left Window: Historical Deed (PDF + DXF) -->
         <div class="viewport-card hidden" id="hist-card">
           <div class="viewport-header">
-            <span class="view-title historical-title" id="hist-view-title">📜 Historical Deed (PDF + DXF)</span>
+            <span class="view-title historical-title">📜 Historical Deed (PDF + DXF)</span>
             <div style="display:flex;align-items:center;gap:6px;">
               <button class="btn-fit-view" id="btn-fit-hist" title="Fit & Center Display" style="display:inline-flex;align-items:center;justify-content:center;padding:4px 6px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
@@ -1588,7 +1583,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
           <!-- Toolbar under True Field Canvas: Controles Escritura 1073 -->
           <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:14px;padding:6px 14px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(255,23,68,0.3);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span id="lbl-toolbar-active-deed" style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
+              <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
                 📜 Escritura 1073
               </span>
             </div>
@@ -5562,37 +5557,6 @@ EOF`;
        4. APPLICATION LOGIC & DUAL-CANVAS RENDERING ENGINE
        ========================================================================== */
     const state = {
-      activeDeed: "1073",
-      deeds: {
-        "1073": {
-          histEntities: [],
-          histPdfDoc: null,
-          histPdfBlob: null,
-          histPdfCanvas: null,
-          histPdfW: 0,
-          histPdfH: 0,
-          histFileName: "Polygon_Escritura1073_FerminSuarez.dxf",
-          pdfFileName: "Mapa1073_FerminSuarez.pdf",
-          anchorsFileName: "anchors_georectifier.json",
-          anchors: [],
-          histViewport: null,
-          testAxes: []
-        },
-        "196": {
-          histEntities: [],
-          histPdfDoc: null,
-          histPdfBlob: null,
-          histPdfCanvas: null,
-          histPdfW: 0,
-          histPdfH: 0,
-          histFileName: "Polygon_Escritura196.dxf",
-          pdfFileName: "Mapa196_ErrorCasaDelSol.pdf",
-          anchorsFileName: "anchors_196.json",
-          anchors: [],
-          histViewport: null,
-          testAxes: []
-        }
-      },
       deedScale: { x: 1.0, y: 1.0, ratio: 1.0 },
       lockAspectEquivalent: false,
       showDeedHandles: false,
@@ -13010,146 +12974,16 @@ EOF`;
     btnModePan.addEventListener("click",    () => setToolMode("pan"));
     btnModeAnchor.addEventListener("click", () => setToolMode("anchor"));
 
-    // ── Panel Display Options (Deeds: 196 / 1073, Field, Control Panel) ──
+    // ── Panel Display Options (Three Tickboxes: Deed, Field, Control Panel) ──
     const histCard = document.getElementById("hist-card");
     const trueCard = document.getElementById("true-card");
     const sidebarEl = document.getElementById("sidebar");
-    const chkShowDeed196 = document.getElementById("chk-show-deed-196");
-    const chkShowDeed1073 = document.getElementById("chk-show-deed-1073");
+    const chkShowDeed = document.getElementById("chk-show-deed");
     const chkShowField = document.getElementById("chk-show-field");
     const chkShowControlPanel = document.getElementById("chk-show-control-panel");
 
-    function isAnyDeedOpen() {
-      return (chkShowDeed196 && chkShowDeed196.checked) || (chkShowDeed1073 && chkShowDeed1073.checked);
-    }
-
-    function saveCurrentDeedState() {
-      const current = state.activeDeed || "1073";
-      if (!state.deeds) state.deeds = {};
-      if (!state.deeds[current]) state.deeds[current] = {};
-      state.deeds[current].histEntities = state.histEntities ? [...state.histEntities] : [];
-      state.deeds[current].histFileName = state.histFileName;
-      state.deeds[current].histPdfDoc = state.histPdfDoc;
-      state.deeds[current].histPdfBlob = state.histPdfBlob;
-      state.deeds[current].histPdfCanvas = state.histPdfCanvas;
-      state.deeds[current].histPdfW = state.histPdfW;
-      state.deeds[current].histPdfH = state.histPdfH;
-      state.deeds[current].anchors = state.anchors ? JSON.parse(JSON.stringify(state.anchors)) : [];
-      state.deeds[current].histViewport = state.histViewport ? { ...state.histViewport } : null;
-      state.deeds[current].testAxes = state.testAxes ? JSON.parse(JSON.stringify(state.testAxes)) : [];
-    }
-
-    async function switchDeed(deedKey, openWindow = true) {
-      if (state.activeDeed && state.activeDeed !== deedKey) {
-        saveCurrentDeedState();
-      }
-      state.activeDeed = deedKey;
-      if (!state.deeds) state.deeds = {};
-
-      const d = state.deeds[deedKey];
-      const hasData = d && d.histEntities && d.histEntities.length > 0;
-
-      if (hasData) {
-        state.histEntities = d.histEntities ? [...d.histEntities] : [];
-        state.histFileName = d.histFileName || (deedKey === "196" ? "Polygon_Escritura196.dxf" : "Polygon_Escritura1073_FerminSuarez.dxf");
-        state.histPdfDoc = d.histPdfDoc || null;
-        state.histPdfBlob = d.histPdfBlob || null;
-        state.histPdfCanvas = d.histPdfCanvas || null;
-        state.histPdfW = d.histPdfW || 0;
-        state.histPdfH = d.histPdfH || 0;
-        state.anchors = d.anchors ? JSON.parse(JSON.stringify(d.anchors)) : [];
-        state.testAxes = d.testAxes ? JSON.parse(JSON.stringify(d.testAxes)) : [];
-        if (d.histViewport) state.histViewport = { ...d.histViewport };
-      } else {
-        updateStatus(`⏳ Loading Escritura ${deedKey} assets (DXF, anchors, PDF)…`);
-        if (deedKey === "196") {
-          state.histFileName = "Polygon_Escritura196.dxf";
-          try {
-            const text = await fetchText("Polygon_Escritura196.dxf");
-            state.histEntities = DXFParser.parse(text);
-          } catch (e) {
-            console.warn("Failed loading Polygon_Escritura196.dxf:", e);
-          }
-          try {
-            const ancText = await fetchText("anchors_196.json");
-            const ancList = JSON.parse(ancText);
-            applyAnchors(Array.isArray(ancList) ? ancList : (ancList.anchors || []));
-          } catch (e) {
-            console.warn("Failed loading anchors_196.json:", e);
-          }
-          try {
-            const blob = await fetchBlob("Mapa196_ErrorCasaDelSol.pdf");
-            await loadPdfFromBlob(blob);
-          } catch (e) {
-            console.warn("Failed loading Mapa196_ErrorCasaDelSol.pdf:", e);
-          }
-          saveCurrentDeedState();
-        } else {
-          state.histFileName = "Polygon_Escritura1073_FerminSuarez.dxf";
-          try {
-            const text = await fetchText("Polygon_Escritura1073_FerminSuarez.dxf");
-            state.histEntities = DXFParser.parse(text);
-          } catch (e) {}
-          try {
-            const ancText = await fetchText("anchors_georectifier.json");
-            const ancData = JSON.parse(ancText);
-            const list = Array.isArray(ancData) ? ancData : (ancData.anchors || ancData.anchors1073 || []);
-            applyAnchors(list);
-          } catch (e) {}
-          try {
-            const blob = await fetchBlob("Mapa1073_FerminSuarez.pdf");
-            await loadPdfFromBlob(blob);
-          } catch (e) {}
-          saveCurrentDeedState();
-        }
-      }
-
-      // Update UI Elements
-      const histTitle = document.getElementById("hist-view-title");
-      if (histTitle) {
-        histTitle.textContent = `📜 Escritura ${deedKey} (PDF + DXF)`;
-      }
-      const lblToolbarDeed = document.getElementById("lbl-toolbar-active-deed");
-      if (lblToolbarDeed) {
-        lblToolbarDeed.textContent = `📜 Escritura ${deedKey}`;
-      }
-      if (histStatus) {
-        histStatus.textContent = `Deed ${deedKey} ready (${state.histEntities.length} ents)`;
-      }
-
-      const chk196 = document.getElementById("chk-show-deed-196");
-      const chk1073 = document.getElementById("chk-show-deed-1073");
-      if (openWindow) {
-        if (chk196) chk196.checked = (deedKey === "196");
-        if (chk1073) chk1073.checked = (deedKey === "1073");
-        state.showDeedPanel = true;
-        if (histCard) histCard.classList.remove("hidden");
-      } else {
-        if (chk196) chk196.checked = false;
-        if (chk1073) chk1073.checked = false;
-        state.showDeedPanel = false;
-        if (histCard) histCard.classList.add("hidden");
-      }
-
-      if (typeof updateCustomPolygonAnchors === "function") {
-        updateCustomPolygonAnchors();
-      }
-      if (typeof updateAnalyticsUI === "function") {
-        updateAnalyticsUI();
-      }
-
-      setTimeout(() => {
-        resizeCanvases();
-        if (state.showDeedPanel) {
-          fitHistoricalView();
-        }
-        redrawAll();
-        updateStatus(`⚡ Active deed: Escritura ${deedKey} (${state.histEntities.length} ents, ${getActiveAnchors().length} active anchors).`);
-      }, 40);
-    }
-
     function applyPanelVisibility() {
-      const showDeed = isAnyDeedOpen();
+      const showDeed = chkShowDeed ? chkShowDeed.checked : false;
       const showField = chkShowField ? chkShowField.checked : true;
       const showControl = chkShowControlPanel ? chkShowControlPanel.checked : true;
 
@@ -13162,7 +12996,7 @@ EOF`;
       if (sidebarEl) sidebarEl.classList.toggle("collapsed", !showControl);
 
       const activeList = [];
-      if (showDeed) activeList.push(`Deed ${state.activeDeed || "1073"}`);
+      if (showDeed) activeList.push("Deed");
       if (showField) activeList.push("Field");
       if (showControl) activeList.push("Control Panel");
       updateStatus(`Panels active: ${activeList.join(" + ")}.`);
@@ -13176,46 +13010,22 @@ EOF`;
       }, 50);
     }
 
-    if (chkShowDeed196) {
-      chkShowDeed196.addEventListener("change", async () => {
-        if (chkShowDeed196.checked) {
-          if (chkShowDeed1073) chkShowDeed1073.checked = false;
-          await switchDeed("196", true);
-        } else {
-          if (!chkShowField || !chkShowField.checked) {
-            chkShowDeed196.checked = true;
-            updateStatus("At least one map panel (Deed or Field) must remain active.");
-            return;
-          }
-          state.showDeedPanel = false;
-          if (histCard) histCard.classList.add("hidden");
-          applyPanelVisibility();
+    if (chkShowDeed) {
+      chkShowDeed.addEventListener("change", () => {
+        // Enforce at least one map panel is open
+        if (!chkShowDeed.checked && (!chkShowField || !chkShowField.checked)) {
+          chkShowDeed.checked = true;
+          updateStatus("At least one map panel (Deed or Field) must remain active.");
+          return;
         }
-      });
-    }
-
-    if (chkShowDeed1073) {
-      chkShowDeed1073.addEventListener("change", async () => {
-        if (chkShowDeed1073.checked) {
-          if (chkShowDeed196) chkShowDeed196.checked = false;
-          await switchDeed("1073", true);
-        } else {
-          if (!chkShowField || !chkShowField.checked) {
-            chkShowDeed1073.checked = true;
-            updateStatus("At least one map panel (Deed or Field) must remain active.");
-            return;
-          }
-          state.showDeedPanel = false;
-          if (histCard) histCard.classList.add("hidden");
-          applyPanelVisibility();
-        }
+        applyPanelVisibility();
       });
     }
 
     if (chkShowField) {
       chkShowField.addEventListener("change", () => {
         // Enforce at least one map panel is open
-        if (!chkShowField.checked && !isAnyDeedOpen()) {
+        if (!chkShowField.checked && (!chkShowDeed || !chkShowDeed.checked)) {
           chkShowField.checked = true;
           updateStatus("At least one map panel (Deed or Field) must remain active.");
           return;
@@ -15177,13 +14987,12 @@ EOF`;
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        const outFileName = state.activeDeed === "196" ? "anchors_196.json" : "anchors_georectifier.json";
-        a.download = outFileName;
+        a.download = "anchors_georectifier.json";
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        updateStatus(`💾 Saved ${state.anchors.length} anchors & ${(state.testAxes || []).length} axes to ${outFileName}.`);
+        updateStatus(`💾 Saved ${state.anchors.length} anchors & ${(state.testAxes || []).length} axes to anchors_georectifier.json.`);
         openSaveCompanionReminderModal("anchors");
       });
     }
@@ -17380,7 +17189,7 @@ EOF`;
       const txt = DXFParser.serialize(rectified);
       const blob = new Blob([txt], { type: "application/dxf" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = `rectified_escritura${state.activeDeed || "1073"}.dxf`;
+      const a = document.createElement("a"); a.href = url; a.download = "rectified_escritura1073.dxf";
       document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
       updateStatus(`Exported rectified DXF using ${activeAnchors.length} active anchors.`);
     });
@@ -17566,13 +17375,6 @@ EOF`;
         state.histPdfCanvas = offCanvas;
         state.histPdfW = origVp.width;
         state.histPdfH = origVp.height;
-        if (state.deeds && state.activeDeed && state.deeds[state.activeDeed]) {
-          state.deeds[state.activeDeed].histPdfCanvas = offCanvas;
-          state.deeds[state.activeDeed].histPdfW = origVp.width;
-          state.deeds[state.activeDeed].histPdfH = origVp.height;
-          state.deeds[state.activeDeed].histPdfDoc = pdf;
-          state.deeds[state.activeDeed].histPdfBlob = fileOrBlob;
-        }
         histStatus.textContent = `PDF: ${Math.round(origVp.width)}×${Math.round(origVp.height)} pts`;
         // Fit historical viewport to PDF bounds
         if (state.showDeedPanel || (histCard && !histCard.classList.contains("hidden"))) {
@@ -17665,9 +17467,6 @@ EOF`;
       try {
         const blob = await fetchBlob("Mapa1073_FerminSuarez.pdf");
         await loadPdfFromBlob(blob);
-        if (typeof saveCurrentDeedState === "function") {
-          saveCurrentDeedState();
-        }
       } catch (err) {
         console.warn("Auto PDF background load:", err.message);
         if (histStatus && !state.histPdfCanvas) {
@@ -17841,9 +17640,6 @@ EOF`;
       redrawAll();
 
       const activeAnc = getActiveAnchors().length;
-      if (typeof saveCurrentDeedState === "function") {
-        saveCurrentDeedState();
-      }
       updateStatus(`⚡ Ready: Deed DXF (${state.histEntities.length} ents), Field DXF (${state.trueEntities.length} ents), Anchors (${activeAnc}) & Boundary (${state.userPolygon.vertices.length} pts) loaded.`);
 
       // =========================================================================
