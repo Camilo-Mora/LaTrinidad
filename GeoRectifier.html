@@ -2491,12 +2491,33 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
                 <!-- Optimization Action -->
                 <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;">
+                  <div style="display:flex;flex-direction:column;gap:2px;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);">
+                      <span>Pen Buffer Radius (R):</span>
+                      <strong id="opt-buffer-val-196" style="color:#ff1744;font-family:monospace;">±3.0 m</strong>
+                    </div>
+                    <div style="position:relative;margin:3px 0 1px 0;">
+                      <input type="range" id="opt-buffer-slider-196" min="0.1" max="8.0" step="0.1" value="3.0" class="opacity-slider" style="height:4px;width:100%;accent-color:#ff1744;">
+                      <!-- Vertical reference line 1: Límite plumilla 1:2000 (~3.0m) (36.71% of 0.1..8.0m range) -->
+                      <div style="position:absolute;left:36.71%;top:-3px;bottom:-3px;width:1.5px;background:#00e5ff;pointer-events:none;border-radius:1px;" title="Límite técnico plumilla 1:2000 (~3.0m)"></div>
+                      <!-- Vertical reference line 2: Límite Res. 388 Rural con Cobertura de Bosque (5.2m) (64.56% of 0.1..8.0m range) -->
+                      <div style="position:absolute;left:64.56%;top:-5px;bottom:-5px;width:2.5px;background:#00e676;box-shadow:0 0 6px #00e676;pointer-events:none;border-radius:1px;" title="Límite Res. 388 Suelo Rural / Bosque (5.2m)"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.60rem;color:var(--text-muted);">
+                      <span>0.1m</span>
+                      <span style="color:var(--accent-cyan);font-weight:600;" title="Plano 1:2000 + Plumilla (~3.0m)">Plumilla ~3m</span>
+                      <span style="color:#00e676;font-weight:700;display:flex;align-items:center;gap:2px;" title="Límite Res. 388 Suelo Rural con Cobertura de Bosque (5.2m)">
+                        <span style="display:inline-block;width:2px;height:7px;background:#00e676;margin-right:2px;"></span>Ref. Bosque Res. 388 (5.2m)
+                      </span>
+                      <span>8.0m</span>
+                    </div>
+                  </div>
+
                   <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#ff1744;font-weight:700;font-size:0.74rem;margin:0;" title="Ejecuta auto-tune barriendo el radio desde 0.1m hasta 3.0m y se detiene automáticamente en el menor radio que converge">
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#ff1744;font-weight:700;font-size:0.74rem;margin:0;" title="Ejecuta auto-tune barriendo el radio desde 0.1m hasta el radio seleccionado y se detiene automáticamente en el menor radio que converge">
                       <input type="checkbox" id="chk-auto-min-buffer-196" checked style="accent-color:#ff1744;width:14px;height:14px;cursor:pointer;">
-                      ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
+                      <span id="lbl-auto-min-196">⚡ Auto-Detect Min Buffer (0.1m → 3.0m)</span>
                     </label>
-                    <span id="opt-buffer-val-196" style="color:#ff1744;font-family:monospace;font-size:0.70rem;font-weight:700;">±3.0 m</span>
                   </div>
                   <button id="btn-optimize-196" class="btn btn-primary" style="background:linear-gradient(135deg,#ff1744,#d500f9);border-color:#ff1744;color:#fff;font-weight:800;justify-content:center;padding:7px 12px;box-shadow:0 0 12px rgba(255,23,68,0.35);">
                     ⚡ Run Optimization
@@ -6576,12 +6597,13 @@ EOF`;
       entities.forEach(ent => {
         if (ent.points.length < 2) return;
         ctx.beginPath();
-        const ws = warper(ent.points[0]);
-        const s  = worldToScreenGIS(ws, vp, canvasH);
+        const pts = (ent.fieldPoints && ent.fieldPoints.length === ent.points.length)
+          ? ent.fieldPoints
+          : (ent.points || []).map(p => warper(p));
+        const s = worldToScreenGIS(pts[0], vp, canvasH);
         ctx.moveTo(s.x, s.y);
-        for (let i=1;i<ent.points.length;i++) {
-          const wpt = warper(ent.points[i]);
-          const p   = worldToScreenGIS(wpt, vp, canvasH);
+        for (let i = 1; i < pts.length; i++) {
+          const p = worldToScreenGIS(pts[i], vp, canvasH);
           ctx.lineTo(p.x, p.y);
         }
         if (ent.closed) ctx.closePath();
@@ -6589,15 +6611,17 @@ EOF`;
       });
       ctx.setLineDash([]);
 
-      // Draw vertex dots if showNodes is enabled on Deed DXF
-      if (style && style.showNodes) {
+      // Draw vertex dots if showNodes is enabled on Deed DXF or activeDeed === "196"
+      if ((style && style.showNodes) || state.activeDeed === "196") {
         ctx.fillStyle = strokeCol;
         entities.forEach(ent => {
-          (ent.points || []).forEach(pt => {
-            const wpt = warper(pt);
-            const p = worldToScreenGIS(wpt, vp, canvasH);
+          const pts = (ent.fieldPoints && ent.fieldPoints.length === ent.points.length)
+            ? ent.fieldPoints
+            : (ent.points || []).map(p => warper(p));
+          pts.forEach(p => {
+            const sp = worldToScreenGIS(p, vp, canvasH);
             ctx.beginPath();
-            ctx.arc(p.x, p.y, Math.max(3.5, lineW + 1.5), 0, Math.PI * 2);
+            ctx.arc(sp.x, sp.y, Math.max(3.5, lineW + 1.5), 0, Math.PI * 2);
             ctx.fill();
             ctx.strokeStyle = "#ffffff";
             ctx.lineWidth = 1;
@@ -11763,22 +11787,37 @@ EOF`;
     const btnResetOpt = document.getElementById("btn-reset-optimization");
     const optStatusBadge = document.getElementById("opt-status-badge");
 
+    const optBufferSlider196 = document.getElementById("opt-buffer-slider-196");
+
+    function syncBufferRadius(val) {
+      state.optBufferRadius = val;
+      if (optBufferVal) optBufferVal.textContent = `±${val.toFixed(1)} m`;
+      if (optBufferSlider && parseFloat(optBufferSlider.value) !== val) optBufferSlider.value = val;
+      const optBufferVal196 = document.getElementById("opt-buffer-val-196");
+      if (optBufferVal196) optBufferVal196.textContent = `±${val.toFixed(1)} m`;
+      if (optBufferSlider196 && parseFloat(optBufferSlider196.value) !== val) optBufferSlider196.value = val;
+      const constrainHint = document.getElementById("anchor-constrain-hint");
+      if (constrainHint) constrainHint.textContent = `(±${val.toFixed(1)}m)`;
+      const constrainHint196 = document.getElementById("anchor-constrain-hint-196");
+      if (constrainHint196) constrainHint196.textContent = `(±${val.toFixed(1)}m)`;
+      const constrainHint196Opt = document.getElementById("anchor-constrain-hint-196-opt");
+      if (constrainHint196Opt) constrainHint196Opt.textContent = `(±${val.toFixed(1)}m)`;
+      const lblAutoMin196 = document.getElementById("lbl-auto-min-196");
+      if (lblAutoMin196) lblAutoMin196.textContent = `⚡ Auto-Detect Min Buffer (0.1m → ${val.toFixed(1)}m)`;
+      const deedHint = document.getElementById("deed-constrain-hint");
+      if (deedHint) deedHint.textContent = `(±${val.toFixed(1)}m)`;
+      redrawTrueCanvas();
+    }
+
     if (optBufferSlider) {
       optBufferSlider.addEventListener("input", e => {
-        const val = parseFloat(e.target.value) || 3.0;
-        state.optBufferRadius = val;
-        if (optBufferVal) optBufferVal.textContent = `±${val.toFixed(1)} m`;
-        const constrainHint = document.getElementById("anchor-constrain-hint");
-        if (constrainHint) constrainHint.textContent = `(±${val.toFixed(1)}m)`;
-        const constrainHint196 = document.getElementById("anchor-constrain-hint-196");
-        if (constrainHint196) constrainHint196.textContent = `(±${val.toFixed(1)}m)`;
-        const constrainHint196Opt = document.getElementById("anchor-constrain-hint-196-opt");
-        if (constrainHint196Opt) constrainHint196Opt.textContent = `(±${val.toFixed(1)}m)`;
-        const optBufferVal196 = document.getElementById("opt-buffer-val-196");
-        if (optBufferVal196) optBufferVal196.textContent = `±${val.toFixed(1)} m`;
-        const deedHint = document.getElementById("deed-constrain-hint");
-        if (deedHint) deedHint.textContent = `(±${val.toFixed(1)}m)`;
-        redrawTrueCanvas();
+        syncBufferRadius(parseFloat(e.target.value) || 3.0);
+      });
+    }
+
+    if (optBufferSlider196) {
+      optBufferSlider196.addEventListener("input", e => {
+        syncBufferRadius(parseFloat(e.target.value) || 3.0);
       });
     }
 
@@ -12075,8 +12114,8 @@ EOF`;
       if (btnRunOpt) btnRunOpt.disabled = true;
       if (btnResetOpt) btnResetOpt.disabled = true;
 
-      const POP_SIZE = isAllAnchorsFixed ? 2 : 16;
-      const MAX_GEN = isAllAnchorsFixed ? 1 : (isAutoMin ? 10 : 22);
+      const POP_SIZE = 16;
+      const MAX_GEN = isAutoMin ? 10 : 22;
 
       function sampleCandidateOffset(ancIdx) {
         const anc = state.anchors[ancIdx];
@@ -12275,7 +12314,7 @@ EOF`;
               return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
             });
 
-            const fixedIndices = getFixedVertexIndices(candVertices, candAnchors);
+            const fixedIndices = isAllAnchorsFixed ? new Set() : getFixedVertexIndices(candVertices, candAnchors);
             const optRes = BoundaryOptimizer.optimize({
               vertices: candVertices,
               segmentLengths: poly.segmentLengths,
@@ -12418,7 +12457,25 @@ EOF`;
 
         let globalBest = null;
 
-        if (useAllCombos) {
+        if (isAllAnchorsFixed) {
+          // ── STRATEGY: ALL ANCHORS FIXED (0 ANCHOR DEFORMATION, SWEEP BUFFER RADIUS FOR DEED NODES) ──
+          globalBest = evaluateCandidate(currentOffsets);
+
+          if (globalBest.optRes) {
+            poly.vertices = globalBest.optRes.vertices.map(v => ({ ...v }));
+            recomputeUserPolygonMetrics();
+          }
+          redrawTrueCanvas();
+
+          if (optStatusBadge) {
+            const prefix = isAutoMin ? `Fixed MinR ±${currentR.toFixed(1)}m` : `Fixed ±${currentR.toFixed(1)}m`;
+            const igacInfo = (isFilterIgac && globalBest.pct104 != null) ? ` | IGAC: ${globalBest.pct104.toFixed(1)}%` : "";
+            optStatusBadge.textContent = `${prefix} (Best: ${globalBest.loss.toFixed(2)}%${igacInfo})`;
+            optStatusBadge.style.color = "#ffb300";
+            optStatusBadge.style.background = "rgba(255, 179, 0, 0.15)";
+          }
+          await new Promise(resolve => setTimeout(resolve, isAutoMin ? 35 : 75));
+        } else if (useAllCombos) {
           // ── STRATEGY A: ALL COMBINATIONS (ORDERED GRID SEARCH) ──────────────
           const optAnchors = state.anchors.filter(a => a.active !== false && a.enabled !== false && a.optimize === true);
           const optCount = Math.max(1, optAnchors.length);
@@ -12478,8 +12535,7 @@ EOF`;
 
               if (optStatusBadge) {
                 let prefix = "";
-                if (isAllAnchorsFixed) prefix = isAutoMin ? `Fixed MinR ±${currentR.toFixed(1)}m` : `Fixed ±${currentR.toFixed(1)}m`;
-                else if (useCdsOnly) prefix = "CdS Area";
+                if (useCdsOnly) prefix = "CdS Area";
                 else if (isAutoMin) prefix = `MinR ±${currentR.toFixed(1)}m`;
                 else prefix = "Combos";
                 const igacInfo = (isFilterIgac && globalBest.pct104 != null) ? ` | IGAC: ${globalBest.pct104.toFixed(1)}%` : "";
@@ -12526,9 +12582,10 @@ EOF`;
               if (!state.tuningAnchorsActive || state.tuningCancelRequested) break;
 
               let r1, r2, r3;
-              do { r1 = Math.floor(Math.random() * POP_SIZE); } while (r1 === i);
-              do { r2 = Math.floor(Math.random() * POP_SIZE); } while (r2 === i || r2 === r1);
-              do { r3 = Math.floor(Math.random() * POP_SIZE); } while (r3 === i || r3 === r1 || r3 === r2);
+              let att1 = 0, att2 = 0, att3 = 0;
+              do { r1 = Math.floor(Math.random() * POP_SIZE); att1++; } while (r1 === i && att1 < 100);
+              do { r2 = Math.floor(Math.random() * POP_SIZE); att2++; } while ((r2 === i || r2 === r1) && att2 < 100);
+              do { r3 = Math.floor(Math.random() * POP_SIZE); att3++; } while ((r3 === i || r3 === r1 || r3 === r2) && att3 < 100);
 
               const F = 0.65;
               const CR = 0.85;
@@ -12671,7 +12728,7 @@ EOF`;
           return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
         });
 
-        const fixedIndices = getFixedVertexIndices(finalNominal, state.anchors);
+        const fixedIndices = isAllAnchorsFixed ? new Set() : getFixedVertexIndices(finalNominal, state.anchors);
         const finalOpt = BoundaryOptimizer.optimize({
           vertices: finalNominal,
           segmentLengths: poly.segmentLengths,
@@ -16222,12 +16279,14 @@ EOF`;
         } catch (_) {}
       }
       return state.histEntities.map(ent => {
-        const pts = (ent.points || []).map(p => {
-          if (warper) {
-            try { return warper(p); } catch (_) { return { x: p.x, y: p.y }; }
-          }
-          return { x: p.x, y: p.y };
-        });
+        const pts = (ent.fieldPoints && ent.fieldPoints.length === (ent.points || []).length)
+          ? ent.fieldPoints.map(p => ({ x: p.x, y: p.y }))
+          : (ent.points || []).map(p => {
+              if (warper) {
+                try { return warper(p); } catch (_) { return { x: p.x, y: p.y }; }
+              }
+              return { x: p.x, y: p.y };
+            });
         return {
           layer: ent.layer || "",
           closed: ent.closed !== false,
@@ -16247,6 +16306,16 @@ EOF`;
       return Math.abs(area) / 2;
     }
 
+    function computeShoelaceSigned(pts) {
+      if (!pts || pts.length < 3) return 0;
+      let area = 0;
+      for (let i = 0; i < pts.length; i++) {
+        const j = (i + 1) % pts.length;
+        area += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+      }
+      return area / 2;
+    }
+
     function computePolylineLength(pts) {
       if (!pts || pts.length < 2) return 0;
       let len = 0;
@@ -16254,6 +16323,129 @@ EOF`;
         len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
       }
       return len;
+    }
+
+    /**
+     * Relaxes polygon nodes of Lote Jimmy & Lote Pedro within buffer radius bufferR.
+     * Shared boundary corners are kept strictly coincident.
+     * Introduces the minimal angular/positional deflection necessary to meet target parcel areas.
+     */
+    function relax196Nodes(ptsJ, ptsP, targetJ, targetP, bufferR = 3.0, iterations = 80) {
+      if (!ptsJ || !ptsP || ptsJ.length < 3 || ptsP.length < 3) {
+        return { curJ: ptsJ, curP: ptsP, aJ: 0, aP: 0, maxShift: 0 };
+      }
+      const curJ = ptsJ.map(p => ({ x: p.x, y: p.y, origX: p.origX ?? p.x, origY: p.origY ?? p.y }));
+      const curP = ptsP.map(p => ({ x: p.x, y: p.y, origX: p.origX ?? p.x, origY: p.origY ?? p.y }));
+
+      // Find shared vertices (distance <= 0.25m in field space)
+      const shared = [];
+      for (let i = 0; i < curJ.length; i++) {
+        for (let j = 0; j < curP.length; j++) {
+          if (Math.hypot(curJ[i].origX - curP[j].origX, curJ[i].origY - curP[j].origY) <= 0.25) {
+            shared.push({ jIdx: i, pIdx: j });
+          }
+        }
+      }
+
+      const nJ = curJ.length;
+      const nP = curP.length;
+
+      for (let iter = 0; iter < iterations; iter++) {
+        const sJ = computeShoelaceSigned(curJ);
+        const aJ = Math.abs(sJ);
+        const sgnJ = sJ >= 0 ? 1 : -1;
+        const diffJ = targetJ - aJ;
+
+        const sP = computeShoelaceSigned(curP);
+        const aP = Math.abs(sP);
+        const sgnP = sP >= 0 ? 1 : -1;
+        const diffP = targetP - aP;
+
+        if (Math.abs(diffJ) < 0.005 && Math.abs(diffP) < 0.005) break;
+
+        const gradJ = [];
+        let sumNormSqJ = 0;
+        for (let i = 0; i < nJ; i++) {
+          const prev = curJ[(i - 1 + nJ) % nJ];
+          const next = curJ[(i + 1) % nJ];
+          const gx = (sgnJ / 2) * (next.y - prev.y);
+          const gy = (sgnJ / 2) * (prev.x - next.x);
+          gradJ.push({ gx, gy });
+          sumNormSqJ += gx * gx + gy * gy;
+        }
+
+        const gradP = [];
+        let sumNormSqP = 0;
+        for (let j = 0; j < nP; j++) {
+          const prev = curP[(j - 1 + nP) % nP];
+          const next = curP[(j + 1) % nP];
+          const gx = (sgnP / 2) * (next.y - prev.y);
+          const gy = (sgnP / 2) * (prev.x - next.x);
+          gradP.push({ gx, gy });
+          sumNormSqP += gx * gx + gy * gy;
+        }
+
+        const stepJ = sumNormSqJ > 1e-6 ? (diffJ / sumNormSqJ) * 0.45 : 0;
+        const stepP = sumNormSqP > 1e-6 ? (diffP / sumNormSqP) * 0.45 : 0;
+
+        for (let i = 0; i < nJ; i++) {
+          if (!shared.some(s => s.jIdx === i)) {
+            curJ[i].x += stepJ * gradJ[i].gx;
+            curJ[i].y += stepJ * gradJ[i].gy;
+          }
+        }
+        for (let j = 0; j < nP; j++) {
+          if (!shared.some(s => s.pIdx === j)) {
+            curP[j].x += stepP * gradP[j].gx;
+            curP[j].y += stepP * gradP[j].gy;
+          }
+        }
+
+        for (const sh of shared) {
+          const gJ = gradJ[sh.jIdx];
+          const gP = gradP[sh.pIdx];
+          const dx = (stepJ * gJ.gx + stepP * gP.gx) * 0.5;
+          const dy = (stepJ * gJ.gy + stepP * gP.gy) * 0.5;
+          curJ[sh.jIdx].x += dx;
+          curJ[sh.jIdx].y += dy;
+          curP[sh.pIdx].x = curJ[sh.jIdx].x;
+          curP[sh.pIdx].y = curJ[sh.jIdx].y;
+        }
+
+        // Clamp to buffer radius bufferR around original coordinates
+        for (let i = 0; i < nJ; i++) {
+          const dx = curJ[i].x - curJ[i].origX;
+          const dy = curJ[i].y - curJ[i].origY;
+          const d = Math.hypot(dx, dy);
+          if (d > bufferR && d > 0) {
+            curJ[i].x = curJ[i].origX + (dx / d) * bufferR;
+            curJ[i].y = curJ[i].origY + (dy / d) * bufferR;
+          }
+        }
+        for (let j = 0; j < nP; j++) {
+          const sh = shared.find(s => s.pIdx === j);
+          if (sh) {
+            curP[j].x = curJ[sh.jIdx].x;
+            curP[j].y = curJ[sh.jIdx].y;
+          } else {
+            const dx = curP[j].x - curP[j].origX;
+            const dy = curP[j].y - curP[j].origY;
+            const d = Math.hypot(dx, dy);
+            if (d > bufferR && d > 0) {
+              curP[j].x = curP[j].origX + (dx / d) * bufferR;
+              curP[j].y = curP[j].origY + (dy / d) * bufferR;
+            }
+          }
+        }
+      }
+
+      const finalAJ = Math.abs(computeShoelaceSigned(curJ));
+      const finalAP = Math.abs(computeShoelaceSigned(curP));
+      let maxShift = 0;
+      for (let i = 0; i < nJ; i++) maxShift = Math.max(maxShift, Math.hypot(curJ[i].x - curJ[i].origX, curJ[i].y - curJ[i].origY));
+      for (let j = 0; j < nP; j++) maxShift = Math.max(maxShift, Math.hypot(curP[j].x - curP[j].origX, curP[j].y - curP[j].origY));
+
+      return { curJ, curP, aJ: finalAJ, aP: finalAP, maxShift };
     }
 
     function recompute196Metrics() {
@@ -16351,12 +16543,9 @@ EOF`;
         return;
       }
 
-      // Condition check for "Mode": verify that at least one active anchor is in Tune mode
+      // Condition check for "Mode":
       const optimizableAnchors = activeAnchors.filter(a => a.optimize === true);
-      if (optimizableAnchors.length === 0) {
-        alert("⚠️ Todos los anclajes activos están en modo 🔒 Fixed.\n\nPara optimizar, haz clic en el botón '🔒 Fixed' en la columna 'Mode' de los anclajes que deseas ajustar para cambiarlos a '🎯 Tune'.");
-        return;
-      }
+      const isAllAnchorsFixed = optimizableAnchors.length === 0;
 
       const targetJimmyInput = document.getElementById("input-target-area-jimmy");
       const targetPedroInput = document.getElementById("input-target-area-pedro");
@@ -16477,8 +16666,11 @@ EOF`;
           const warper = TransformMath.createWarper(state.algorithm || "TPS", activeCand);
           const wJ = jimmyEnt.points.map(p => warper(p));
           const wP = pedroEnt.points.map(p => warper(p));
-          const aJ = computeShoelaceArea(wJ);
-          const aP = computeShoelaceArea(wP);
+
+          // Run node relaxation on wJ and wP within buffer currentR
+          const relaxed = relax196Nodes(wJ, wP, targetJimmy, targetPedro, currentR, 80);
+          const aJ = relaxed.aJ;
+          const aP = relaxed.aP;
           const deltaJ = aJ - targetJimmy;
           const deltaP = aP - targetPedro;
           const errJ = (Math.abs(deltaJ) / targetJimmy) * 100;
@@ -16494,6 +16686,9 @@ EOF`;
             errJ,
             errP,
             candAnchors,
+            fieldJimmy: relaxed.curJ,
+            fieldPedro: relaxed.curP,
+            maxShift: relaxed.maxShift,
             offsets: offsets.map(o => ({ ...o })),
             radius: currentR
           };
@@ -16507,6 +16702,9 @@ EOF`;
             errJ: 999,
             errP: 999,
             candAnchors: null,
+            fieldJimmy: null,
+            fieldPedro: null,
+            maxShift: 0,
             offsets,
             radius: currentR
           };
@@ -16537,9 +16735,13 @@ EOF`;
 
           const currentR = rSweepList[rIdx];
           state.optBufferRadius = currentR;
-          if (optBufferVal196) optBufferVal196.textContent = `±${currentR.toFixed(1)} m`;
-          const constrainHint196 = document.getElementById("anchor-constrain-hint-196");
-          if (constrainHint196) constrainHint196.textContent = `(±${currentR.toFixed(1)}m)`;
+          if (typeof syncBufferRadius === "function") {
+            syncBufferRadius(currentR);
+          } else {
+            if (optBufferVal196) optBufferVal196.textContent = `±${currentR.toFixed(1)} m`;
+            const constrainHint196 = document.getElementById("anchor-constrain-hint-196");
+            if (constrainHint196) constrainHint196.textContent = `(±${currentR.toFixed(1)}m)`;
+          }
 
           // Current normalized offsets inside unit disk or full-axis parameter t
           const currentOffsets = state.anchors.map((anc, idx) => {
@@ -16566,7 +16768,46 @@ EOF`;
             return { u: du, v: dv, t: 0.5 };
           });
 
-          // Population setup for Differential Evolution (DE)
+          if (isAllAnchorsFixed) {
+            // Mode: All Anchors Fixed -> Anchors strictly preserve the deed sheet (0 deformation);
+            // only deed polygon boundary nodes are relaxed within the pen buffer radius.
+            const evalRes = evaluateCandidate(currentOffsets, currentR);
+            if (evalRes.fieldJimmy && evalRes.fieldPedro) {
+              jimmyEnt.fieldPoints = evalRes.fieldJimmy;
+              pedroEnt.fieldPoints = evalRes.fieldPedro;
+            }
+            recompute196Metrics();
+            redrawTrueCanvas();
+
+            if (badgeOptStatus196) {
+              const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Buffer ±${currentR.toFixed(1)}m`;
+              badgeOptStatus196.textContent = `${prefix} (${evalRes.loss.toFixed(2)}%)`;
+              badgeOptStatus196.style.color = "#00e676";
+              badgeOptStatus196.style.background = "rgba(0, 230, 118, 0.18)";
+            }
+
+            if (statusOpt) {
+              statusOpt.innerHTML = `⏳ <strong>Ajustando nodos dentro de ±${currentR.toFixed(1)}m</strong> (Desplazamiento máx: ${(evalRes.maxShift * 100).toFixed(1)} cm, Err: ${evalRes.loss.toFixed(2)}%):<br>• Lote Jimmy: <strong>${evalRes.aJ.toFixed(2)} m²</strong> (target ${targetJimmy.toFixed(1)} m², Δ ${evalRes.deltaJ >= 0 ? '+' : ''}${evalRes.deltaJ.toFixed(2)} m²)<br>• Lote Pedro: <strong>${evalRes.aP.toFixed(2)} m²</strong> (target ${targetPedro.toFixed(1)} m², Δ ${evalRes.deltaP >= 0 ? '+' : ''}${evalRes.deltaP.toFixed(2)} m²)`;
+            }
+
+            if (!globalOverallBest || evalRes.loss < globalOverallBest.loss) {
+              globalOverallBest = evalRes;
+              winningR = currentR;
+            }
+
+            const isZeroError = evalRes.loss < 0.005 || (Math.abs(evalRes.deltaJ) < 0.15 && Math.abs(evalRes.deltaP) < 0.15);
+            if (isAutoMin && isZeroError) {
+              winningR = currentR;
+              globalOverallBest = evalRes;
+              updateStatus(`⚡ Auto-Detect: Error cero (0.00%) alcanzado en radio mínimo de ±${currentR.toFixed(1)}m (desplazamiento máx: ${(evalRes.maxShift * 100).toFixed(1)} cm).`);
+              break;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, isAutoMin ? 35 : 15));
+            continue;
+          }
+
+          // Population setup for Differential Evolution (DE) when some or all anchors are in Tune mode
           const POP_SIZE = 16;
           const maxGen = isAutoMin ? 12 : 25;
           const population = [];
@@ -16586,9 +16827,10 @@ EOF`;
               if (!state.tuning196Active || state.tuning196CancelRequested) break;
 
               let r1, r2, r3;
-              do { r1 = Math.floor(Math.random() * POP_SIZE); } while (r1 === i);
-              do { r2 = Math.floor(Math.random() * POP_SIZE); } while (r2 === i || r2 === r1);
-              do { r3 = Math.floor(Math.random() * POP_SIZE); } while (r3 === i || r3 === r1 || r3 === r2);
+              let att1 = 0, att2 = 0, att3 = 0;
+              do { r1 = Math.floor(Math.random() * POP_SIZE); att1++; } while (r1 === i && att1 < 100);
+              do { r2 = Math.floor(Math.random() * POP_SIZE); att2++; } while ((r2 === i || r2 === r1) && att2 < 100);
+              do { r3 = Math.floor(Math.random() * POP_SIZE); att3++; } while ((r3 === i || r3 === r1 || r3 === r2) && att3 < 100);
 
               const F = 0.65;
               const CR = 0.85;
@@ -16659,6 +16901,10 @@ EOF`;
                   }
                 }
               }
+              if (globalBest.fieldJimmy && globalBest.fieldPedro) {
+                jimmyEnt.fieldPoints = globalBest.fieldJimmy;
+                pedroEnt.fieldPoints = globalBest.fieldPedro;
+              }
               recompute196Metrics();
               redrawTrueCanvas();
 
@@ -16693,22 +16939,33 @@ EOF`;
         }
       } finally {
         // Apply winning solution
-        if (globalOverallBest && globalOverallBest.candAnchors) {
+        if (globalOverallBest) {
           state.optBufferRadius = winningR;
-          if (optBufferVal196) optBufferVal196.textContent = `±${winningR.toFixed(1)} m`;
-          const optBufferSlider = document.getElementById("opt-buffer-slider");
-          if (optBufferSlider) optBufferSlider.value = winningR;
-          const optBufferVal = document.getElementById("opt-buffer-val");
-          if (optBufferVal) optBufferVal.textContent = `±${winningR.toFixed(1)} m`;
+          if (typeof syncBufferRadius === "function") {
+            syncBufferRadius(winningR);
+          } else {
+            if (optBufferVal196) optBufferVal196.textContent = `±${winningR.toFixed(1)} m`;
+            const optBufferSlider = document.getElementById("opt-buffer-slider");
+            if (optBufferSlider) optBufferSlider.value = winningR;
+            const optBufferVal = document.getElementById("opt-buffer-val");
+            if (optBufferVal) optBufferVal.textContent = `±${winningR.toFixed(1)} m`;
+          }
 
-          for (let k = 0; k < state.anchors.length; k++) {
-            if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
-              state.anchors[k].dst.x = globalOverallBest.candAnchors[k].dst.x;
-              state.anchors[k].dst.y = globalOverallBest.candAnchors[k].dst.y;
-              if (globalOverallBest.candAnchors[k].axisT !== undefined) {
-                state.anchors[k].axisT = globalOverallBest.candAnchors[k].axisT;
+          if (globalOverallBest.candAnchors) {
+            for (let k = 0; k < state.anchors.length; k++) {
+              if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
+                state.anchors[k].dst.x = globalOverallBest.candAnchors[k].dst.x;
+                state.anchors[k].dst.y = globalOverallBest.candAnchors[k].dst.y;
+                if (globalOverallBest.candAnchors[k].axisT !== undefined) {
+                  state.anchors[k].axisT = globalOverallBest.candAnchors[k].axisT;
+                }
               }
             }
+          }
+
+          if (globalOverallBest.fieldJimmy && globalOverallBest.fieldPedro) {
+            jimmyEnt.fieldPoints = globalOverallBest.fieldJimmy;
+            pedroEnt.fieldPoints = globalOverallBest.fieldPedro;
           }
 
           recompute196Metrics();
@@ -16716,7 +16973,9 @@ EOF`;
 
           const tunedCount = state.anchors.filter(a => a.active !== false && a.enabled !== false && a.optimize === true).length;
           const fixedCount = state.anchors.filter(a => a.active !== false && a.enabled !== false && a.optimize !== true).length;
-          const modeBadge = `🎯 ${tunedCount} Tune / 🔒 ${fixedCount} Fixed`;
+          const modeBadge = isAllAnchorsFixed
+            ? `🔒 Todos los Anclajes Fijos (Ajuste de Nodos en Buffer ±${winningR.toFixed(1)}m, máx ${(globalOverallBest.maxShift * 100).toFixed(1)} cm)`
+            : `🎯 ${tunedCount} Tune / 🔒 ${fixedCount} Fixed`;
           const constrainInfo = state.constrainAnchorsToField ? ` [🔒 Restringido ±${winningR.toFixed(1)}m]` : ` [🔓 Sin restricción]`;
 
           if (badgeOptStatus196) {
@@ -16754,8 +17013,14 @@ EOF`;
     if (btnReset196) {
       btnReset196.addEventListener("click", () => {
         let restoredAny = false;
+        (state.histEntities || []).forEach(ent => {
+          delete ent.fieldPoints;
+        });
         if (state.origHistEntities196) {
           state.histEntities = JSON.parse(JSON.stringify(state.origHistEntities196));
+          (state.histEntities || []).forEach(ent => {
+            delete ent.fieldPoints;
+          });
           restoredAny = true;
         }
         if (state.origAnchors196) {
@@ -16763,7 +17028,7 @@ EOF`;
           state.anchors.forEach(ensureAnchorImgElement);
           restoredAny = true;
         }
-        if (restoredAny) {
+        if (restoredAny || (state.histEntities && state.histEntities.length > 0)) {
           recompute196Metrics();
           renderAnchorTable();
           redrawAll();
@@ -16797,7 +17062,30 @@ EOF`;
 
     const btnSaveDxf196 = document.getElementById("btn-save-dxf-196");
     if (btnSaveDxf196) {
-      btnSaveDxf196.addEventListener("click", saveDeedDxf);
+      btnSaveDxf196.addEventListener("click", () => {
+        const warpedEnts = get196WarpedEntities();
+        if (!warpedEnts || warpedEnts.length === 0) {
+          alert("No se encontraron entidades de Escritura 196 para exportar.");
+          return;
+        }
+        const exportEnts = warpedEnts.map(we => ({
+          type: "POLYLINE",
+          layer: we.layer || "0",
+          closed: we.closed !== false,
+          points: we.points
+        }));
+        const txt = DXFParser.serialize(exportEnts);
+        const blob = new Blob([txt], { type: "application/dxf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Polygon_Escritura196_Optimized.dxf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateStatus("💾 Guardado DXF optimizado en 'Polygon_Escritura196_Optimized.dxf'.");
+      });
     }
 
     const inputTargetJimmy = document.getElementById("input-target-area-jimmy");

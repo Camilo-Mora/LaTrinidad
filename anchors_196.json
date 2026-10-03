@@ -11,12 +11,11 @@
         "y": 322.34439559311085
       },
       "dst": {
-        "x": 1097928.79,
-        "y": 876837.4
+        "x": 1097931.99,
+        "y": 876844.08
       },
       "active": true,
-      "enabled": true,
-      "optimize": true
+      "enabled": true
     },
     {
       "id": 2,
@@ -33,8 +32,7 @@
         "y": 876849.01
       },
       "active": false,
-      "enabled": false,
-      "optimize": false
+      "enabled": false
     },
     {
       "id": 3,
@@ -47,12 +45,11 @@
         "y": 498.3083978076609
       },
       "dst": {
-        "x": 1097849.26,
-        "y": 876799.21
+        "x": 1097846.02,
+        "y": 876800.11
       },
       "active": true,
-      "enabled": true,
-      "optimize": true
+      "enabled": true
     },
     {
       "id": 4,
@@ -68,9 +65,8 @@
         "x": 1097885.0849472824,
         "y": 876780.791843335
       },
-      "active": true,
-      "enabled": true,
-      "optimize": true
+      "active": false,
+      "enabled": false
     },
     {
       "id": 5,
@@ -86,9 +82,8 @@
         "x": 1097918.92,
         "y": 876844.72
       },
-      "active": true,
-      "enabled": true,
-      "optimize": true
+      "active": false,
+      "enabled": false
     },
     {
       "id": 6,
@@ -101,12 +96,11 @@
         "y": 648.0958369438254
       },
       "dst": {
-        "x": 1097880.94,
-        "y": 876722.52
+        "x": 1097882.77,
+        "y": 876725.92
       },
       "active": true,
-      "enabled": true,
-      "optimize": true
+      "enabled": true
     },
     {
       "id": 7,
@@ -123,8 +117,7 @@
         "y": 876824.71
       },
       "active": false,
-      "enabled": false,
-      "optimize": false
+      "enabled": false
     },
     {
       "id": 8,
@@ -140,9 +133,8 @@
         "x": 1097898.71,
         "y": 876847.47
       },
-      "active": true,
-      "enabled": true,
-      "optimize": true
+      "active": false,
+      "enabled": false
     },
     {
       "id": 9,
@@ -158,9 +150,8 @@
         "x": 1097840.53,
         "y": 876796.64
       },
-      "active": true,
-      "enabled": true,
-      "optimize": true
+      "active": false,
+      "enabled": false
     },
     {
       "id": 10,
@@ -176,9 +167,8 @@
         "x": 1097830.89,
         "y": 876782.06
       },
-      "active": true,
-      "enabled": true,
-      "optimize": true
+      "active": false,
+      "enabled": false
     },
     {
       "id": 11,
@@ -194,9 +184,8 @@
         "x": 1097830.74,
         "y": 876770.61
       },
-      "active": true,
-      "enabled": true,
-      "optimize": true
+      "active": false,
+      "enabled": false
     }
   ]
 }
