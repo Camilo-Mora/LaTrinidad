@@ -1029,13 +1029,13 @@
                   <td colspan="6" style="padding-left:6px;">📐 DXF Layers</td>
                 </tr>
                 <tr>
-                  <td><span class="poly-color-dot" style="background:var(--accent-purple);box-shadow:0 0 4px var(--accent-purple);"></span></td>
-                  <td class="col-name" style="color:var(--accent-purple);">Escritura 296</td>
+                  <td><span class="poly-color-dot" style="background:var(--accent-cyan);box-shadow:0 0 4px var(--accent-cyan);"></span></td>
+                  <td class="col-name" style="color:var(--accent-cyan);">Lindero La Trinidad</td>
                   <td style="white-space:nowrap;padding:1px 2px;">
-                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="-1" title="Send Backward (draw behind)">▼</button>
-                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="poly_reconstructed" data-dir="-1" title="Send Backward (draw behind)">▼</button>
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="poly_reconstructed" data-dir="1" title="Bring Forward (draw on top)">▲</button>
                   </td>
-                  <td><input type="checkbox" id="sum-show-dxf-296" checked title="Show/hide Escritura 296 on field map" style="accent-color:var(--accent-purple);"></td>
+                  <td><input type="checkbox" id="sum-show-reconstructed-poly" checked title="Show/hide Lindero La Trinidad on field map" style="accent-color:var(--accent-cyan);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
                 </tr>
@@ -1272,13 +1272,13 @@
             <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:6px;">
               <div style="font-size:0.7rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;">🗺️ Case DXF Layers &amp; Opacity</div>
               <div style="display:flex;flex-direction:column;gap:5px;">
-                <!-- Escritura 296 -->
+                <!-- Lindero La Trinidad -->
                 <div style="display:flex;align-items:center;gap:6px;">
-                  <input type="checkbox" id="case-dxf-vis-296" checked title="Show/hide Escritura 296 in this case" style="cursor:pointer;accent-color:#d500f9;">
-                  <span style="width:8px;height:8px;border-radius:50%;background:#d500f9;flex-shrink:0;box-shadow:0 0 4px #d500f9;display:inline-block;"></span>
-                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Escritura 296</span>
-                  <input type="range" id="dxf-opacity-296" min="0" max="100" value="100" style="flex:2;accent-color:#d500f9;">
-                  <span id="dxf-opacity-296-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
+                  <input type="checkbox" id="case-dxf-vis-reconstructed" checked title="Show/hide Lindero La Trinidad in this case" style="cursor:pointer;accent-color:var(--accent-cyan);">
+                  <span style="width:8px;height:8px;border-radius:50%;background:var(--accent-cyan);flex-shrink:0;box-shadow:0 0 4px var(--accent-cyan);display:inline-block;"></span>
+                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Lindero La Trinidad</span>
+                  <input type="range" id="dxf-opacity-reconstructed" min="0" max="100" value="100" style="flex:2;accent-color:var(--accent-cyan);">
+                  <span id="dxf-opacity-reconstructed-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
                 </div>
                 <!-- Escritura 1073 -->
                 <div style="display:flex;align-items:center;gap:6px;">
@@ -1348,9 +1348,9 @@
           </div>
           <div id="body-panel-dxf-layers" class="panel-body-collapsed">
           <div style="display:flex; flex-direction:column; gap:6px; margin-top:2px;">
-            <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-purple); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Display or hide Escritura 296 on Field map">
-              <input type="checkbox" id="chk-show-field-296" checked style="cursor:pointer; accent-color:var(--accent-purple);">
-              <span class="layer-area-stats" id="area-stats-296">Area 296: --</span>
+            <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-cyan); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Mostrar u ocultar Lindero La Trinidad en Campo">
+              <input type="checkbox" id="chk-show-field-reconstructed" checked style="cursor:pointer; accent-color:var(--accent-cyan);">
+              <span class="layer-area-stats" id="area-stats-reconstructed" style="color:var(--accent-cyan);">Lindero La Trinidad: --</span>
             </label>
             <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-red); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Display or hide Escritura 1073 on Field map">
               <input type="checkbox" id="chk-show-field-1073" checked style="cursor:pointer; accent-color:var(--accent-red);">
@@ -3738,13 +3738,15 @@ async function autoLoadReconstructedPolygon() {
 }
 
 function drawReconstructedPolygon(ctx, vp, canvasH) {
-  if (state.showReconstructedPolygon === false) return;
+  const ac = state.caseMode ? getActiveCase() : null;
+  const isVis = ac ? (ac.layers?.reconstructed !== false && ac.layers?.dxf296 !== false) : (state.showReconstructedPolygon !== false);
+  if (!isVis) return;
   const poly = state.reconstructedPolygon;
   if (!poly || !poly.show) return;
   const verts = poly.vertices;
   if (!verts || verts.length === 0) return;
 
-  const opacity = state.reconstructedPolyOpacity !== undefined ? state.reconstructedPolyOpacity : 1.0;
+  const opacity = ac ? (ac.dxfOpacity?.reconstructed ?? 1.0) : (state.reconstructedPolyOpacity !== undefined ? state.reconstructedPolyOpacity : 1.0);
   if (opacity <= 0) return;
 
   updateReconstructedPolygonWarp();
@@ -3803,13 +3805,15 @@ function drawReconstructedPolygon(ctx, vp, canvasH) {
 }
 
 function drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio) {
-  if (state.showReconstructedPolygon === false) return;
+  const ac = state.caseMode ? getActiveCase() : null;
+  const isVis = ac ? (ac.layers?.reconstructed !== false && ac.layers?.dxf296 !== false) : (state.showReconstructedPolygon !== false);
+  if (!isVis) return;
   const poly = state.reconstructedPolygon;
   if (!poly || !poly.show) return;
   const verts = poly.vertices;
   if (!verts || verts.length === 0) return;
 
-  const opacity = state.reconstructedPolyOpacity !== undefined ? state.reconstructedPolyOpacity : 1.0;
+  const opacity = ac ? (ac.dxfOpacity?.reconstructed ?? 1.0) : (state.reconstructedPolyOpacity !== undefined ? state.reconstructedPolyOpacity : 1.0);
   if (opacity <= 0) return;
 
   updateReconstructedPolygonWarp();
@@ -4661,7 +4665,7 @@ function updateMasterCheckboxes() {
   if (!masterShow) return;
 
   // For Show: consider DXF layers, anchor rows, AND measurement polygons
-  const dxfShowIds = ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"];
+  const dxfShowIds = ["sum-show-reconstructed-poly","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"];
   const anchorShowIds = ["sum-show-anchors-296","sum-show-anchors-1073","sum-show-anchors-196"];
   const allShowChks = [...dxfShowIds, ...anchorShowIds].map(id => document.getElementById(id)).filter(Boolean);
   const measShowChks = Array.from(document.querySelectorAll(".sum-poly-show"));
@@ -4722,7 +4726,19 @@ function setupPolygonSummaryListeners() {
     }, true); // capture so it runs before or alongside existing handler
   }
 
-  wireDXFSummaryRow("sum-show-dxf-296",  "chk-show-field-296",  "showWarped296OnField");
+  wireDXFSummaryRow("sum-show-reconstructed-poly", "chk-show-field-reconstructed", "showReconstructedPolygon");
+  const sumReconChk = document.getElementById("sum-show-reconstructed-poly");
+  const fieldReconChk = document.getElementById("chk-show-field-reconstructed");
+  const barReconChk = document.getElementById("chk-show-reconstructed-poly");
+  if (barReconChk) {
+    if (sumReconChk) sumReconChk.addEventListener("change", function() { barReconChk.checked = this.checked; });
+    if (fieldReconChk) fieldReconChk.addEventListener("change", function() { barReconChk.checked = this.checked; });
+    barReconChk.addEventListener("change", function() {
+      if (sumReconChk) sumReconChk.checked = this.checked;
+      if (fieldReconChk) fieldReconChk.checked = this.checked;
+      updateMasterCheckboxes();
+    });
+  }
   wireDXFSummaryRow("sum-show-dxf-1073", "chk-show-field-1073", "showWarped1073OnField");
   wireDXFSummaryRow("sum-show-dxf-196",  "chk-show-field-196",  "showWarped196OnField");
   wireDXFSummaryRow("sum-show-dxf-true", "chk-show-field-true", "showFieldDXFOnField");
@@ -4783,7 +4799,7 @@ function setupPolygonSummaryListeners() {
     masterShow.addEventListener("change", function() {
       const v = this.checked;
       // DXF layers
-      ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"].forEach(id => {
+      ["sum-show-reconstructed-poly","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.checked = v; el.dispatchEvent(new Event("change")); }
       });
@@ -5970,6 +5986,19 @@ function calculatePolygonArea(points) {
   return Math.abs(area) / 2;
 }
 
+function calcReconstructedPolygonArea() {
+  const poly = state.reconstructedPolygon;
+  if (!poly || !poly.vertices || poly.vertices.length < 3) return 0;
+  let area = 0;
+  const pts = poly.vertices;
+  for (let i = 0; i < pts.length; i++) {
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % pts.length];
+    area += (p1.x * p2.y) - (p2.x * p1.y);
+  }
+  return Math.abs(area) / 2;
+}
+
 function updateAreaStats() {
   const calcLayerArea = (entities, warper) => {
     let totalArea = 0;
@@ -5990,15 +6019,14 @@ function updateAreaStats() {
     return `${ha.toFixed(2)} ha (${plazas.toFixed(2)} plazas; ${m2Str} m²)`;
   };
 
-  const el296 = document.getElementById("area-stats-296");
+  const elReconstructed = document.getElementById("area-stats-reconstructed");
+  if (elReconstructed) {
+    const a = calcReconstructedPolygonArea();
+    elReconstructed.textContent = "Lindero La Trinidad: " + (a > 0 ? formatArea(a) : "--");
+  }
+
   const el1073 = document.getElementById("area-stats-1073");
   const el196  = document.getElementById("area-stats-196");
-
-  let warper296 = null;
-  if (getActiveAnchors(state.anchors296).length >= 2) {
-    try { warper296 = TransformMath.createWarper(state.algorithm, state.anchors296); } catch(_) {}
-  }
-  if (el296) el296.textContent = "Area 296: " + formatArea(calcLayerArea(state.entities296, warper296));
 
   let warper1073 = null;
   if (getActiveAnchors(state.anchors1073).length >= 2) {
@@ -7315,8 +7343,8 @@ function applyActiveCase(caseObj) {
     if (arrInsp) arrInsp.style.display = "none";
 
     // Reset DXF visibility toggles to match normal workspace
-    const chk296 = document.getElementById("case-dxf-vis-296");
-    if (chk296) chk296.checked = state.showWarped296OnField !== false;
+    const chkRecon = document.getElementById("case-dxf-vis-reconstructed");
+    if (chkRecon) chkRecon.checked = state.showReconstructedPolygon !== false;
     const chk1073 = document.getElementById("case-dxf-vis-1073");
     if (chk1073) chk1073.checked = state.showWarped1073OnField !== false;
     const chk196 = document.getElementById("case-dxf-vis-196");
@@ -7328,7 +7356,7 @@ function applyActiveCase(caseObj) {
 
     // Reset opacity sliders to match general state
     [
-      { id: "dxf-opacity-296",  key: "dxf_296" },
+      { id: "dxf-opacity-reconstructed", key: "reconstructed" },
       { id: "dxf-opacity-1073", key: "dxf_1073" },
       { id: "dxf-opacity-196",  key: "dxf_196" },
       { id: "dxf-opacity-true", key: "dxf_true" }
@@ -7354,10 +7382,10 @@ function applyActiveCase(caseObj) {
   if (!caseObj.selectedPolyIds) caseObj.selectedPolyIds = [];
   if (!caseObj.polyStyles) caseObj.polyStyles = {};
   if (!caseObj.layers) {
-    caseObj.layers = { geotiff: true, dxf296: true, dxf1073: true, dxf196: true, dxfTrue: true };
+    caseObj.layers = { geotiff: true, reconstructed: true, dxf1073: true, dxf196: true, dxfTrue: true };
   }
   if (!caseObj.dxfOpacity) {
-    caseObj.dxfOpacity = { dxf_296: 1, dxf_1073: 1, dxf_196: 1, dxf_true: 1 };
+    caseObj.dxfOpacity = { reconstructed: 1, dxf_1073: 1, dxf_196: 1, dxf_true: 1 };
   }
 
   if (caseObj.camera) {
@@ -7367,8 +7395,8 @@ function applyActiveCase(caseObj) {
   }
 
   // Restore DXF visibility checkboxes in Cases panel
-  const chk296 = document.getElementById("case-dxf-vis-296");
-  if (chk296) chk296.checked = caseObj.layers.dxf296 !== false;
+  const chkRecon = document.getElementById("case-dxf-vis-reconstructed");
+  if (chkRecon) chkRecon.checked = (caseObj.layers.reconstructed !== false && caseObj.layers.dxf296 !== false);
   const chk1073 = document.getElementById("case-dxf-vis-1073");
   if (chk1073) chk1073.checked = caseObj.layers.dxf1073 !== false;
   const chk196 = document.getElementById("case-dxf-vis-196");
@@ -7382,7 +7410,7 @@ function applyActiveCase(caseObj) {
 
   // Restore DXF opacities and sliders
   [
-    { id: "dxf-opacity-296",  key: "dxf_296" },
+    { id: "dxf-opacity-reconstructed", key: "reconstructed" },
     { id: "dxf-opacity-1073", key: "dxf_1073" },
     { id: "dxf-opacity-196",  key: "dxf_196" },
     { id: "dxf-opacity-true", key: "dxf_true" }
@@ -7415,7 +7443,7 @@ function createNewCase() {
   const id = Date.now();
 
   const layers = {
-    dxf296: document.getElementById("case-dxf-vis-296") ? document.getElementById("case-dxf-vis-296").checked : (state.showWarped296OnField !== false),
+    reconstructed: document.getElementById("case-dxf-vis-reconstructed") ? document.getElementById("case-dxf-vis-reconstructed").checked : (state.showReconstructedPolygon !== false),
     dxf1073: document.getElementById("case-dxf-vis-1073") ? document.getElementById("case-dxf-vis-1073").checked : (state.showWarped1073OnField !== false),
     dxf196: document.getElementById("case-dxf-vis-196") ? document.getElementById("case-dxf-vis-196").checked : (state.showWarped196OnField !== false),
     dxfTrue: document.getElementById("case-dxf-vis-true") ? document.getElementById("case-dxf-vis-true").checked : (state.showFieldDXFOnField !== false),
@@ -7423,7 +7451,7 @@ function createNewCase() {
   };
 
   const dxfOpacity = {
-    dxf_296: (parseFloat(document.getElementById("dxf-opacity-296")?.value) || 100) / 100,
+    reconstructed: (parseFloat(document.getElementById("dxf-opacity-reconstructed")?.value) || 100) / 100,
     dxf_1073: (parseFloat(document.getElementById("dxf-opacity-1073")?.value) || 100) / 100,
     dxf_196: (parseFloat(document.getElementById("dxf-opacity-196")?.value) || 100) / 100,
     dxf_true: (parseFloat(document.getElementById("dxf-opacity-true")?.value) || 100) / 100
@@ -7510,7 +7538,7 @@ function updateActiveCase() {
 
   // 2. DXF Layers Visibility
   if (!ac.layers) ac.layers = {};
-  ac.layers.dxf296 = document.getElementById("case-dxf-vis-296") ? document.getElementById("case-dxf-vis-296").checked : true;
+  ac.layers.reconstructed = document.getElementById("case-dxf-vis-reconstructed") ? document.getElementById("case-dxf-vis-reconstructed").checked : true;
   ac.layers.dxf1073 = document.getElementById("case-dxf-vis-1073") ? document.getElementById("case-dxf-vis-1073").checked : true;
   ac.layers.dxf196 = document.getElementById("case-dxf-vis-196") ? document.getElementById("case-dxf-vis-196").checked : true;
   ac.layers.dxfTrue = document.getElementById("case-dxf-vis-true") ? document.getElementById("case-dxf-vis-true").checked : true;
@@ -7519,7 +7547,7 @@ function updateActiveCase() {
 
   // 3. DXF Opacities
   ac.dxfOpacity = {
-    dxf_296: (parseFloat(document.getElementById("dxf-opacity-296")?.value) || 100) / 100,
+    reconstructed: (parseFloat(document.getElementById("dxf-opacity-reconstructed")?.value) || 100) / 100,
     dxf_1073: (parseFloat(document.getElementById("dxf-opacity-1073")?.value) || 100) / 100,
     dxf_196: (parseFloat(document.getElementById("dxf-opacity-196")?.value) || 100) / 100,
     dxf_true: (parseFloat(document.getElementById("dxf-opacity-true")?.value) || 100) / 100
@@ -8302,7 +8330,7 @@ function setupCasesPanel() {
       drawViewportTrue();
     });
   };
-  wireCaseVis("case-dxf-vis-296", "dxf296");
+  wireCaseVis("case-dxf-vis-reconstructed", "reconstructed");
   wireCaseVis("case-dxf-vis-1073", "dxf1073");
   wireCaseVis("case-dxf-vis-196", "dxf196");
   wireCaseVis("case-dxf-vis-true", "dxfTrue");
