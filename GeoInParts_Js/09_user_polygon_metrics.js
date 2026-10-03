@@ -977,6 +977,8 @@
         if (constrainHint196) constrainHint196.textContent = `(±${val.toFixed(1)}m)`;
         const constrainHint196Opt = document.getElementById("anchor-constrain-hint-196-opt");
         if (constrainHint196Opt) constrainHint196Opt.textContent = `(±${val.toFixed(1)}m)`;
+        const optBufferVal196 = document.getElementById("opt-buffer-val-196");
+        if (optBufferVal196) optBufferVal196.textContent = `±${val.toFixed(1)} m`;
         const deedHint = document.getElementById("deed-constrain-hint");
         if (deedHint) deedHint.textContent = `(±${val.toFixed(1)}m)`;
         redrawTrueCanvas();

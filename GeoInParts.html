@@ -1053,7 +1053,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <tr>
                         <th style="width:24px;">On</th>
                         <th>Name</th>
-                        <th style="width:50px;text-align:center;" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth">Mode</th>
+                        <th style="width:50px;text-align:center;cursor:pointer;" id="th-anchor-mode-196" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth. Click to toggle all active anchors.">Mode</th>
                         <th style="width:50px;">Res (m)</th>
                         <th style="width:30px;">Act</th>
                       </tr>
@@ -1137,9 +1137,16 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
 
                 <!-- Optimization Action -->
-                <div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;">
+                <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#ff1744;font-weight:700;font-size:0.74rem;margin:0;" title="Ejecuta auto-tune barriendo el radio desde 0.1m hasta 3.0m y se detiene automáticamente en el menor radio que converge">
+                      <input type="checkbox" id="chk-auto-min-buffer-196" checked style="accent-color:#ff1744;width:14px;height:14px;cursor:pointer;">
+                      ⚡ Auto-Detect Min Buffer (0.1m → 3.0m)
+                    </label>
+                    <span id="opt-buffer-val-196" style="color:#ff1744;font-family:monospace;font-size:0.70rem;font-weight:700;">±3.0 m</span>
+                  </div>
                   <button id="btn-optimize-196" class="btn btn-primary" style="background:linear-gradient(135deg,#ff1744,#d500f9);border-color:#ff1744;color:#fff;font-weight:800;justify-content:center;padding:7px 12px;box-shadow:0 0 12px rgba(255,23,68,0.35);">
-                    ⚡ Optimizar Áreas Parcelas 196
+                    ⚡ Run Optimization
                   </button>
                   <div style="display:flex;gap:6px;">
                     <button id="btn-save-dxf-196" class="btn btn-secondary btn-sm" style="flex:1;background:rgba(0,230,118,0.15);border-color:#00e676;color:#00e676;font-weight:700;justify-content:center;">
@@ -1152,7 +1159,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 </div>
 
                 <div id="status-opt-196" style="font-size:0.67rem;color:var(--text-muted);background:rgba(0,0,0,0.3);padding:5px 8px;border-radius:4px;line-height:1.35;">
-                  Ajusta los targets de área para Lote Jimmy y Lote Pedro, luego presiona "Optimizar Áreas".
+                  Ajusta los targets de área para Lote Jimmy y Lote Pedro, luego presiona "Run Optimization".
                 </div>
               </div>
             </section>

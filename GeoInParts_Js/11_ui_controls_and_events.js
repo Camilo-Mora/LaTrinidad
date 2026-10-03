@@ -50,6 +50,8 @@
         if (constrainHint196) constrainHint196.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
         const constrainHint196Opt = document.getElementById("anchor-constrain-hint-196-opt");
         if (constrainHint196Opt) constrainHint196Opt.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
+        const optBufferVal196 = document.getElementById("opt-buffer-val-196");
+        if (optBufferVal196) optBufferVal196.textContent = `±${metadata.optBufferRadius.toFixed(1)} m`;
         const deedHint = document.getElementById("deed-constrain-hint");
         if (deedHint) deedHint.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
         restored.push(`Buffer ±${metadata.optBufferRadius.toFixed(1)}m`);
@@ -3575,28 +3577,31 @@
       }
     }
 
-    function optimize196ParcelAreas() {
+    async function optimize196ParcelAreas() {
+      if (state.tuning196Active) {
+        state.tuning196CancelRequested = true;
+        const statusOpt = document.getElementById("status-opt-196");
+        if (statusOpt) statusOpt.textContent = "⏹ Deteniendo optimización... aplicando mejor solución encontrada.";
+        updateStatus("Deteniendo optimización 196… aplicando mejor solución encontrada.");
+        return;
+      }
+
       if (!state.histEntities || state.histEntities.length === 0) {
         alert("No se han cargado las entidades de la Escritura 196.");
         return;
       }
 
-      // Save initial baseline geometry if not already stored
+      // Save initial baseline geometry and anchors if not already stored
       if (!state.origHistEntities196) {
         state.origHistEntities196 = JSON.parse(JSON.stringify(state.histEntities));
+      }
+      if (!state.origAnchors196) {
+        state.origAnchors196 = JSON.parse(JSON.stringify(state.anchors));
       }
 
       const activeAnchors = getActiveAnchors();
       if (activeAnchors.length < 2) {
         alert("Se requieren al menos 2 puntos de control (anclajes) activos para optimizar en coordenadas de campo.");
-        return;
-      }
-
-      let warper = null;
-      try {
-        warper = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors);
-      } catch (err) {
-        alert("Error inicializando transformación: " + err.message);
         return;
       }
 
@@ -3609,259 +3614,397 @@
         return;
       }
 
+      // Condition check for "Mode": verify that at least one active anchor is in Tune mode
+      const optimizableAnchors = activeAnchors.filter(a => a.optimize === true);
+      if (optimizableAnchors.length === 0) {
+        alert("⚠️ Todos los anclajes activos están en modo 🔒 Fixed.\n\nPara optimizar, haz clic en el botón '🔒 Fixed' en la columna 'Mode' de los anclajes que deseas ajustar para cambiarlos a '🎯 Tune'.");
+        return;
+      }
+
       const targetJimmyInput = document.getElementById("input-target-area-jimmy");
       const targetPedroInput = document.getElementById("input-target-area-pedro");
       const targetJimmy = targetJimmyInput ? (parseFloat(targetJimmyInput.value) || 2413.0) : 2413.0;
       const targetPedro = targetPedroInput ? (parseFloat(targetPedroInput.value) || 2142.0) : 2142.0;
 
+      const chkAutoMin = document.getElementById("chk-auto-min-buffer-196");
+      const isAutoMin = chkAutoMin ? chkAutoMin.checked : false;
+
+      // If auto-detect is not clicked only active simulation is run; if ticked search over radius 0.1m -> 3.0m
+      const rSweepList = isAutoMin
+        ? Array.from({ length: 30 }, (_, i) => +(0.1 * (i + 1)).toFixed(1))
+        : [state.optBufferRadius > 0 ? state.optBufferRadius : 3.0];
+
+      // Identify buffer centers for each anchor
+      const baseR = Math.max(state.optBufferRadius > 0 ? state.optBufferRadius : 3.0, 3.0);
+      const anchorCenters = state.anchors.map(anc => {
+        if (state.constrainAnchorsToField) {
+          const nearestField = findNearestFieldVertex(anc.dst);
+          if (nearestField && nearestField.dist <= baseR * 2.5) {
+            return { x: nearestField.x, y: nearestField.y, isMarker: !!nearestField.isMarker, label: nearestField.label };
+          }
+        }
+        return { x: anc.dst.x, y: anc.dst.y };
+      });
+
+      // UI state setup
+      state.tuning196Active = true;
+      state.tuning196CancelRequested = false;
+
+      const btnOpt196 = document.getElementById("btn-optimize-196");
+      const badgeOptStatus196 = document.getElementById("badge-opt-status-196");
+      const optBufferVal196 = document.getElementById("opt-buffer-val-196");
       const statusOpt = document.getElementById("status-opt-196");
-      if (statusOpt) statusOpt.innerHTML = "⏳ Optimizando áreas de Lote Jimmy y Lote Pedro…";
 
-      // Identify shared vertices between Jimmy and Pedro in CAD space
-      const sharedIndicesJimmy = [];
-      const sharedIndicesPedro = [];
-      jimmyEnt.points.forEach((pj, ij) => {
-        pedroEnt.points.forEach((pp, ip) => {
-          if (Math.hypot(pj.x - pp.x, pj.y - pp.y) < 0.05) {
-            sharedIndicesJimmy.push(ij);
-            sharedIndicesPedro.push(ip);
-          }
-        });
-      });
+      if (btnOpt196) {
+        btnOpt196.innerHTML = "⏹ Stop Optimization";
+        btnOpt196.style.background = "linear-gradient(135deg, #ff1744, #ff9100)";
+        btnOpt196.style.boxShadow = "0 0 14px rgba(255, 23, 68, 0.45)";
+      }
 
-      // Differentiate between Tunable Anchors (Mode: Tune) and Fixed Ground Truth (Mode: Fixed)
-      const optimizableAnchors = activeAnchors.filter(a => a.optimize === true);
-      const isAllAnchorsFixed = (optimizableAnchors.length === 0);
-      const activeFixedAnchors = activeAnchors.filter(a => a.optimize !== true && a.axisId == null);
-
-      // Identify which vertices in CAD space are tied to Fixed Anchors (locked to 0 movement)
-      const fixedIndicesJimmy = new Set();
-      const fixedIndicesPedro = new Set();
-      jimmyEnt.points.forEach((pj, ij) => {
-        for (const anc of activeFixedAnchors) {
-          if (Math.hypot(pj.x - anc.src.x, pj.y - anc.src.y) <= 1.5) {
-            fixedIndicesJimmy.add(ij);
-            break;
-          }
-        }
-      });
-      pedroEnt.points.forEach((pp, ip) => {
-        for (const anc of activeFixedAnchors) {
-          if (Math.hypot(pp.x - anc.src.x, pp.y - anc.src.y) <= 1.5) {
-            fixedIndicesPedro.add(ip);
-            break;
-          }
-        }
-      });
-
-      // ── Step 1: If anchors are in "Tune" mode, optimize their field (dst) positions within buffer ──
-      let tunedAnchorsCount = 0;
-      if (!isAllAnchorsFixed) {
-        const basePositions = optimizableAnchors.map(a => ({ x: a.dst.x, y: a.dst.y }));
-        const R = Math.max(state.optBufferRadius > 0 ? state.optBufferRadius : 3.0, 1.0);
-        let bestOffsets = optimizableAnchors.map(() => ({ dx: 0, dy: 0 }));
-
-        const evalError = (offsets) => {
-          offsets.forEach((off, i) => {
-            optimizableAnchors[i].dst.x = basePositions[i].x + off.dx;
-            optimizableAnchors[i].dst.y = basePositions[i].y + off.dy;
-          });
-          let curW = null;
-          try {
-            curW = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors);
-          } catch (_) { return Infinity; }
-          const wJ = jimmyEnt.points.map(p => curW(p));
-          const wP = pedroEnt.points.map(p => curW(p));
-          return Math.abs(computeShoelaceArea(wJ) - targetJimmy) + Math.abs(computeShoelaceArea(wP) - targetPedro);
-        };
-
-        let bestError = evalError(bestOffsets);
-        for (let step = 0; step < 160 && bestError > 0.05; step++) {
-          const stepR = R * Math.pow(0.96, step / 4);
-          for (let i = 0; i < optimizableAnchors.length; i++) {
-            const angle = Math.random() * 2 * Math.PI;
-            const dist = Math.random() * stepR;
-            const candOffsets = bestOffsets.map(o => ({ ...o }));
-            const cDx = candOffsets[i].dx + dist * Math.cos(angle);
-            const cDy = candOffsets[i].dy + dist * Math.sin(angle);
-            if (Math.hypot(cDx, cDy) <= R) {
-              candOffsets[i].dx = cDx;
-              candOffsets[i].dy = cDy;
-              const err = evalError(candOffsets);
-              if (err < bestError) {
-                bestError = err;
-                bestOffsets = candOffsets;
-              }
-            }
-          }
-        }
-        evalError(bestOffsets);
+      function evaluateCandidate(offsets, currentR) {
         try {
-          warper = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors);
-        } catch (_) {}
-        tunedAnchorsCount = optimizableAnchors.length;
-      }
+          const candAnchors = state.anchors.map((anc, idx) => {
+            if (anc.active === false || anc.enabled === false) return { ...anc };
+            const off = offsets[idx] || {};
 
-      // ── Step 2: Iterative dual-parcel area optimization in field coordinates ──
-      let warpedJ = jimmyEnt.points.map(p => warper(p));
-      let warpedP = pedroEnt.points.map(p => warper(p));
-
-      // If Constrain to Vertices / Markers is active, anchor parcel vertices near field vertices or markers
-      const fieldTargetJ = warpedJ.map(p => {
-        if (!state.constrainAnchorsToField) return null;
-        const nf = findNearestFieldVertex(p);
-        return (nf && nf.dist <= (state.optBufferRadius || 3.0) * 1.5) ? { x: nf.x, y: nf.y } : null;
-      });
-      const fieldTargetP = warpedP.map(p => {
-        if (!state.constrainAnchorsToField) return null;
-        const nf = findNearestFieldVertex(p);
-        return (nf && nf.dist <= (state.optBufferRadius || 3.0) * 1.5) ? { x: nf.x, y: nf.y } : null;
-      });
-
-      const maxIters = 150;
-      for (let iter = 0; iter < maxIters; iter++) {
-        const aJ = computeShoelaceArea(warpedJ);
-        const aP = computeShoelaceArea(warpedP);
-        if (Math.abs(aJ - targetJimmy) < 0.05 && Math.abs(aP - targetPedro) < 0.05) break;
-
-        const scaleJ = aJ > 0 ? Math.sqrt(targetJimmy / aJ) : 1.0;
-        const scaleP = aP > 0 ? Math.sqrt(targetPedro / aP) : 1.0;
-
-        let cJx = 0, cJy = 0;
-        warpedJ.forEach(p => { cJx += p.x; cJy += p.y; });
-        cJx /= warpedJ.length; cJy /= warpedJ.length;
-
-        let cPx = 0, cPy = 0;
-        warpedP.forEach(p => { cPx += p.x; cPy += p.y; });
-        cPx /= warpedP.length; cPy /= warpedP.length;
-
-        const rate = 0.35;
-        const factorJ = 1 + (scaleJ - 1) * rate;
-        warpedJ.forEach((p, idx) => {
-          if (!sharedIndicesJimmy.includes(idx) && !fixedIndicesJimmy.has(idx)) {
-            p.x = cJx + (p.x - cJx) * factorJ;
-            p.y = cJy + (p.y - cJy) * factorJ;
-          }
-        });
-
-        const factorP = 1 + (scaleP - 1) * rate;
-        warpedP.forEach((p, idx) => {
-          if (!sharedIndicesPedro.includes(idx) && !fixedIndicesPedro.has(idx)) {
-            p.x = cPx + (p.x - cPx) * factorP;
-            p.y = cPy + (p.y - cPy) * factorP;
-          }
-        });
-
-        // Enforce constraint within buffer radius of Field Vertices / Markers if active
-        if (state.constrainAnchorsToField && state.optBufferRadius > 0) {
-          const R = state.optBufferRadius;
-          warpedJ.forEach((p, idx) => {
-            const ft = fieldTargetJ[idx];
-            if (ft) {
-              const d = Math.hypot(p.x - ft.x, p.y - ft.y);
-              if (d > R) {
-                const ratio = R / d;
-                p.x = ft.x + (p.x - ft.x) * ratio;
-                p.y = ft.y + (p.y - ft.y) * ratio;
+            // 1. If anchor has axis constraint
+            if (anc.axisId != null) {
+              const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+              if (ax) {
+                if (anc.optimize === true) {
+                  let t = off.t !== undefined ? off.t : (off.u !== undefined ? (off.u + 1) / 2 : 0.5);
+                  t = Math.max(0.0, Math.min(1.0, t));
+                  return {
+                    ...anc,
+                    axisT: t,
+                    dst: {
+                      x: ax.p1.x + t * (ax.p2.x - ax.p1.x),
+                      y: ax.p1.y + t * (ax.p2.y - ax.p1.y)
+                    }
+                  };
+                }
+                return { ...anc, isFloatingGuide: true };
               }
             }
-          });
-          warpedP.forEach((p, idx) => {
-            const ft = fieldTargetP[idx];
-            if (ft) {
-              const d = Math.hypot(p.x - ft.x, p.y - ft.y);
-              if (d > R) {
-                const ratio = R / d;
-                p.x = ft.x + (p.x - ft.x) * ratio;
-                p.y = ft.y + (p.y - ft.y) * ratio;
-              }
+
+            // 2. Mode: 🎯 Tune (tested within buffer radius of center)
+            if (anc.optimize === true) {
+              const u = off.u || 0;
+              const v = off.v || 0;
+              return {
+                ...anc,
+                dst: {
+                  x: anchorCenters[idx].x + u * currentR,
+                  y: anchorCenters[idx].y + v * currentR
+                }
+              };
             }
+
+            // 3. Mode: 🔒 Fixed (0 DOF, coordinate strictly locked)
+            return {
+              ...anc,
+              dst: { x: anc.dst.x, y: anc.dst.y }
+            };
           });
-        }
 
-        // Synchronize shared boundary vertices
-        for (let s = 0; s < sharedIndicesJimmy.length; s++) {
-          const ij = sharedIndicesJimmy[s];
-          const ip = sharedIndicesPedro[s];
-          const avgX = (warpedJ[ij].x + warpedP[ip].x) / 2;
-          const avgY = (warpedJ[ij].y + warpedP[ip].y) / 2;
-          warpedJ[ij].x = avgX; warpedJ[ij].y = avgY;
-          warpedP[ip].x = avgX; warpedP[ip].y = avgY;
-        }
-      }
+          // Handle floating guide anchors on axes
+          const hasFloating = candAnchors.some(a => a.isFloatingGuide);
+          if (hasFloating) {
+            const nonFloating = candAnchors.filter(a => !a.isFloatingGuide && a.active !== false && a.enabled !== false);
+            let tempW = null;
+            if (nonFloating.length >= 2) {
+              try { tempW = TransformMath.createWarper(state.algorithm || "TPS", nonFloating); } catch (_) {}
+            }
+            candAnchors.forEach((ca, ci) => {
+              if (ca.isFloatingGuide) {
+                const ax = (state.testAxes || []).find(a => a.id === ca.axisId);
+                if (ax) {
+                  let pNat = ca.dst;
+                  if (tempW) {
+                    try { pNat = tempW(ca.src); } catch (_) {}
+                  }
+                  const pr = projectPointOnAxis(pNat, ax);
+                  const clampedT = Math.max(0.0, Math.min(1.0, pr.t));
+                  candAnchors[ci] = {
+                    ...ca,
+                    axisT: clampedT,
+                    dst: { x: pr.projPt.x, y: pr.projPt.y },
+                    isFloatingGuide: false
+                  };
+                }
+              }
+            });
+          }
 
-      // Reverse-map warped coordinates back into CAD space
-      let invWarper = null;
-      try {
-        if (TransformMath.createInverseWarper) {
-          invWarper = TransformMath.createInverseWarper(state.algorithm || "SIMILARITY", activeAnchors);
-        }
-      } catch (_) {}
+          const activeCand = candAnchors.filter(a => a.active !== false && a.enabled !== false);
+          const warper = TransformMath.createWarper(state.algorithm || "TPS", activeCand);
+          const wJ = jimmyEnt.points.map(p => warper(p));
+          const wP = pedroEnt.points.map(p => warper(p));
+          const aJ = computeShoelaceArea(wJ);
+          const aP = computeShoelaceArea(wP);
+          const deltaJ = aJ - targetJimmy;
+          const deltaP = aP - targetPedro;
+          const errJ = (Math.abs(deltaJ) / targetJimmy) * 100;
+          const errP = (Math.abs(deltaP) / targetPedro) * 100;
+          const loss = (errJ + errP) / 2;
 
-      if (invWarper) {
-        jimmyEnt.points = warpedJ.map(p => invWarper(p));
-        pedroEnt.points = warpedP.map(p => invWarper(p));
-      } else {
-        // Robust Helmert unwarp
-        let meanSrcX = 0, meanSrcY = 0, meanDstX = 0, meanDstY = 0;
-        activeAnchors.forEach(a => {
-          meanSrcX += a.src.x; meanSrcY += a.src.y;
-          meanDstX += a.dst.x; meanDstY += a.dst.y;
-        });
-        const n = activeAnchors.length;
-        meanSrcX /= n; meanSrcY /= n; meanDstX /= n; meanDstY /= n;
-        let numA = 0, numB = 0, den = 0;
-        activeAnchors.forEach(a => {
-          const dxs = a.src.x - meanSrcX, dys = a.src.y - meanSrcY;
-          const dxd = a.dst.x - meanDstX, dyd = a.dst.y - meanDstY;
-          numA += dxs * dxd + dys * dyd;
-          numB += dxs * dyd - dys * dxd;
-          den += dxs * dxs + dys * dys;
-        });
-        const a = numA / den, b = numB / den;
-        const d = a * a + b * b;
-        const unwarp = p => {
-          const u = p.x - meanDstX, v = p.y - meanDstY;
           return {
-            x: meanSrcX + (a * u + b * v) / d,
-            y: meanSrcY + (-b * u + a * v) / d
+            loss,
+            aJ,
+            aP,
+            deltaJ,
+            deltaP,
+            errJ,
+            errP,
+            candAnchors,
+            offsets: offsets.map(o => ({ ...o })),
+            radius: currentR
           };
-        };
-        jimmyEnt.points = warpedJ.map(unwarp);
-        pedroEnt.points = warpedP.map(unwarp);
+        } catch (e) {
+          return {
+            loss: 999999,
+            aJ: 0,
+            aP: 0,
+            deltaJ: 9999,
+            deltaP: 9999,
+            errJ: 999,
+            errP: 999,
+            candAnchors: null,
+            offsets,
+            radius: currentR
+          };
+        }
       }
 
-      // Synchronize Nacho vertices if it shares coordinates with Pedro or Jimmy
-      if (nachoEnt && nachoEnt.points) {
-        nachoEnt.points.forEach(np => {
-          for (const pp of pedroEnt.points) {
-            if (Math.hypot(np.x - pp.x, np.y - pp.y) < 1.0) {
-              np.x = pp.x; np.y = pp.y; break;
+      function sampleCandidateOffset(ancIdx) {
+        const anc = state.anchors[ancIdx];
+        if (!anc || anc.active === false || anc.enabled === false) return { u: 0, v: 0, t: 0.5 };
+        if (anc.optimize !== true) {
+          if (anc.axisId != null) return { isFloating: true, t: anc.axisT ?? 0.5, u: 0, v: 0 };
+          return { isFixed: true, u: 0, v: 0, t: 0.5 };
+        }
+        if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+          return { t: Math.random(), u: 0, v: 0 };
+        }
+        const theta = Math.random() * 2 * Math.PI;
+        const rad = Math.sqrt(Math.random());
+        return { u: rad * Math.cos(theta), v: rad * Math.sin(theta), t: 0.5 };
+      }
+
+      let globalOverallBest = null;
+      let winningR = rSweepList[0];
+
+      try {
+        for (let rIdx = 0; rIdx < rSweepList.length; rIdx++) {
+          if (!state.tuning196Active || state.tuning196CancelRequested) break;
+
+          const currentR = rSweepList[rIdx];
+          state.optBufferRadius = currentR;
+          if (optBufferVal196) optBufferVal196.textContent = `±${currentR.toFixed(1)} m`;
+          const constrainHint196 = document.getElementById("anchor-constrain-hint-196");
+          if (constrainHint196) constrainHint196.textContent = `(±${currentR.toFixed(1)}m)`;
+
+          // Current normalized offsets inside unit disk or full-axis parameter t
+          const currentOffsets = state.anchors.map((anc, idx) => {
+            if (anc.axisId != null) {
+              const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+              if (ax) {
+                let t = anc.axisT;
+                if (typeof t !== "number") {
+                  const pr = projectPointOnAxis(anc.dst, ax);
+                  t = pr.t;
+                }
+                t = Math.max(0.0, Math.min(1.0, t));
+                return { t, u: 0, v: 0, isFloating: (anc.optimize !== true) };
+              }
+            }
+            if (anc.optimize !== true) {
+              return { u: 0, v: 0, t: 0.5, isFixed: true };
+            }
+            const center = anchorCenters[idx];
+            let du = (anc.dst.x - center.x) / currentR;
+            let dv = (anc.dst.y - center.y) / currentR;
+            const d = Math.hypot(du, dv);
+            if (d > 1) { du /= d; dv /= d; }
+            return { u: du, v: dv, t: 0.5 };
+          });
+
+          // Population setup for Differential Evolution (DE)
+          const POP_SIZE = 16;
+          const maxGen = isAutoMin ? 12 : 25;
+          const population = [];
+          population.push(evaluateCandidate(currentOffsets, currentR));
+
+          while (population.length < POP_SIZE) {
+            const offArr = Array.from({ length: state.anchors.length }, (_, k) => sampleCandidateOffset(k));
+            population.push(evaluateCandidate(offArr, currentR));
+          }
+
+          let globalBest = population.reduce((best, cur) => cur.loss < best.loss ? cur : best, population[0]);
+
+          for (let gen = 1; gen <= maxGen; gen++) {
+            if (!state.tuning196Active || state.tuning196CancelRequested) break;
+
+            for (let i = 0; i < POP_SIZE; i++) {
+              if (!state.tuning196Active || state.tuning196CancelRequested) break;
+
+              let r1, r2, r3;
+              do { r1 = Math.floor(Math.random() * POP_SIZE); } while (r1 === i);
+              do { r2 = Math.floor(Math.random() * POP_SIZE); } while (r2 === i || r2 === r1);
+              do { r3 = Math.floor(Math.random() * POP_SIZE); } while (r3 === i || r3 === r1 || r3 === r2);
+
+              const F = 0.65;
+              const CR = 0.85;
+              const trialOffsets = [];
+
+              for (let k = 0; k < state.anchors.length; k++) {
+                const anc = state.anchors[k];
+                if (anc.optimize !== true) {
+                  trialOffsets.push(sampleCandidateOffset(k));
+                } else if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
+                  let t;
+                  if (Math.random() < CR || k === 0) {
+                    const t1 = population[r1].offsets[k].t ?? 0.5;
+                    const t2 = population[r2].offsets[k].t ?? 0.5;
+                    const t3 = population[r3].offsets[k].t ?? 0.5;
+                    const tBest = globalBest.offsets[k].t ?? 0.5;
+                    const tCur = population[i].offsets[k].t ?? 0.5;
+                    t = t1 + F * (t2 - t3) + 0.15 * (tBest - tCur);
+                    if (Math.random() < 0.15) {
+                      t += (Math.random() - 0.5) * 0.12;
+                    }
+                  } else {
+                    t = population[i].offsets[k].t ?? 0.5;
+                  }
+                  t = Math.max(0.0, Math.min(1.0, t));
+                  trialOffsets.push({ t, u: 0, v: 0 });
+                } else {
+                  let u, v;
+                  if (Math.random() < CR || k === 0) {
+                    u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
+                        + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
+                    v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
+                        + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
+                    if (Math.random() < 0.12) {
+                      u += (Math.random() - 0.5) * 0.18;
+                      v += (Math.random() - 0.5) * 0.18;
+                    }
+                  } else {
+                    u = population[i].offsets[k].u;
+                    v = population[i].offsets[k].v;
+                  }
+                  const dist = Math.hypot(u, v);
+                  if (dist > 1.0) {
+                    u /= dist;
+                    v /= dist;
+                  }
+                  trialOffsets.push({ u, v, t: 0.5 });
+                }
+              }
+
+              const trialEval = evaluateCandidate(trialOffsets, currentR);
+              if (trialEval.loss < population[i].loss) {
+                population[i] = trialEval;
+              }
+              if (trialEval.loss < globalBest.loss) {
+                globalBest = trialEval;
+              }
+            }
+
+            // Live screen animation update
+            if (globalBest.candAnchors) {
+              for (let k = 0; k < state.anchors.length; k++) {
+                if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
+                  state.anchors[k].dst.x = globalBest.candAnchors[k].dst.x;
+                  state.anchors[k].dst.y = globalBest.candAnchors[k].dst.y;
+                  if (globalBest.candAnchors[k].axisT !== undefined) {
+                    state.anchors[k].axisT = globalBest.candAnchors[k].axisT;
+                  }
+                }
+              }
+              recompute196Metrics();
+              redrawTrueCanvas();
+
+              if (badgeOptStatus196) {
+                const prefix = isAutoMin ? `MinR ±${currentR.toFixed(1)}m` : `Gen ${gen}/${maxGen}`;
+                badgeOptStatus196.textContent = `${prefix} (${globalBest.loss.toFixed(2)}%)`;
+                badgeOptStatus196.style.color = "#ff1744";
+                badgeOptStatus196.style.background = "rgba(255, 23, 68, 0.18)";
+              }
+
+              if (statusOpt) {
+                statusOpt.innerHTML = `⏳ <strong>Optimizando</strong> (±${currentR.toFixed(1)}m, Gen ${gen}/${maxGen}, Err: ${globalBest.loss.toFixed(2)}%):<br>• Lote Jimmy: <strong>${globalBest.aJ.toFixed(2)} m²</strong> (target ${targetJimmy.toFixed(1)} m², Δ ${globalBest.deltaJ >= 0 ? '+' : ''}${globalBest.deltaJ.toFixed(2)} m²)<br>• Lote Pedro: <strong>${globalBest.aP.toFixed(2)} m²</strong> (target ${targetPedro.toFixed(1)} m², Δ ${globalBest.deltaP >= 0 ? '+' : ''}${globalBest.deltaP.toFixed(2)} m²)`;
+              }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, isAutoMin ? 12 : 25));
+          }
+
+          if (!globalOverallBest || globalBest.loss < globalOverallBest.loss) {
+            globalOverallBest = globalBest;
+            winningR = currentR;
+          }
+
+          // Convergence check: stops when area error reaches virtually zero (< 0.005% or sub-15cm²)
+          const isZeroError = globalBest.loss < 0.005 || (Math.abs(globalBest.deltaJ) < 0.15 && Math.abs(globalBest.deltaP) < 0.15);
+          if (isAutoMin && isZeroError) {
+            winningR = currentR;
+            globalOverallBest = globalBest;
+            updateStatus(`⚡ Auto-Detect: Error cero (0.00%) alcanzado en radio mínimo de ±${currentR.toFixed(1)}m.`);
+            break;
+          }
+        }
+      } finally {
+        // Apply winning solution
+        if (globalOverallBest && globalOverallBest.candAnchors) {
+          state.optBufferRadius = winningR;
+          if (optBufferVal196) optBufferVal196.textContent = `±${winningR.toFixed(1)} m`;
+          const optBufferSlider = document.getElementById("opt-buffer-slider");
+          if (optBufferSlider) optBufferSlider.value = winningR;
+          const optBufferVal = document.getElementById("opt-buffer-val");
+          if (optBufferVal) optBufferVal.textContent = `±${winningR.toFixed(1)} m`;
+
+          for (let k = 0; k < state.anchors.length; k++) {
+            if (state.anchors[k].active !== false && state.anchors[k].enabled !== false) {
+              state.anchors[k].dst.x = globalOverallBest.candAnchors[k].dst.x;
+              state.anchors[k].dst.y = globalOverallBest.candAnchors[k].dst.y;
+              if (globalOverallBest.candAnchors[k].axisT !== undefined) {
+                state.anchors[k].axisT = globalOverallBest.candAnchors[k].axisT;
+              }
             }
           }
-          for (const jp of jimmyEnt.points) {
-            if (Math.hypot(np.x - jp.x, np.y - jp.y) < 1.0) {
-              np.x = jp.x; np.y = jp.y; break;
-            }
+
+          recompute196Metrics();
+          redrawAll();
+
+          const tunedCount = state.anchors.filter(a => a.active !== false && a.enabled !== false && a.optimize === true).length;
+          const fixedCount = state.anchors.filter(a => a.active !== false && a.enabled !== false && a.optimize !== true).length;
+          const modeBadge = `🎯 ${tunedCount} Tune / 🔒 ${fixedCount} Fixed`;
+          const constrainInfo = state.constrainAnchorsToField ? ` [🔒 Restringido ±${winningR.toFixed(1)}m]` : ` [🔓 Sin restricción]`;
+
+          if (badgeOptStatus196) {
+            badgeOptStatus196.textContent = `✓ Fitted (±${winningR.toFixed(1)}m, ${globalOverallBest.loss.toFixed(2)}%)`;
+            badgeOptStatus196.style.background = "rgba(0, 230, 118, 0.22)";
+            badgeOptStatus196.style.color = "#00e676";
           }
-        });
+
+          if (statusOpt) {
+            statusOpt.innerHTML = `✅ <strong>Optimización completa</strong> (${modeBadge}${constrainInfo}):<br>• Lote Jimmy: <strong>${globalOverallBest.aJ.toFixed(2)} m²</strong> (target ${targetJimmy.toFixed(1)} m², Δ ${globalOverallBest.deltaJ >= 0 ? '+' : ''}${globalOverallBest.deltaJ.toFixed(2)} m²)<br>• Lote Pedro: <strong>${globalOverallBest.aP.toFixed(2)} m²</strong> (target ${targetPedro.toFixed(1)} m², Δ ${globalOverallBest.deltaP >= 0 ? '+' : ''}${globalOverallBest.deltaP.toFixed(2)} m²)<br>• Radio mínimo convergente: <strong>±${winningR.toFixed(1)} m</strong> (Error: ${globalOverallBest.loss.toFixed(2)}%)`;
+          }
+
+          updateStatus(`⚡ Escritura 196 optimizada vía ${modeBadge}: Jimmy = ${globalOverallBest.aJ.toFixed(2)} m², Pedro = ${globalOverallBest.aP.toFixed(2)} m² (Radio ±${winningR.toFixed(1)}m).`);
+        }
+
+        // Reset running state & buttons
+        state.tuning196Active = false;
+        state.tuning196CancelRequested = false;
+
+        if (btnOpt196) {
+          btnOpt196.innerHTML = "⚡ Run Optimization";
+          btnOpt196.style.background = "linear-gradient(135deg,#ff1744,#d500f9)";
+          btnOpt196.style.boxShadow = "0 0 12px rgba(255,23,68,0.35)";
+        }
       }
-
-      recompute196Metrics();
-      redrawAll();
-
-      const finalAreaJ = computeShoelaceArea(jimmyEnt.points.map(p => warper(p)));
-      const finalAreaP = computeShoelaceArea(pedroEnt.points.map(p => warper(p)));
-
-      if (statusOpt) {
-        const modeBadge = tunedAnchorsCount > 0 
-          ? `🎯 Modo: ${tunedAnchorsCount} anclaje(s) ajustado(s) (Tune)`
-          : `🔒 Modo: Anclajes fijos (0 desplazamiento, solo nodos libres de escritura)`;
-        const constrainInfo = state.constrainAnchorsToField ? ` [🔒 Restringido ±${state.optBufferRadius.toFixed(1)}m]` : ` [🔓 Sin restricción]`;
-        statusOpt.innerHTML = `✅ <strong>Optimización completa</strong> (${modeBadge}${constrainInfo}):<br>• Lote Jimmy: <strong>${finalAreaJ.toFixed(2)} m²</strong> (target ${targetJimmy.toFixed(1)} m²)<br>• Lote Pedro: <strong>${finalAreaP.toFixed(2)} m²</strong> (target ${targetPedro.toFixed(1)} m²)`;
-      }
-      const modeSummary = tunedAnchorsCount > 0 ? `${tunedAnchorsCount} anclajes (Tune)` : `nodos de escritura (Anclajes Fixed)`;
-      updateStatus(`⚡ Parcelas Escritura 196 optimizadas vía ${modeSummary}: Jimmy = ${finalAreaJ.toFixed(2)} m², Pedro = ${finalAreaP.toFixed(2)} m²`);
     }
 
     // ── Cluster 196 Action Listeners ──
@@ -3873,12 +4016,23 @@
     const btnReset196 = document.getElementById("btn-reset-196");
     if (btnReset196) {
       btnReset196.addEventListener("click", () => {
-        if (state.origHistEntities196) {
-          state.histEntities = JSON.parse(JSON.stringify(state.origHistEntities196));
+        if (state.origHistEntities196 || state.origAnchors196) {
+          if (state.origHistEntities196) {
+            state.histEntities = JSON.parse(JSON.stringify(state.origHistEntities196));
+          }
+          if (state.origAnchors196) {
+            state.anchors = JSON.parse(JSON.stringify(state.origAnchors196));
+          }
           recompute196Metrics();
           redrawAll();
+          const badgeOptStatus196 = document.getElementById("badge-opt-status-196");
+          if (badgeOptStatus196) {
+            badgeOptStatus196.textContent = "Ready";
+            badgeOptStatus196.style.background = "rgba(255, 23, 68, 0.15)";
+            badgeOptStatus196.style.color = "#ff1744";
+          }
           const statusOpt = document.getElementById("status-opt-196");
-          if (statusOpt) statusOpt.textContent = "↺ Geometría de Escritura 196 restaurada al estado original.";
+          if (statusOpt) statusOpt.textContent = "↺ Geometría y anclajes de Escritura 196 restaurados al estado original.";
           updateStatus("↺ Escritura 196 restaurada al estado original.");
         } else {
           alert("No hay estado original registrado para restaurar.");
@@ -3991,6 +4145,20 @@
             redrawTrueCanvas();
           }
         }
+      });
+    }
+
+    const thAnchorMode196 = document.getElementById("th-anchor-mode-196");
+    if (thAnchorMode196) {
+      thAnchorMode196.addEventListener("click", () => {
+        if (state.activeDeed !== "196") return;
+        const active = state.anchors.filter(a => a.active !== false && a.enabled !== false);
+        if (active.length === 0) return;
+        const anyNotOpt = active.some(a => a.optimize !== true);
+        active.forEach(a => { a.optimize = anyNotOpt; });
+        updateAnalyticsUI();
+        redrawAll();
+        updateStatus(anyNotOpt ? `🎯 Todos los anclajes activos de Escritura 196 puestos en modo Tune.` : `🔒 Todos los anclajes activos de Escritura 196 puestos en modo Fixed.`);
       });
     }
 
