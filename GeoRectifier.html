@@ -12827,6 +12827,38 @@ EOF`;
           updateStatus(`🗑 Deleted polygon vertex #${hitNode + 1}. Remaining: ${poly.vertices.length}`);
           return;
         }
+
+        const customSegHit = (typeof findAnyCustomPolySegmentAt === "function") ? findAnyCustomPolySegmentAt(sx, sy, vp, h, 12) : null;
+        if (customSegHit) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          const p = customSegHit.poly;
+          if (p && p.vertices && p.vertices.length >= 2) {
+            if (p.closed) {
+              const verts = p.vertices;
+              const newVerts = [];
+              for (let k = 0; k < verts.length; k++) {
+                newVerts.push(verts[(customSegHit.segIdx + 1 + k) % verts.length]);
+              }
+              p.vertices = newVerts;
+              p.closed = false;
+              updateStatus(`✂️ Deleted line segment. Opened '${p.name}' into Polyline.`);
+            } else {
+              if (customSegHit.segIdx === p.vertices.length - 2) {
+                p.vertices.pop();
+                updateStatus(`✂️ Deleted last line segment from '${p.name}'.`);
+              } else if (customSegHit.segIdx === 0) {
+                p.vertices.shift();
+                updateStatus(`✂️ Deleted first line segment from '${p.name}'.`);
+              }
+            }
+            recomputeCustomPolygonMetrics();
+            updateCustomPolyButtonStates();
+            renderCustomPolyList();
+            redrawTrueCanvas();
+            return;
+          }
+        }
         return;
       }
 
@@ -16089,6 +16121,26 @@ EOF`;
         vecDrawCtx.strokeStyle = "rgba(255, 214, 0, 0.85)"; vecDrawCtx.lineWidth = 1.2; vecDrawCtx.stroke();
         vecDrawCtx.restore();
       }
+
+      // Highlight hovered line segment (indicates right-click to delete line)
+      if (vecState.hoveredSeg && !vecState.isDraggingVertex) {
+        const hs = vecState.hoveredSeg;
+        const poly = vecState.polygons[hs.pIdx];
+        if (poly && poly.points && poly.points[hs.vIdx1] && poly.points[hs.vIdx2]) {
+          const p1 = poly.points[hs.vIdx1];
+          const p2 = poly.points[hs.vIdx2];
+          vecDrawCtx.save();
+          vecDrawCtx.beginPath();
+          vecDrawCtx.moveTo(p1.x * vecState.scale, p1.y * vecState.scale);
+          vecDrawCtx.lineTo(p2.x * vecState.scale, p2.y * vecState.scale);
+          vecDrawCtx.strokeStyle = "#ff1744";
+          vecDrawCtx.lineWidth = baseThickness + 3;
+          vecDrawCtx.setLineDash([5, 4]);
+          vecDrawCtx.stroke();
+          vecDrawCtx.setLineDash([]);
+          vecDrawCtx.restore();
+        }
+      }
     }
 
     function renderVecPolygonList() {
@@ -16196,6 +16248,61 @@ EOF`;
       return null;
     }
 
+    function findVecSegmentAt(canvasX, canvasY, hitDist = 9) {
+      let best = null;
+      let minDist = hitDist;
+
+      const polyIndices = [];
+      if (vecState.activePolyIndex >= 0 && vecState.activePolyIndex < vecState.polygons.length) {
+        polyIndices.push(vecState.activePolyIndex);
+      }
+      for (let p = vecState.polygons.length - 1; p >= 0; p--) {
+        if (!polyIndices.includes(p)) polyIndices.push(p);
+      }
+
+      for (const pIdx of polyIndices) {
+        const poly = vecState.polygons[pIdx];
+        if (!poly || !poly.points || poly.points.length < 2) continue;
+        const pts = poly.points;
+        const isClosed = poly.closed !== false;
+        const nSegs = (isClosed && pts.length >= 3) ? pts.length : pts.length - 1;
+
+        for (let i = 0; i < nSegs; i++) {
+          const j = (i + 1) % pts.length;
+          const sx1 = pts[i].x * vecState.scale;
+          const sy1 = pts[i].y * vecState.scale;
+          const sx2 = pts[j].x * vecState.scale;
+          const sy2 = pts[j].y * vecState.scale;
+
+          const dx = sx2 - sx1;
+          const dy = sy2 - sy1;
+          const lenSq = dx * dx + dy * dy;
+          if (lenSq < 1e-4) continue;
+
+          let t = ((canvasX - sx1) * dx + (canvasY - sy1) * dy) / lenSq;
+          t = Math.max(0, Math.min(1, t));
+          const projX = sx1 + t * dx;
+          const projY = sy1 + t * dy;
+          const dist = Math.hypot(canvasX - projX, canvasY - projY);
+
+          if (dist <= minDist) {
+            minDist = dist;
+            best = {
+              pIdx,
+              segIdx: i,
+              vIdx1: i,
+              vIdx2: j,
+              isClosingSeg: (isClosed && i === pts.length - 1 && j === 0),
+              dist,
+              t
+            };
+          }
+        }
+        if (best) break;
+      }
+      return best;
+    }
+
     // Vectorizer Canvas Event Handlers
     if (vecDrawCanvas) {
       vecDrawCanvas.addEventListener("mousedown", (e) => {
@@ -16222,15 +16329,73 @@ EOF`;
               redrawVecDrawCanvas();
             }
           }
-        } else if (e.button === 2) { // Right Click: Delete vertex
+        } else if (e.button === 2) { // Right Click: Delete vertex or line segment
           e.preventDefault();
           if (hit) {
             if (vecState.activePolyIndex !== hit.pIdx) {
               vecState.activePolyIndex = hit.pIdx;
             }
             vecState.polygons[vecState.activePolyIndex].points.splice(hit.vIdx, 1);
+            vecState.hoveredSeg = null;
             renderVecPolygonList();
             redrawVecDrawCanvas();
+          } else {
+            const hitSeg = findVecSegmentAt(x, y, 10);
+            if (hitSeg) {
+              if (vecState.activePolyIndex !== hitSeg.pIdx) {
+                vecState.activePolyIndex = hitSeg.pIdx;
+              }
+              const poly = vecState.polygons[hitSeg.pIdx];
+              const isClosed = poly.closed !== false;
+
+              if (isClosed && hitSeg.isClosingSeg) {
+                // Right-clicked the closing segment: open the polygon into a polyline!
+                poly.closed = false;
+                updateStatus(`✂️ Deleted closing line. Converted '${poly.name}' to open Polyline.`);
+              } else if (isClosed) {
+                // Right-clicked an edge of a closed polygon:
+                // Delete that line segment and open the polygon at that segment!
+                const pts = poly.points;
+                const newPts = [];
+                for (let k = 0; k < pts.length; k++) {
+                  newPts.push(pts[(hitSeg.vIdx2 + k) % pts.length]);
+                }
+                poly.points = newPts;
+                poly.closed = false;
+                updateStatus(`✂️ Deleted line segment. Converted '${poly.name}' to open Polyline.`);
+              } else {
+                // In an open Polyline:
+                if (poly.points.length <= 2) {
+                  poly.points.pop();
+                  updateStatus(`✂️ Deleted line segment from '${poly.name}'.`);
+                } else if (hitSeg.segIdx === poly.points.length - 2) {
+                  // Last line segment: delete the last vertex to remove this line
+                  poly.points.pop();
+                  updateStatus(`✂️ Deleted last line segment from '${poly.name}'.`);
+                } else if (hitSeg.segIdx === 0) {
+                  // First line segment: delete the first vertex to remove this line
+                  poly.points.shift();
+                  updateStatus(`✂️ Deleted first line segment from '${poly.name}'.`);
+                } else {
+                  // Interior segment: split into two polylines at the deleted line
+                  const ptsBefore = poly.points.slice(0, hitSeg.segIdx + 1);
+                  const ptsAfter = poly.points.slice(hitSeg.segIdx + 1);
+                  poly.points = ptsBefore;
+                  const newId = vecState.polygons.length + 1;
+                  vecState.polygons.splice(hitSeg.pIdx + 1, 0, {
+                    id: newId,
+                    name: `${poly.name}_b`,
+                    color: poly.color,
+                    closed: false,
+                    points: ptsAfter
+                  });
+                  updateStatus(`✂️ Deleted interior line segment. Split '${poly.name}' into two polylines.`);
+                }
+              }
+              vecState.hoveredSeg = null;
+              renderVecPolygonList();
+              redrawVecDrawCanvas();
+            }
           }
         }
       });
@@ -16252,8 +16417,24 @@ EOF`;
           }
         } else {
           const snapTarget = getVecSnapTarget(x, y, -1, -1, e.shiftKey);
+          let needsRedraw = false;
           if (vecState.currentSnapTarget !== snapTarget) {
             vecState.currentSnapTarget = snapTarget;
+            needsRedraw = true;
+          }
+
+          const hoverVertex = findVecPolygonAndVertexAt(x, y);
+          const hoverSeg = hoverVertex ? null : findVecSegmentAt(x, y, 9);
+          const prevSegKey = vecState.hoveredSeg ? `${vecState.hoveredSeg.pIdx}_${vecState.hoveredSeg.segIdx}` : "";
+          const newSegKey = hoverSeg ? `${hoverSeg.pIdx}_${hoverSeg.segIdx}` : "";
+
+          if (prevSegKey !== newSegKey) {
+            vecState.hoveredSeg = hoverSeg;
+            needsRedraw = true;
+          }
+
+          vecDrawCanvas.style.cursor = hoverVertex ? "pointer" : (hoverSeg ? "pointer" : "crosshair");
+          if (needsRedraw) {
             redrawVecDrawCanvas();
           }
         }
@@ -16266,6 +16447,7 @@ EOF`;
 
       vecDrawCanvas.addEventListener("mouseleave", () => {
         vecState.currentSnapTarget = null;
+        vecState.hoveredSeg = null;
         redrawVecDrawCanvas();
       });
 
