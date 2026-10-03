@@ -1643,7 +1643,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
             </div>
             <!-- Mojones Toggle -->
             <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar los mojones de referencia (GCP Anchors) y sus flechas indicadoras">
+              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar las etiquetas de los mojones (GCP Anchor Labels). Los puntos de control permanecen visibles en el mapa.">
                 <input type="checkbox" id="chk-show-mojones-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
                 <span>👁️ Mojones</span>
               </label>
@@ -7134,61 +7134,59 @@ EOF`;
       }
 
       // Layer 5: Target anchor pen buffer disks & residual lines
-      if (state.showMojones1073 !== false) {
-        state.anchors.forEach(anc => {
-          const isEnabled = anc.active !== false && anc.enabled !== false;
-          const tp = worldToScreenGIS(anc.dst, vp, h);
-          if (warper) {
-            const wp = worldToScreenGIS(warper(anc.src), vp, h);
-            trueCtx.beginPath(); trueCtx.moveTo(wp.x,wp.y); trueCtx.lineTo(tp.x,tp.y);
-            trueCtx.strokeStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.25)";
-            trueCtx.lineWidth = isEnabled ? 1.5 : 1;
-            trueCtx.setLineDash(isEnabled ? [3,3] : [2,4]); trueCtx.stroke(); trueCtx.setLineDash([]);
-            trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y, isEnabled ? 4 : 3, 0, Math.PI*2);
-            trueCtx.fillStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.3)"; trueCtx.fill();
-          }
-          // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor origin during unconstrained simulation)
-          if (isEnabled && state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
-            let centerPt = null;
-            if (state.constrainAnchorsToField) {
-              const nearestField = findNearestFieldVertex(anc.dst);
-              if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
-                centerPt = nearestField;
-              }
-            } else if (state.tuningAnchorsActive && state.tuningAnchorCenters) {
-              const ancIdx = state.anchors.indexOf(anc);
-              if (ancIdx >= 0 && state.tuningAnchorCenters[ancIdx]) {
-                centerPt = state.tuningAnchorCenters[ancIdx];
-              }
+      state.anchors.forEach(anc => {
+        const isEnabled = anc.active !== false && anc.enabled !== false;
+        const tp = worldToScreenGIS(anc.dst, vp, h);
+        if (warper) {
+          const wp = worldToScreenGIS(warper(anc.src), vp, h);
+          trueCtx.beginPath(); trueCtx.moveTo(wp.x,wp.y); trueCtx.lineTo(tp.x,tp.y);
+          trueCtx.strokeStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.25)";
+          trueCtx.lineWidth = isEnabled ? 1.5 : 1;
+          trueCtx.setLineDash(isEnabled ? [3,3] : [2,4]); trueCtx.stroke(); trueCtx.setLineDash([]);
+          trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y, isEnabled ? 4 : 3, 0, Math.PI*2);
+          trueCtx.fillStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.3)"; trueCtx.fill();
+        }
+        // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor origin during unconstrained simulation)
+        if (isEnabled && state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
+          let centerPt = null;
+          if (state.constrainAnchorsToField) {
+            const nearestField = findNearestFieldVertex(anc.dst);
+            if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
+              centerPt = nearestField;
             }
-
-            if (centerPt) {
-              const sCenter = worldToScreenGIS(centerPt, vp, h);
-              const rPx = state.optBufferRadius * vp.scale;
-              trueCtx.save();
-              trueCtx.beginPath();
-              trueCtx.arc(sCenter.x, sCenter.y, rPx, 0, Math.PI * 2);
-              trueCtx.fillStyle = "rgba(0, 229, 255, 0.08)";
-              trueCtx.fill();
-              trueCtx.strokeStyle = "rgba(0, 229, 255, 0.55)";
-              trueCtx.lineWidth = 1.5;
-              trueCtx.setLineDash([4, 4]);
-              trueCtx.stroke();
-              trueCtx.setLineDash([]);
-
-              // Center crosshair marker on the buffer disk center
-              trueCtx.beginPath();
-              trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
-              trueCtx.fillStyle = "#00e5ff";
-              trueCtx.fill();
-              trueCtx.strokeStyle = "#ffffff";
-              trueCtx.lineWidth = 1;
-              trueCtx.stroke();
-              trueCtx.restore();
+          } else if (state.tuningAnchorsActive && state.tuningAnchorCenters) {
+            const ancIdx = state.anchors.indexOf(anc);
+            if (ancIdx >= 0 && state.tuningAnchorCenters[ancIdx]) {
+              centerPt = state.tuningAnchorCenters[ancIdx];
             }
           }
-        });
-      }
+
+          if (centerPt) {
+            const sCenter = worldToScreenGIS(centerPt, vp, h);
+            const rPx = state.optBufferRadius * vp.scale;
+            trueCtx.save();
+            trueCtx.beginPath();
+            trueCtx.arc(sCenter.x, sCenter.y, rPx, 0, Math.PI * 2);
+            trueCtx.fillStyle = "rgba(0, 229, 255, 0.08)";
+            trueCtx.fill();
+            trueCtx.strokeStyle = "rgba(0, 229, 255, 0.55)";
+            trueCtx.lineWidth = 1.5;
+            trueCtx.setLineDash([4, 4]);
+            trueCtx.stroke();
+            trueCtx.setLineDash([]);
+
+            // Center crosshair marker on the buffer disk center
+            trueCtx.beginPath();
+            trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
+            trueCtx.fillStyle = "#00e5ff";
+            trueCtx.fill();
+            trueCtx.strokeStyle = "#ffffff";
+            trueCtx.lineWidth = 1;
+            trueCtx.stroke();
+            trueCtx.restore();
+          }
+        }
+      });
 
       // Layer 6: Hand-crafted user polygon
       drawUserPolygon(trueCtx, vp, h);
@@ -7198,50 +7196,49 @@ EOF`;
       drawCustomPolygon(trueCtx, vp, h);
 
       // Layer 7: Target anchor pins + white label cards + photos (BRING TO VERY FRONT OVER POLYGON LINES)
-      if (state.showMojones1073 !== false) {
-        state.anchors.forEach(anc => {
-          const isEnabled = anc.active !== false && anc.enabled !== false;
-          const tp = worldToScreenGIS(anc.dst, vp, h);
+      state.anchors.forEach(anc => {
+        const isEnabled = anc.active !== false && anc.enabled !== false;
+        const tp = worldToScreenGIS(anc.dst, vp, h);
 
-          trueCtx.save();
-          if (!isEnabled) {
-            trueCtx.globalAlpha = 0.35;
-          }
-          trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
-          trueCtx.fillStyle=anc.color; trueCtx.fill();
-          trueCtx.strokeStyle = isEnabled ? "#fff" : "#999";
-          trueCtx.lineWidth=2;
-          if (!isEnabled) trueCtx.setLineDash([2, 2]);
-          trueCtx.stroke();
-          trueCtx.setLineDash([]);
+        trueCtx.save();
+        if (!isEnabled) {
+          trueCtx.globalAlpha = 0.35;
+        }
+        trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
+        trueCtx.fillStyle=anc.color; trueCtx.fill();
+        trueCtx.strokeStyle = isEnabled ? "#fff" : "#999";
+        trueCtx.lineWidth=2;
+        if (!isEnabled) trueCtx.setLineDash([2, 2]);
+        trueCtx.stroke();
+        trueCtx.setLineDash([]);
 
-          // Distinct visual aura/indicator based on anchor mode
-          if (isEnabled) {
-            if (anc.axisId != null && anc.optimize !== true) {
-              // Floating Guide (Rubber band on axis): cyan dotted rail ring
-              trueCtx.beginPath();
-              trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
-              trueCtx.strokeStyle = "#00e5ff";
-              trueCtx.lineWidth = 1.6;
-              trueCtx.setLineDash([3, 3]);
-              trueCtx.stroke();
-              trueCtx.setLineDash([]);
-            } else if (anc.optimize === true) {
-              // Actively optimized: glowing target ring
-              trueCtx.beginPath();
-              trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
-              trueCtx.strokeStyle = (anc.axisId != null) ? "#e040fb" : "#76ff03";
-              trueCtx.lineWidth = 1.6;
-              trueCtx.stroke();
-            }
+        // Distinct visual aura/indicator based on anchor mode
+        if (isEnabled) {
+          if (anc.axisId != null && anc.optimize !== true) {
+            // Floating Guide (Rubber band on axis): cyan dotted rail ring
+            trueCtx.beginPath();
+            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+            trueCtx.strokeStyle = "#00e5ff";
+            trueCtx.lineWidth = 1.6;
+            trueCtx.setLineDash([3, 3]);
+            trueCtx.stroke();
+            trueCtx.setLineDash([]);
+          } else if (anc.optimize === true) {
+            // Actively optimized: glowing target ring
+            trueCtx.beginPath();
+            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+            trueCtx.strokeStyle = (anc.axisId != null) ? "#e040fb" : "#76ff03";
+            trueCtx.lineWidth = 1.6;
+            trueCtx.stroke();
           }
+        }
 
-          if (anc.showLabel !== false) {
-            drawAnchorLabelCard(trueCtx, anc, tp, false);
-          }
-          trueCtx.restore();
-        });
-      }
+        // Anchor labels are controlled by the eye toggle (state.showMojones1073 and anc.showLabel)
+        if (state.showMojones1073 !== false && anc.showLabel !== false) {
+          drawAnchorLabelCard(trueCtx, anc, tp, false);
+        }
+        trueCtx.restore();
+      });
 
       // Layer 8: Snap target ring indicator
       if (state.currentSnapTarget) {
@@ -7900,8 +7897,8 @@ EOF`;
         }
       }
 
-      // 6. Mojones / Anchors (Escritura 1073 Control Points) - only when visible!
-      if (state.showMojones1073 !== false && state.anchors && state.anchors.length > 0) {
+      // 6. Mojones / Anchors (Escritura 1073 Control Points)
+      if (state.anchors && state.anchors.length > 0) {
         for (const anc of state.anchors) {
           if (anc.active === false || anc.enabled === false) continue;
           const sp = worldToScreenGIS(anc.dst, vp, canvasH);
@@ -13170,7 +13167,6 @@ EOF`;
     window.addEventListener("keyup", e => { if(e.code==="Space") spacePressed=false; });
 
     function hitTestAnchor(sx, sy, isHist) {
-      if (!isHist && state.showMojones1073 === false) return null;
       const radius = 14;
       const vp = isHist ? state.histViewport : state.trueViewport;
       const h = isHist ? histCanvas.height : trueCanvas.height;
@@ -14693,7 +14689,14 @@ EOF`;
     if (chkShowMojones1073) {
       chkShowMojones1073.addEventListener("change", e => {
         state.showMojones1073 = e.target.checked;
-        redrawTrueCanvas();
+        (state.anchors || []).forEach(a => {
+          a.showLabel = e.target.checked;
+        });
+        document.querySelectorAll(".chk-anchor-showlabel").forEach(chk => {
+          chk.checked = e.target.checked;
+        });
+        chkShowMojones1073.indeterminate = false;
+        redrawAll();
       });
     }
 
@@ -15071,6 +15074,12 @@ EOF`;
         chkToggleAll.checked = totalCount > 0 && activeCount === totalCount;
         chkToggleAll.indeterminate = activeCount > 0 && activeCount < totalCount;
       }
+      const chkMojones = document.getElementById("chk-show-mojones-1073");
+      if (chkMojones && (state.anchors || []).length > 0) {
+        const labelsShown = state.anchors.filter(a => a.showLabel !== false).length;
+        chkMojones.checked = labelsShown > 0;
+        chkMojones.indeterminate = labelsShown > 0 && labelsShown < state.anchors.length;
+      }
 
       state.anchors.forEach((anc, idx) => {
         const isEnabled = anc.active !== false && anc.enabled !== false;
@@ -15258,6 +15267,13 @@ EOF`;
         const anc = (state.anchors || []).find(a => a.id === id);
         if (anc) {
           anc.showLabel = e.target.checked;
+          const anyShown = (state.anchors || []).some(a => a.showLabel !== false);
+          const allShown = (state.anchors || []).every(a => a.showLabel !== false);
+          if (chkShowMojones1073) {
+            chkShowMojones1073.checked = anyShown;
+            chkShowMojones1073.indeterminate = anyShown && !allShown;
+            state.showMojones1073 = anyShown;
+          }
           redrawAll();
         }
       }
