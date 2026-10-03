@@ -6438,6 +6438,47 @@ EOF`;
 
         return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
       }
+    function getContrastColor(hexColor) {
+      if (!hexColor || typeof hexColor !== "string") return "#000000";
+      let c = hexColor.trim();
+      if (c.startsWith("#")) c = c.slice(1);
+      if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+      if (c.length !== 6) return "#000000";
+      const r = parseInt(c.substr(0, 2), 16) || 0;
+      const g = parseInt(c.substr(2, 2), 16) || 0;
+      const b = parseInt(c.substr(4, 2), 16) || 0;
+      const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+      return (yiq >= 140) ? "#000000" : "#ffffff";
+    }
+
+    function drawAnchorPin(ctx, anc, pt) {
+      const isEnabled = anc.active !== false && anc.enabled !== false;
+      const radius = 9.5;
+      ctx.save();
+      if (!isEnabled) {
+        ctx.globalAlpha = 0.38;
+      }
+      // Circular Badge background
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = anc.color || "#00e5ff";
+      ctx.fill();
+      ctx.strokeStyle = isEnabled ? "#ffffff" : "#999999";
+      ctx.lineWidth = 1.8;
+      if (!isEnabled) ctx.setLineDash([2, 2]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Number centered inside badge
+      const numStr = String(anc.id != null ? anc.id : "");
+      if (numStr) {
+        ctx.font = numStr.length > 2 ? "bold 8px sans-serif" : (numStr.length > 1 ? "bold 9px sans-serif" : "bold 10px sans-serif");
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = getContrastColor(anc.color);
+        ctx.fillText(numStr, pt.x, pt.y + 0.5);
+      }
+      ctx.restore();
     }
 
     function drawAnchorLabelCard(ctx, anc, pt, isHist) {
@@ -6690,26 +6731,10 @@ EOF`;
         histCtx.fillStyle="#00e5ff"; histCtx.fill();
       }
 
-      // Layer 4: Source anchor pins + double-framed cards
+      // Layer 4: Source anchor pins with numbers inside (labels omitted in deed window)
       state.anchors.forEach(anc => {
-        const isEnabled = anc.active !== false && anc.enabled !== false;
         const sp = worldToScreen(anc.src, vp, h);
-        histCtx.save();
-        if (!isEnabled) {
-          histCtx.globalAlpha = 0.35;
-        }
-        histCtx.beginPath(); histCtx.arc(sp.x,sp.y,7,0,Math.PI*2);
-        histCtx.fillStyle=anc.color; histCtx.fill();
-        histCtx.strokeStyle = isEnabled ? "#fff" : "#999";
-        histCtx.lineWidth=2;
-        if (!isEnabled) histCtx.setLineDash([2, 2]);
-        histCtx.stroke();
-        histCtx.setLineDash([]);
-
-        if (anc.showLabel !== false) {
-          drawAnchorLabelCard(histCtx, anc, sp, true);
-        }
-        histCtx.restore();
+        drawAnchorPin(histCtx, anc, sp);
       });
     }
 
@@ -7237,20 +7262,12 @@ EOF`;
         if (!isEnabled) {
           trueCtx.globalAlpha = 0.35;
         }
-        trueCtx.beginPath(); trueCtx.arc(tp.x,tp.y,7,0,Math.PI*2);
-        trueCtx.fillStyle=anc.color; trueCtx.fill();
-        trueCtx.strokeStyle = isEnabled ? "#fff" : "#999";
-        trueCtx.lineWidth=2;
-        if (!isEnabled) trueCtx.setLineDash([2, 2]);
-        trueCtx.stroke();
-        trueCtx.setLineDash([]);
-
         // Distinct visual aura/indicator based on anchor mode
         if (isEnabled) {
           if (anc.axisId != null && anc.optimize !== true) {
             // Floating Guide (Rubber band on axis): cyan dotted rail ring
             trueCtx.beginPath();
-            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+            trueCtx.arc(tp.x, tp.y, 14, 0, Math.PI * 2);
             trueCtx.strokeStyle = "#00e5ff";
             trueCtx.lineWidth = 1.6;
             trueCtx.setLineDash([3, 3]);
@@ -7259,12 +7276,15 @@ EOF`;
           } else if (anc.optimize === true) {
             // Actively optimized: glowing target ring
             trueCtx.beginPath();
-            trueCtx.arc(tp.x, tp.y, 11, 0, Math.PI * 2);
+            trueCtx.arc(tp.x, tp.y, 14, 0, Math.PI * 2);
             trueCtx.strokeStyle = (anc.axisId != null) ? "#e040fb" : "#76ff03";
             trueCtx.lineWidth = 1.6;
             trueCtx.stroke();
           }
         }
+
+        // Draw badge pin with number inside
+        drawAnchorPin(trueCtx, anc, tp);
 
         // Anchor labels are controlled by the eye toggle (state.showMojones1073 and anc.showLabel)
         if (state.showMojones1073 !== false && anc.showLabel !== false) {
