@@ -2366,9 +2366,9 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(255,23,68,0.3);min-width:0;box-sizing:border-box;">
                   <label for="algorithm-select-196" style="font-size:0.72rem;color:#ff1744;font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm:</label>
                   <select id="algorithm-select-196" class="select-dropdown" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(255,23,68,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
-                    <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
+                    <option value="SIMILARITY">Helmert Similarity (Rotate+Scale)</option>
                     <option value="AFFINE">Affine Transformation (6-Param)</option>
-                    <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
+                    <option value="TPS" selected>Thin Plate Spline (TPS Rubber-Sheeting)</option>
                     <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
                   </select>
                 </div>
@@ -2380,8 +2380,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <tr>
                         <th style="width:24px;">On</th>
                         <th>Name</th>
-                        <th>Deed (X, Y)</th>
-                        <th>Field (E, N)</th>
                         <th style="width:50px;">Res (m)</th>
                         <th style="width:30px;">Act</th>
                       </tr>
@@ -2415,7 +2413,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;">
                     <span style="color:var(--text-muted);">Área Objetivo:</span>
                     <div style="display:flex;align-items:center;gap:4px;">
-                      <input type="number" id="input-target-area-jimmy" value="400.0" step="1.0" min="1" style="width:75px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,23,68,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.74rem;text-align:right;padding:2px 4px;">
+                      <input type="number" id="input-target-area-jimmy" value="2413.0" step="1.0" min="1" style="width:75px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,23,68,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.74rem;text-align:right;padding:2px 4px;">
                       <span style="color:var(--text-muted);">m²</span>
                     </div>
                   </div>
@@ -2441,7 +2439,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;">
                     <span style="color:var(--text-muted);">Área Objetivo:</span>
                     <div style="display:flex;align-items:center;gap:4px;">
-                      <input type="number" id="input-target-area-pedro" value="1050.0" step="1.0" min="1" style="width:75px;background:rgba(15,20,32,0.9);border:1px solid rgba(0,230,118,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.74rem;text-align:right;padding:2px 4px;">
+                      <input type="number" id="input-target-area-pedro" value="2142.0" step="1.0" min="1" style="width:75px;background:rgba(15,20,32,0.9);border:1px solid rgba(0,230,118,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.74rem;text-align:right;padding:2px 4px;">
                       <span style="color:var(--text-muted);">m²</span>
                     </div>
                   </div>
@@ -5820,6 +5818,7 @@ EOF`;
       activeDeed: "1073",
       deeds: {
         "1073": {
+          algorithm: "SIMILARITY",
           histEntities: [],
           histPdfDoc: null,
           histPdfBlob: null,
@@ -5834,6 +5833,7 @@ EOF`;
           testAxes: []
         },
         "196": {
+          algorithm: "TPS",
           histEntities: [],
           histPdfDoc: null,
           histPdfBlob: null,
@@ -7568,8 +7568,9 @@ EOF`;
         // Draw badge pin with number inside
         drawAnchorPin(trueCtx, anc, tp);
 
-        // Anchor labels are controlled by the eye toggle (state.showMojones1073 and anc.showLabel)
-        if (state.showMojones1073 !== false && anc.showLabel !== false) {
+        // Anchor labels are controlled by the eye toggle (state.showMojones1073 and anc.showLabel, hidden for Deed 196)
+        const showMojones = (state.activeDeed === "196") ? false : (state.showMojones1073 !== false);
+        if (showMojones && anc.showLabel !== false) {
           drawAnchorLabelCard(trueCtx, anc, tp, false);
         }
         trueCtx.restore();
@@ -13375,6 +13376,7 @@ EOF`;
       state.deeds[current].anchors = state.anchors ? JSON.parse(JSON.stringify(state.anchors)) : [];
       state.deeds[current].histViewport = state.histViewport ? { ...state.histViewport } : null;
       state.deeds[current].testAxes = state.testAxes ? JSON.parse(JSON.stringify(state.testAxes)) : [];
+      state.deeds[current].algorithm = state.algorithm;
       if (current === "1073" && state.userPolygon && state.userPolygon.vertices) {
         state.deeds["1073"].userPolygon = JSON.parse(JSON.stringify(state.userPolygon));
       }
@@ -13401,6 +13403,7 @@ EOF`;
         state.anchors = d.anchors ? JSON.parse(JSON.stringify(d.anchors)) : [];
         state.testAxes = d.testAxes ? JSON.parse(JSON.stringify(d.testAxes)) : [];
         if (d.histViewport) state.histViewport = { ...d.histViewport };
+        state.algorithm = d.algorithm || (deedKey === "196" ? "TPS" : "SIMILARITY");
         if (deedKey === "1073" && d.userPolygon) {
           state.userPolygon = JSON.parse(JSON.stringify(d.userPolygon));
           if (typeof recomputeUserPolygonMetrics === "function") recomputeUserPolygonMetrics();
@@ -13409,6 +13412,7 @@ EOF`;
       } else {
         updateStatus(`⏳ Loading Escritura ${deedKey} assets (DXF, anchors, PDF)…`);
         if (deedKey === "196") {
+          state.algorithm = "TPS";
           state.histFileName = "Polygon_Escritura196.dxf";
           try {
             const text = await fetchText("Polygon_Escritura196.dxf");
@@ -13419,7 +13423,8 @@ EOF`;
           try {
             const ancText = await fetchText("anchors_196.json");
             const ancList = JSON.parse(ancText);
-            applyAnchors(Array.isArray(ancList) ? ancList : (ancList.anchors || []));
+            const rawList = Array.isArray(ancList) ? ancList : (ancList.anchors || []);
+            applyAnchors(rawList.map(a => ({ ...a, showLabel: a.showLabel === true })));
           } catch (e) {
             console.warn("Failed loading anchors_196.json:", e);
           }
@@ -13431,6 +13436,7 @@ EOF`;
           }
           saveCurrentDeedState();
         } else {
+          state.algorithm = "SIMILARITY";
           state.histFileName = "Polygon_Escritura1073_FerminSuarez.dxf";
           try {
             const text = await fetchText("Polygon_Escritura1073_FerminSuarez.dxf");
@@ -13458,6 +13464,14 @@ EOF`;
       const lblToolbarDeed = document.getElementById("lbl-toolbar-active-deed");
       if (lblToolbarDeed) {
         lblToolbarDeed.textContent = `📜 Escritura ${deedKey}`;
+      }
+      const algoSelect196 = document.getElementById("algorithm-select-196");
+      if (algoSelect196) {
+        algoSelect196.value = (deedKey === "196") ? state.algorithm : "TPS";
+      }
+      const mainAlgo = document.getElementById("algorithm-select");
+      if (mainAlgo) {
+        mainAlgo.value = state.algorithm;
       }
       if (histStatus) {
         histStatus.textContent = `Deed ${deedKey} ready (${state.histEntities.length} ents)`;
@@ -13885,7 +13899,7 @@ EOF`;
     let draggingAnchorLabel = null; // { anc, isHist, startMouseX, startMouseY, origDx, origDy }
 
     function hitTestAnchorLabel(sx, sy, isHist) {
-      if (isHist || (!isHist && state.showMojones1073 === false)) return null;
+      if (isHist || (!isHist && (state.showMojones1073 === false || state.activeDeed === "196"))) return null;
       const vp = isHist ? state.histViewport : state.trueViewport;
       const h = isHist ? histCanvas.height : trueCanvas.height;
       const ctx = isHist ? histCtx : trueCtx;
@@ -15894,14 +15908,8 @@ EOF`;
             <td>
               <div style="display:flex;align-items:center;gap:3px;min-width:0;">
                 <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;"><span style="font-size:0.52em;opacity:0.85;vertical-align:0.12em;margin-right:0.5px;">#</span>${anc.id}</span>
-                <input type="text" class="anchor-name-input-196" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" style="width:72px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.70rem;padding:1px 4px;border-radius:3px;">
+                <input type="text" class="anchor-name-input-196" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" style="width:100%;max-width:140px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.70rem;padding:1px 4px;border-radius:3px;">
               </div>
-            </td>
-            <td style="font-family:monospace;font-size:0.67rem;color:var(--text-muted);">
-              ${anc.src.x.toFixed(1)}, ${anc.src.y.toFixed(1)}
-            </td>
-            <td style="font-family:monospace;font-size:0.67rem;color:var(--text-muted);">
-              ${anc.dst.x.toFixed(1)}, ${anc.dst.y.toFixed(1)}
             </td>
             <td style="text-align:right;font-family:monospace;font-size:0.70rem;color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err) > 5 ? 'var(--accent-red)' : '#00e676')}">
               ${err}${err !== "—" ? "m" : ""}
@@ -16099,8 +16107,8 @@ EOF`;
 
       const targetJimmyInput = document.getElementById("input-target-area-jimmy");
       const targetPedroInput = document.getElementById("input-target-area-pedro");
-      const targetJimmy = targetJimmyInput ? (parseFloat(targetJimmyInput.value) || 400.0) : 400.0;
-      const targetPedro = targetPedroInput ? (parseFloat(targetPedroInput.value) || 1050.0) : 1050.0;
+      const targetJimmy = targetJimmyInput ? (parseFloat(targetJimmyInput.value) || 2413.0) : 2413.0;
+      const targetPedro = targetPedroInput ? (parseFloat(targetPedroInput.value) || 2142.0) : 2142.0;
 
       const valAreaJimmy = document.getElementById("val-area-jimmy");
       const valDeltaJimmy = document.getElementById("val-delta-jimmy");
@@ -16184,8 +16192,8 @@ EOF`;
 
       const targetJimmyInput = document.getElementById("input-target-area-jimmy");
       const targetPedroInput = document.getElementById("input-target-area-pedro");
-      const targetJimmy = targetJimmyInput ? (parseFloat(targetJimmyInput.value) || 400.0) : 400.0;
-      const targetPedro = targetPedroInput ? (parseFloat(targetPedroInput.value) || 1050.0) : 1050.0;
+      const targetJimmy = targetJimmyInput ? (parseFloat(targetJimmyInput.value) || 2413.0) : 2413.0;
+      const targetPedro = targetPedroInput ? (parseFloat(targetPedroInput.value) || 2142.0) : 2142.0;
 
       const statusOpt = document.getElementById("status-opt-196");
       if (statusOpt) statusOpt.innerHTML = "⏳ Optimizando áreas de Lote Jimmy y Lote Pedro…";

@@ -11,7 +11,8 @@
       "y": 876837.6845958328
     },
     "color": "#ff1744",
-    "active": true
+    "active": true,
+    "showLabel": false
   },
   {
     "id": 2,
@@ -25,7 +26,8 @@
       "y": 876848.6473334116
     },
     "color": "#00e676",
-    "active": true
+    "active": true,
+    "showLabel": false
   },
   {
     "id": 3,
@@ -39,7 +41,8 @@
       "y": 876799.7362752687
     },
     "color": "#00e5ff",
-    "active": true
+    "active": true,
+    "showLabel": false
   },
   {
     "id": 4,
@@ -53,7 +56,8 @@
       "y": 876780.791843335
     },
     "color": "#ff9100",
-    "active": true
+    "active": true,
+    "showLabel": false
   },
   {
     "id": 5,
@@ -67,7 +71,8 @@
       "y": 876844.8890666695
     },
     "color": "#d500f9",
-    "active": true
+    "active": true,
+    "showLabel": false
   },
   {
     "id": 6,
@@ -81,7 +86,8 @@
       "y": 876715.0517921222
     },
     "color": "#ffff00",
-    "active": true
+    "active": true,
+    "showLabel": false
   },
   {
     "id": 7,
@@ -95,7 +101,8 @@
       "y": 876825.2716951575
     },
     "color": "#76ff03",
-    "active": true
+    "active": true,
+    "showLabel": false
   },
   {
     "id": 8,
@@ -109,6 +116,7 @@
       "y": 876847.4102684789
     },
     "color": "#f50057",
-    "active": true
+    "active": true,
+    "showLabel": false
   }
 ]
