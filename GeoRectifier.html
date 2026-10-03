@@ -2249,24 +2249,25 @@ Do NOT modify dormant/parked sections unless specifically requested.
           <div class="panel-header" data-target="body-custom-polygon" title="Colapsar / Desplegar Custom Polygons" style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:8px;">
               <h3>📐 Custom Polygons</h3>
-              <button id="btn-download-custom-poly-dxf" class="btn-icon-action" style="background:rgba(255,179,0,0.12);border:1px solid rgba(255,179,0,0.35);color:#ffb300;width:26px;height:26px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s;" title="Download Custom Polygons DXF (custom_polygons.dxf)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-                </svg>
-              </button>
               <span id="custom-poly-mode-badge" style="font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(255,179,0,0.12);color:#ffb300;font-weight:600;">Idle</span>
             </div>
             <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-custom-poly" title="Colapsar / Desplegar">▶</button>
           </div>
           <div id="body-custom-polygon" style="display:none;flex-direction:column;gap:8px;">
-            <!-- Action Toolbar: New, Save & Load -->
+            <!-- Action Toolbar: New, Download (DXF / JSON) & Load -->
             <div style="display:flex;gap:6px;align-items:center;">
               <button id="btn-add-new-custom-poly" class="btn btn-primary btn-sm" style="flex:1;background:linear-gradient(135deg,#00e5ff,#00b0ff);border-color:#00e5ff;color:#050d1a;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;padding:3px 6px;font-size:0.71rem;" title="Create a new independent polygon on the field map and subpanel">
                 ➕ New Poly
               </button>
-              <button id="btn-save-custom-poly-json" class="btn btn-sm" style="background:rgba(0,200,83,0.20);border:1px solid rgba(0,200,83,0.45);color:#00e676;padding:3px 8px;font-size:0.70rem;" title="Download &amp; Save Custom Polygons to JSON">
-                💾 Save JSON
-              </button>
+              <div class="custom-poly-download-group" style="display:inline-flex;align-items:center;background:rgba(0,200,83,0.14);border:1px solid rgba(0,200,83,0.40);border-radius:4px;padding:2px 5px;gap:4px;" title="Download Custom Polygons (DXF / JSON)">
+                <span style="display:inline-flex;align-items:center;color:#00e676;opacity:0.9;" title="Download Custom Polygons">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                  </svg>
+                </span>
+                <button id="btn-download-custom-poly-dxf" class="btn btn-sm" type="button" style="background:rgba(255,255,255,0.08);border:1px solid rgba(0,200,83,0.35);color:#00e676;padding:2px 6px;font-size:0.68rem;font-weight:600;border-radius:3px;cursor:pointer;line-height:1.2;" title="Download Custom Polygons as DXF (custom_polygons.dxf)">DXF</button>
+                <button id="btn-save-custom-poly-json" class="btn btn-sm" type="button" style="background:rgba(255,255,255,0.08);border:1px solid rgba(0,200,83,0.35);color:#00e676;padding:2px 6px;font-size:0.68rem;font-weight:600;border-radius:3px;cursor:pointer;line-height:1.2;" title="Download &amp; Save Custom Polygons as JSON (casadelsol_parcels.json)">JSON</button>
+              </div>
               <label for="custom-poly-file-input" style="cursor:pointer;margin:0;display:inline-flex;align-items:center;gap:3px;padding:3px 8px;font-size:0.70rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;" title="Load Custom Polygons from JSON file">
                 📂 Load JSON<input type="file" id="custom-poly-file-input" accept=".json" style="display:none;">
               </label>
@@ -7709,7 +7710,7 @@ EOF`;
     }
 
     /** Hit test existing measurement points/markers on true canvas (for dragging or deleting) */
-    function findMeasureMarkerAt(mouseX, mouseY, vp, canvasH, hitRadiusPx = 14) {
+    function findMeasureMarkerAt(mouseX, mouseY, vp, canvasH, hitRadiusPx = 16) {
       if (!state.measureTool || !state.measureTool.points || state.measureTool.points.length === 0) return null;
       const pts = state.measureTool.points;
       for (let i = 0; i < pts.length; i++) {
@@ -14566,16 +14567,6 @@ EOF`;
         return;
       }
       handleMouseUp(e, trueCanvas, state.trueViewport, false);
-    });
-    trueCanvas.addEventListener("contextmenu", e => {
-      e.preventDefault();
-      if (state.measureTool && state.measureTool.active) {
-        if (state.measureTool.points.length > 0) {
-          clearMeasureTool();
-        } else {
-          toggleMeasureTool(false);
-        }
-      }
     });
 
     // Double-click on polygon segment to insert a new vertex (or close measuring polygon)
