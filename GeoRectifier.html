@@ -7525,19 +7525,32 @@ EOF`;
           trueCtx.beginPath(); trueCtx.arc(wp.x,wp.y, isEnabled ? 4 : 3, 0, Math.PI*2);
           trueCtx.fillStyle = isEnabled ? "#ff1744" : "rgba(255, 23, 68, 0.3)"; trueCtx.fill();
         }
-        // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor origin during unconstrained simulation)
-        if (isEnabled && state.optBufferRadius > 0 && (state.constrainAnchorsToField || state.tuningAnchorsActive)) {
+        // Render pen buffer disk around anchor center (nearest vertex if Constrain is on, or anchor dst during unconstrained simulation)
+        const isTuneMode = (anc.optimize === true);
+        const shouldShowBuffer = isEnabled && state.optBufferRadius > 0 && (
+          isTuneMode ||
+          state.constrainAnchorsToField ||
+          state.tuningAnchorsActive ||
+          state.tuning196Active
+        );
+        if (shouldShowBuffer) {
           let centerPt = null;
           if (state.constrainAnchorsToField) {
             const nearestField = findNearestFieldVertex(anc.dst);
-            if (nearestField && nearestField.dist <= (state.optBufferRadius * 1.5)) {
+            if (nearestField && nearestField.dist <= (state.optBufferRadius * 2.5)) {
               centerPt = nearestField;
+            } else {
+              centerPt = anc.dst;
             }
-          } else if (state.tuningAnchorsActive && state.tuningAnchorCenters) {
+          } else if (state.tuningAnchorCenters) {
             const ancIdx = state.anchors.indexOf(anc);
             if (ancIdx >= 0 && state.tuningAnchorCenters[ancIdx]) {
               centerPt = state.tuningAnchorCenters[ancIdx];
+            } else {
+              centerPt = anc.dst;
             }
+          } else {
+            centerPt = anc.dst;
           }
 
           if (centerPt) {
