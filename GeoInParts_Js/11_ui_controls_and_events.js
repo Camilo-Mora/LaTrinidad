@@ -3284,6 +3284,23 @@
           if (!isEnabled) tr.className = "anchor-row-disabled";
           const ancName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
           const safeName = (ancName + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+          const isOpt = anc.optimize === true;
+          let modeBtnHtml = "";
+          if (anc.axisId != null) {
+            if (isOpt) {
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #e040fb;background:rgba(224,64,251,0.22);color:#e040fb;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="1D Auto-Tune active: optimizer actively sweeps along axis. Click to switch to Floating Guide (zero-force rubber band).">🎯 Tune</button>`;
+            } else {
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #00e5ff;background:rgba(0,229,255,0.18);color:#00e5ff;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Floating Guide active: slides freely along axis to natural projection (rubber band). Click to enable 1D Auto-Tune.">🌊 Float</button>`;
+            }
+          } else {
+            if (isOpt) {
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #76ff03;background:rgba(118,255,3,0.20);color:#76ff03;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Auto-Tune active: optimizer tunes anchor in field buffer. Click to lock anchor as Fixed Ground Truth.">🎯 Tune</button>`;
+            } else {
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #78909c;background:rgba(120,144,156,0.20);color:#b0bec5;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Fixed Ground Truth: anchor coordinate is locked (0 movement). Click to enable Auto-Tune.">🔒 Fixed</button>`;
+            }
+          }
+
           tr.innerHTML = `
             <td style="text-align:center;">
               <input type="checkbox" class="chk-anchor-active-196" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:#ff1744;cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
@@ -3294,6 +3311,9 @@
                 <input type="text" class="anchor-name-input-196" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" style="width:100%;max-width:140px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.70rem;padding:1px 4px;border-radius:3px;">
               </div>
             </td>
+            <td style="text-align:center;">
+              ${modeBtnHtml}
+            </td>
             <td style="text-align:right;font-family:monospace;font-size:0.70rem;color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err) > 5 ? 'var(--accent-red)' : '#00e676')}">
               ${err}${err !== "—" ? "m" : ""}
             </td>
@@ -3302,6 +3322,22 @@
             </td>
           `;
           anchorTableBody196.appendChild(tr);
+        });
+
+        // Toggle anchor optimize mode listener for 196
+        anchorTableBody196.querySelectorAll(".btn-toggle-anchor-opt").forEach(btn => {
+          btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const ancId = parseInt(btn.getAttribute("data-id"), 10);
+            const anc = (state.anchors || []).find(a => a.id === ancId);
+            if (anc) {
+              anc.optimize = !anc.optimize;
+              updateAnalyticsUI();
+              redrawAll();
+              const modeText = anc.optimize ? (anc.axisId != null ? "1D Auto-Tune" : "2D Auto-Tune") : (anc.axisId != null ? "Floating Guide (Rubber Band)" : "Fixed Ground Truth");
+              updateStatus(`Anchor #${ancId} mode set to: ${modeText}`);
+            }
+          });
         });
 
         if (typeof recompute196Metrics === "function") {
@@ -3593,7 +3629,80 @@
         });
       });
 
-      // Iterative dual-parcel area optimization in field coordinates
+      // Differentiate between Tunable Anchors (Mode: Tune) and Fixed Ground Truth (Mode: Fixed)
+      const optimizableAnchors = activeAnchors.filter(a => a.optimize === true);
+      const isAllAnchorsFixed = (optimizableAnchors.length === 0);
+      const activeFixedAnchors = activeAnchors.filter(a => a.optimize !== true && a.axisId == null);
+
+      // Identify which vertices in CAD space are tied to Fixed Anchors (locked to 0 movement)
+      const fixedIndicesJimmy = new Set();
+      const fixedIndicesPedro = new Set();
+      jimmyEnt.points.forEach((pj, ij) => {
+        for (const anc of activeFixedAnchors) {
+          if (Math.hypot(pj.x - anc.src.x, pj.y - anc.src.y) <= 1.5) {
+            fixedIndicesJimmy.add(ij);
+            break;
+          }
+        }
+      });
+      pedroEnt.points.forEach((pp, ip) => {
+        for (const anc of activeFixedAnchors) {
+          if (Math.hypot(pp.x - anc.src.x, pp.y - anc.src.y) <= 1.5) {
+            fixedIndicesPedro.add(ip);
+            break;
+          }
+        }
+      });
+
+      // ── Step 1: If anchors are in "Tune" mode, optimize their field (dst) positions within buffer ──
+      let tunedAnchorsCount = 0;
+      if (!isAllAnchorsFixed) {
+        const basePositions = optimizableAnchors.map(a => ({ x: a.dst.x, y: a.dst.y }));
+        const R = Math.max(state.optBufferRadius > 0 ? state.optBufferRadius : 3.0, 1.0);
+        let bestOffsets = optimizableAnchors.map(() => ({ dx: 0, dy: 0 }));
+
+        const evalError = (offsets) => {
+          offsets.forEach((off, i) => {
+            optimizableAnchors[i].dst.x = basePositions[i].x + off.dx;
+            optimizableAnchors[i].dst.y = basePositions[i].y + off.dy;
+          });
+          let curW = null;
+          try {
+            curW = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors);
+          } catch (_) { return Infinity; }
+          const wJ = jimmyEnt.points.map(p => curW(p));
+          const wP = pedroEnt.points.map(p => curW(p));
+          return Math.abs(computeShoelaceArea(wJ) - targetJimmy) + Math.abs(computeShoelaceArea(wP) - targetPedro);
+        };
+
+        let bestError = evalError(bestOffsets);
+        for (let step = 0; step < 160 && bestError > 0.05; step++) {
+          const stepR = R * Math.pow(0.96, step / 4);
+          for (let i = 0; i < optimizableAnchors.length; i++) {
+            const angle = Math.random() * 2 * Math.PI;
+            const dist = Math.random() * stepR;
+            const candOffsets = bestOffsets.map(o => ({ ...o }));
+            const cDx = candOffsets[i].dx + dist * Math.cos(angle);
+            const cDy = candOffsets[i].dy + dist * Math.sin(angle);
+            if (Math.hypot(cDx, cDy) <= R) {
+              candOffsets[i].dx = cDx;
+              candOffsets[i].dy = cDy;
+              const err = evalError(candOffsets);
+              if (err < bestError) {
+                bestError = err;
+                bestOffsets = candOffsets;
+              }
+            }
+          }
+        }
+        evalError(bestOffsets);
+        try {
+          warper = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors);
+        } catch (_) {}
+        tunedAnchorsCount = optimizableAnchors.length;
+      }
+
+      // ── Step 2: Iterative dual-parcel area optimization in field coordinates ──
       let warpedJ = jimmyEnt.points.map(p => warper(p));
       let warpedP = pedroEnt.points.map(p => warper(p));
 
@@ -3629,7 +3738,7 @@
         const rate = 0.35;
         const factorJ = 1 + (scaleJ - 1) * rate;
         warpedJ.forEach((p, idx) => {
-          if (!sharedIndicesJimmy.includes(idx)) {
+          if (!sharedIndicesJimmy.includes(idx) && !fixedIndicesJimmy.has(idx)) {
             p.x = cJx + (p.x - cJx) * factorJ;
             p.y = cJy + (p.y - cJy) * factorJ;
           }
@@ -3637,7 +3746,7 @@
 
         const factorP = 1 + (scaleP - 1) * rate;
         warpedP.forEach((p, idx) => {
-          if (!sharedIndicesPedro.includes(idx)) {
+          if (!sharedIndicesPedro.includes(idx) && !fixedIndicesPedro.has(idx)) {
             p.x = cPx + (p.x - cPx) * factorP;
             p.y = cPy + (p.y - cPy) * factorP;
           }
@@ -3745,10 +3854,14 @@
       const finalAreaP = computeShoelaceArea(pedroEnt.points.map(p => warper(p)));
 
       if (statusOpt) {
+        const modeBadge = tunedAnchorsCount > 0 
+          ? `🎯 Modo: ${tunedAnchorsCount} anclaje(s) ajustado(s) (Tune)`
+          : `🔒 Modo: Anclajes fijos (0 desplazamiento, solo nodos libres de escritura)`;
         const constrainInfo = state.constrainAnchorsToField ? ` [🔒 Restringido ±${state.optBufferRadius.toFixed(1)}m]` : ` [🔓 Sin restricción]`;
-        statusOpt.innerHTML = `✅ <strong>Optimización completa${constrainInfo}:</strong><br>• Lote Jimmy: <strong>${finalAreaJ.toFixed(2)} m²</strong> (target ${targetJimmy.toFixed(1)} m²)<br>• Lote Pedro: <strong>${finalAreaP.toFixed(2)} m²</strong> (target ${targetPedro.toFixed(1)} m²)`;
+        statusOpt.innerHTML = `✅ <strong>Optimización completa</strong> (${modeBadge}${constrainInfo}):<br>• Lote Jimmy: <strong>${finalAreaJ.toFixed(2)} m²</strong> (target ${targetJimmy.toFixed(1)} m²)<br>• Lote Pedro: <strong>${finalAreaP.toFixed(2)} m²</strong> (target ${targetPedro.toFixed(1)} m²)`;
       }
-      updateStatus(`⚡ Parcelas Escritura 196 optimizadas: Jimmy = ${finalAreaJ.toFixed(2)} m², Pedro = ${finalAreaP.toFixed(2)} m²`);
+      const modeSummary = tunedAnchorsCount > 0 ? `${tunedAnchorsCount} anclajes (Tune)` : `nodos de escritura (Anclajes Fixed)`;
+      updateStatus(`⚡ Parcelas Escritura 196 optimizadas vía ${modeSummary}: Jimmy = ${finalAreaJ.toFixed(2)} m², Pedro = ${finalAreaP.toFixed(2)} m²`);
     }
 
     // ── Cluster 196 Action Listeners ──
@@ -3808,7 +3921,8 @@
             src: { x: a.src.x, y: a.src.y },
             dst: { x: a.dst.x, y: a.dst.y },
             active: a.active !== false && a.enabled !== false,
-            enabled: a.active !== false && a.enabled !== false
+            enabled: a.active !== false && a.enabled !== false,
+            optimize: a.optimize === true
           }))
         };
         const jsonStr = JSON.stringify(toSave, null, 2);
