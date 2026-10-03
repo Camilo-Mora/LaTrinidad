@@ -1,6 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!--
+================================================================================
+                    MASTER SECTION INDEX / TABLE OF CONTENTS
+================================================================================
+Use this index to quickly jump to sections using text search (Ctrl+F or grep).
+
+--- CSS STYLES ---
+  * [SECTION: CSS_STYLES]
+  * [SECTION: CSS_VECTORIZER_MODAL]
+
+--- HTML MARKUP ---
+  * [SECTION: HTML_HEADER_TOOLBAR]
+  * [SECTION: HTML_MAP_VIEWPORTS]
+  * [SECTION: HTML_SIDEBAR_PANELS]
+  * [SECTION: HTML_MODALS_AND_FOOTER]
+
+--- JAVASCRIPT LOGIC ---
+  * [SECTION: JS_DXF_PARSER]
+  * [SECTION: JS_TRANSFORM_MATH]
+  * [SECTION: JS_STATE_INIT]
+  * [SECTION: JS_ASSET_LOADERS_AND_DOM]
+  * [SECTION: JS_CANVAS_RENDERERS]
+  * [SECTION: JS_RECONSTRUCTED_POLYGON]
+  * [SECTION: JS_POLYGON_SUMMARY_TABLE]
+  * [SECTION: JS_EVENT_LISTENERS]
+  * [SECTION: JS_INTERACTION_HANDLERS]
+  * [SECTION: JS_ANALYTICS_AND_TABLES]
+  * [SECTION: JS_PDF_AND_DXF_EXPORT]
+  * [SECTION: JS_VECTORIZER_LOGIC]
+  * [SECTION: JS_CASE_BUILDER_SYSTEM]
+================================================================================
+-->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Trinidad</title>
@@ -9,6 +41,7 @@
   <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- [SECTION: CSS_STYLES] -->
   <style>
     /* Core Design System & Styling Tokens */
     :root {
@@ -595,6 +628,7 @@
     /* Panel body collapse: .panel-body-collapsed hides the body of a panel-card */
     .panel-body-collapsed { display: none !important; }
 
+    /* [SECTION: CSS_VECTORIZER_MODAL] */
     /* Modal Dialog for Integrated PolygonCreator Vectorizer */
     .modal-overlay {
       display: none;
@@ -782,6 +816,7 @@
 </head>
 <body>
   <div class="app-container">
+    <!-- [SECTION: HTML_HEADER_TOOLBAR] -->
     <!-- Header -->
     <header class="app-header">
       <div class="logo-group">
@@ -836,6 +871,7 @@
     <!-- Floating strip to restore header (only visible when header is hidden) -->
     <button id="btn-show-header" class="header-restore-strip" title="Restore header">▼</button>
 
+    <!-- [SECTION: HTML_MAP_VIEWPORTS] -->
     <!-- Workspace -->
     <main class="app-workspace">
       <!-- Split Viewports -->
@@ -995,6 +1031,7 @@
         </div>
       </div>
 
+      <!-- [SECTION: HTML_SIDEBAR_PANELS] -->
       <!-- Sidebar -->
       <aside class="sidebar collapsed">
         <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px;">
@@ -1462,6 +1499,7 @@
       </aside>
     </main>
 
+    <!-- [SECTION: HTML_MODALS_AND_FOOTER] -->
     <!-- Footer Status Bar -->
     <footer class="app-footer">
       <div style="display:flex; align-items:center; gap:10px; min-width:0; overflow:hidden;">
@@ -1689,6 +1727,7 @@ const DEFAULT_DXF_1073 = `0\nSECTION\n2\nENTITIES\n0\nPOLYLINE\n8\nPolygon_1073\
 /* Configure PDF.js Worker */
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+// [SECTION: JS_DXF_PARSER]
 /* 1. DXF PARSER & SERIALIZER */
 class DXFParser {
   static parse(dxfText) {
@@ -1800,6 +1839,7 @@ function getActiveAnchors(anchors) {
   return anchors.filter(a => a.active !== false);
 }
 
+// [SECTION: JS_TRANSFORM_MATH]
 /* 2. TRANSFORMATION MATH ENGINE */
 class TransformMath {
   static tpsKernel(r) { return (r <= 1e-9) ? 0 : r * r * Math.log(r); }
@@ -1950,6 +1990,7 @@ const EMBEDDED_USER_POLYGON = {"vertices":[{"x":1098077.13,"y":877078.7,"deedPt"
 
 
 
+// [SECTION: JS_STATE_INIT]
 const state = {
   snapEnabled: true,
   snapRadius: 15,
@@ -2169,7 +2210,8 @@ const coordsBar = document.getElementById("coords-bar");
 const chkMeasureLabels = document.getElementById("chk-measure-labels");
 const measurePolygonList = document.getElementById("measure-polygon-list");
 
-/* INITIALIZATION */
+// [SECTION: JS_ASSET_LOADERS_AND_DOM]
+/* INITIALIZATION & PRELOAD */
 window.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("dxf_296");
   localStorage.removeItem("dxf_1073");
@@ -2799,6 +2841,7 @@ function getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, isShiftPressed 
   return closestTarget;
 }
 
+// [SECTION: JS_CANVAS_RENDERERS]
 function redrawAll() {
   drawViewport296();
   drawViewport1073();
@@ -3626,6 +3669,7 @@ function drawMojones1073(ctx, vp, h) {
   });
 }
 
+// [SECTION: JS_RECONSTRUCTED_POLYGON]
 /* -----------------------------------------------------------------------
    Lindero La Trinidad Reconstruido (user_polygon.json) Functions
 ----------------------------------------------------------------------- */
@@ -4504,6 +4548,7 @@ function moveLayerOrder(layerKey, direction) {
 }
 
 /* EVENT LISTENERS & INTERACTION */
+// [SECTION: JS_POLYGON_SUMMARY_TABLE]
 /* =========================================================
    POLYGON SUMMARY PANEL
    ========================================================= */
@@ -4832,6 +4877,7 @@ function setupPolygonSummaryListeners() {
   // Initial render of summary
   updatePolygonSummaryUI();
 }
+// [SECTION: JS_EVENT_LISTENERS]
 function setupEventListeners() {
   setupCasesPanel();
 
@@ -5622,6 +5668,7 @@ function updateWindowLayout() {
   setTimeout(resizeCanvases, 50);
 }
 
+// [SECTION: JS_INTERACTION_HANDLERS]
 function setToolMode(mode) {
   state.toolMode = mode;
   // Update all per-panel vp-tool-btn buttons
@@ -6039,6 +6086,7 @@ function updateAreaStats() {
   }
 }
 
+// [SECTION: JS_ANALYTICS_AND_TABLES]
 function updateAnalyticsUI() {
   updateAreaStats();
   const rmse296  = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors296),  state.anchors296);
@@ -6107,6 +6155,7 @@ function deleteAnchor(targetKey, index) {
   redrawAll();
 }
 
+// [SECTION: JS_PDF_AND_DXF_EXPORT]
 function exportRectifiedDXF() {
   let combinedEntities = [];
   if (getActiveAnchors(state.anchors296).length >= 2) {
@@ -6535,6 +6584,7 @@ async function exportMultiPagePDF() {
   }
 }
 
+// [SECTION: JS_VECTORIZER_LOGIC]
 /* ==========================================================================
    INTEGRATED POLYGON CREATOR (PDF VECTORIZER MODAL)
    ========================================================================== */
@@ -7008,6 +7058,7 @@ document.getElementById("btn-vec-reset").addEventListener("click", () => {
 
 document.getElementById("btn-vec-close").addEventListener("click", () => vecModal.classList.remove("visible"));
 
+// [SECTION: JS_CASE_BUILDER_SYSTEM]
 /* ==========================================================================
    CASES SYSTEM
    ========================================================================== */

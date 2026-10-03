@@ -892,6 +892,52 @@ Do NOT modify dormant/parked sections unless specifically requested.
       border-color: var(--accent-cyan);
       box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
     }
+    .btn-measure-group {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255, 179, 0, 0.12);
+      border: 1px solid rgba(255, 179, 0, 0.45);
+      border-radius: 4px;
+      vertical-align: middle;
+      transition: all 0.2s ease;
+    }
+    .btn-measure-group:hover {
+      background: rgba(255, 179, 0, 0.22);
+      border-color: #ffb300;
+      box-shadow: 0 0 10px rgba(255, 179, 0, 0.35);
+    }
+    .btn-measure-group.active {
+      background: rgba(255, 179, 0, 0.35);
+      border-color: #ffd600;
+      box-shadow: 0 0 14px rgba(255, 179, 0, 0.55);
+    }
+    .btn-measure-group .btn-measure {
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      padding: 4px 6px;
+    }
+    .btn-measure-group.active .btn-measure {
+      color: #ffffff;
+    }
+    .btn-measure-group .btn-measure-snap-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 0 6px 0 4px;
+      cursor: pointer;
+      font-size: 0.68rem;
+      color: #ffb300;
+      font-weight: 700;
+      border-left: 1px solid rgba(255, 179, 0, 0.35);
+      margin: 0;
+      user-select: none;
+    }
+    .btn-measure-group.active .btn-measure-snap-label {
+      color: #fff8e1;
+      border-left-color: rgba(255, 214, 0, 0.45);
+    }
     .btn-measure {
       background: rgba(255, 179, 0, 0.12);
       border: 1px solid rgba(255, 179, 0, 0.45);
@@ -1404,7 +1450,13 @@ Do NOT modify dormant/parked sections unless specifically requested.
               </label>
               <button class="btn-fit-view btn-add-ref" id="btn-add-ref-dxf" title="Load temporary reference DXF file (+)">➕ Ref DXF</button>
               <input type="file" id="ref-dxf-input" accept=".dxf" style="display:none;" multiple>
-              <button class="btn-fit-view btn-measure" id="btn-measure-tool" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">📏 Measure</button>
+              <div class="btn-measure-group" title="Measure distances & areas between sequential clicks (Hotkeys: M or Esc to clear)">
+                <button class="btn-fit-view btn-measure" id="btn-measure-tool">📏 Measure</button>
+                <label class="btn-measure-snap-label" title="Toggle vertex snapping (snaps to visible objects: Reconstructed Polygon, Surveys, Deed, Anchors)">
+                  <input type="checkbox" id="chk-measure-snap" checked style="accent-color:#ffb300;width:12px;height:12px;cursor:pointer;margin:0;">
+                  <span>🧲 Snap</span>
+                </label>
+              </div>
               
               <button class="btn-fit-view btn-squeeze" id="btn-toggle-deed-handles" title="PowerPoint-style Deed Aspect Squeeze (drag edge handles on field canvas to stretch X or Y)">📐 Squeeze</button>
               <button class="btn-fit-view btn-marker" id="btn-marker-tool" title="Add temporary reference markers on field canvas (Click to drop, drag to move, right-click to delete)">📍 Marker</button>
@@ -1485,9 +1537,15 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
             <!-- Floating Measurement HUD Overlay -->
             <div id="measure-hud" style="display:none;position:absolute;top:10px;right:10px;background:rgba(18,24,38,0.92);border:1px solid rgba(255,179,0,0.5);border-radius:6px;padding:7px 11px;font-size:0.75rem;color:var(--text-main);box-shadow:0 4px 16px rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:35;min-width:190px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:3px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:3px;gap:6px;">
                 <span style="font-weight:700;color:#ffb300;display:flex;align-items:center;gap:4px;">📏 Measurement</span>
-                <button id="btn-clear-measure" style="background:none;border:none;color:#ff5252;cursor:pointer;font-size:0.78rem;font-weight:bold;padding:0 2px;" title="Clear measurement (Esc)">✕</button>
+                <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+                  <label title="Toggle vertex snapping" style="display:inline-flex;align-items:center;gap:2px;font-size:0.67rem;cursor:pointer;color:#ffb300;margin:0;user-select:none;">
+                    <input type="checkbox" id="chk-measure-hud-snap" checked style="accent-color:#ffb300;width:11px;height:11px;cursor:pointer;margin:0;">
+                    <span>🧲 Snap</span>
+                  </label>
+                  <button id="btn-clear-measure" style="background:none;border:none;color:#ff5252;cursor:pointer;font-size:0.78rem;font-weight:bold;padding:0 2px;" title="Clear measurement (Esc)">✕</button>
+                </div>
               </div>
               <div style="display:flex;flex-direction:column;gap:3px;font-family:monospace;font-size:0.72rem;">
                 <div>Points: <strong id="measure-pts-count" style="color:#00e5ff;">0</strong></div>
@@ -5672,7 +5730,8 @@ EOF`;
         active: false,
         points: [],
         cursorPt: null,
-        closed: false
+        closed: false,
+        snapEnabled: true
       },
     };
 
@@ -7186,7 +7245,7 @@ EOF`;
 
       // Layer 8: Snap target ring indicator
       if (state.currentSnapTarget) {
-        drawSnapTargetOnCanvas(trueCtx, state.currentSnapTarget.screenPt);
+        drawSnapTargetOnCanvas(trueCtx, state.currentSnapTarget.screenPt, state.currentSnapTarget.label, state.currentSnapTarget.sourceType);
       }
       if (state.customPolySnapTarget) {
         drawCustomPolySnapTargetOnCanvas(trueCtx, state.customPolySnapTarget.screenPt, state.customPolySnapTarget.label);
@@ -7596,12 +7655,12 @@ EOF`;
         }
       }
 
-      // 2. Check Field survey DXF entities (all 3 field surveys)
+      // 2. Check Field survey DXF entities (only visible surveys with opacity > 0)
       const fieldSurveySets = [
-        state.trueEntities,
-        state.surveyValoy2025Entities,
-        state.surveyCortez2025Entities
-      ];
+        (state.showTrueDxf !== false && (state.trueDxfOpacity == null || state.trueDxfOpacity > 0)) ? state.trueEntities : null,
+        (state.showSurveyValoy2025 !== false && (state.surveyValoy2025Opacity == null || state.surveyValoy2025Opacity > 0)) ? state.surveyValoy2025Entities : null,
+        (state.showSurveyCortez2025 !== false && (state.surveyCortez2025Opacity == null || state.surveyCortez2025Opacity > 0)) ? state.surveyCortez2025Entities : null
+      ].filter(Boolean);
       fieldSurveySets.forEach(surveyEnts => {
         if (!surveyEnts || surveyEnts.length === 0) return;
         for (let entIdx = 0; entIdx < surveyEnts.length; entIdx++) {
@@ -7643,6 +7702,243 @@ EOF`;
       return closest;
     }
 
+    /** Find nearest visible vertex across all active layers for Measuring Tool */
+    function findMeasureSnapTarget(mouseX, mouseY, vp, canvasH) {
+      if (state.measureTool && state.measureTool.snapEnabled === false) return null;
+      const SNAP_RADIUS = 18; // screen pixels
+      let best = null;
+      let minDist = SNAP_RADIUS;
+
+      // 0. If measuring and have >= 2 points, check point 0 to allow closing the polygon
+      const mt = state.measureTool;
+      if (mt && mt.active && !mt.closed && mt.points && mt.points.length >= 2) {
+        const p0 = mt.points[0];
+        const s0 = worldToScreenGIS(p0, vp, canvasH);
+        const d0 = Math.hypot(s0.x - mouseX, s0.y - mouseY);
+        if (d0 <= minDist) {
+          minDist = d0;
+          best = {
+            worldPt: { x: p0.x, y: p0.y },
+            screenPt: s0,
+            label: '✓ Close Polygon (Pt #1)',
+            sourceType: 'measure',
+            isFirstMeasurePt: true
+          };
+        }
+      }
+
+      // 1. Reconstructed Lindero La Trinidad Polygon (state.userPolygon) - only when visible!
+      if (state.userPolygon && state.userPolygon.show !== false && state.userPolygon.vertices && state.userPolygon.vertices.length > 0) {
+        const verts = state.userPolygon.vertices;
+        for (let i = 0; i < verts.length; i++) {
+          const v = verts[i];
+          if (!v || typeof v.x !== "number" || typeof v.y !== "number") continue;
+          const sp = worldToScreenGIS(v, vp, canvasH);
+          const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+          if (d <= minDist) {
+            minDist = d;
+            best = {
+              worldPt: { x: v.x, y: v.y },
+              screenPt: sp,
+              label: `⚓ Lindero Reconstruido #${i + 1}`,
+              sourceType: 'boundary'
+            };
+          }
+        }
+      }
+
+      // 2. Custom Field Polygons (state.customPolygons) - only visible polygons!
+      const customPolys = state.customPolygons || (state.customPolygon ? [state.customPolygon] : []);
+      for (const cpoly of customPolys) {
+        if (!cpoly || cpoly.visible === false || !cpoly.vertices || cpoly.vertices.length === 0) continue;
+        for (let i = 0; i < cpoly.vertices.length; i++) {
+          const cv = cpoly.vertices[i];
+          if (!cv || typeof cv.x !== "number" || typeof cv.y !== "number") continue;
+          const sp = worldToScreenGIS(cv, vp, canvasH);
+          const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+          if (d <= minDist) {
+            minDist = d;
+            best = {
+              worldPt: { x: cv.x, y: cv.y },
+              screenPt: sp,
+              label: `${cpoly.name || 'Custom'} #${i + 1}`,
+              sourceType: 'custom'
+            };
+          }
+        }
+      }
+
+      // 3. Field Surveys (DXF) - ONLY IF VISIBLE AND OPACITY > 0
+      // 3a. Cortez 2019
+      if (state.showTrueDxf !== false && (state.trueDxfOpacity == null || state.trueDxfOpacity > 0) && state.trueEntities && state.trueEntities.length > 0) {
+        for (let entIdx = 0; entIdx < state.trueEntities.length; entIdx++) {
+          const ent = state.trueEntities[entIdx];
+          const pts = ent.points || ent.vertices;
+          if (!pts) continue;
+          for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+            const pt = pts[ptIdx];
+            if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+            const sp = worldToScreenGIS(pt, vp, canvasH);
+            const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+            if (d <= minDist) {
+              minDist = d;
+              best = {
+                worldPt: { x: pt.x, y: pt.y },
+                screenPt: sp,
+                label: `Survey Cortez 2019 #${ptIdx + 1}`,
+                sourceType: 'field'
+              };
+            }
+          }
+        }
+      }
+
+      // 3b. Valoy 2025
+      if (state.showSurveyValoy2025 !== false && (state.surveyValoy2025Opacity == null || state.surveyValoy2025Opacity > 0) && state.surveyValoy2025Entities && state.surveyValoy2025Entities.length > 0) {
+        for (let entIdx = 0; entIdx < state.surveyValoy2025Entities.length; entIdx++) {
+          const ent = state.surveyValoy2025Entities[entIdx];
+          const pts = ent.points || ent.vertices;
+          if (!pts) continue;
+          for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+            const pt = pts[ptIdx];
+            if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+            const sp = worldToScreenGIS(pt, vp, canvasH);
+            const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+            if (d <= minDist) {
+              minDist = d;
+              best = {
+                worldPt: { x: pt.x, y: pt.y },
+                screenPt: sp,
+                label: `Survey Valoy 2025 #${ptIdx + 1}`,
+                sourceType: 'field'
+              };
+            }
+          }
+        }
+      }
+
+      // 3c. Cortez 2026
+      if (state.showSurveyCortez2025 !== false && (state.surveyCortez2025Opacity == null || state.surveyCortez2025Opacity > 0) && state.surveyCortez2025Entities && state.surveyCortez2025Entities.length > 0) {
+        for (let entIdx = 0; entIdx < state.surveyCortez2025Entities.length; entIdx++) {
+          const ent = state.surveyCortez2025Entities[entIdx];
+          const pts = ent.points || ent.vertices;
+          if (!pts) continue;
+          for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+            const pt = pts[ptIdx];
+            if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+            const sp = worldToScreenGIS(pt, vp, canvasH);
+            const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+            if (d <= minDist) {
+              minDist = d;
+              best = {
+                worldPt: { x: pt.x, y: pt.y },
+                screenPt: sp,
+                label: `Survey Cortez 2026 #${ptIdx + 1}`,
+                sourceType: 'field'
+              };
+            }
+          }
+        }
+      }
+
+      // 4. Temporary Reference DXF Files (only visible)
+      if (state.refDxfFiles && state.refDxfFiles.length > 0) {
+        for (const ref of state.refDxfFiles) {
+          if (!ref.visible || ref.opacity <= 0 || !ref.entities) continue;
+          for (let entIdx = 0; entIdx < ref.entities.length; entIdx++) {
+            const ent = ref.entities[entIdx];
+            const pts = ent.points || ent.vertices;
+            if (!pts) continue;
+            for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+              const pt = pts[ptIdx];
+              if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+              const sp = worldToScreenGIS(pt, vp, canvasH);
+              const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+              if (d <= minDist) {
+                minDist = d;
+                best = {
+                  worldPt: { x: pt.x, y: pt.y },
+                  screenPt: sp,
+                  label: `${ref.name || 'Ref DXF'} #${ptIdx + 1}`,
+                  sourceType: 'ref'
+                };
+              }
+            }
+          }
+        }
+      }
+
+      // 5. Warped Deed DXF boundary (Escritura 1073 overlay) - only when visible!
+      if (state.showOverlay && state.showWarpedDxf !== false && (state.warpedDxfOpacity == null || state.warpedDxfOpacity > 0) && state.histEntities && state.histEntities.length > 0) {
+        let warper = null;
+        const activeAnchors = getActiveAnchors();
+        if (activeAnchors.length >= 2) {
+          try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
+        }
+        if (warper) {
+          for (let entIdx = 0; entIdx < state.histEntities.length; entIdx++) {
+            const ent = state.histEntities[entIdx];
+            const pts = ent.points || ent.vertices;
+            if (!pts) continue;
+            for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+              const rawPt = pts[ptIdx];
+              if (!rawPt || typeof rawPt.x !== "number" || typeof rawPt.y !== "number") continue;
+              const wPt = warper(rawPt);
+              const sp = worldToScreenGIS(wPt, vp, canvasH);
+              const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+              if (d <= minDist) {
+                minDist = d;
+                best = {
+                  worldPt: { x: wPt.x, y: wPt.y },
+                  screenPt: sp,
+                  label: `📜 Escritura 1073 #${ptIdx + 1}`,
+                  sourceType: 'deed'
+                };
+              }
+            }
+          }
+        }
+      }
+
+      // 6. Mojones / Anchors (Escritura 1073 Control Points) - only when visible!
+      if (state.showMojones1073 !== false && state.anchors && state.anchors.length > 0) {
+        for (const anc of state.anchors) {
+          if (anc.active === false || anc.enabled === false) continue;
+          const sp = worldToScreenGIS(anc.dst, vp, canvasH);
+          const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+          if (d <= minDist) {
+            minDist = d;
+            best = {
+              worldPt: { x: anc.dst.x, y: anc.dst.y },
+              screenPt: sp,
+              label: `Mojón ${anc.name || '#' + anc.id}`,
+              sourceType: 'anchor'
+            };
+          }
+        }
+      }
+
+      // 7. Temporary Checkpoint Markers
+      if (state.tempMarkers && state.tempMarkers.length > 0) {
+        for (const m of state.tempMarkers) {
+          if (!m || typeof m.x !== "number" || typeof m.y !== "number") continue;
+          const sp = worldToScreenGIS(m, vp, canvasH);
+          const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+          if (d <= minDist) {
+            minDist = d;
+            best = {
+              worldPt: { x: m.x, y: m.y },
+              screenPt: sp,
+              label: `Marker ${m.label || ''}`,
+              sourceType: 'marker'
+            };
+          }
+        }
+      }
+
+      return best;
+    }
+
     /** Find nearest vertex from warped Deed DXF (state.histEntities warped to GIS space) */
     function findNearestWarpedDeedVertex(worldPt) {
       if (!state.histEntities || state.histEntities.length === 0 || !worldPt) return null;
@@ -7675,20 +7971,49 @@ EOF`;
       return closest;
     }
 
-    /** Draw yellow snap target indicator on canvas (matches index.html) */
-    function drawSnapTargetOnCanvas(ctx, screenPt) {
+    /** Draw snap target indicator on canvas with optional label badge and colored ring */
+    function drawSnapTargetOnCanvas(ctx, screenPt, label, sourceType) {
       if (!screenPt) return;
       const { x: sx, y: sy } = screenPt;
       ctx.save();
-      ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2);
-      ctx.strokeStyle = "#ffd600"; ctx.lineWidth = 2.5; ctx.stroke();
-      ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2);
-      ctx.fillStyle = "#00e5ff"; ctx.fill();
+      const ringColor = (sourceType === 'deed') ? "#ff1744" :
+                        (sourceType === 'boundary') ? "#00e5ff" :
+                        (sourceType === 'field') ? "#00e676" :
+                        (sourceType === 'anchor') ? "#d500f9" :
+                        (sourceType === 'marker') ? "#ff5252" :
+                        (sourceType === 'custom') ? "#ffb300" :
+                        (sourceType === 'measure') ? "#ffd600" : "#ffd600";
+
+      ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI * 2);
+      ctx.strokeStyle = ringColor; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2);
+      ctx.fillStyle = ringColor; ctx.fill();
       ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(sx - 16, sy); ctx.lineTo(sx + 16, sy);
       ctx.moveTo(sx, sy - 16); ctx.lineTo(sx, sy + 16);
-      ctx.strokeStyle = "rgba(255, 214, 0, 0.85)"; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.strokeStyle = ringColor; ctx.lineWidth = 1.2; ctx.stroke();
+
+      if (label) {
+        ctx.font = "bold 11px sans-serif";
+        const tm = ctx.measureText(label);
+        const pw = tm.width + 12;
+        const ph = 18;
+        const px = sx + 14;
+        const py = sy - 22;
+        ctx.fillStyle = "rgba(18, 24, 38, 0.92)";
+        ctx.strokeStyle = ringColor;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(px, py, pw, ph, 4);
+        else ctx.rect(px, py, pw, ph);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = ringColor;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(label, px + 6, py + ph / 2);
+      }
       ctx.restore();
     }
 
@@ -12115,6 +12440,11 @@ EOF`;
 
     // Context menu handler on trueCanvas (prevents context menu when clicking nodes or drawing)
     trueCanvas.addEventListener("contextmenu", e => {
+      // In Measure Mode: prevent browser context menu
+      if (state.measureTool && state.measureTool.active) {
+        e.preventDefault();
+        return;
+      }
       // In Anchor Mode: block ALL polygon context menu interactions — anchors have exclusive control
       if (state.toolMode === "anchor") return;
       const rect = trueCanvas.getBoundingClientRect();
@@ -12138,6 +12468,11 @@ EOF`;
 
     // Capture-phase mouse listener for trueCanvas (user polygon creation, node drag & right-click node delete)
     trueCanvas.addEventListener("mousedown", function(e) {
+      // In Measure Mode: yield full priority to measuring tool so clicking nodes doesn't trigger node dragging
+      if (state.measureTool && state.measureTool.active) {
+        return;
+      }
+
       // 0. Squeeze Deed Handles (PowerPoint-style drag)
       if (e.button === 0 && !spacePressed && state.toolMode === "pan" && state.showOverlay && state.showDeedHandles !== false) {
         const rect = trueCanvas.getBoundingClientRect();
@@ -12884,6 +13219,22 @@ EOF`;
       clickStart.x = e.clientX;
       clickStart.y = e.clientY;
 
+      // In Measuring mode on true canvas:
+      // Left click is dedicated to measuring points (avoids stealing by anchor labels or deeds).
+      // Pan only on right button, middle button, or Spacebar.
+      if (!isHist && state.measureTool && state.measureTool.active) {
+        if (e.button === 2 || e.button === 1 || spacePressed) {
+          isPanning = true;
+          panStart.x = e.clientX;
+          panStart.y = e.clientY;
+          vpStart.offsetX = viewport.offsetX;
+          vpStart.offsetY = viewport.offsetY;
+          activePanViewport = viewport;
+          canvas.style.cursor = "grabbing";
+        }
+        return;
+      }
+
       // Edit Deed Nodes mode: priority drag of deed vertices on historical canvas
       if (isHist && state.editDeedNodes && e.button === 0 && !spacePressed && state.toolMode === "pan") {
         const rect = histCanvas.getBoundingClientRect();
@@ -13005,7 +13356,7 @@ EOF`;
 
       // Sequential clicks for Measuring Tool on true canvas
       if (isMeasuringOnTrue) {
-        const snap = state.currentSnapTarget;
+        const snap = (state.measureTool.snapEnabled !== false) ? (state.currentSnapTarget || findMeasureSnapTarget(sx, sy, viewport, canvas.height)) : null;
         const pt = snap ? { x: snap.worldPt.x, y: snap.worldPt.y } : screenToWorldGIS(sx, sy, viewport, canvas.height);
         const mt = state.measureTool;
         if (mt.closed) {
@@ -13013,13 +13364,23 @@ EOF`;
           mt.closed = false;
         } else if (mt.points.length >= 2) {
           const s0 = worldToScreenGIS(mt.points[0], viewport, canvas.height);
-          if (Math.hypot(s0.x - sx, s0.y - sy) <= 18) {
+          if (Math.hypot(s0.x - sx, s0.y - sy) <= 18 || (snap && snap.isFirstMeasurePt)) {
             mt.closed = true;
+          } else {
+            const last = mt.points[mt.points.length - 1];
+            if (Math.hypot(last.x - pt.x, last.y - pt.y) > 0.05) {
+              mt.points.push(pt);
+            }
+          }
+        } else {
+          if (mt.points.length === 1) {
+            const last = mt.points[0];
+            if (Math.hypot(last.x - pt.x, last.y - pt.y) > 0.05) {
+              mt.points.push(pt);
+            }
           } else {
             mt.points.push(pt);
           }
-        } else {
-          mt.points.push(pt);
         }
         updateMeasureHUD();
         redrawTrueCanvas();
@@ -13656,25 +14017,23 @@ EOF`;
       // Measuring Tool active: track cursor, handle snapping, live distance
       if (state.measureTool && state.measureTool.active) {
         trueCanvas.style.cursor = "crosshair";
-        const nearestField = findNearestFieldVertex(p);
-        if (nearestField && nearestField.dist * vp.scale <= 18) {
-          const sp = worldToScreenGIS(nearestField, vp, h);
-          state.currentSnapTarget = {
-            worldPt: { x: nearestField.x, y: nearestField.y },
-            screenPt: sp,
-            sourceType: "field"
-          };
-          state.measureTool.cursorPt = { x: nearestField.x, y: nearestField.y };
+        const snap = (state.measureTool.snapEnabled !== false) ? findMeasureSnapTarget(mouseX, mouseY, vp, h) : null;
+        if (snap) {
+          state.currentSnapTarget = snap;
+          state.measureTool.cursorPt = { x: snap.worldPt.x, y: snap.worldPt.y };
         } else {
           state.currentSnapTarget = null;
           state.measureTool.cursorPt = p;
         }
 
         const pts = state.measureTool.points;
+        const snapBadge = snap ? ` [🧲 ${snap.label}]` : "";
         if (pts.length > 0 && !state.measureTool.closed) {
           const lastPt = pts[pts.length - 1];
           const curDist = Math.hypot(state.measureTool.cursorPt.x - lastPt.x, state.measureTool.cursorPt.y - lastPt.y);
-          coordsBar.textContent = `📏 Measure: ${curDist.toFixed(2)}m from Point #${pts.length} | UTM: (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+          coordsBar.textContent = `📏 Measure: ${curDist.toFixed(2)}m from Point #${pts.length}${snapBadge} | UTM: (${state.measureTool.cursorPt.x.toFixed(2)}, ${state.measureTool.cursorPt.y.toFixed(2)})`;
+        } else if (snap) {
+          coordsBar.textContent = `📏 Measure: ${snapBadge} | UTM: (${snap.worldPt.x.toFixed(2)}, ${snap.worldPt.y.toFixed(2)})`;
         }
         redrawTrueCanvas();
         return;
@@ -14090,6 +14449,16 @@ EOF`;
 
     // Double-click on polygon segment to insert a new vertex (or close measuring polygon)
     trueCanvas.addEventListener("dblclick", function(e) {
+      if (state.measureTool && state.measureTool.active) {
+        if (state.measureTool.points.length >= 3) {
+          e.preventDefault();
+          state.measureTool.closed = true;
+          updateMeasureHUD();
+          redrawTrueCanvas();
+        }
+        return;
+      }
+
       const rect = trueCanvas.getBoundingClientRect();
       const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
 
@@ -14100,16 +14469,6 @@ EOF`;
         delete labelHit.anc.labelOffsetDst;
         updateStatus(`Anchor #${labelHit.anc.id} label position reset to default.`);
         redrawAll();
-        return;
-      }
-
-      if (state.measureTool && state.measureTool.active) {
-        if (state.measureTool.points.length >= 3) {
-          e.preventDefault();
-          state.measureTool.closed = true;
-          updateMeasureHUD();
-          redrawTrueCanvas();
-        }
         return;
       }
       if (state.toolMode === "anchor") return;
@@ -15787,11 +16146,13 @@ EOF`;
        ====================================================== */
     function toggleMeasureTool(force) {
       const btn = document.getElementById("btn-measure-tool");
+      const group = document.querySelector(".btn-measure-group");
       const hud = document.getElementById("measure-hud");
       const next = typeof force === "boolean" ? force : !state.measureTool.active;
 
       state.measureTool.active = next;
       if (btn) btn.classList.toggle("active", next);
+      if (group) group.classList.toggle("active", next);
       if (hud) hud.style.display = next ? "block" : "none";
 
       if (next) {
@@ -15871,14 +16232,32 @@ EOF`;
       }
     }
 
-    // Attach listeners for Measuring Tool button and clear HUD button
+    // Attach listeners for Measuring Tool button, clear HUD button, and snap checkboxes
     const btnMeasureTool = document.getElementById("btn-measure-tool");
     const btnClearMeasure = document.getElementById("btn-clear-measure");
+    const chkMeasureSnap = document.getElementById("chk-measure-snap");
+    const chkMeasureHudSnap = document.getElementById("chk-measure-hud-snap");
+
+    function syncMeasureSnap(val) {
+      state.measureTool.snapEnabled = !!val;
+      if (chkMeasureSnap) chkMeasureSnap.checked = !!val;
+      if (chkMeasureHudSnap) chkMeasureHudSnap.checked = !!val;
+      if (!state.measureTool.snapEnabled) state.currentSnapTarget = null;
+      updateStatus(state.measureTool.snapEnabled ? "🧲 Measuring vertex snapping enabled." : "🧲 Measuring vertex snapping disabled.");
+      redrawTrueCanvas();
+    }
+
     if (btnMeasureTool) {
       btnMeasureTool.addEventListener("click", () => toggleMeasureTool());
     }
     if (btnClearMeasure) {
       btnClearMeasure.addEventListener("click", () => clearMeasureTool());
+    }
+    if (chkMeasureSnap) {
+      chkMeasureSnap.addEventListener("change", (e) => syncMeasureSnap(e.target.checked));
+    }
+    if (chkMeasureHudSnap) {
+      chkMeasureHudSnap.addEventListener("change", (e) => syncMeasureSnap(e.target.checked));
     }
 
     // [/SECTION: JS_MEASURING_TOOL]
