@@ -2326,10 +2326,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <h3>Control Point Pairs (Anchors 196)</h3>
                   <span id="rmse-display-196" class="badge-rmse" style="font-size:0.7rem;padding:2px 7px;">RMSE: 0.00</span>
                 </div>
-                <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-anchors-196" title="Colapsar / Desplegar">▶</button>
+                <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-anchors-196" title="Colapsar / Desplegar">▼</button>
               </div>
 
-              <div id="body-anchors-196" style="display:none;flex-direction:column;gap:8px;">
+              <div id="body-anchors-196" style="display:flex;flex-direction:column;gap:8px;">
                 <!-- Action buttons -->
                 <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
                   <button id="btn-save-anchors-196" class="btn btn-sm" style="background:rgba(255,23,68,0.25);border:1px solid rgba(255,23,68,0.5);color:#ff1744;" title="Download & save anchors to anchors_196.json">💾 Save JSON</button>
@@ -13478,6 +13478,18 @@ EOF`;
         if (clusterBody1073) clusterBody1073.style.display = "none";
         if (btnToggleCluster196) btnToggleCluster196.textContent = "▼";
         if (btnToggleCluster1073) btnToggleCluster1073.textContent = "▶";
+        const bodyAnchors196 = document.getElementById("body-anchors-196");
+        const btnToggleAnchors196 = document.getElementById("btn-toggle-panel-anchors-196");
+        const bodyOpt196 = document.getElementById("body-optimization-196");
+        const btnToggleOpt196 = document.getElementById("btn-toggle-panel-opt-196");
+        if (bodyAnchors196) bodyAnchors196.style.display = "flex";
+        if (btnToggleAnchors196) btnToggleAnchors196.textContent = "▼";
+        if (bodyOpt196) bodyOpt196.style.display = "flex";
+        if (btnToggleOpt196) btnToggleOpt196.textContent = "▼";
+        const cluster196 = document.getElementById("cluster-reconstruction-196");
+        if (cluster196) {
+          cluster196.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
         if (typeof recompute196Metrics === "function") recompute196Metrics();
       } else {
         if (chkCluster1073) chkCluster1073.checked = true;
@@ -13486,6 +13498,10 @@ EOF`;
         if (clusterBody196) clusterBody196.style.display = "none";
         if (btnToggleCluster1073) btnToggleCluster1073.textContent = "▼";
         if (btnToggleCluster196) btnToggleCluster196.textContent = "▶";
+        const cluster1073 = document.getElementById("cluster-reconstruction-1073");
+        if (cluster1073) {
+          cluster1073.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
       }
 
       if (typeof updateCustomPolygonAnchors === "function") {
@@ -13651,41 +13667,8 @@ EOF`;
       });
     }
 
-    // Sub-panels inside Cluster 196
-    const btnTogglePanelAnchors196 = document.getElementById("btn-toggle-panel-anchors-196");
-    const bodyAnchors196 = document.getElementById("body-anchors-196");
-    if (btnTogglePanelAnchors196 && bodyAnchors196) {
-      btnTogglePanelAnchors196.addEventListener("click", () => {
-        const isHidden = bodyAnchors196.style.display === "none";
-        bodyAnchors196.style.display = isHidden ? "flex" : "none";
-        btnTogglePanelAnchors196.textContent = isHidden ? "▼" : "▶";
-      });
-    }
-
-    const btnTogglePanelOpt196 = document.getElementById("btn-toggle-panel-opt-196");
-    const bodyOpt196 = document.getElementById("body-optimization-196");
-    if (btnTogglePanelOpt196 && bodyOpt196) {
-      btnTogglePanelOpt196.addEventListener("click", () => {
-        const isHidden = bodyOpt196.style.display === "none";
-        bodyOpt196.style.display = isHidden ? "flex" : "none";
-        btnTogglePanelOpt196.textContent = isHidden ? "▼" : "▶";
-      });
-    }
-
-    document.querySelectorAll("#cluster-reconstruction-196 .panel-header").forEach(hdr => {
-      hdr.addEventListener("click", e => {
-        if (e.target.tagName === "BUTTON" || e.target.closest("button") || e.target.tagName === "INPUT") return;
-        const targetId = hdr.getAttribute("data-target");
-        if (!targetId) return;
-        const body = document.getElementById(targetId);
-        const btn = hdr.querySelector(".btn-panel-toggle");
-        if (body) {
-          const isHidden = body.style.display === "none";
-          body.style.display = isHidden ? "flex" : "none";
-          if (btn) btn.textContent = isHidden ? "▼" : "▶";
-        }
-      });
-    });
+    // Note: Sub-panels inside Cluster 196 (#panel-anchors-196, #panel-optimization-196)
+    // are .panel-card elements and are unified under the global accordion handler below.
 
     // Segment Labels toggle handlers (synchronized across header and sidebar)
     const chkShowSegLabels = document.getElementById("chk-show-seg-labels");
