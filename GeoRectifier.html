@@ -413,6 +413,46 @@ Do NOT modify dormant/parked sections unless specifically requested.
       border: 1px solid rgba(0, 229, 255, 0.3);
     }
 
+    /* Reconstruction Clusters (1073 vs 196) */
+    .reconstruction-cluster {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.88);
+      transition: all 0.2s ease;
+      margin-bottom: 8px;
+    }
+    .reconstruction-cluster.cluster-1073.active {
+      border-color: rgba(0, 230, 118, 0.55);
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.12);
+    }
+    .reconstruction-cluster.cluster-196.active {
+      border-color: rgba(255, 23, 68, 0.55);
+      box-shadow: 0 0 16px rgba(255, 23, 68, 0.12);
+    }
+    .cluster-master-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cluster-master-header.header-1073 {
+      background: rgba(0, 230, 118, 0.09);
+      border-bottom: 1px solid rgba(0, 230, 118, 0.22);
+    }
+    .cluster-master-header.header-196 {
+      background: rgba(255, 23, 68, 0.09);
+      border-bottom: 1px solid rgba(255, 23, 68, 0.22);
+    }
+    .cluster-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 8px;
+    }
+
     /* Custom Multi-Polygon List */
     .custom-poly-list {
       display: flex;
@@ -1912,6 +1952,21 @@ Do NOT modify dormant/parked sections unless specifically requested.
           </div>
         </section>
 
+        <!-- ========================================================================= -->
+        <!-- CLUSTER 1: RECONSTRUCCIÓN LINDERO (ESCRITURA 1073 vs 296)                 -->
+        <!-- ========================================================================= -->
+        <div id="cluster-reconstruction-1073" class="reconstruction-cluster cluster-1073 active">
+          <div class="cluster-master-header header-1073" id="header-cluster-1073">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;">
+              <input type="checkbox" id="chk-cluster-1073" checked style="accent-color:#00e676;width:15px;height:15px;cursor:pointer;margin:0;">
+              <span style="font-size:0.80rem;font-weight:800;color:#00e676;letter-spacing:0.3px;display:flex;align-items:center;gap:6px;">
+                <span>📜</span> Reconstrucción Lindero (1073 vs 296)
+              </span>
+            </label>
+            <button type="button" class="btn-panel-toggle" id="btn-toggle-cluster-1073" title="Colapsar / Desplegar">▼</button>
+          </div>
+          <div id="cluster-body-1073" class="cluster-body">
+
         <!-- Anchor Pairs Manager -->
         <section class="panel-card" id="panel-anchors">
           <div class="panel-header" data-target="body-anchors" title="Colapsar / Desplegar Control Point Pairs">
@@ -2245,6 +2300,169 @@ Do NOT modify dormant/parked sections unless specifically requested.
             <p id="poly-status-hint" style="font-size:0.72rem;color:var(--text-muted);line-height:1.4;">🖐️ <strong>Drag node</strong>: Move &bull; 🖱️ <strong>Double-click line</strong>: Add vertex &bull; 🗑 <strong>Right-click node</strong>: Delete</p>
           </div>
         </section>
+
+          </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- CLUSTER 2: RECONSTRUCCIÓN ESCRITURA 196 (LOTE JIMMY, PEDRO & NACHO)      -->
+        <!-- ========================================================================= -->
+        <div id="cluster-reconstruction-196" class="reconstruction-cluster cluster-196">
+          <div class="cluster-master-header header-196" id="header-cluster-196">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;">
+              <input type="checkbox" id="chk-cluster-196" style="accent-color:#ff1744;width:15px;height:15px;cursor:pointer;margin:0;">
+              <span style="font-size:0.80rem;font-weight:800;color:#ff1744;letter-spacing:0.3px;display:flex;align-items:center;gap:6px;">
+                <span>📜</span> Reconstrucción Escritura 196
+              </span>
+            </label>
+            <button type="button" class="btn-panel-toggle" id="btn-toggle-cluster-196" title="Colapsar / Desplegar">▼</button>
+          </div>
+          <div id="cluster-body-196" class="cluster-body" style="display:none;">
+
+            <!-- Anchor Pairs Manager 196 -->
+            <section class="panel-card" id="panel-anchors-196">
+              <div class="panel-header" data-target="body-anchors-196" title="Colapsar / Desplegar Control Point Pairs 196">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <h3>Control Point Pairs (Anchors 196)</h3>
+                  <span id="rmse-display-196" class="badge-rmse" style="font-size:0.7rem;padding:2px 7px;">RMSE: 0.00</span>
+                </div>
+                <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-anchors-196" title="Colapsar / Desplegar">▶</button>
+              </div>
+
+              <div id="body-anchors-196" style="display:none;flex-direction:column;gap:8px;">
+                <!-- Action buttons -->
+                <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                  <button id="btn-save-anchors-196" class="btn btn-sm" style="background:rgba(255,23,68,0.25);border:1px solid rgba(255,23,68,0.5);color:#ff1744;" title="Download & save anchors to anchors_196.json">💾 Save JSON</button>
+                  <label for="anchor-196-file-input" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:0.72rem;border-radius:4px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#f0f4f8;" title="Load custom anchors JSON file for 196">
+                    📂 Load File<input type="file" id="anchor-196-file-input" accept=".json" style="display:none;">
+                  </label>
+                  <button id="btn-clear-anchors-196" class="btn btn-sm" style="background:rgba(255,23,68,0.15);border:1px solid rgba(255,23,68,0.35);color:#ff1744;" title="Clear all anchor points">🗑 Clear All</button>
+                </div>
+
+                <!-- Algorithm Selector -->
+                <div class="algorithm-selector-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(255,23,68,0.3);min-width:0;box-sizing:border-box;">
+                  <label for="algorithm-select-196" style="font-size:0.72rem;color:#ff1744;font-weight:700;white-space:nowrap;margin:0;flex-shrink:0;">Algorithm:</label>
+                  <select id="algorithm-select-196" class="select-dropdown" style="flex:1;min-width:0;max-width:100%;background:rgba(15,20,32,0.95);border:1px solid rgba(255,23,68,0.35);color:#e2e8f0;font-size:0.72rem;border-radius:4px;padding:3px 6px;cursor:pointer;">
+                    <option value="SIMILARITY" selected>Helmert Similarity (Rotate+Scale)</option>
+                    <option value="AFFINE">Affine Transformation (6-Param)</option>
+                    <option value="TPS">Thin Plate Spline (TPS Rubber-Sheeting)</option>
+                    <option value="PROJECTIVE">Projective / Homography (8-Param)</option>
+                  </select>
+                </div>
+
+                <!-- Table for 196 anchors -->
+                <div class="table-wrap" style="max-height:220px;overflow-y:auto;">
+                  <table class="data-table" id="anchor-table-196">
+                    <thead>
+                      <tr>
+                        <th style="width:24px;">On</th>
+                        <th>Name</th>
+                        <th>Deed (X, Y)</th>
+                        <th>Field (E, N)</th>
+                        <th style="width:50px;">Res (m)</th>
+                        <th style="width:30px;">Act</th>
+                      </tr>
+                    </thead>
+                    <tbody id="anchor-table-body-196"></tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <!-- Parcel Areas & Optimization for Escritura 196 -->
+            <section class="panel-card" id="panel-optimization-196">
+              <div class="panel-header" data-target="body-optimization-196" title="Colapsar / Desplegar Optimización Parcelas 196">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <h3>📐 Parcelas & Optimización (196)</h3>
+                  <span id="badge-opt-status-196" style="font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(255,23,68,0.15);color:#ff1744;font-weight:600;">2 Parcelas + 1 Línea</span>
+                </div>
+                <button type="button" class="btn-panel-toggle" id="btn-toggle-panel-opt-196" title="Colapsar / Desplegar">▼</button>
+              </div>
+
+              <div id="body-optimization-196" style="display:flex;flex-direction:column;gap:10px;">
+                <!-- Parcel 1: Lote Jimmy -->
+                <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,23,68,0.25);border-radius:6px;padding:8px 10px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:0.75rem;font-weight:700;color:#ff1744;display:flex;align-items:center;gap:5px;">
+                      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff1744;"></span>
+                      Lote Jimmy (Parcela Cerrada)
+                    </span>
+                    <span id="lote-jimmy-pct" style="font-size:0.70rem;font-weight:700;color:#00e676;font-family:monospace;">100.0%</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;">
+                    <span style="color:var(--text-muted);">Área Objetivo:</span>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                      <input type="number" id="input-target-area-jimmy" value="400.0" step="1.0" min="1" style="width:75px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,23,68,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.74rem;text-align:right;padding:2px 4px;">
+                      <span style="color:var(--text-muted);">m²</span>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;margin-top:4px;">
+                    <span style="color:var(--text-muted);">Área Campo Actual:</span>
+                    <span id="val-area-jimmy" style="font-weight:700;font-family:monospace;color:#fff;">— m²</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.70rem;margin-top:2px;">
+                    <span style="color:var(--text-muted);">Diferencia (Δ):</span>
+                    <span id="val-delta-jimmy" style="font-family:monospace;color:#ffb300;">— m²</span>
+                  </div>
+                </div>
+
+                <!-- Parcel 2: Lote Pedro -->
+                <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(0,230,118,0.25);border-radius:6px;padding:8px 10px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:0.75rem;font-weight:700;color:#00e676;display:flex;align-items:center;gap:5px;">
+                      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00e676;"></span>
+                      Lote Pedro (Parcela Cerrada)
+                    </span>
+                    <span id="lote-pedro-pct" style="font-size:0.70rem;font-weight:700;color:#00e676;font-family:monospace;">100.0%</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;">
+                    <span style="color:var(--text-muted);">Área Objetivo:</span>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                      <input type="number" id="input-target-area-pedro" value="1050.0" step="1.0" min="1" style="width:75px;background:rgba(15,20,32,0.9);border:1px solid rgba(0,230,118,0.4);border-radius:3px;color:#fff;font-family:monospace;font-size:0.74rem;text-align:right;padding:2px 4px;">
+                      <span style="color:var(--text-muted);">m²</span>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.72rem;margin-top:4px;">
+                    <span style="color:var(--text-muted);">Área Campo Actual:</span>
+                    <span id="val-area-pedro" style="font-weight:700;font-family:monospace;color:#fff;">— m²</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:0.70rem;margin-top:2px;">
+                    <span style="color:var(--text-muted);">Diferencia (Δ):</span>
+                    <span id="val-delta-pedro" style="font-family:monospace;color:#ffb300;">— m²</span>
+                  </div>
+                </div>
+
+                <!-- Line 3: Lote Nacho (Open Polyline) -->
+                <div style="background:rgba(0,0,0,0.25);border:1px solid rgba(0,229,255,0.2);border-radius:6px;padding:7px 10px;font-size:0.72rem;display:flex;justify-content:space-between;align-items:center;">
+                  <span style="color:#00e5ff;font-weight:700;display:flex;align-items:center;gap:5px;">
+                    <span>〰</span> Lote Nacho (Línea Abierta):
+                  </span>
+                  <span id="val-len-nacho" style="font-weight:700;font-family:monospace;color:#fff;">— m</span>
+                </div>
+
+                <!-- Optimization Action -->
+                <div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;">
+                  <button id="btn-optimize-196" class="btn btn-primary" style="background:linear-gradient(135deg,#ff1744,#d500f9);border-color:#ff1744;color:#fff;font-weight:800;justify-content:center;padding:7px 12px;box-shadow:0 0 12px rgba(255,23,68,0.35);">
+                    ⚡ Optimizar Áreas Parcelas 196
+                  </button>
+                  <div style="display:flex;gap:6px;">
+                    <button id="btn-save-dxf-196" class="btn btn-secondary btn-sm" style="flex:1;background:rgba(0,230,118,0.15);border-color:#00e676;color:#00e676;font-weight:700;justify-content:center;">
+                      💾 Guardar DXF 196
+                    </button>
+                    <button id="btn-reset-196" class="btn btn-secondary btn-sm" style="border-color:rgba(255,255,255,0.2);color:var(--text-muted);justify-content:center;">
+                      ↺ Reset
+                    </button>
+                  </div>
+                </div>
+
+                <div id="status-opt-196" style="font-size:0.67rem;color:var(--text-muted);background:rgba(0,0,0,0.3);padding:5px 8px;border-radius:4px;line-height:1.35;">
+                  Ajusta los targets de área para Lote Jimmy y Lote Pedro, luego presiona "Optimizar Áreas".
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
 
         <!-- Autonomous Custom Field Polygon Panel -->
         <!-- [/SECTION: HTML_POLYGON_METRICS] -->
@@ -13204,6 +13422,13 @@ EOF`;
 
       const chk196 = document.getElementById("chk-show-deed-196");
       const chk1073 = document.getElementById("chk-show-deed-1073");
+      const chkCluster1073 = document.getElementById("chk-cluster-1073");
+      const chkCluster196 = document.getElementById("chk-cluster-196");
+      const clusterBody1073 = document.getElementById("cluster-body-1073");
+      const clusterBody196 = document.getElementById("cluster-body-196");
+      const btnToggleCluster1073 = document.getElementById("btn-toggle-cluster-1073");
+      const btnToggleCluster196 = document.getElementById("btn-toggle-cluster-196");
+
       if (openWindow) {
         if (chk196) chk196.checked = (deedKey === "196");
         if (chk1073) chk1073.checked = (deedKey === "1073");
@@ -13214,6 +13439,24 @@ EOF`;
         if (chk1073) chk1073.checked = false;
         state.showDeedPanel = false;
         if (histCard) histCard.classList.add("hidden");
+      }
+
+      // Synchronize master sidebar clusters (Lindero 1073 vs Escritura 196)
+      if (deedKey === "196") {
+        if (chkCluster196) chkCluster196.checked = true;
+        if (chkCluster1073) chkCluster1073.checked = false;
+        if (clusterBody196) clusterBody196.style.display = "flex";
+        if (clusterBody1073) clusterBody1073.style.display = "none";
+        if (btnToggleCluster196) btnToggleCluster196.textContent = "▼";
+        if (btnToggleCluster1073) btnToggleCluster1073.textContent = "▶";
+        if (typeof recompute196Metrics === "function") recompute196Metrics();
+      } else {
+        if (chkCluster1073) chkCluster1073.checked = true;
+        if (chkCluster196) chkCluster196.checked = false;
+        if (clusterBody1073) clusterBody1073.style.display = "flex";
+        if (clusterBody196) clusterBody196.style.display = "none";
+        if (btnToggleCluster1073) btnToggleCluster1073.textContent = "▼";
+        if (btnToggleCluster196) btnToggleCluster196.textContent = "▶";
       }
 
       if (typeof updateCustomPolygonAnchors === "function") {
@@ -13314,6 +13557,85 @@ EOF`;
         applyPanelVisibility();
       });
     }
+
+    // ── Master Reconstruction Clusters (1073 vs 196 Mutual Exclusion & Toggles) ──
+    if (chkCluster1073) {
+      chkCluster1073.addEventListener("change", async () => {
+        if (chkCluster1073.checked) {
+          if (chkCluster196) chkCluster196.checked = false;
+          await switchDeed("1073", true);
+        } else {
+          if (clusterBody1073) clusterBody1073.style.display = "none";
+          if (btnToggleCluster1073) btnToggleCluster1073.textContent = "▶";
+        }
+      });
+    }
+
+    if (chkCluster196) {
+      chkCluster196.addEventListener("change", async () => {
+        if (chkCluster196.checked) {
+          if (chkCluster1073) chkCluster1073.checked = false;
+          await switchDeed("196", true);
+        } else {
+          if (clusterBody196) clusterBody196.style.display = "none";
+          if (btnToggleCluster196) btnToggleCluster196.textContent = "▶";
+        }
+      });
+    }
+
+    if (btnToggleCluster1073) {
+      btnToggleCluster1073.addEventListener("click", () => {
+        if (!clusterBody1073) return;
+        const isHidden = clusterBody1073.style.display === "none";
+        clusterBody1073.style.display = isHidden ? "flex" : "none";
+        btnToggleCluster1073.textContent = isHidden ? "▼" : "▶";
+      });
+    }
+
+    if (btnToggleCluster196) {
+      btnToggleCluster196.addEventListener("click", () => {
+        if (!clusterBody196) return;
+        const isHidden = clusterBody196.style.display === "none";
+        clusterBody196.style.display = isHidden ? "flex" : "none";
+        btnToggleCluster196.textContent = isHidden ? "▼" : "▶";
+      });
+    }
+
+    // Sub-panels inside Cluster 196
+    const btnTogglePanelAnchors196 = document.getElementById("btn-toggle-panel-anchors-196");
+    const bodyAnchors196 = document.getElementById("body-anchors-196");
+    if (btnTogglePanelAnchors196 && bodyAnchors196) {
+      btnTogglePanelAnchors196.addEventListener("click", () => {
+        const isHidden = bodyAnchors196.style.display === "none";
+        bodyAnchors196.style.display = isHidden ? "flex" : "none";
+        btnTogglePanelAnchors196.textContent = isHidden ? "▼" : "▶";
+      });
+    }
+
+    const btnTogglePanelOpt196 = document.getElementById("btn-toggle-panel-opt-196");
+    const bodyOpt196 = document.getElementById("body-optimization-196");
+    if (btnTogglePanelOpt196 && bodyOpt196) {
+      btnTogglePanelOpt196.addEventListener("click", () => {
+        const isHidden = bodyOpt196.style.display === "none";
+        bodyOpt196.style.display = isHidden ? "flex" : "none";
+        btnTogglePanelOpt196.textContent = isHidden ? "▼" : "▶";
+      });
+    }
+
+    document.querySelectorAll("#cluster-reconstruction-196 .panel-header").forEach(hdr => {
+      hdr.addEventListener("click", e => {
+        if (e.target.tagName === "BUTTON" || e.target.closest("button") || e.target.tagName === "INPUT") return;
+        const targetId = hdr.getAttribute("data-target");
+        if (!targetId) return;
+        const body = document.getElementById(targetId);
+        const btn = hdr.querySelector(".btn-panel-toggle");
+        if (body) {
+          const isHidden = body.style.display === "none";
+          body.style.display = isHidden ? "flex" : "none";
+          if (btn) btn.textContent = isHidden ? "▼" : "▶";
+        }
+      });
+    });
 
     // Segment Labels toggle handlers (synchronized across header and sidebar)
     const chkShowSegLabels = document.getElementById("chk-show-seg-labels");
@@ -15450,7 +15772,10 @@ EOF`;
     ];
 
     function updateAnalyticsUI() {
-      anchorTableBody.innerHTML = "";
+      const isDeed196 = (state.activeDeed === "196");
+      const anchorTableBody196 = document.getElementById("anchor-table-body-196");
+      const rmseDisplay196 = document.getElementById("rmse-display-196");
+
       let warper = null, rmseInfo = { totalRMSE: 0, residuals: [] };
       const activeAnchors = getActiveAnchors();
       if (activeAnchors.length >= 2) {
@@ -15461,139 +15786,595 @@ EOF`;
       }
       const activeCount = activeAnchors.length;
       const totalCount = state.anchors.length;
-      if (rmseDisplay) {
+
+      // Update RMSE display
+      const activeRmseDisplay = isDeed196 ? rmseDisplay196 : rmseDisplay;
+      if (activeRmseDisplay) {
         if (activeCount < 2) {
-          rmseDisplay.textContent = `RMSE: — (${activeCount}/${totalCount} active)`;
+          activeRmseDisplay.textContent = `RMSE: — (${activeCount}/${totalCount} active)`;
         } else if (totalCount > activeCount) {
-          rmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)} (${activeCount}/${totalCount} active)`;
+          activeRmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)} (${activeCount}/${totalCount} active)`;
         } else {
-          rmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
+          activeRmseDisplay.textContent = `RMSE: ${rmseInfo.totalRMSE.toFixed(2)}`;
         }
       }
 
-      const chkToggleAll = document.getElementById("chk-toggle-all-anchors");
-      if (chkToggleAll) {
-        chkToggleAll.checked = totalCount > 0 && activeCount === totalCount;
-        chkToggleAll.indeterminate = activeCount > 0 && activeCount < totalCount;
-      }
-      const chkMojones = document.getElementById("chk-show-mojones-1073");
-      if (chkMojones && (state.anchors || []).length > 0) {
-        const labelsShown = state.anchors.filter(a => a.showLabel !== false).length;
-        chkMojones.checked = labelsShown > 0;
-        chkMojones.indeterminate = labelsShown > 0 && labelsShown < state.anchors.length;
-      }
-
-      state.anchors.forEach((anc, idx) => {
-        const isEnabled = anc.active !== false && anc.enabled !== false;
-        let err = "—";
-        if (warper) {
-          try {
-            const warped = warper(anc.src);
-            err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y).toFixed(2);
-          } catch(_) {}
-        }
-        const tr = document.createElement("tr");
-        if (!isEnabled) {
-          tr.className = "anchor-row-disabled";
-        }
-        const ancName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
-        const safeName = (ancName + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-        const showLabel = anc.showLabel !== false;
-        const hasPhoto = !!anc.image;
-
-        let axisBadgeHtml = "";
-        if (anc.axisId != null) {
-          const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
-          if (ax) {
-            axisBadgeHtml = `<span class="anchor-axis-badge" data-anc-id="${anc.id}" style="font-size:0.59rem;background:${hexToRgba(ax.color, 0.20)};border:1px solid ${ax.color};color:${ax.color};padding:1px 3px;border-radius:2px;cursor:pointer;flex-shrink:0;" title="Coupled to ${ax.name}. Click to detach anchor.">📐${ax.name}</span>`;
+      if (isDeed196 && anchorTableBody196) {
+        // Render 196 Anchor Table
+        anchorTableBody196.innerHTML = "";
+        state.anchors.forEach(anc => {
+          const isEnabled = anc.active !== false && anc.enabled !== false;
+          let err = "—";
+          if (warper) {
+            try {
+              const warped = warper(anc.src);
+              err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y).toFixed(2);
+            } catch(_) {}
           }
-        }
-
-        const isOpt = anc.optimize === true;
-        let modeBtnHtml = "";
-        if (anc.axisId != null) {
-          if (isOpt) {
-            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #e040fb;background:rgba(224,64,251,0.22);color:#e040fb;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="1D Auto-Tune active: optimizer actively sweeps along axis. Click to switch to Floating Guide (zero-force rubber band).">🎯 Tune</button>`;
-          } else {
-            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #00e5ff;background:rgba(0,229,255,0.18);color:#00e5ff;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Floating Guide active: slides freely along axis to natural projection (rubber band). Click to enable 1D Auto-Tune.">🌊 Float</button>`;
-          }
-        } else {
-          if (isOpt) {
-            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #76ff03;background:rgba(118,255,3,0.20);color:#76ff03;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="2D Auto-Tune active: optimizer searches in buffer. Click to lock anchor as Fixed Ground Truth.">🎯 Tune</button>`;
-          } else {
-            modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #78909c;background:rgba(120,144,156,0.20);color:#b0bec5;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Fixed Ground Truth: anchor coordinate is locked (0 movement). Click to enable 2D Auto-Tune.">🔒 Fixed</button>`;
-          }
-        }
-
-        tr.innerHTML = `
-          <td style="text-align:center;">
-            <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
-          </td>
-          <td style="overflow:hidden;">
-            <div style="display:flex;align-items:center;gap:3px;min-width:0;">
-              <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;"><span style="font-size:0.52em;opacity:0.85;vertical-align:0.12em;margin-right:0.5px;">#</span>${anc.id}</span>
-              <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
-              ${axisBadgeHtml}
-            </div>
-          </td>
-          <td style="text-align:center;">
-            ${modeBtnHtml}
-          </td>
-          <td style="text-align:center;">
-            <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
-          </td>
-          <td style="text-align:center;">
-            ${hasPhoto ? `
-              <div style="display:inline-flex;align-items:center;justify-content:center;">
-                <img src="${anc.image}" class="anchor-thumb-preview" data-id="${anc.id}" title="Click to view, change, or remove photo" alt="Photo">
+          const tr = document.createElement("tr");
+          if (!isEnabled) tr.className = "anchor-row-disabled";
+          const ancName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+          const safeName = (ancName + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+          tr.innerHTML = `
+            <td style="text-align:center;">
+              <input type="checkbox" class="chk-anchor-active-196" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:#ff1744;cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
+            </td>
+            <td>
+              <div style="display:flex;align-items:center;gap:3px;min-width:0;">
+                <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;"><span style="font-size:0.52em;opacity:0.85;vertical-align:0.12em;margin-right:0.5px;">#</span>${anc.id}</span>
+                <input type="text" class="anchor-name-input-196" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" style="width:72px;background:rgba(15,20,32,0.9);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.70rem;padding:1px 4px;border-radius:3px;">
               </div>
-            ` : `
-              <button class="btn-upload-anchor-photo" data-id="${anc.id}" title="Upload photo for this anchor">📷</button>
-            `}
-          </td>
-          <td style="text-align:right;font-family:monospace;white-space:nowrap;color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)')}">
-            ${err}${err !== "—" ? "m" : ""}
-          </td>
-          <td style="text-align:center;">
-            <button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})" title="Delete Anchor #${anc.id}">✕</button>
-          </td>`;
-        anchorTableBody.appendChild(tr);
-      });
-
-      // Toggle anchor optimize mode listener
-      anchorTableBody.querySelectorAll(".btn-toggle-anchor-opt").forEach(btn => {
-        btn.addEventListener("click", e => {
-          e.stopPropagation();
-          const ancId = parseInt(btn.getAttribute("data-id"), 10);
-          const anc = (state.anchors || []).find(a => a.id === ancId);
-          if (anc) {
-            anc.optimize = !anc.optimize;
-            updateAnalyticsUI();
-            redrawAll();
-            const modeText = anc.optimize ? (anc.axisId != null ? "1D Auto-Tune" : "2D Auto-Tune") : (anc.axisId != null ? "Floating Guide (Rubber Band)" : "Fixed Ground Truth");
-            updateStatus(`Anchor #${ancId} mode set to: ${modeText}`);
-          }
+            </td>
+            <td style="font-family:monospace;font-size:0.67rem;color:var(--text-muted);">
+              ${anc.src.x.toFixed(1)}, ${anc.src.y.toFixed(1)}
+            </td>
+            <td style="font-family:monospace;font-size:0.67rem;color:var(--text-muted);">
+              ${anc.dst.x.toFixed(1)}, ${anc.dst.y.toFixed(1)}
+            </td>
+            <td style="text-align:right;font-family:monospace;font-size:0.70rem;color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err) > 5 ? 'var(--accent-red)' : '#00e676')}">
+              ${err}${err !== "—" ? "m" : ""}
+            </td>
+            <td style="text-align:center;">
+              <button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})" title="Delete Anchor #${anc.id}" style="padding:1px 5px;font-size:0.68rem;background:rgba(255,23,68,0.2);color:#ff1744;border:1px solid rgba(255,23,68,0.4);border-radius:3px;cursor:pointer;">✕</button>
+            </td>
+          `;
+          anchorTableBody196.appendChild(tr);
         });
-      });
 
-      // Detach anchor from axis click listener
-      anchorTableBody.querySelectorAll(".anchor-axis-badge").forEach(badge => {
-        badge.addEventListener("click", e => {
-          e.stopPropagation();
-          const ancId = parseInt(badge.getAttribute("data-anc-id"), 10);
-          const anc = (state.anchors || []).find(a => a.id === ancId);
-          if (anc) {
-            anc.axisId = null;
-            anc.axisT = null;
-            updateAnalyticsUI();
-            if (typeof renderTestAxesList === "function") renderTestAxesList();
-            redrawAll();
-            updateStatus(`Anchor #${ancId} detached from axis.`);
+        if (typeof recompute196Metrics === "function") {
+          recompute196Metrics();
+        }
+      } else if (anchorTableBody) {
+        // Render 1073 Anchor Table
+        anchorTableBody.innerHTML = "";
+        const chkToggleAll = document.getElementById("chk-toggle-all-anchors");
+        if (chkToggleAll) {
+          chkToggleAll.checked = totalCount > 0 && activeCount === totalCount;
+          chkToggleAll.indeterminate = activeCount > 0 && activeCount < totalCount;
+        }
+        const chkMojones = document.getElementById("chk-show-mojones-1073");
+        if (chkMojones && (state.anchors || []).length > 0) {
+          const labelsShown = state.anchors.filter(a => a.showLabel !== false).length;
+          chkMojones.checked = labelsShown > 0;
+          chkMojones.indeterminate = labelsShown > 0 && labelsShown < state.anchors.length;
+        }
+
+        state.anchors.forEach((anc, idx) => {
+          const isEnabled = anc.active !== false && anc.enabled !== false;
+          let err = "—";
+          if (warper) {
+            try {
+              const warped = warper(anc.src);
+              err = Math.hypot(warped.x - anc.dst.x, warped.y - anc.dst.y).toFixed(2);
+            } catch(_) {}
           }
+          const tr = document.createElement("tr");
+          if (!isEnabled) {
+            tr.className = "anchor-row-disabled";
+          }
+          const ancName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+          const safeName = (ancName + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+          const showLabel = anc.showLabel !== false;
+          const hasPhoto = !!anc.image;
+
+          let axisBadgeHtml = "";
+          if (anc.axisId != null) {
+            const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
+            if (ax) {
+              axisBadgeHtml = `<span class="anchor-axis-badge" data-anc-id="${anc.id}" style="font-size:0.59rem;background:${hexToRgba(ax.color, 0.20)};border:1px solid ${ax.color};color:${ax.color};padding:1px 3px;border-radius:2px;cursor:pointer;flex-shrink:0;" title="Coupled to ${ax.name}. Click to detach anchor.">📐${ax.name}</span>`;
+            }
+          }
+
+          const isOpt = anc.optimize === true;
+          let modeBtnHtml = "";
+          if (anc.axisId != null) {
+            if (isOpt) {
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #e040fb;background:rgba(224,64,251,0.22);color:#e040fb;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="1D Auto-Tune active: optimizer actively sweeps along axis. Click to switch to Floating Guide (zero-force rubber band).">🎯 Tune</button>`;
+            } else {
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #00e5ff;background:rgba(0,229,255,0.18);color:#00e5ff;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Floating Guide active: slides freely along axis to natural projection (rubber band). Click to enable 1D Auto-Tune.">🌊 Float</button>`;
+            }
+          } else {
+            if (isOpt) {
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #76ff03;background:rgba(118,255,3,0.20);color:#76ff03;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="2D Auto-Tune active: optimizer searches in buffer. Click to lock anchor as Fixed Ground Truth.">🎯 Tune</button>`;
+            } else {
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #78909c;background:rgba(120,144,156,0.20);color:#b0bec5;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Fixed Ground Truth: anchor coordinate is locked (0 movement). Click to enable 2D Auto-Tune.">🔒 Fixed</button>`;
+            }
+          }
+
+          tr.innerHTML = `
+            <td style="text-align:center;">
+              <input type="checkbox" class="chk-anchor-active" data-id="${anc.id}" ${isEnabled ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${isEnabled ? "Disable" : "Enable"} Anchor #${anc.id}">
+            </td>
+            <td style="overflow:hidden;">
+              <div style="display:flex;align-items:center;gap:3px;min-width:0;">
+                <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;"><span style="font-size:0.52em;opacity:0.85;vertical-align:0.12em;margin-right:0.5px;">#</span>${anc.id}</span>
+                <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
+                ${axisBadgeHtml}
+              </div>
+            </td>
+            <td style="text-align:center;">
+              ${modeBtnHtml}
+            </td>
+            <td style="text-align:center;">
+              <input type="checkbox" class="chk-anchor-showlabel" data-id="${anc.id}" ${showLabel ? "checked" : ""} style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;vertical-align:middle;" title="${showLabel ? 'Hide label on canvas' : 'Show label on canvas'}">
+            </td>
+            <td style="text-align:center;">
+              ${hasPhoto ? `
+                <div style="display:inline-flex;align-items:center;justify-content:center;">
+                  <img src="${anc.image}" class="anchor-thumb-preview" data-id="${anc.id}" title="Click to view, change, or remove photo" alt="Photo">
+                </div>
+              ` : `
+                <button class="btn-upload-anchor-photo" data-id="${anc.id}" title="Upload photo for this anchor">📷</button>
+              `}
+            </td>
+            <td style="text-align:right;font-family:monospace;white-space:nowrap;color:${!isEnabled ? 'var(--text-muted)' : (parseFloat(err)>5?'var(--accent-red)':'var(--accent-cyan)')}">
+              ${err}${err !== "—" ? "m" : ""}
+            </td>
+            <td style="text-align:center;">
+              <button class="btn-del-anchor" onclick="deleteAnchor(${anc.id})" title="Delete Anchor #${anc.id}">✕</button>
+            </td>`;
+          anchorTableBody.appendChild(tr);
         });
-      });
+
+        // Toggle anchor optimize mode listener
+        anchorTableBody.querySelectorAll(".btn-toggle-anchor-opt").forEach(btn => {
+          btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const ancId = parseInt(btn.getAttribute("data-id"), 10);
+            const anc = (state.anchors || []).find(a => a.id === ancId);
+            if (anc) {
+              anc.optimize = !anc.optimize;
+              updateAnalyticsUI();
+              redrawAll();
+              const modeText = anc.optimize ? (anc.axisId != null ? "1D Auto-Tune" : "2D Auto-Tune") : (anc.axisId != null ? "Floating Guide (Rubber Band)" : "Fixed Ground Truth");
+              updateStatus(`Anchor #${ancId} mode set to: ${modeText}`);
+            }
+          });
+        });
+
+        // Detach anchor from axis click listener
+        anchorTableBody.querySelectorAll(".anchor-axis-badge").forEach(badge => {
+          badge.addEventListener("click", e => {
+            e.stopPropagation();
+            const ancId = parseInt(badge.getAttribute("data-anc-id"), 10);
+            const anc = (state.anchors || []).find(a => a.id === ancId);
+            if (anc) {
+              anc.axisId = null;
+              anc.axisT = null;
+              updateAnalyticsUI();
+              if (typeof renderTestAxesList === "function") renderTestAxesList();
+              redrawAll();
+              updateStatus(`Anchor #${ancId} detached from axis.`);
+            }
+          });
+        });
+      }
 
       updateAlgoComparePanel();
+    }
+
+    // ── Escritura 196 Dual-Parcel Area Metrics & Optimizer ─────────────
+    function get196WarpedEntities() {
+      if (!state.histEntities || state.histEntities.length === 0) return [];
+      let warper = null;
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length >= 2) {
+        try {
+          warper = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors);
+        } catch (_) {}
+      }
+      return state.histEntities.map(ent => {
+        const pts = (ent.points || []).map(p => {
+          if (warper) {
+            try { return warper(p); } catch (_) { return { x: p.x, y: p.y }; }
+          }
+          return { x: p.x, y: p.y };
+        });
+        return {
+          layer: ent.layer || "",
+          closed: ent.closed !== false,
+          points: pts,
+          origEnt: ent
+        };
+      });
+    }
+
+    function computeShoelaceArea(pts) {
+      if (!pts || pts.length < 3) return 0;
+      let area = 0;
+      for (let i = 0; i < pts.length; i++) {
+        const j = (i + 1) % pts.length;
+        area += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+      }
+      return Math.abs(area) / 2;
+    }
+
+    function computePolylineLength(pts) {
+      if (!pts || pts.length < 2) return 0;
+      let len = 0;
+      for (let i = 0; i < pts.length - 1; i++) {
+        len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+      }
+      return len;
+    }
+
+    function recompute196Metrics() {
+      if (state.activeDeed !== "196") return;
+      const warpedEnts = get196WarpedEntities();
+      const jimmyEnt = warpedEnts.find(e => (e.layer || "").toLowerCase().includes("jimmy"));
+      const pedroEnt = warpedEnts.find(e => (e.layer || "").toLowerCase().includes("pedro"));
+      const nachoEnt = warpedEnts.find(e => (e.layer || "").toLowerCase().includes("nacho"));
+
+      const targetJimmyInput = document.getElementById("input-target-area-jimmy");
+      const targetPedroInput = document.getElementById("input-target-area-pedro");
+      const targetJimmy = targetJimmyInput ? (parseFloat(targetJimmyInput.value) || 400.0) : 400.0;
+      const targetPedro = targetPedroInput ? (parseFloat(targetPedroInput.value) || 1050.0) : 1050.0;
+
+      const valAreaJimmy = document.getElementById("val-area-jimmy");
+      const valDeltaJimmy = document.getElementById("val-delta-jimmy");
+      const pctJimmy = document.getElementById("lote-jimmy-pct");
+
+      const valAreaPedro = document.getElementById("val-area-pedro");
+      const valDeltaPedro = document.getElementById("val-delta-pedro");
+      const pctPedro = document.getElementById("lote-pedro-pct");
+
+      const valLenNacho = document.getElementById("val-len-nacho");
+
+      if (jimmyEnt) {
+        const areaJ = computeShoelaceArea(jimmyEnt.points);
+        const deltaJ = areaJ - targetJimmy;
+        const pctJ = targetJimmy > 0 ? (areaJ / targetJimmy) * 100 : 100;
+        if (valAreaJimmy) valAreaJimmy.textContent = `${areaJ.toFixed(2)} m²`;
+        if (valDeltaJimmy) {
+          valDeltaJimmy.textContent = `${deltaJ >= 0 ? "+" : ""}${deltaJ.toFixed(2)} m²`;
+          valDeltaJimmy.style.color = Math.abs(deltaJ) < 1.0 ? "#00e676" : (Math.abs(deltaJ) < 10.0 ? "#ffd600" : "#ff1744");
+        }
+        if (pctJimmy) {
+          pctJimmy.textContent = `${pctJ.toFixed(1)}%`;
+          pctJimmy.style.color = Math.abs(100 - pctJ) < 1.0 ? "#00e676" : "#ffd600";
+        }
+      }
+
+      if (pedroEnt) {
+        const areaP = computeShoelaceArea(pedroEnt.points);
+        const deltaP = areaP - targetPedro;
+        const pctP = targetPedro > 0 ? (areaP / targetPedro) * 100 : 100;
+        if (valAreaPedro) valAreaPedro.textContent = `${areaP.toFixed(2)} m²`;
+        if (valDeltaPedro) {
+          valDeltaPedro.textContent = `${deltaP >= 0 ? "+" : ""}${deltaP.toFixed(2)} m²`;
+          valDeltaPedro.style.color = Math.abs(deltaP) < 1.0 ? "#00e676" : (Math.abs(deltaP) < 10.0 ? "#ffd600" : "#ff1744");
+        }
+        if (pctPedro) {
+          pctPedro.textContent = `${pctP.toFixed(1)}%`;
+          pctPedro.style.color = Math.abs(100 - pctP) < 1.0 ? "#00e676" : "#ffd600";
+        }
+      }
+
+      if (nachoEnt) {
+        const lenN = computePolylineLength(nachoEnt.points);
+        if (valLenNacho) valLenNacho.textContent = `${lenN.toFixed(2)} m`;
+      }
+    }
+
+    function optimize196ParcelAreas() {
+      if (!state.histEntities || state.histEntities.length === 0) {
+        alert("No se han cargado las entidades de la Escritura 196.");
+        return;
+      }
+
+      // Save initial baseline geometry if not already stored
+      if (!state.origHistEntities196) {
+        state.origHistEntities196 = JSON.parse(JSON.stringify(state.histEntities));
+      }
+
+      const activeAnchors = getActiveAnchors();
+      if (activeAnchors.length < 2) {
+        alert("Se requieren al menos 2 puntos de control (anclajes) activos para optimizar en coordenadas de campo.");
+        return;
+      }
+
+      let warper = null;
+      try {
+        warper = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors);
+      } catch (err) {
+        alert("Error inicializando transformación: " + err.message);
+        return;
+      }
+
+      const jimmyEnt = state.histEntities.find(e => (e.layer || "").toLowerCase().includes("jimmy"));
+      const pedroEnt = state.histEntities.find(e => (e.layer || "").toLowerCase().includes("pedro"));
+      const nachoEnt = state.histEntities.find(e => (e.layer || "").toLowerCase().includes("nacho"));
+
+      if (!jimmyEnt || !pedroEnt) {
+        alert("No se encontraron las polilíneas de 'Lote Jimmy' y 'Lote Pedro' en la Escritura 196.");
+        return;
+      }
+
+      const targetJimmyInput = document.getElementById("input-target-area-jimmy");
+      const targetPedroInput = document.getElementById("input-target-area-pedro");
+      const targetJimmy = targetJimmyInput ? (parseFloat(targetJimmyInput.value) || 400.0) : 400.0;
+      const targetPedro = targetPedroInput ? (parseFloat(targetPedroInput.value) || 1050.0) : 1050.0;
+
+      const statusOpt = document.getElementById("status-opt-196");
+      if (statusOpt) statusOpt.innerHTML = "⏳ Optimizando áreas de Lote Jimmy y Lote Pedro…";
+
+      // Identify shared vertices between Jimmy and Pedro in CAD space
+      const sharedIndicesJimmy = [];
+      const sharedIndicesPedro = [];
+      jimmyEnt.points.forEach((pj, ij) => {
+        pedroEnt.points.forEach((pp, ip) => {
+          if (Math.hypot(pj.x - pp.x, pj.y - pp.y) < 0.05) {
+            sharedIndicesJimmy.push(ij);
+            sharedIndicesPedro.push(ip);
+          }
+        });
+      });
+
+      // Iterative dual-parcel area optimization in field coordinates
+      let warpedJ = jimmyEnt.points.map(p => warper(p));
+      let warpedP = pedroEnt.points.map(p => warper(p));
+
+      const maxIters = 150;
+      for (let iter = 0; iter < maxIters; iter++) {
+        const aJ = computeShoelaceArea(warpedJ);
+        const aP = computeShoelaceArea(warpedP);
+        if (Math.abs(aJ - targetJimmy) < 0.05 && Math.abs(aP - targetPedro) < 0.05) break;
+
+        const scaleJ = aJ > 0 ? Math.sqrt(targetJimmy / aJ) : 1.0;
+        const scaleP = aP > 0 ? Math.sqrt(targetPedro / aP) : 1.0;
+
+        let cJx = 0, cJy = 0;
+        warpedJ.forEach(p => { cJx += p.x; cJy += p.y; });
+        cJx /= warpedJ.length; cJy /= warpedJ.length;
+
+        let cPx = 0, cPy = 0;
+        warpedP.forEach(p => { cPx += p.x; cPy += p.y; });
+        cPx /= warpedP.length; cPy /= warpedP.length;
+
+        const rate = 0.35;
+        const factorJ = 1 + (scaleJ - 1) * rate;
+        warpedJ.forEach((p, idx) => {
+          if (!sharedIndicesJimmy.includes(idx)) {
+            p.x = cJx + (p.x - cJx) * factorJ;
+            p.y = cJy + (p.y - cJy) * factorJ;
+          }
+        });
+
+        const factorP = 1 + (scaleP - 1) * rate;
+        warpedP.forEach((p, idx) => {
+          if (!sharedIndicesPedro.includes(idx)) {
+            p.x = cPx + (p.x - cPx) * factorP;
+            p.y = cPy + (p.y - cPy) * factorP;
+          }
+        });
+
+        // Synchronize shared boundary vertices
+        for (let s = 0; s < sharedIndicesJimmy.length; s++) {
+          const ij = sharedIndicesJimmy[s];
+          const ip = sharedIndicesPedro[s];
+          const avgX = (warpedJ[ij].x + warpedP[ip].x) / 2;
+          const avgY = (warpedJ[ij].y + warpedP[ip].y) / 2;
+          warpedJ[ij].x = avgX; warpedJ[ij].y = avgY;
+          warpedP[ip].x = avgX; warpedP[ip].y = avgY;
+        }
+      }
+
+      // Reverse-map warped coordinates back into CAD space
+      let invWarper = null;
+      try {
+        if (TransformMath.createInverseWarper) {
+          invWarper = TransformMath.createInverseWarper(state.algorithm || "SIMILARITY", activeAnchors);
+        }
+      } catch (_) {}
+
+      if (invWarper) {
+        jimmyEnt.points = warpedJ.map(p => invWarper(p));
+        pedroEnt.points = warpedP.map(p => invWarper(p));
+      } else {
+        // Robust Helmert unwarp
+        let meanSrcX = 0, meanSrcY = 0, meanDstX = 0, meanDstY = 0;
+        activeAnchors.forEach(a => {
+          meanSrcX += a.src.x; meanSrcY += a.src.y;
+          meanDstX += a.dst.x; meanDstY += a.dst.y;
+        });
+        const n = activeAnchors.length;
+        meanSrcX /= n; meanSrcY /= n; meanDstX /= n; meanDstY /= n;
+        let numA = 0, numB = 0, den = 0;
+        activeAnchors.forEach(a => {
+          const dxs = a.src.x - meanSrcX, dys = a.src.y - meanSrcY;
+          const dxd = a.dst.x - meanDstX, dyd = a.dst.y - meanDstY;
+          numA += dxs * dxd + dys * dyd;
+          numB += dxs * dyd - dys * dxd;
+          den += dxs * dxs + dys * dys;
+        });
+        const a = numA / den, b = numB / den;
+        const d = a * a + b * b;
+        const unwarp = p => {
+          const u = p.x - meanDstX, v = p.y - meanDstY;
+          return {
+            x: meanSrcX + (a * u + b * v) / d,
+            y: meanSrcY + (-b * u + a * v) / d
+          };
+        };
+        jimmyEnt.points = warpedJ.map(unwarp);
+        pedroEnt.points = warpedP.map(unwarp);
+      }
+
+      // Synchronize Nacho vertices if it shares coordinates with Pedro or Jimmy
+      if (nachoEnt && nachoEnt.points) {
+        nachoEnt.points.forEach(np => {
+          for (const pp of pedroEnt.points) {
+            if (Math.hypot(np.x - pp.x, np.y - pp.y) < 1.0) {
+              np.x = pp.x; np.y = pp.y; break;
+            }
+          }
+          for (const jp of jimmyEnt.points) {
+            if (Math.hypot(np.x - jp.x, np.y - jp.y) < 1.0) {
+              np.x = jp.x; np.y = jp.y; break;
+            }
+          }
+        });
+      }
+
+      recompute196Metrics();
+      redrawAll();
+
+      const finalAreaJ = computeShoelaceArea(jimmyEnt.points.map(p => warper(p)));
+      const finalAreaP = computeShoelaceArea(pedroEnt.points.map(p => warper(p)));
+
+      if (statusOpt) {
+        statusOpt.innerHTML = `✅ <strong>Optimización completa:</strong><br>• Lote Jimmy: <strong>${finalAreaJ.toFixed(2)} m²</strong> (target ${targetJimmy.toFixed(1)} m²)<br>• Lote Pedro: <strong>${finalAreaP.toFixed(2)} m²</strong> (target ${targetPedro.toFixed(1)} m²)`;
+      }
+      updateStatus(`⚡ Parcelas Escritura 196 optimizadas: Jimmy = ${finalAreaJ.toFixed(2)} m², Pedro = ${finalAreaP.toFixed(2)} m²`);
+    }
+
+    // ── Cluster 196 Action Listeners ──
+    const btnOpt196 = document.getElementById("btn-optimize-196");
+    if (btnOpt196) {
+      btnOpt196.addEventListener("click", optimize196ParcelAreas);
+    }
+
+    const btnReset196 = document.getElementById("btn-reset-196");
+    if (btnReset196) {
+      btnReset196.addEventListener("click", () => {
+        if (state.origHistEntities196) {
+          state.histEntities = JSON.parse(JSON.stringify(state.origHistEntities196));
+          recompute196Metrics();
+          redrawAll();
+          const statusOpt = document.getElementById("status-opt-196");
+          if (statusOpt) statusOpt.textContent = "↺ Geometría de Escritura 196 restaurada al estado original.";
+          updateStatus("↺ Escritura 196 restaurada al estado original.");
+        } else {
+          alert("No hay estado original registrado para restaurar.");
+        }
+      });
+    }
+
+    const btnSaveDxf196 = document.getElementById("btn-save-dxf-196");
+    if (btnSaveDxf196) {
+      btnSaveDxf196.addEventListener("click", saveDeedDxf);
+    }
+
+    const inputTargetJimmy = document.getElementById("input-target-area-jimmy");
+    const inputTargetPedro = document.getElementById("input-target-area-pedro");
+    if (inputTargetJimmy) inputTargetJimmy.addEventListener("input", recompute196Metrics);
+    if (inputTargetPedro) inputTargetPedro.addEventListener("input", recompute196Metrics);
+
+    const algoSelect196 = document.getElementById("algorithm-select-196");
+    if (algoSelect196) {
+      algoSelect196.addEventListener("change", e => {
+        state.algorithm = e.target.value;
+        const mainAlgo = document.getElementById("algorithm-select");
+        if (mainAlgo) mainAlgo.value = e.target.value;
+        updateAnalyticsUI();
+        redrawAll();
+        updateStatus(`Algoritmo de transformación 196: ${e.target.value}`);
+      });
+    }
+
+    const btnSaveAnchors196 = document.getElementById("btn-save-anchors-196");
+    if (btnSaveAnchors196) {
+      btnSaveAnchors196.addEventListener("click", () => {
+        const toSave = {
+          anchors: state.anchors.map(a => ({
+            id: a.id,
+            name: a.name || (`#${a.id}`),
+            showLabel: a.showLabel !== false,
+            image: a.image || null,
+            color: a.color,
+            src: { x: a.src.x, y: a.src.y },
+            dst: { x: a.dst.x, y: a.dst.y },
+            active: a.active !== false && a.enabled !== false,
+            enabled: a.active !== false && a.enabled !== false
+          }))
+        };
+        const jsonStr = JSON.stringify(toSave, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "anchors_196.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateStatus(`💾 Guardados ${state.anchors.length} anclajes en anchors_196.json.`);
+      });
+    }
+
+    const anchor196FileInput = document.getElementById("anchor-196-file-input");
+    if (anchor196FileInput) {
+      anchor196FileInput.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            const list = Array.isArray(data) ? data : (data.anchors || []);
+            if (list.length > 0) {
+              applyAnchors(list);
+              redrawAll();
+              updateStatus(`✅ Cargados ${list.length} anclajes para Escritura 196 desde ${file.name}`);
+            } else {
+              alert("No se encontraron anclajes válidos en el archivo JSON.");
+            }
+          } catch (err) {
+            alert("Error al procesar archivo de anclajes: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    const btnClearAnchors196 = document.getElementById("btn-clear-anchors-196");
+    if (btnClearAnchors196) {
+      btnClearAnchors196.addEventListener("click", () => {
+        state.anchors = [];
+        state.pendingSource = null;
+        redrawAll();
+        updateStatus("Anclajes de Escritura 196 eliminados.");
+      });
+    }
+
+    const anchorTableBody196El = document.getElementById("anchor-table-body-196");
+    if (anchorTableBody196El) {
+      anchorTableBody196El.addEventListener("change", e => {
+        if (e.target && e.target.classList.contains("chk-anchor-active-196")) {
+          const id = parseInt(e.target.dataset.id, 10);
+          toggleAnchor(id, e.target.checked);
+        }
+      });
+      anchorTableBody196El.addEventListener("input", e => {
+        if (e.target && e.target.classList.contains("anchor-name-input-196")) {
+          const id = parseInt(e.target.dataset.id, 10);
+          const anc = (state.anchors || []).find(a => a.id === id);
+          if (anc) {
+            anc.name = e.target.value.trim() || (`#${anc.id}`);
+            redrawTrueCanvas();
+          }
+        }
+      });
     }
 
     function toggleAnchor(id, active) {
