@@ -2373,6 +2373,14 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   </select>
                 </div>
 
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px 6px 2px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#ff1744;font-weight:600;" title="Constrain anchor dragging and simulation centers within the Pen Buffer Radius of Field vertices and Temporary Checkpoint Markers">
+                    <input type="checkbox" id="chk-constrain-anchors-196" checked style="accent-color:#ff1744;">
+                    🔒 Constrain to Vertices / Markers
+                  </label>
+                  <span id="anchor-constrain-hint-196" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
+                </div>
+
                 <!-- Table for 196 anchors -->
                 <div class="table-wrap" style="max-height:380px;overflow-y:auto;">
                   <table class="data-table" id="anchor-table-196">
@@ -2459,6 +2467,15 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     <span>〰</span> Lote Nacho (Línea Abierta):
                   </span>
                   <span id="val-len-nacho" style="font-weight:700;font-family:monospace;color:#fff;">— m</span>
+                </div>
+
+                <!-- Constrain to Vertices / Markers for 196 Optimization -->
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 4px 6px 4px;margin-top:2px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.73rem;">
+                  <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#ff1744;font-weight:600;" title="Constrain anchor dragging, simulation and parcel vertices within the Buffer Radius of Field vertices and Temporary Checkpoint Markers">
+                    <input type="checkbox" id="chk-constrain-anchors-196-opt" checked style="accent-color:#ff1744;">
+                    🔒 Constrain to Vertices / Markers
+                  </label>
+                  <span id="anchor-constrain-hint-196-opt" style="font-size:0.65rem;color:var(--text-muted);font-family:monospace;">(±3.0m)</span>
                 </div>
 
                 <!-- Optimization Action -->
@@ -7507,9 +7524,9 @@ EOF`;
             trueCtx.save();
             trueCtx.beginPath();
             trueCtx.arc(sCenter.x, sCenter.y, rPx, 0, Math.PI * 2);
-            trueCtx.fillStyle = "rgba(0, 229, 255, 0.08)";
+            trueCtx.fillStyle = (state.activeDeed === "196") ? "rgba(255, 23, 68, 0.08)" : "rgba(0, 229, 255, 0.08)";
             trueCtx.fill();
-            trueCtx.strokeStyle = "rgba(0, 229, 255, 0.55)";
+            trueCtx.strokeStyle = (state.activeDeed === "196") ? "rgba(255, 23, 68, 0.55)" : "rgba(0, 229, 255, 0.55)";
             trueCtx.lineWidth = 1.5;
             trueCtx.setLineDash([4, 4]);
             trueCtx.stroke();
@@ -7518,7 +7535,7 @@ EOF`;
             // Center crosshair marker on the buffer disk center
             trueCtx.beginPath();
             trueCtx.arc(sCenter.x, sCenter.y, 3, 0, Math.PI * 2);
-            trueCtx.fillStyle = "#00e5ff";
+            trueCtx.fillStyle = (state.activeDeed === "196") ? "#ff1744" : "#00e5ff";
             trueCtx.fill();
             trueCtx.strokeStyle = "#ffffff";
             trueCtx.lineWidth = 1;
@@ -11674,6 +11691,10 @@ EOF`;
         if (optBufferVal) optBufferVal.textContent = `±${val.toFixed(1)} m`;
         const constrainHint = document.getElementById("anchor-constrain-hint");
         if (constrainHint) constrainHint.textContent = `(±${val.toFixed(1)}m)`;
+        const constrainHint196 = document.getElementById("anchor-constrain-hint-196");
+        if (constrainHint196) constrainHint196.textContent = `(±${val.toFixed(1)}m)`;
+        const constrainHint196Opt = document.getElementById("anchor-constrain-hint-196-opt");
+        if (constrainHint196Opt) constrainHint196Opt.textContent = `(±${val.toFixed(1)}m)`;
         const deedHint = document.getElementById("deed-constrain-hint");
         if (deedHint) deedHint.textContent = `(±${val.toFixed(1)}m)`;
         redrawTrueCanvas();
@@ -12681,6 +12702,10 @@ EOF`;
         if (v) v.textContent = `±${metadata.optBufferRadius.toFixed(1)} m`;
         const constrainHint = document.getElementById("anchor-constrain-hint");
         if (constrainHint) constrainHint.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
+        const constrainHint196 = document.getElementById("anchor-constrain-hint-196");
+        if (constrainHint196) constrainHint196.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
+        const constrainHint196Opt = document.getElementById("anchor-constrain-hint-196-opt");
+        if (constrainHint196Opt) constrainHint196Opt.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
         const deedHint = document.getElementById("deed-constrain-hint");
         if (deedHint) deedHint.textContent = `(±${metadata.optBufferRadius.toFixed(1)}m)`;
         restored.push(`Buffer ±${metadata.optBufferRadius.toFixed(1)}m`);
@@ -15719,18 +15744,28 @@ EOF`;
       updateStatus("Cleared all anchors.");
     });
 
-    const chkConstrainAnchors = document.getElementById("chk-constrain-anchors");
-    if (chkConstrainAnchors) {
-      chkConstrainAnchors.addEventListener("change", e => {
-        state.constrainAnchorsToField = e.target.checked;
-        if (state.constrainAnchorsToField) {
-          updateStatus(`🔒 Anchor constraint active: simulations & dragging clamped within ±${state.optBufferRadius.toFixed(1)}m of survey vertices or temporary markers.`);
-        } else {
-          updateStatus("🔓 Anchor constraint disabled: simulations & dragging start from custom anchor placement.");
-        }
-        redrawTrueCanvas();
+    function setConstrainAnchorsToField(val, triggerEl = null) {
+      state.constrainAnchorsToField = !!val;
+      ["chk-constrain-anchors", "chk-constrain-anchors-196", "chk-constrain-anchors-196-opt"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el !== triggerEl) el.checked = state.constrainAnchorsToField;
       });
+      if (state.constrainAnchorsToField) {
+        updateStatus(`🔒 Constraint active: vertices & anchors clamped within ±${state.optBufferRadius.toFixed(1)}m of survey vertices or temporary markers.`);
+      } else {
+        updateStatus("🔓 Constraint disabled: free placement & optimization without survey vertex clamping.");
+      }
+      redrawTrueCanvas();
     }
+
+    ["chk-constrain-anchors", "chk-constrain-anchors-196", "chk-constrain-anchors-196-opt"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener("change", e => {
+          setConstrainAnchorsToField(e.target.checked, e.target);
+        });
+      }
+    });
 
     const chkConstrainDeedVertices = document.getElementById("chk-constrain-deed-vertices");
     const chkPolygonSnap = document.getElementById("chk-polygon-snap");
@@ -15775,8 +15810,12 @@ EOF`;
 
     function initConstraintsAndBuffers() {
       const chkAnchors = document.getElementById("chk-constrain-anchors");
+      const chkAnchors196 = document.getElementById("chk-constrain-anchors-196");
+      const chkAnchors196Opt = document.getElementById("chk-constrain-anchors-196-opt");
       const chkDeed = document.getElementById("chk-constrain-deed-vertices");
       if (chkAnchors) state.constrainAnchorsToField = chkAnchors.checked;
+      if (chkAnchors196) chkAnchors196.checked = state.constrainAnchorsToField;
+      if (chkAnchors196Opt) chkAnchors196Opt.checked = state.constrainAnchorsToField;
       if (chkDeed) {
         chkDeed.checked = true;
         state.constrainPolyToDeed = true;
@@ -16214,6 +16253,18 @@ EOF`;
       let warpedJ = jimmyEnt.points.map(p => warper(p));
       let warpedP = pedroEnt.points.map(p => warper(p));
 
+      // If Constrain to Vertices / Markers is active, anchor parcel vertices near field vertices or markers
+      const fieldTargetJ = warpedJ.map(p => {
+        if (!state.constrainAnchorsToField) return null;
+        const nf = findNearestFieldVertex(p);
+        return (nf && nf.dist <= (state.optBufferRadius || 3.0) * 1.5) ? { x: nf.x, y: nf.y } : null;
+      });
+      const fieldTargetP = warpedP.map(p => {
+        if (!state.constrainAnchorsToField) return null;
+        const nf = findNearestFieldVertex(p);
+        return (nf && nf.dist <= (state.optBufferRadius || 3.0) * 1.5) ? { x: nf.x, y: nf.y } : null;
+      });
+
       const maxIters = 150;
       for (let iter = 0; iter < maxIters; iter++) {
         const aJ = computeShoelaceArea(warpedJ);
@@ -16247,6 +16298,33 @@ EOF`;
             p.y = cPy + (p.y - cPy) * factorP;
           }
         });
+
+        // Enforce constraint within buffer radius of Field Vertices / Markers if active
+        if (state.constrainAnchorsToField && state.optBufferRadius > 0) {
+          const R = state.optBufferRadius;
+          warpedJ.forEach((p, idx) => {
+            const ft = fieldTargetJ[idx];
+            if (ft) {
+              const d = Math.hypot(p.x - ft.x, p.y - ft.y);
+              if (d > R) {
+                const ratio = R / d;
+                p.x = ft.x + (p.x - ft.x) * ratio;
+                p.y = ft.y + (p.y - ft.y) * ratio;
+              }
+            }
+          });
+          warpedP.forEach((p, idx) => {
+            const ft = fieldTargetP[idx];
+            if (ft) {
+              const d = Math.hypot(p.x - ft.x, p.y - ft.y);
+              if (d > R) {
+                const ratio = R / d;
+                p.x = ft.x + (p.x - ft.x) * ratio;
+                p.y = ft.y + (p.y - ft.y) * ratio;
+              }
+            }
+          });
+        }
 
         // Synchronize shared boundary vertices
         for (let s = 0; s < sharedIndicesJimmy.length; s++) {
@@ -16323,7 +16401,8 @@ EOF`;
       const finalAreaP = computeShoelaceArea(pedroEnt.points.map(p => warper(p)));
 
       if (statusOpt) {
-        statusOpt.innerHTML = `✅ <strong>Optimización completa:</strong><br>• Lote Jimmy: <strong>${finalAreaJ.toFixed(2)} m²</strong> (target ${targetJimmy.toFixed(1)} m²)<br>• Lote Pedro: <strong>${finalAreaP.toFixed(2)} m²</strong> (target ${targetPedro.toFixed(1)} m²)`;
+        const constrainInfo = state.constrainAnchorsToField ? ` [🔒 Restringido ±${state.optBufferRadius.toFixed(1)}m]` : ` [🔓 Sin restricción]`;
+        statusOpt.innerHTML = `✅ <strong>Optimización completa${constrainInfo}:</strong><br>• Lote Jimmy: <strong>${finalAreaJ.toFixed(2)} m²</strong> (target ${targetJimmy.toFixed(1)} m²)<br>• Lote Pedro: <strong>${finalAreaP.toFixed(2)} m²</strong> (target ${targetPedro.toFixed(1)} m²)`;
       }
       updateStatus(`⚡ Parcelas Escritura 196 optimizadas: Jimmy = ${finalAreaJ.toFixed(2)} m², Pedro = ${finalAreaP.toFixed(2)} m²`);
     }
