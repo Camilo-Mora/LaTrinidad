@@ -18,23 +18,6 @@
       "enabled": true
     },
     {
-      "id": 2,
-      "name": "#2",
-      "showLabel": false,
-      "image": null,
-      "color": "#00e676",
-      "src": {
-        "x": 188.2925991057936,
-        "y": 369.8195219170869
-      },
-      "dst": {
-        "x": 1097887.7,
-        "y": 876849.01
-      },
-      "active": false,
-      "enabled": false
-    },
-    {
       "id": 3,
       "name": "#3",
       "showLabel": false,
@@ -52,40 +35,6 @@
       "enabled": true
     },
     {
-      "id": 4,
-      "name": "#4",
-      "showLabel": false,
-      "image": null,
-      "color": "#ff9100",
-      "src": {
-        "x": 299.64771789243923,
-        "y": 509.9625325155747
-      },
-      "dst": {
-        "x": 1097885.0849472824,
-        "y": 876780.791843335
-      },
-      "active": false,
-      "enabled": false
-    },
-    {
-      "id": 5,
-      "name": "#5",
-      "showLabel": false,
-      "image": null,
-      "color": "#d500f9",
-      "src": {
-        "x": 295.90629784158097,
-        "y": 327.9250488807793
-      },
-      "dst": {
-        "x": 1097918.92,
-        "y": 876844.72
-      },
-      "active": false,
-      "enabled": false
-    },
-    {
       "id": 6,
       "name": "#6",
       "showLabel": false,
@@ -101,91 +50,6 @@
       },
       "active": true,
       "enabled": true
-    },
-    {
-      "id": 7,
-      "name": "#7",
-      "showLabel": false,
-      "image": null,
-      "color": "#76ff03",
-      "src": {
-        "x": 418.7040310159035,
-        "y": 310.99688953766366
-      },
-      "dst": {
-        "x": 1097951.26,
-        "y": 876824.71
-      },
-      "active": false,
-      "enabled": false
-    },
-    {
-      "id": 8,
-      "name": "#8",
-      "showLabel": false,
-      "image": null,
-      "color": "#f50057",
-      "src": {
-        "x": 223.53,
-        "y": 362.22
-      },
-      "dst": {
-        "x": 1097898.71,
-        "y": 876847.47
-      },
-      "active": false,
-      "enabled": false
-    },
-    {
-      "id": 9,
-      "name": "#9",
-      "showLabel": true,
-      "image": null,
-      "color": "#ff1744",
-      "src": {
-        "x": 129.5,
-        "y": 516.98
-      },
-      "dst": {
-        "x": 1097840.53,
-        "y": 876796.64
-      },
-      "active": false,
-      "enabled": false
-    },
-    {
-      "id": 10,
-      "name": "#10",
-      "showLabel": true,
-      "image": null,
-      "color": "#00e676",
-      "src": {
-        "x": 126.5,
-        "y": 559.48
-      },
-      "dst": {
-        "x": 1097830.89,
-        "y": 876782.06
-      },
-      "active": false,
-      "enabled": false
-    },
-    {
-      "id": 11,
-      "name": "#11",
-      "showLabel": true,
-      "image": null,
-      "color": "#00e5ff",
-      "src": {
-        "x": 154.7,
-        "y": 581.51
-      },
-      "dst": {
-        "x": 1097830.74,
-        "y": 876770.61
-      },
-      "active": false,
-      "enabled": false
     }
   ]
 }
