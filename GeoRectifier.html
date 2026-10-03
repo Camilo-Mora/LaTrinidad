@@ -5124,11 +5124,21 @@ EOF`;
 
     function applyAnchors(list) {
       if (!Array.isArray(list) || list.length === 0) return;
+      const seenIds = new Set();
       state.anchors = list.map((a, i) => {
-        const id = a.id || (i + 1);
+        let id = a.id || (i + 1);
+        if (seenIds.has(id)) {
+          let nextId = 1;
+          while (seenIds.has(nextId) || list.some(item => item && item.id === nextId)) {
+            nextId++;
+          }
+          id = nextId;
+        }
+        seenIds.add(id);
+        const name = (a.name && a.name !== `#${a.id}`) ? a.name : (`#${id}`);
         const anc = {
           id: id,
-          name: a.name || (`#${id}`),
+          name: name,
           showLabel: a.showLabel !== false,
           image: a.image || null,
           color: a.color || anchorColors[i % anchorColors.length],
@@ -16012,9 +16022,9 @@ EOF`;
     }
 
     function renderVecPdfPage(pageNum) {
-      if (!vecState.pdfDoc || !vecPdfCtx || !vecDrawCtx) return;
+      if (!vecState.pdfDoc || !vecPdfCtx || !vecDrawCtx) return Promise.resolve();
       vecState.pageNum = pageNum;
-      vecState.pdfDoc.getPage(pageNum).then((page) => {
+      return vecState.pdfDoc.getPage(pageNum).then((page) => {
         const viewport = page.getViewport({ scale: vecState.scale });
         vecPdfCanvas.width = viewport.width; vecPdfCanvas.height = viewport.height;
         vecDrawCanvas.width = viewport.width; vecDrawCanvas.height = viewport.height;
@@ -16022,7 +16032,7 @@ EOF`;
         const pageNumEl = document.getElementById("vec-page-num");
         if (pageNumEl) pageNumEl.textContent = `Page ${pageNum} of ${vecState.pdfDoc.numPages}`;
 
-        page.render({ canvasContext: vecPdfCtx, viewport: viewport }).promise.then(() => {
+        return page.render({ canvasContext: vecPdfCtx, viewport: viewport }).promise.then(() => {
           redrawVecDrawCanvas();
         });
       });
@@ -16294,7 +16304,9 @@ EOF`;
               vIdx2: j,
               isClosingSeg: (isClosed && i === pts.length - 1 && j === 0),
               dist,
-              t
+              t,
+              projX,
+              projY
             };
           }
         }
@@ -16320,6 +16332,16 @@ EOF`;
             vecState.draggedVertexIndex = hit.vIdx;
             redrawVecDrawCanvas();
           } else {
+            const hitSeg = findVecSegmentAt(x, y, 9);
+            if (hitSeg) {
+              // Clicked an existing line segment: activate layer, don't append stray point to end
+              if (vecState.activePolyIndex !== hitSeg.pIdx) {
+                vecState.activePolyIndex = hitSeg.pIdx;
+                renderVecPolygonList();
+                redrawVecDrawCanvas();
+              }
+              return;
+            }
             const activePoly = vecState.polygons[vecState.activePolyIndex];
             if (activePoly) {
               const snapTarget = getVecSnapTarget(x, y, -1, -1, e.shiftKey);
@@ -16452,6 +16474,30 @@ EOF`;
       });
 
       vecDrawCanvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+      // Double-click on a line segment inserts a new node
+      vecDrawCanvas.addEventListener("dblclick", (e) => {
+        e.preventDefault();
+        const rect = vecDrawCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left, y = e.clientY - rect.top;
+        const hitSeg = findVecSegmentAt(x, y, 12);
+        if (hitSeg) {
+          if (vecState.activePolyIndex !== hitSeg.pIdx) {
+            vecState.activePolyIndex = hitSeg.pIdx;
+          }
+          const poly = vecState.polygons[hitSeg.pIdx];
+          const worldPt = {
+            x: Math.round((hitSeg.projX / vecState.scale) * 100) / 100,
+            y: Math.round((hitSeg.projY / vecState.scale) * 100) / 100
+          };
+          const insertIdx = hitSeg.isClosingSeg ? poly.points.length : (hitSeg.vIdx1 + 1);
+          poly.points.splice(insertIdx, 0, worldPt);
+          vecState.hoveredSeg = null;
+          renderVecPolygonList();
+          redrawVecDrawCanvas();
+          updateStatus(`➕ Added new node #${insertIdx + 1} to '${poly.name}' on line segment.`);
+        }
+      });
     }
 
     // Attach Vectorizer Toolbar Event Listeners
@@ -16559,6 +16605,35 @@ EOF`;
         renderVecPdfPage(vecState.pageNum);
       });
     });
+
+    // Mouse wheel zoom on Vectorizer viewport & canvas
+    const vecViewport = document.getElementById("vec-viewport");
+    if (vecViewport) {
+      vecViewport.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const oldScale = vecState.scale || 1.5;
+        const zoomFactor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
+        let newScale = Math.round((oldScale * zoomFactor) * 100) / 100;
+        newScale = Math.max(0.4, Math.min(8.0, newScale));
+        if (Math.abs(newScale - oldScale) < 0.01) return;
+
+        const rect = vecViewport.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const contentX = vecViewport.scrollLeft + mouseX;
+        const contentY = vecViewport.scrollTop + mouseY;
+        const ratio = newScale / oldScale;
+
+        vecState.scale = newScale;
+        if (vecZoomSlider) vecZoomSlider.value = newScale;
+
+        renderVecPdfPage(vecState.pageNum).then(() => {
+          vecViewport.scrollLeft = contentX * ratio - mouseX;
+          vecViewport.scrollTop = contentY * ratio - mouseY;
+        });
+      }, { passive: false });
+    }
 
     // Outline thickness slider & presets
     const vecThickSlider = document.getElementById("vec-outline-thickness");
