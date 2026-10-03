@@ -932,64 +932,65 @@
           <div class="canvas-container" id="container-true">
             <canvas id="canvas-true"></canvas>
           </div>
-          <!-- Toolbar under True Field Canvas: Controles Lindero La Trinidad & Escritura 1073 -->
-          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 10px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(0,229,255,0.25);font-size:0.72rem;color:var(--text-main);flex-wrap:wrap;z-index:10;">
-            <!-- 1. Lindero La Trinidad Control (First) -->
-            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,229,255,0.08);padding:3px 8px;border-radius:4px;border:1px solid rgba(0,229,255,0.3);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Lindero La Trinidad (user_polygon.json)">
-                <input type="checkbox" id="chk-show-reconstructed-poly" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
-                <span style="color:var(--accent-cyan);font-weight:700;">🔷 Lindero La Trinidad</span>
-              </label>
-              <input type="range" class="opacity-slider" id="reconstructed-poly-opacity" min="0" max="100" value="100" style="width:50px;">
-              <span class="opacity-val" id="reconstructed-poly-opacity-val" style="min-width:26px;text-align:right;font-family:monospace;">100%</span>
+          <!-- Toolbar under True Field Canvas: Controles Lindero La Trinidad & Escritura 1073 (Single Line) -->
+          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:3px 10px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(0,229,255,0.25);font-size:0.71rem;color:var(--text-main);flex-wrap:nowrap;white-space:nowrap;overflow-x:auto;z-index:10;">
+            <!-- 1. Map Action Tools (Left Side: Center, Measure, Edit Polygons) -->
+            <div style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
+              <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View (Centrar mapa en límites)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">⛶</button>
+              <button class="vp-tool-btn" data-map="true" data-mode="measure" title="Measure Distances [M] (Medir distancias en el mapa)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">📏</button>
+              <button class="vp-tool-btn" id="btn-edit-polygons-toggle" title="Editar Polígonos (Modificar vértices de linderos - Próxima función)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(0,229,255,0.25);cursor:pointer;color:var(--accent-cyan);line-height:1.2;">✏️</button>
             </div>
 
             <!-- Divider -->
-            <div style="height:18px;width:1px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
+            <div style="height:16px;width:1px;background:rgba(255,255,255,0.15);margin:0 1px;flex-shrink:0;"></div>
 
-            <!-- 2. Escritura 1073 Title Group -->
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:4px;">
+            <!-- 2. Lindero La Trinidad Control -->
+            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,229,255,0.08);padding:2px 7px;border-radius:4px;border:1px solid rgba(0,229,255,0.3);flex-shrink:0;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Lindero La Trinidad (user_polygon.json)">
+                <input type="checkbox" id="chk-show-reconstructed-poly" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
+                <span style="color:var(--accent-cyan);font-weight:700;">🔷 Lindero La Trinidad</span>
+              </label>
+              <input type="range" class="opacity-slider" id="reconstructed-poly-opacity" min="0" max="100" value="100" style="width:42px;">
+              <span class="opacity-val" id="reconstructed-poly-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">100%</span>
+            </div>
+
+            <!-- Divider -->
+            <div style="height:16px;width:1px;background:rgba(255,255,255,0.15);margin:0 1px;flex-shrink:0;"></div>
+
+            <!-- 3. Escritura 1073 Title Group -->
+            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+              <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;">
                 📜 Escritura 1073
               </span>
             </div>
 
             <!-- Plano PDF overlay control (50% default) -->
-            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
+            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
                 <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
                 <span>Plano PDF</span>
               </label>
-              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50" style="width:60px;">
-              <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">50%</span>
+              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50" style="width:42px;">
+              <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">50%</span>
             </div>
 
             <!-- Polígono DXF boundary control & styling -->
-            <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
+            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
                 <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
                 <span>Polígono DXF</span>
               </label>
-              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:60px;">
-              <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:28px;text-align:right;font-family:monospace;">90%</span>
+              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:42px;">
+              <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">90%</span>
             </div>
 
-            <!-- 3. Mojones Toggle (At the end) -->
-            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.25);padding:3px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);">
-              <label style="display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar los dos mojones de referencia (GCP Anchors) y sus flechas indicadoras">
+            <!-- 4. Mojones Toggle -->
+            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar los dos mojones de referencia (GCP Anchors) y sus flechas indicadoras">
                 <input type="checkbox" id="chk-show-mojones-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
                 <span>👁️ Mojones</span>
               </label>
             </div>
-          </div>
-          <div class="viewport-hint" id="hint-true">
-            <button class="vp-tool-btn active" data-map="true" data-mode="pan" title="Pan Mode [P]">🖐️</button>
-            <div class="vp-tool-sep"></div>
-            <button class="vp-tool-btn" data-map="true" data-mode="anchor" title="Anchor Mode [A]">🎯</button>
-            <div class="vp-tool-sep"></div>
-            <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View">⛶</button>
-            <div class="vp-tool-sep"></div>
-            <button class="vp-tool-btn" data-map="true" data-mode="measure" title="Measure Distances [M]">📏</button>
           </div>
         </div>
       </div>
@@ -5043,6 +5044,20 @@ function setupEventListeners() {
       }
     });
   });
+
+  const btnEditPoly = document.getElementById("btn-edit-polygons-toggle");
+  if (btnEditPoly) {
+    btnEditPoly.addEventListener("click", () => {
+      state.editPolygonsActive = !state.editPolygonsActive;
+      btnEditPoly.classList.toggle("active", state.editPolygonsActive);
+      btnEditPoly.style.background = state.editPolygonsActive ? "rgba(0,229,255,0.25)" : "rgba(0,0,0,0.25)";
+      btnEditPoly.style.borderColor = state.editPolygonsActive ? "var(--accent-cyan)" : "rgba(0,229,255,0.25)";
+      statusBar.textContent = state.editPolygonsActive
+        ? "✏️ Modo Edición de Polígonos activado: selección y modificación de vértices disponible."
+        : "🖐️ Navegación: arrastre el mapa para desplazarse o use la rueda para zoom.";
+      redrawAll();
+    });
+  }
 
 
   // Palette of colors for new measurement polygons (cycles through MEASURE_PALETTE)
