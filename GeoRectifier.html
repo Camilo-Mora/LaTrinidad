@@ -1646,7 +1646,35 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 <span style="font-weight:800;color:var(--accent-cyan);display:flex;align-items:center;gap:6px;font-size:0.80rem;">
                   📐 Adjust Segments to Deed
                 </span>
-                <button id="btn-close-segments-hud" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.95rem;font-weight:bold;padding:0 4px;line-height:1;" title="Close Segments Tool">✕</button>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <button id="btn-help-segments-hud" type="button" style="background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.4);color:var(--accent-cyan);border-radius:50%;width:18px;height:18px;font-size:0.70rem;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;" title="How this tool works & cadastral concepts">?</button>
+                  <button id="btn-close-segments-hud" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.95rem;font-weight:bold;padding:0 4px;line-height:1;" title="Close Segments Tool">✕</button>
+                </div>
+              </div>
+
+              <!-- Expandable Help Card -->
+              <div id="seg-adjust-help-box" style="display:none;background:rgba(10,16,28,0.96);border:1px solid rgba(0,229,255,0.4);border-radius:6px;padding:8px 10px;font-size:0.67rem;line-height:1.4;color:#cbd5e1;flex-direction:column;gap:5px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--accent-cyan);">
+                  <span>ℹ Cadastral Segments Adjuster</span>
+                  <span style="cursor:pointer;color:#94a3b8;font-size:0.75rem;" id="btn-close-help-box">✕</span>
+                </div>
+                <div>
+                  <strong>• Principle:</strong> Historical deeds recorded angles rounded to the nearest integer degree (±0.5° error). This tool tests the likelihood that deed segments can bridge physical field anchors by flexing angles within this tolerance while <em>strictly preserving deed lengths</em> and <em>minimizing property area change</em>.
+                </div>
+                <div>
+                  <strong>• ⚓ Fixed vs 🎈 Float Anchors:</strong>
+                  <ul style="margin:2px 0 2px 14px;padding:0;">
+                    <li><strong>Both Fixed (⚓ ➔ ⚓):</strong> Closed traverse that closes the gap between anchors with minimal area change.</li>
+                    <li><strong>Fixed ➔ Float (⚓ ➔ 🎈):</strong> Open traverse forward projection with inward tolerance flex to measure the true displacement of the field mojón.</li>
+                  </ul>
+                </div>
+                <div>
+                  <strong>• Quick How-To:</strong>
+                  1. Click connected segments on canvas.<br>
+                  2. Toggle <em>Reverse Direction</em> if surveyed opposite to the polygon order.<br>
+                  3. Adjust Tolerance or click <em>Auto-Fit</em>.<br>
+                  4. Click <em>Preview</em> then <em>Apply Changes</em>.
+                </div>
               </div>
 
               <!-- Brief instructions -->
@@ -1692,6 +1720,41 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;color:var(--text-main);">
                     <input type="radio" name="seg-anchor-select" id="rad-anchor-end" value="1" style="accent-color:var(--accent-cyan);">
                     <span id="lbl-anchor-end">End (P2)</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Multi-segment Endpoints Mode (Fixed vs Float) -->
+              <div id="seg-adjust-multi-anchor-wrap" style="display:none;flex-direction:column;gap:5px;background:rgba(0,229,255,0.06);padding:6px 9px;border-radius:6px;border:1px solid rgba(0,229,255,0.25);font-size:0.70rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span style="color:var(--accent-cyan);font-weight:700;">Endpoints Constraint:</span>
+                  <span id="lbl-endpoints-mode-summary" style="font-size:0.62rem;color:var(--text-muted);font-family:monospace;">Closed Traverse (Both Fixed)</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                  <!-- Anchor A -->
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <span id="lbl-anchor-a-title" style="font-weight:700;color:var(--text-main);font-size:0.68rem;">A (P1):</span>
+                    <div style="display:inline-flex;border-radius:3px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);overflow:hidden;">
+                      <button type="button" id="btn-anchor-a-fixed" style="padding:2px 6px;font-size:0.63rem;border:none;cursor:pointer;background:var(--accent-cyan);color:#0f172a;font-weight:700;">⚓ Fixed</button>
+                      <button type="button" id="btn-anchor-a-float" style="padding:2px 6px;font-size:0.63rem;border:none;cursor:pointer;background:transparent;color:var(--text-muted);font-weight:normal;">🎈 Float</button>
+                    </div>
+                  </div>
+                  <span style="color:var(--text-muted);font-size:0.65rem;">➔</span>
+                  <!-- Anchor B -->
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <span id="lbl-anchor-b-title" style="font-weight:700;color:var(--text-main);font-size:0.68rem;">B (P2):</span>
+                    <div style="display:inline-flex;border-radius:3px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);overflow:hidden;">
+                      <button type="button" id="btn-anchor-b-fixed" style="padding:2px 6px;font-size:0.63rem;border:none;cursor:pointer;background:var(--accent-cyan);color:#0f172a;font-weight:700;">⚓ Fixed</button>
+                      <button type="button" id="btn-anchor-b-float" style="padding:2px 6px;font-size:0.63rem;border:none;cursor:pointer;background:transparent;color:var(--text-muted);font-weight:normal;">🎈 Float</button>
+                    </div>
+                  </div>
+                </div>
+                <!-- Inward Flex Toggle in Float Mode -->
+                <div id="wrap-float-inward-toggle" style="display:none;align-items:center;justify-content:space-between;padding-top:2px;border-top:1px solid rgba(255,255,255,0.08);">
+                  <span style="font-size:0.62rem;color:var(--text-muted);" title="Tilts segments inward by the tolerance angle to produce the conservative minimum-area claim">Inward Area Flex (Conservative):</span>
+                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;font-size:0.63rem;color:var(--accent-cyan);">
+                    <input type="checkbox" id="chk-float-inward-flex" checked style="accent-color:var(--accent-cyan);cursor:pointer;">
+                    <span>Active</span>
                   </label>
                 </div>
               </div>
@@ -6484,6 +6547,9 @@ EOF`;
         singleAnchorIdx: 0, // 0: start, 1: end
         deedData: {},       // { [segIdx]: { length, bearing, azimuth } }
         reverseProcessing: false, // when true, internally inverts bearings by 180° for solver while preserving exact deed rumbos in UI and JSON
+        anchorAMode: "fixed",     // "fixed" | "float"
+        anchorBMode: "fixed",     // "fixed" | "float"
+        inwardFlex: true,         // apply inward tolerance flex in float mode
         previewVerts: null,
         previewMetrics: null,
       },
@@ -12348,6 +12414,57 @@ EOF`;
     }
 
     /**
+     * Update the Multi-segment Endpoints Anchor Mode (Fixed vs Float) UI buttons
+     */
+    function updateAnchorModeButtonsUI() {
+      const sa = state.segmentsAdjust;
+      if (!sa) return;
+      const btnAFixed = document.getElementById("btn-anchor-a-fixed");
+      const btnAFloat = document.getElementById("btn-anchor-a-float");
+      const btnBFixed = document.getElementById("btn-anchor-b-fixed");
+      const btnBFloat = document.getElementById("btn-anchor-b-float");
+      const summaryEl = document.getElementById("lbl-endpoints-mode-summary");
+      const inwardWrap = document.getElementById("wrap-float-inward-toggle");
+      const chkInward = document.getElementById("chk-float-inward-flex");
+
+      const aIsFixed = sa.anchorAMode !== "float";
+      const bIsFixed = sa.anchorBMode !== "float";
+
+      function setBtnState(btn, active) {
+        if (!btn) return;
+        if (active) {
+          btn.style.background = "var(--accent-cyan)";
+          btn.style.color = "#0f172a";
+          btn.style.fontWeight = "700";
+        } else {
+          btn.style.background = "transparent";
+          btn.style.color = "var(--text-muted)";
+          btn.style.fontWeight = "normal";
+        }
+      }
+
+      setBtnState(btnAFixed, aIsFixed);
+      setBtnState(btnAFloat, !aIsFixed);
+      setBtnState(btnBFixed, bIsFixed);
+      setBtnState(btnBFloat, !bIsFixed);
+
+      if (aIsFixed && bIsFixed) {
+        if (summaryEl) summaryEl.textContent = "Closed Traverse (Both Fixed)";
+        if (inwardWrap) inwardWrap.style.display = "none";
+      } else if (aIsFixed && !bIsFixed) {
+        if (summaryEl) summaryEl.textContent = "Open Traverse (A Fixed ➔ B Float)";
+        if (inwardWrap) inwardWrap.style.display = "flex";
+      } else {
+        if (summaryEl) summaryEl.textContent = "Open Traverse (A Float ➔ B Fixed)";
+        if (inwardWrap) inwardWrap.style.display = "flex";
+      }
+
+      if (chkInward) {
+        chkInward.checked = sa.inwardFlex !== false;
+      }
+    }
+
+    /**
      * Toggle Reverse Processing Mode (180° Back Azimuth applied during solver calculations
      * while preserving authentic deed rumbos displayed in the UI and stored in JSON).
      */
@@ -12494,9 +12611,12 @@ EOF`;
       const btnInvertAll = document.getElementById("btn-seg-adjust-invert-all");
       if (btnInvertAll) btnInvertAll.style.display = (sel.length > 0) ? "inline-block" : "none";
 
+      const multiAnchorWrap = document.getElementById("seg-adjust-multi-anchor-wrap");
+
       if (sel.length === 0 || N < 2) {
         if (emptyMsg) emptyMsg.style.display = "block";
         if (anchorWrap) anchorWrap.style.display = "none";
+        if (multiAnchorWrap) multiAnchorWrap.style.display = "none";
         if (chainInfoEl) chainInfoEl.textContent = "No segments";
         return;
       }
@@ -12505,6 +12625,7 @@ EOF`;
 
       // 1-segment mode vs multi-segment mode
       if (sel.length === 1) {
+        if (multiAnchorWrap) multiAnchorWrap.style.display = "none";
         const sIdx = sel[0];
         const vA = sIdx;
         const vB = (sIdx + 1) % N;
@@ -12524,11 +12645,23 @@ EOF`;
         if (chainInfoEl) chainInfoEl.textContent = `${sPart} (1 selected)`;
       } else {
         if (anchorWrap) anchorWrap.style.display = "none";
+        if (multiAnchorWrap) multiAnchorWrap.style.display = "flex";
+
         const startVert = sel[0] + 1;
         const endVert = ((sel[sel.length - 1] + 1) % N) + 1;
         const firstPart = (poly.segmentParts && poly.segmentParts[sel[0]]) ? `Part ${String(poly.segmentParts[sel[0]]).trim()}` : `P${startVert}`;
         const lastPart = (poly.segmentParts && poly.segmentParts[sel[sel.length - 1]]) ? `Part ${String(poly.segmentParts[sel[sel.length - 1]]).trim()}` : `P${endVert}`;
-        if (chainInfoEl) chainInfoEl.textContent = `${firstPart} ⚓ ➔ ${lastPart} ⚓ (${sel.length} segs)`;
+
+        const lblAnchorA = document.getElementById("lbl-anchor-a-title");
+        const lblAnchorB = document.getElementById("lbl-anchor-b-title");
+        if (lblAnchorA) lblAnchorA.textContent = `A (P${startVert}):`;
+        if (lblAnchorB) lblAnchorB.textContent = `B (P${endVert}):`;
+
+        updateAnchorModeButtonsUI();
+
+        const aIcon = sa.anchorAMode === "float" ? "🎈" : "⚓";
+        const bIcon = sa.anchorBMode === "float" ? "🎈" : "⚓";
+        if (chainInfoEl) chainInfoEl.textContent = `${firstPart} ${aIcon} ➔ ${lastPart} ${bIcon} (${sel.length} segs)`;
       }
 
       sel.forEach((sIdx) => {
@@ -12629,6 +12762,12 @@ EOF`;
       sa.reverseProcessing = false;
       sa.previewVerts = null;
       sa.previewMetrics = null;
+      sa.anchorAMode = "fixed";
+      sa.anchorBMode = "fixed";
+      sa.inwardFlex = true;
+      if (typeof updateAnchorModeButtonsUI === "function") {
+        updateAnchorModeButtonsUI();
+      }
       updateReverseModeUI();
       renderSegmentsAdjustTable();
       updateSegmentsAdjustMetrics();
@@ -12754,6 +12893,153 @@ EOF`;
           az = (Math.atan2(v2.x - v1.x, v2.y - v1.y) * 180 / Math.PI + 360) % 360;
         }
         theta0.push(az * Math.PI / 180);
+      }
+
+      // Multi-segment Float Mode: Forward (A Fixed, B Float) or Backward (B Fixed, A Float)
+      if (sa.anchorAMode === "fixed" && sa.anchorBMode === "float") {
+        // Forward Open Traverse from pA to pB
+        const chainPts = [{ x: pA.x, y: pA.y }];
+        let cx = pA.x, cy = pA.y;
+
+        // Centroid for inward orientation
+        let sumX = 0, sumY = 0;
+        poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
+        const centX = sumX / N, centY = sumY / N;
+
+        const tauRad = (sa.toleranceDeg || 0) * Math.PI / 180;
+        const useInward = sa.inwardFlex !== false && tauRad > 0;
+
+        for (let j = 0; j < k; j++) {
+          const sIdx = indices[j];
+          const v1 = poly.vertices[sIdx];
+          const v2 = poly.vertices[(sIdx + 1) % N];
+          let az = theta0[j];
+
+          if (useInward) {
+            const midX = (v1.x + v2.x) / 2;
+            const midY = (v1.y + v2.y) / 2;
+            const toCentX = centX - midX;
+            const toCentY = centY - midY;
+            const centAz = Math.atan2(toCentX, toCentY);
+            let diff = centAz - az;
+            while (diff > Math.PI) diff -= 2 * Math.PI;
+            while (diff < -Math.PI) diff += 2 * Math.PI;
+            const tilt = Math.sign(diff) * Math.min(tauRad, Math.abs(diff));
+            az += tilt;
+          }
+
+          cx += L[j] * Math.sin(az);
+          cy += L[j] * Math.cos(az);
+          chainPts.push({ x: cx, y: cy });
+        }
+
+        const projTip = chainPts[chainPts.length - 1];
+        const offsetDx = pB.x - projTip.x;
+        const offsetDy = pB.y - projTip.y;
+        const offsetDist = Math.hypot(offsetDx, offsetDy);
+        const offsetAz = (Math.atan2(offsetDx, offsetDy) * 180 / Math.PI + 360) % 360;
+        const offsetBearing = formatDeedBearing(offsetAz);
+
+        const fullVerts = poly.vertices.map(v => ({ ...v }));
+        for (let j = 1; j < k; j++) {
+          const vIdx = (indices[0] + j) % N;
+          fullVerts[vIdx] = { ...fullVerts[vIdx], x: chainPts[j].x, y: chainPts[j].y };
+        }
+        fullVerts[endVertIdx] = { ...fullVerts[endVertIdx], x: projTip.x, y: projTip.y };
+
+        const newArea = calcPolyArea(fullVerts);
+        const deltaArea = newArea - origArea;
+
+        return {
+          feasible: true,
+          isOpenTraverse: true,
+          floatMode: "forward",
+          candidateVerts: fullVerts,
+          previewChain: chainPts,
+          deltaArea: deltaArea,
+          maxAngleDelta: useInward ? sa.toleranceDeg : 0,
+          statusText: `🎈 Float B: Mojón P${endVertIdx + 1} offset ${offsetDist.toFixed(2)}m (${offsetBearing})`,
+          targetMojon: {
+            pt: pB,
+            tip: projTip,
+            name: `P${endVertIdx + 1}`,
+            offsetDist,
+            offsetBearing
+          }
+        };
+      }
+
+      if (sa.anchorAMode === "float" && sa.anchorBMode === "fixed") {
+        // Backward Open Traverse from pB down to pA
+        const chainPts = new Array(k + 1);
+        chainPts[k] = { x: pB.x, y: pB.y };
+        let cx = pB.x, cy = pB.y;
+
+        let sumX = 0, sumY = 0;
+        poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
+        const centX = sumX / N, centY = sumY / N;
+
+        const tauRad = (sa.toleranceDeg || 0) * Math.PI / 180;
+        const useInward = sa.inwardFlex !== false && tauRad > 0;
+
+        for (let j = k - 1; j >= 0; j--) {
+          const sIdx = indices[j];
+          const v1 = poly.vertices[sIdx];
+          const v2 = poly.vertices[(sIdx + 1) % N];
+          let az = theta0[j];
+
+          if (useInward) {
+            const midX = (v1.x + v2.x) / 2;
+            const midY = (v1.y + v2.y) / 2;
+            const toCentX = centX - midX;
+            const toCentY = centY - midY;
+            const centAz = Math.atan2(toCentX, toCentY);
+            let diff = centAz - az;
+            while (diff > Math.PI) diff -= 2 * Math.PI;
+            while (diff < -Math.PI) diff += 2 * Math.PI;
+            const tilt = Math.sign(diff) * Math.min(tauRad, Math.abs(diff));
+            az += tilt;
+          }
+
+          cx -= L[j] * Math.sin(az);
+          cy -= L[j] * Math.cos(az);
+          chainPts[j] = { x: cx, y: cy };
+        }
+
+        const projTip = chainPts[0];
+        const offsetDx = pA.x - projTip.x;
+        const offsetDy = pA.y - projTip.y;
+        const offsetDist = Math.hypot(offsetDx, offsetDy);
+        const offsetAz = (Math.atan2(offsetDx, offsetDy) * 180 / Math.PI + 360) % 360;
+        const offsetBearing = formatDeedBearing(offsetAz);
+
+        const fullVerts = poly.vertices.map(v => ({ ...v }));
+        for (let j = 1; j < k; j++) {
+          const vIdx = (indices[0] + j) % N;
+          fullVerts[vIdx] = { ...fullVerts[vIdx], x: chainPts[j].x, y: chainPts[j].y };
+        }
+        fullVerts[startVertIdx] = { ...fullVerts[startVertIdx], x: projTip.x, y: projTip.y };
+
+        const newArea = calcPolyArea(fullVerts);
+        const deltaArea = newArea - origArea;
+
+        return {
+          feasible: true,
+          isOpenTraverse: true,
+          floatMode: "backward",
+          candidateVerts: fullVerts,
+          previewChain: chainPts,
+          deltaArea: deltaArea,
+          maxAngleDelta: useInward ? sa.toleranceDeg : 0,
+          statusText: `🎈 Float A: Mojón P${startVertIdx + 1} offset ${offsetDist.toFixed(2)}m (${offsetBearing})`,
+          targetMojon: {
+            pt: pA,
+            tip: projTip,
+            name: `P${startVertIdx + 1}`,
+            offsetDist,
+            offsetBearing
+          }
+        };
       }
 
       if (sumL < chordDist - 1e-4) {
@@ -13146,10 +13432,27 @@ EOF`;
           poly.vertices[vAIdx].y = candVerts[vAIdx].y;
         }
       } else {
-        for (let j = 1; j < indices.length; j++) {
-          const vIdx = (indices[0] + j) % N;
-          poly.vertices[vIdx].x = candVerts[vIdx].x;
-          poly.vertices[vIdx].y = candVerts[vIdx].y;
+        if (sa.anchorBMode === "float") {
+          // A is fixed, B floats: update intermediate vertices AND the end vertex
+          for (let j = 1; j <= indices.length; j++) {
+            const vIdx = (indices[0] + j) % N;
+            poly.vertices[vIdx].x = candVerts[vIdx].x;
+            poly.vertices[vIdx].y = candVerts[vIdx].y;
+          }
+        } else if (sa.anchorAMode === "float") {
+          // B is fixed, A floats: update intermediate vertices AND the start vertex
+          for (let j = 0; j < indices.length; j++) {
+            const vIdx = (indices[0] + j) % N;
+            poly.vertices[vIdx].x = candVerts[vIdx].x;
+            poly.vertices[vIdx].y = candVerts[vIdx].y;
+          }
+        } else {
+          // Both fixed: update only intermediate vertices
+          for (let j = 1; j < indices.length; j++) {
+            const vIdx = (indices[0] + j) % N;
+            poly.vertices[vIdx].x = candVerts[vIdx].x;
+            poly.vertices[vIdx].y = candVerts[vIdx].y;
+          }
         }
       }
 
@@ -13266,13 +13569,58 @@ EOF`;
         const firstPart = (poly.segmentParts && poly.segmentParts[startIdx]) ? ` (Part ${poly.segmentParts[startIdx]})` : "";
         const lastPart = (poly.segmentParts && poly.segmentParts[indices[indices.length - 1]]) ? ` (Part ${poly.segmentParts[indices[indices.length - 1]]})` : "";
 
-        drawAdjustAnchorBadge(spA.x, spA.y, `⚓ Anchor A (P${startIdx + 1})${firstPart}`, "#00e676");
-        drawAdjustAnchorBadge(spB.x, spB.y, `⚓ Anchor B (P${endIdx + 1})${lastPart}`, "#00e676");
+        if (sa.previewMetrics && sa.previewMetrics.isOpenTraverse && sa.previewMetrics.targetMojon) {
+          const tm = sa.previewMetrics.targetMojon;
+          const spMojon = worldToScreenGIS(tm.pt, vp, canvasH);
+          const spTip = worldToScreenGIS(tm.tip, vp, canvasH);
+
+          // Draw dotted displacement vector between deed projected tip and field mojón
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(spTip.x, spTip.y);
+          ctx.lineTo(spMojon.x, spMojon.y);
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 2.5;
+          ctx.setLineDash([5, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Tag at midpoint of displacement vector
+          const midX = (spTip.x + spMojon.x) / 2;
+          const midY = (spTip.y + spMojon.y) / 2;
+          const tagText = `Δ ${tm.offsetDist.toFixed(2)}m (${tm.offsetBearing})`;
+          ctx.font = "bold 9px sans-serif";
+          const tw = ctx.measureText(tagText).width;
+          ctx.fillStyle = "rgba(10, 16, 28, 0.95)";
+          ctx.fillRect(midX - tw / 2 - 5, midY - 9, tw + 10, 18);
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(midX - tw / 2 - 5, midY - 9, tw + 10, 18);
+          ctx.fillStyle = "#ffd600";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(tagText, midX, midY);
+          ctx.restore();
+
+          if (sa.anchorAMode === "fixed") {
+            drawAdjustAnchorBadge(spA.x, spA.y, `⚓ Anchor A (P${startIdx + 1})${firstPart} [Fixed]`, "#00e676");
+            drawAdjustAnchorBadge(spMojon.x, spMojon.y, `📍 Mojón P${endIdx + 1} (Field)`, "#ff9100");
+            drawAdjustAnchorBadge(spTip.x, spTip.y, `🎈 Deed Tip`, "#00e5ff");
+          } else {
+            drawAdjustAnchorBadge(spB.x, spB.y, `⚓ Anchor B (P${endIdx + 1})${lastPart} [Fixed]`, "#00e676");
+            drawAdjustAnchorBadge(spMojon.x, spMojon.y, `📍 Mojón P${startIdx + 1} (Field)`, "#ff9100");
+            drawAdjustAnchorBadge(spTip.x, spTip.y, `🎈 Deed Tip`, "#00e5ff");
+          }
+        } else {
+          drawAdjustAnchorBadge(spA.x, spA.y, `⚓ Anchor A (P${startIdx + 1})${firstPart}`, "#00e676");
+          drawAdjustAnchorBadge(spB.x, spB.y, `⚓ Anchor B (P${endIdx + 1})${lastPart}`, "#00e676");
+        }
       }
 
       // 3. Draw Preview Solution (if solved)
       if (sa.previewVerts && sa.previewVerts.length >= 2) {
         const pVerts = sa.previewVerts;
+        const isOpen = sa.previewMetrics && sa.previewMetrics.isOpenTraverse;
         ctx.beginPath();
         const sp0 = worldToScreenGIS(pVerts[0], vp, canvasH);
         ctx.moveTo(sp0.x, sp0.y);
@@ -13280,7 +13628,7 @@ EOF`;
           const sp = worldToScreenGIS(pVerts[i], vp, canvasH);
           ctx.lineTo(sp.x, sp.y);
         }
-        ctx.strokeStyle = "#00e676";
+        ctx.strokeStyle = isOpen ? "#00e5ff" : "#00e676";
         ctx.lineWidth = 3.5;
         ctx.setLineDash([6, 4]);
         ctx.stroke();
@@ -13291,7 +13639,7 @@ EOF`;
           const sp = worldToScreenGIS(pt, vp, canvasH);
           ctx.beginPath();
           ctx.arc(sp.x, sp.y, 4.5, 0, Math.PI * 2);
-          ctx.fillStyle = "#00e676";
+          ctx.fillStyle = isOpen ? "#00e5ff" : "#00e676";
           ctx.fill();
           ctx.strokeStyle = "#ffffff";
           ctx.lineWidth = 1.5;
@@ -16020,6 +16368,70 @@ EOF`;
 
     const btnSegAdjustInvertAll = document.getElementById("btn-seg-adjust-invert-all");
     if (btnSegAdjustInvertAll) btnSegAdjustInvertAll.addEventListener("click", () => toggleReverseProcessingMode());
+
+    // Segments Adjust Help toggle
+    const btnHelpSegHud = document.getElementById("btn-help-segments-hud");
+    const btnCloseHelpBox = document.getElementById("btn-close-help-box");
+    const segHelpBox = document.getElementById("seg-adjust-help-box");
+    if (btnHelpSegHud && segHelpBox) {
+      btnHelpSegHud.addEventListener("click", () => {
+        const isHidden = segHelpBox.style.display === "none" || !segHelpBox.style.display;
+        segHelpBox.style.display = isHidden ? "flex" : "none";
+      });
+    }
+    if (btnCloseHelpBox && segHelpBox) {
+      btnCloseHelpBox.addEventListener("click", () => {
+        segHelpBox.style.display = "none";
+      });
+    }
+
+    // Endpoints constraint buttons (Fixed vs Float)
+    const btnAnchorAFixed = document.getElementById("btn-anchor-a-fixed");
+    if (btnAnchorAFixed) {
+      btnAnchorAFixed.addEventListener("click", () => {
+        if (!state.segmentsAdjust) return;
+        state.segmentsAdjust.anchorAMode = "fixed";
+        updateAnchorModeButtonsUI();
+        updateSegmentsAdjustMetrics();
+      });
+    }
+    const btnAnchorAFloat = document.getElementById("btn-anchor-a-float");
+    if (btnAnchorAFloat) {
+      btnAnchorAFloat.addEventListener("click", () => {
+        if (!state.segmentsAdjust) return;
+        state.segmentsAdjust.anchorAMode = "float";
+        state.segmentsAdjust.anchorBMode = "fixed";
+        updateAnchorModeButtonsUI();
+        updateSegmentsAdjustMetrics();
+      });
+    }
+    const btnAnchorBFixed = document.getElementById("btn-anchor-b-fixed");
+    if (btnAnchorBFixed) {
+      btnAnchorBFixed.addEventListener("click", () => {
+        if (!state.segmentsAdjust) return;
+        state.segmentsAdjust.anchorBMode = "fixed";
+        updateAnchorModeButtonsUI();
+        updateSegmentsAdjustMetrics();
+      });
+    }
+    const btnAnchorBFloat = document.getElementById("btn-anchor-b-float");
+    if (btnAnchorBFloat) {
+      btnAnchorBFloat.addEventListener("click", () => {
+        if (!state.segmentsAdjust) return;
+        state.segmentsAdjust.anchorBMode = "float";
+        state.segmentsAdjust.anchorAMode = "fixed";
+        updateAnchorModeButtonsUI();
+        updateSegmentsAdjustMetrics();
+      });
+    }
+    const chkFloatInwardFlex = document.getElementById("chk-float-inward-flex");
+    if (chkFloatInwardFlex) {
+      chkFloatInwardFlex.addEventListener("change", (e) => {
+        if (!state.segmentsAdjust) return;
+        state.segmentsAdjust.inwardFlex = e.target.checked;
+        updateSegmentsAdjustMetrics();
+      });
+    }
 
     // Make Segments Adjust HUD draggable by its top header bar
     const segHud = document.getElementById("segments-adjust-hud");
