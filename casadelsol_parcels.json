@@ -1,0 +1,505 @@
+[
+  {
+    "id": "poly_casadelsol_lote_7",
+    "name": "Lote 7",
+    "color": "#ff0000",
+    "targetArea": 20004,
+    "optArea": false,
+    "closed": true,
+    "visible": false,
+    "showNodes": false,
+    "showLabels": false,
+    "snapEnabled": true,
+    "vertices": [
+      {
+        "x": 1098233.882121312,
+        "y": 876889.8022136498,
+        "origX": 1097954.0825,
+        "origY": 877187.4389,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 0,
+          "ptIdx": 0,
+          "deedPt": {
+            "x": 461.39,
+            "y": 141.81
+          }
+        }
+      },
+      {
+        "x": 1098184.3570922504,
+        "y": 876731.9088038487,
+        "origX": 1097793.4334,
+        "origY": 877147.7537,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 0,
+          "ptIdx": 1,
+          "deedPt": {
+            "x": 525.83,
+            "y": 273.81
+          }
+        }
+      },
+      {
+        "x": 1097992.6284545886,
+        "y": 876753.6943718916,
+        "origX": 1097803.3437,
+        "origY": 876955.0459,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 0,
+          "ptIdx": 2,
+          "deedPt": {
+            "x": 388.95,
+            "y": 376.78
+          }
+        }
+      },
+      {
+        "x": 1097937.7115457118,
+        "y": 876704.8034349992,
+        "origX": 1097751.1564,
+        "origY": 876903.2513,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 0,
+          "ptIdx": 3,
+          "deedPt": {
+            "x": 383.39,
+            "y": 441.81
+          }
+        }
+      },
+      {
+        "x": 1098065.2345529557,
+        "y": 876874.126975591,
+        "origX": 1097928.028,
+        "origY": 877020.0804,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 0,
+          "ptIdx": 4,
+          "deedPt": {
+            "x": 362.25,
+            "y": 254.84
+          }
+        }
+      },
+      {
+        "x": 1098053.2866263266,
+        "y": 876932.571117198,
+        "origX": 1097985.6233,
+        "origY": 877004.548,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 0,
+          "ptIdx": 5,
+          "deedPt": {
+            "x": 318.88,
+            "y": 224.46
+          }
+        }
+      }
+    ],
+    "dash": "dotted",
+    "width": 1.5,
+    "fillOpacity": 0
+  },
+  {
+    "id": "poly_casadelsol_lote_6",
+    "name": "Lote 6",
+    "color": "#ff0000",
+    "targetArea": 4800,
+    "optArea": false,
+    "closed": true,
+    "visible": false,
+    "showNodes": false,
+    "showLabels": false,
+    "snapEnabled": true,
+    "vertices": [
+      {
+        "x": 1098065.2345529557,
+        "y": 876874.126975591,
+        "origX": 1097928.028,
+        "origY": 877020.0804,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 1,
+          "ptIdx": 0,
+          "deedPt": {
+            "x": 362.25,
+            "y": 254.84
+          }
+        }
+      },
+      {
+        "x": 1098036.3112011156,
+        "y": 876868.1571870892,
+        "origX": 1097920.2844,
+        "origY": 876991.5806,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 1,
+          "ptIdx": 1,
+          "deedPt": {
+            "x": 347.25,
+            "y": 276.34
+          }
+        }
+      },
+      {
+        "x": 1097919.4910850544,
+        "y": 876689.1808247365,
+        "origX": 1097734.439,
+        "origY": 876886.0299,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 1,
+          "ptIdx": 2,
+          "deedPt": {
+            "x": 381.18,
+            "y": 463
+          }
+        }
+      },
+      {
+        "x": 1097937.7115457118,
+        "y": 876704.8034349992,
+        "origX": 1097751.1564,
+        "origY": 876903.2513,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 1,
+          "ptIdx": 3,
+          "deedPt": {
+            "x": 383.39,
+            "y": 441.81
+          }
+        }
+      }
+    ],
+    "dash": "dotted",
+    "width": 1.5,
+    "fillOpacity": 0
+  },
+  {
+    "id": "poly_casadelsol_lote_5",
+    "name": "Lote 5",
+    "color": "#ff0000",
+    "targetArea": 10604,
+    "optArea": false,
+    "closed": true,
+    "visible": false,
+    "showNodes": false,
+    "showLabels": false,
+    "snapEnabled": true,
+    "vertices": [
+      {
+        "x": 1098036.3112011156,
+        "y": 876868.1571870892,
+        "origX": 1097920.2844,
+        "origY": 876991.5806,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 0,
+          "deedPt": {
+            "x": 347.25,
+            "y": 276.34
+          }
+        }
+      },
+      {
+        "x": 1097919.4910850544,
+        "y": 876689.1808247365,
+        "origX": 1097734.439,
+        "origY": 876886.0299,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 1,
+          "deedPt": {
+            "x": 381.18,
+            "y": 463
+          }
+        }
+      },
+      {
+        "x": 1097804.167999215,
+        "y": 876583.7662381025,
+        "origX": 1097622.1075,
+        "origY": 876777.433,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 2,
+          "deedPt": {
+            "x": 371.18,
+            "y": 601.33
+          }
+        }
+      },
+      {
+        "x": 1097782.6406236482,
+        "y": 876548.298449109,
+        "origX": 1097585.3786,
+        "origY": 876758.1357,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 3,
+          "deedPt": {
+            "x": 378.95,
+            "y": 637.33
+          }
+        }
+      },
+      {
+        "x": 1097846.113276639,
+        "y": 876753.0871780782,
+        "origX": 1097793.6945,
+        "origY": 876808.8476,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 4,
+          "deedPt": {
+            "x": 294.88,
+            "y": 466.59
+          }
+        }
+      },
+      {
+        "x": 1097909.6332043319,
+        "y": 876812.6045184053,
+        "origX": 1097857.0189,
+        "origY": 876868.5729,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 5,
+          "deedPt": {
+            "x": 299.5,
+            "y": 389.46
+          }
+        }
+      },
+      {
+        "x": 1097932.043839023,
+        "y": 876809.025014895,
+        "origX": 1097854.8295,
+        "origY": 876891.1618,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 6,
+          "deedPt": {
+            "x": 316.13,
+            "y": 378.09
+          }
+        }
+      },
+      {
+        "x": 1097943.4707650102,
+        "y": 876817.2103848994,
+        "origX": 1097863.7045,
+        "origY": 876902.0617,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 7,
+          "deedPt": {
+            "x": 318.5,
+            "y": 365.84
+          }
+        }
+      },
+      {
+        "x": 1097959.8190654917,
+        "y": 876817.0592587393,
+        "origX": 1097864.5627,
+        "origY": 876918.3881,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 8,
+          "deedPt": {
+            "x": 329.13,
+            "y": 355.96
+          }
+        }
+      },
+      {
+        "x": 1097995.0870787054,
+        "y": 876842.2320313479,
+        "origX": 1097891.8643,
+        "origY": 876952.0352,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 9,
+          "deedPt": {
+            "x": 336.5,
+            "y": 318.21
+          }
+        }
+      },
+      {
+        "x": 1098000.5429359216,
+        "y": 876861.299174212,
+        "origX": 1097911.2318,
+        "origY": 876956.3038,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 2,
+          "ptIdx": 10,
+          "deedPt": {
+            "x": 328.38,
+            "y": 302.59
+          }
+        }
+      }
+    ],
+    "dash": "dotted",
+    "width": 1.5,
+    "fillOpacity": 0
+  },
+  {
+    "id": "poly_casadelsol_lote_8",
+    "name": "Lote 8",
+    "color": "#ff0000",
+    "targetArea": 20955,
+    "optArea": false,
+    "closed": true,
+    "visible": false,
+    "showNodes": false,
+    "showLabels": false,
+    "snapEnabled": true,
+    "vertices": [
+      {
+        "x": 1098053.2866263266,
+        "y": 876932.571117198,
+        "origX": 1097985.6233,
+        "origY": 877004.548,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 5,
+          "ptIdx": 0,
+          "deedPt": {
+            "x": 318.88,
+            "y": 224.46
+          }
+        }
+      },
+      {
+        "x": 1098233.882121312,
+        "y": 876889.8022136498,
+        "origX": 1097954.0825,
+        "origY": 877187.4389,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 5,
+          "ptIdx": 1,
+          "deedPt": {
+            "x": 461.39,
+            "y": 141.81
+          }
+        }
+      },
+      {
+        "x": 1098285.0524827132,
+        "y": 877027.4278895233,
+        "origX": 1098094.6041,
+        "origY": 877230.0173,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 5,
+          "ptIdx": 2,
+          "deedPt": {
+            "x": 410.38,
+            "y": 21.87
+          }
+        }
+      },
+      {
+        "x": 1098130.8222545618,
+        "y": 877073.2518195602,
+        "origX": 1098130.8214,
+        "origY": 877073.2528,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 5,
+          "ptIdx": 3,
+          "deedPt": {
+            "x": 283,
+            "y": 86.46
+          }
+        }
+      },
+      {
+        "x": 1098078.6909947973,
+        "y": 877089.2558390974,
+        "origX": 1098143.5773,
+        "origY": 877020.2331,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 5,
+          "ptIdx": 4,
+          "deedPt": {
+            "x": 239.63,
+            "y": 107.96
+          }
+        }
+      },
+      {
+        "x": 1098076.0103008146,
+        "y": 877056.1117668033,
+        "origX": 1098110.3309,
+        "origY": 877019.6032,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 5,
+          "ptIdx": 5,
+          "deedPt": {
+            "x": 258.13,
+            "y": 130.96
+          }
+        }
+      },
+      {
+        "x": 1098017.053729822,
+        "y": 876978.9006552827,
+        "origX": 1098029.6281,
+        "origY": 876965.5246,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 5,
+          "ptIdx": 6,
+          "deedPt": {
+            "x": 267.25,
+            "y": 216.71
+          }
+        }
+      },
+      {
+        "x": 1098045.3786533566,
+        "y": 876970.3108924768,
+        "origX": 1098022.803,
+        "origY": 876994.3257,
+        "anchor": {
+          "type": "deed",
+          "entIdx": 5,
+          "ptIdx": 7,
+          "deedPt": {
+            "x": 290.75,
+            "y": 204.96
+          }
+        }
+      }
+    ],
+    "dash": "dotted",
+    "width": 1.5,
+    "fillOpacity": 0
+  }
+]

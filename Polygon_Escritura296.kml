@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Polygon Escritura 296 - La Trinidad</name>
+    <description>Polígono reconstruido y georreferenciado de Escritura 296 (La Trinidad, Valle del Cauca, Colombia)</description>
+    
+    <Style id="polyStyle296">
+      <LineStyle>
+        <color>ff0000ff</color> <!-- Red border: aabbggrr -->
+        <width>3</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d0080ff</color> <!-- Semi-transparent orange fill: aabbggrr -->
+      </PolyStyle>
+    </Style>
+
+    <Placemark>
+      <name>Escritura 296 (La Trinidad)</name>
+      <description><![CDATA[
+        <h3>Predio La Trinidad - Escritura 296</h3>
+        <ul>
+          <li><b>Área:</b> 162,418.45 m² (25.38 plazas / 16.24 ha)</li>
+          <li><b>Vértices:</b> 42</li>
+          <li><b>Sistema Geodésico Origen:</b> MAGNA-SIRGAS Colombia Oeste (EPSG:3115)</li>
+          <li><b>Sistema KML:</b> WGS 84 (EPSG:4326)</li>
+          <li><b>Ubicación:</b> Palmira / Valle del Cauca, Colombia</li>
+        </ul>
+      ]]></description>
+      <styleUrl>#polyStyle296</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+            -76.1957866,3.4860000,0
+            -76.1952895,3.4854577,0
+            -76.1949092,3.4857526,0
+            -76.1939823,3.4853395,0
+            -76.1940600,3.4849794,0
+            -76.1941948,3.4846265,0
+            -76.1943749,3.4840477,0
+            -76.1948114,3.4840566,0
+            -76.1950261,3.4837936,0
+            -76.1952796,3.4835456,0
+            -76.1953468,3.4833908,0
+            -76.1952163,3.4833459,0
+            -76.1951432,3.4829257,0
+            -76.1950058,3.4822904,0
+            -76.1955784,3.4821521,0
+            -76.1958529,3.4816988,0
+            -76.1960428,3.4816741,0
+            -76.1961964,3.4815988,0
+            -76.1962887,3.4816033,0
+            -76.1964604,3.4816475,0
+            -76.1969409,3.4812198,0
+            -76.1974227,3.4807790,0
+            -76.1975078,3.4807218,0
+            -76.1977144,3.4806705,0
+            -76.1983293,3.4804860,0
+            -76.1981812,3.4809611,0
+            -76.1982773,3.4813003,0
+            -76.1979474,3.4814420,0
+            -76.1977309,3.4817350,0
+            -76.1974632,3.4818635,0
+            -76.1975038,3.4822056,0
+            -76.1972859,3.4823841,0
+            -76.1972834,3.4825506,0
+            -76.1977662,3.4826073,0
+            -76.1980899,3.4834575,0
+            -76.1981107,3.4840260,0
+            -76.1980040,3.4842122,0
+            -76.1979572,3.4844105,0
+            -76.1980866,3.4848683,0
+            -76.1978623,3.4852844,0
+            -76.1976006,3.4853754,0
+            -76.1962834,3.4857385,0
+            -76.1957866,3.4860000,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>
