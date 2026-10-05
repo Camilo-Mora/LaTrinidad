@@ -1677,7 +1677,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <span id="seg-adjust-reverse-sublabel" style="font-size:0.60rem;color:var(--text-muted);">Normal (as deed text)</span>
                 </div>
                 <button type="button" id="btn-seg-adjust-reverse-mode" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:6px;padding:4px 9px;font-size:0.69rem;border:1px solid rgba(0,229,255,0.35);background:rgba(0,229,255,0.08);color:var(--accent-cyan);cursor:pointer;border-radius:4px;font-weight:600;" title="Reverse Processing Direction: internally uses 180° Back Azimuth for solving while keeping the displayed rumbos matching the deed exactly">
-                  <span style="font-size:0.80rem;">⇄</span> <span id="seg-adjust-reverse-btn-text">Invert Processing</span>
+                  <span style="font-size:0.80rem;">⇄</span> <span id="seg-adjust-reverse-btn-text">Reverse Direction</span>
                 </button>
               </div>
 
@@ -1709,8 +1709,13 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     <thead>
                       <tr style="border-bottom:1px solid rgba(255,255,255,0.1);color:var(--text-muted);font-size:0.66rem;text-align:left;">
                         <th style="padding:3px 5px;width:75px;">Part (Deed)</th>
-                        <th style="padding:3px 5px;width:100px;">Deed Len (m)</th>
-                        <th style="padding:3px 5px;">Bearing / Dir</th>
+                        <th style="padding:3px 5px;width:95px;">Deed Len (m)</th>
+                        <th style="padding:3px 5px;">
+                          <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span>Bearing / Dir</span>
+                            <button type="button" id="btn-seg-adjust-invert-all" class="btn btn-secondary btn-xs" style="padding:1px 5px;font-size:0.62rem;color:var(--accent-cyan);border-color:rgba(0,229,255,0.35);cursor:pointer;" title="Reverse / Invert all deed rumbos (180° Back Azimuth)">⇄ Reverse</button>
+                          </div>
+                        </th>
                         <th style="padding:3px 4px;width:24px;text-align:center;">✕</th>
                       </tr>
                     </thead>
@@ -1742,7 +1747,12 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
               <!-- Action buttons -->
               <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:2px;">
-                <button type="button" id="btn-seg-adjust-clear" class="btn btn-secondary btn-sm" style="padding:4px 8px;font-size:0.70rem;" title="Clear selected segments">Clear</button>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <button type="button" id="btn-seg-adjust-clear" class="btn btn-secondary btn-sm" style="padding:4px 8px;font-size:0.70rem;" title="Clear selected segments">Clear</button>
+                  <button type="button" id="btn-seg-adjust-reverse-bottom" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;font-size:0.70rem;border:1px solid rgba(0,229,255,0.35);color:var(--accent-cyan);cursor:pointer;background:rgba(0,229,255,0.08);font-weight:600;" title="Reverse Processing Direction: internally applies 180° Back Azimuth while keeping displayed deed rumbos exact">
+                    <span>⇄</span> <span id="seg-adjust-reverse-bottom-text">Reverse</span>
+                  </button>
+                </div>
                 <div style="display:flex;gap:6px;">
                   <button type="button" id="btn-seg-adjust-preview" class="btn btn-secondary btn-sm" style="padding:4px 10px;font-size:0.70rem;border-color:rgba(0,229,255,0.4);color:var(--accent-cyan);" title="Preview adjusted segments on canvas">👁️ Preview</button>
                   <button type="button" id="btn-seg-adjust-apply" class="btn btn-primary btn-sm" style="padding:4px 12px;font-size:0.70rem;background:linear-gradient(135deg, #00e676, #00b0ff);border:none;color:#000;font-weight:700;" disabled title="Apply changes to Reconstructed Lindero">✓ Apply Changes</button>
@@ -12266,7 +12276,7 @@ EOF`;
     }
 
     /**
-     * Update the Traverse Direction / Invert Processing UI button & sublabels
+     * Update the Traverse Direction / Reverse Processing UI buttons & sublabels
      */
     function updateReverseModeUI() {
       const sa = state.segmentsAdjust;
@@ -12274,6 +12284,9 @@ EOF`;
       const btnRevMode = document.getElementById("btn-seg-adjust-reverse-mode");
       const btnText = document.getElementById("seg-adjust-reverse-btn-text");
       const sublabel = document.getElementById("seg-adjust-reverse-sublabel");
+      const btnRevBottom = document.getElementById("btn-seg-adjust-reverse-bottom");
+      const btnBottomText = document.getElementById("seg-adjust-reverse-bottom-text");
+      const btnInvertAll = document.getElementById("btn-seg-adjust-invert-all");
 
       if (btnRevMode) {
         if (isRev) {
@@ -12281,7 +12294,7 @@ EOF`;
           btnRevMode.style.color = "#0f172a";
           btnRevMode.style.fontWeight = "700";
           btnRevMode.style.borderColor = "var(--accent-cyan)";
-          if (btnText) btnText.textContent = "Invert: ON (180°)";
+          if (btnText) btnText.textContent = "Reverse: ON (180°)";
           if (sublabel) {
             sublabel.textContent = "180° Back-Azimuth (internal solver)";
             sublabel.style.color = "var(--accent-cyan)";
@@ -12292,12 +12305,44 @@ EOF`;
           btnRevMode.style.color = "var(--accent-cyan)";
           btnRevMode.style.fontWeight = "600";
           btnRevMode.style.borderColor = "rgba(0,229,255,0.35)";
-          if (btnText) btnText.textContent = "Invert Processing";
+          if (btnText) btnText.textContent = "Reverse Direction";
           if (sublabel) {
             sublabel.textContent = "Normal (as deed text)";
             sublabel.style.color = "var(--text-muted)";
           }
           btnRevMode.title = "Click to invert processing direction (180° Back Azimuth) without changing displayed deed numbers.";
+        }
+      }
+
+      if (btnRevBottom) {
+        if (isRev) {
+          btnRevBottom.style.background = "var(--accent-cyan)";
+          btnRevBottom.style.color = "#0f172a";
+          btnRevBottom.style.fontWeight = "700";
+          btnRevBottom.style.borderColor = "var(--accent-cyan)";
+          if (btnBottomText) btnBottomText.textContent = "Reverse: ON";
+        } else {
+          btnRevBottom.style.background = "rgba(0,229,255,0.08)";
+          btnRevBottom.style.color = "var(--accent-cyan)";
+          btnRevBottom.style.fontWeight = "600";
+          btnRevBottom.style.borderColor = "rgba(0,229,255,0.35)";
+          if (btnBottomText) btnBottomText.textContent = "Reverse";
+        }
+      }
+
+      if (btnInvertAll) {
+        if (isRev) {
+          btnInvertAll.style.background = "var(--accent-cyan)";
+          btnInvertAll.style.color = "#0f172a";
+          btnInvertAll.style.fontWeight = "700";
+          btnInvertAll.style.borderColor = "var(--accent-cyan)";
+          btnInvertAll.textContent = "⇄ ON";
+        } else {
+          btnInvertAll.style.background = "rgba(0,229,255,0.12)";
+          btnInvertAll.style.color = "var(--accent-cyan)";
+          btnInvertAll.style.fontWeight = "normal";
+          btnInvertAll.style.borderColor = "rgba(0,229,255,0.35)";
+          btnInvertAll.textContent = "⇄ Reverse";
         }
       }
     }
@@ -13037,6 +13082,21 @@ EOF`;
           const qBtn = document.getElementById("btn-quick-toggle-rev");
           if (qBtn) {
             qBtn.addEventListener("click", () => toggleReverseProcessingMode(true));
+          }
+        } else if (!sol.feasible && sol.maxAngleDelta > 0 && sol.maxAngleDelta <= 5.00) {
+          const needed = (Math.ceil(sol.maxAngleDelta * 10) / 10).toFixed(2);
+          statusTextEl.innerHTML = `<span style="color:#ffb300;font-size:0.66rem;">Tol ±${sa.toleranceDeg.toFixed(2)}° tight (needs ±${sol.maxAngleDelta.toFixed(2)}°):</span> <button id="btn-quick-fit-tol" type="button" style="background:var(--accent-cyan);color:#0f172a;font-weight:700;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.65rem;margin-left:4px;" title="Set tolerance to ±${needed}°">Auto-Fit (±${needed}°)</button>`;
+          const qTol = document.getElementById("btn-quick-fit-tol");
+          if (qTol) {
+            qTol.addEventListener("click", () => {
+              const newTol = Math.min(5.00, Math.ceil(sol.maxAngleDelta * 10) / 10);
+              sa.toleranceDeg = newTol;
+              const tolSlider = document.getElementById("seg-adjust-tol-slider");
+              const tolVal = document.getElementById("seg-adjust-tol-val");
+              if (tolSlider) tolSlider.value = newTol;
+              if (tolVal) tolVal.textContent = `± ${newTol.toFixed(2)}°`;
+              updateSegmentsAdjustMetrics();
+            });
           }
         } else {
           statusTextEl.textContent = sol.statusText;
@@ -15954,6 +16014,12 @@ EOF`;
 
     const btnSegAdjustRevMode = document.getElementById("btn-seg-adjust-reverse-mode");
     if (btnSegAdjustRevMode) btnSegAdjustRevMode.addEventListener("click", () => toggleReverseProcessingMode());
+
+    const btnSegAdjustRevBottom = document.getElementById("btn-seg-adjust-reverse-bottom");
+    if (btnSegAdjustRevBottom) btnSegAdjustRevBottom.addEventListener("click", () => toggleReverseProcessingMode());
+
+    const btnSegAdjustInvertAll = document.getElementById("btn-seg-adjust-invert-all");
+    if (btnSegAdjustInvertAll) btnSegAdjustInvertAll.addEventListener("click", () => toggleReverseProcessingMode());
 
     // Make Segments Adjust HUD draggable by its top header bar
     const segHud = document.getElementById("segments-adjust-hud");
