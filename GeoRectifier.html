@@ -18818,6 +18818,9 @@ EOF`;
             rayWidth: ax.rayWidth,
             rayDash: ax.rayDash,
             rayOpacity: ax.rayOpacity,
+            showTicks: ax.showTicks !== false,
+            tickSize: ax.tickSize,
+            tickWidth: ax.tickWidth,
             linkedSegment: ax.linkedSegment ? JSON.parse(JSON.stringify(ax.linkedSegment)) : null
           }))
         };
@@ -22688,6 +22691,9 @@ EOF`;
           ax.rayWidth = 1.5;
           ax.rayDash = "dashed";
           ax.rayOpacity = 0.35;
+          ax.showTicks = true;
+          ax.tickSize = 6.0;
+          ax.tickWidth = 1.2;
           notifyAxisChanged();
           renderTestAxesList();
         });
@@ -22939,6 +22945,89 @@ EOF`;
         secRays.appendChild(rayOpLine);
 
         settingsPanel.appendChild(secRays);
+
+        // Section 4: Metric Tickmarks (size, thickness, visibility)
+        const curShowTicks = (ax.showTicks !== false);
+        const curTickSize = (typeof ax.tickSize === "number") ? Math.max(0, Math.min(30, ax.tickSize)) : 6.0;
+        const curTickWidth = (typeof ax.tickWidth === "number") ? Math.max(0.5, Math.min(8, ax.tickWidth)) : 1.2;
+
+        const secTicks = document.createElement("div");
+        secTicks.style.cssText = "display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(255,255,255,0.06);padding-top:4px;";
+
+        const tickToggleLine = document.createElement("div");
+        tickToggleLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;";
+
+        const tickChkWrap = document.createElement("label");
+        tickChkWrap.style.cssText = "display:inline-flex;align-items:center;gap:3px;cursor:pointer;";
+        const chkTicks = document.createElement("input");
+        chkTicks.type = "checkbox";
+        chkTicks.checked = curShowTicks;
+        chkTicks.style.cssText = "cursor:pointer;margin:0;";
+        chkTicks.addEventListener("change", (e) => {
+          ax.showTicks = e.target.checked;
+          notifyAxisChanged();
+        });
+        tickChkWrap.appendChild(chkTicks);
+        const tickChkLbl = document.createElement("span");
+        tickChkLbl.textContent = "Show Distance Tickmarks";
+        tickChkLbl.style.cssText = "color:var(--text-muted);font-weight:600;";
+        tickChkWrap.appendChild(tickChkLbl);
+        tickToggleLine.appendChild(tickChkWrap);
+        secTicks.appendChild(tickToggleLine);
+
+        // Tick Size / Length Slider
+        const tickSzLine = document.createElement("div");
+        tickSzLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;";
+        const tickSzValLbl = document.createElement("span");
+        tickSzValLbl.style.cssText = "font-family:monospace;min-width:28px;text-align:right;";
+        tickSzValLbl.textContent = `${curTickSize.toFixed(1)}px`;
+
+        const tickSzSlider = document.createElement("input");
+        tickSzSlider.type = "range";
+        tickSzSlider.min = "1.0";
+        tickSzSlider.max = "20.0";
+        tickSzSlider.step = "0.5";
+        tickSzSlider.value = curTickSize.toString();
+        tickSzSlider.style.cssText = "flex:1;min-width:60px;height:3px;cursor:pointer;";
+        tickSzSlider.title = "Tickmark length / size";
+        tickSzSlider.addEventListener("input", (e) => {
+          const val = parseFloat(e.target.value);
+          ax.tickSize = val;
+          tickSzValLbl.textContent = `${val.toFixed(1)}px`;
+          notifyAxisChanged();
+        });
+        tickSzLine.innerHTML = `<span style="color:var(--text-muted);">Tick Size:</span>`;
+        tickSzLine.appendChild(tickSzSlider);
+        tickSzLine.appendChild(tickSzValLbl);
+        secTicks.appendChild(tickSzLine);
+
+        // Tick Thickness / Width Slider
+        const tickThLine = document.createElement("div");
+        tickThLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;";
+        const tickThValLbl = document.createElement("span");
+        tickThValLbl.style.cssText = "font-family:monospace;min-width:28px;text-align:right;";
+        tickThValLbl.textContent = `${curTickWidth.toFixed(1)}px`;
+
+        const tickThSlider = document.createElement("input");
+        tickThSlider.type = "range";
+        tickThSlider.min = "0.5";
+        tickThSlider.max = "5.0";
+        tickThSlider.step = "0.2";
+        tickThSlider.value = curTickWidth.toString();
+        tickThSlider.style.cssText = "flex:1;min-width:60px;height:3px;cursor:pointer;";
+        tickThSlider.title = "Tickmark line thickness";
+        tickThSlider.addEventListener("input", (e) => {
+          const val = parseFloat(e.target.value);
+          ax.tickWidth = val;
+          tickThValLbl.textContent = `${val.toFixed(1)}px`;
+          notifyAxisChanged();
+        });
+        tickThLine.innerHTML = `<span style="color:var(--text-muted);">Tick Width:</span>`;
+        tickThLine.appendChild(tickThSlider);
+        tickThLine.appendChild(tickThValLbl);
+        secTicks.appendChild(tickThLine);
+
+        settingsPanel.appendChild(secTicks);
         row.appendChild(settingsPanel);
 
         // Dot click toggle handler
@@ -23036,31 +23125,39 @@ EOF`;
         ctx.setLineDash([]);
 
         // Metric distance tickmarks along axis (every 5m sub-tick, 10m labeled tick)
-        const tickStep = (geom.len >= 60) ? 10 : 5;
-        const tickSpan = Math.ceil(geom.len / tickStep) * tickStep;
-        ctx.font = "9px monospace";
-        ctx.fillStyle = hexToRgba(axisColor, mainOpacity);
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        const showTicks = (ax.showTicks !== false);
+        const tickSize = (typeof ax.tickSize === "number") ? Math.max(0, Math.min(30, ax.tickSize)) : 6.0;
+        const tickWidth = (typeof ax.tickWidth === "number") ? Math.max(0.5, Math.min(8, ax.tickWidth)) : 1.2;
 
-        for (let d = 0; d <= tickSpan; d += tickStep) {
-          const tPt = { x: ax.p1.x + d * geom.u.x, y: ax.p1.y + d * geom.u.y };
-          const sTick = worldToScreenGIS(tPt, vp, canvasH);
-          const tickLen = (d % 10 === 0) ? 6 : 3.5;
+        if (showTicks && tickSize > 0) {
+          const tickStep = (geom.len >= 60) ? 10 : 5;
+          const tickSpan = Math.ceil(geom.len / tickStep) * tickStep;
+          ctx.font = "9px monospace";
+          ctx.fillStyle = hexToRgba(axisColor, mainOpacity);
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
 
-          // Perpendicular tick
-          const tx = -geom.n.x * tickLen;
-          const ty = geom.n.y * tickLen; // Screen Y is inverted
-          ctx.beginPath();
-          ctx.moveTo(sTick.x - tx, sTick.y - ty);
-          ctx.lineTo(sTick.x + tx, sTick.y + ty);
-          ctx.strokeStyle = hexToRgba(axisColor, mainOpacity);
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
+          for (let d = 0; d <= tickSpan; d += tickStep) {
+            const tPt = { x: ax.p1.x + d * geom.u.x, y: ax.p1.y + d * geom.u.y };
+            const sTick = worldToScreenGIS(tPt, vp, canvasH);
+            const isMajor = (d % 10 === 0);
+            const curTickLen = isMajor ? tickSize : (tickSize * 0.58);
 
-          // Numeric label at 10m intervals
-          if (d % 10 === 0 && d > 0 && d < geom.len) {
-            ctx.fillText(`${d}m`, sTick.x + geom.n.x * 12, sTick.y - geom.n.y * 12);
+            // Perpendicular tick
+            const tx = -geom.n.x * curTickLen;
+            const ty = geom.n.y * curTickLen; // Screen Y is inverted
+            ctx.beginPath();
+            ctx.moveTo(sTick.x - tx, sTick.y - ty);
+            ctx.lineTo(sTick.x + tx, sTick.y + ty);
+            ctx.strokeStyle = hexToRgba(axisColor, mainOpacity);
+            ctx.lineWidth = tickWidth;
+            ctx.stroke();
+
+            // Numeric label at 10m intervals
+            if (isMajor && d > 0 && d < geom.len) {
+              const labelOffset = Math.max(10, curTickLen + 7);
+              ctx.fillText(`${d}m`, sTick.x + geom.n.x * labelOffset, sTick.y - geom.n.y * labelOffset);
+            }
           }
         }
 
