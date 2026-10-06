@@ -1749,13 +1749,22 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     </div>
                   </div>
                 </div>
-                <!-- Inward Flex Toggle in Float Mode -->
-                <div id="wrap-float-inward-toggle" style="display:none;align-items:center;justify-content:space-between;padding-top:2px;border-top:1px solid rgba(255,255,255,0.08);">
-                  <span style="font-size:0.62rem;color:var(--text-muted);" title="Tilts segments inward by the tolerance angle to produce the conservative minimum-area claim">Inward Area Flex (Conservative):</span>
-                  <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;font-size:0.63rem;color:var(--accent-cyan);">
-                    <input type="checkbox" id="chk-float-inward-flex" checked style="accent-color:var(--accent-cyan);cursor:pointer;">
-                    <span>Active</span>
-                  </label>
+                <!-- Float Optimization Goal: Minimize Area or Distance to Mojon -->
+                <div id="wrap-float-inward-toggle" style="display:none;flex-direction:column;gap:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.08);">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <span style="font-size:0.62rem;color:var(--text-muted);font-weight:600;">Float Optimization Goal:</span>
+                    <span id="lbl-float-objective-summary" style="font-size:0.61rem;color:var(--accent-cyan);font-family:monospace;font-weight:600;">📐 Min Area</span>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:flex-start;gap:14px;font-size:0.66rem;">
+                    <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;margin:0;color:var(--text-main);" title="Tilts segments inward by tolerance angle to produce conservative minimum added parcel area">
+                      <input type="checkbox" id="chk-float-minimize-area" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:13px;height:13px;">
+                      <span>Minimize area</span>
+                    </label>
+                    <label style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;margin:0;color:var(--text-main);" title="Adjusts segment bearings within tolerance to minimize the distance to the target field mojón">
+                      <input type="checkbox" id="chk-float-minimize-mojon" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:13px;height:13px;">
+                      <span>Distance to mojón</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -1812,9 +1821,6 @@ Do NOT modify dormant/parked sections unless specifically requested.
               <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:2px;">
                 <div style="display:flex;align-items:center;gap:6px;">
                   <button type="button" id="btn-seg-adjust-clear" class="btn btn-secondary btn-sm" style="padding:4px 8px;font-size:0.70rem;" title="Clear selected segments">Clear</button>
-                  <button type="button" id="btn-seg-adjust-reverse-bottom" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;font-size:0.70rem;border:1px solid rgba(0,229,255,0.35);color:var(--accent-cyan);cursor:pointer;background:rgba(0,229,255,0.08);font-weight:600;" title="Reverse Processing Direction: internally applies 180° Back Azimuth while keeping displayed deed rumbos exact">
-                    <span>⇄</span> <span id="seg-adjust-reverse-bottom-text">Reverse</span>
-                  </button>
                 </div>
                 <div style="display:flex;gap:6px;">
                   <button type="button" id="btn-seg-adjust-preview" class="btn btn-secondary btn-sm" style="padding:4px 10px;font-size:0.70rem;border-color:rgba(0,229,255,0.4);color:var(--accent-cyan);" title="Preview adjusted segments on canvas">👁️ Preview</button>
@@ -6546,6 +6552,7 @@ EOF`;
         anchorAMode: "fixed",     // "fixed" | "float"
         anchorBMode: "fixed",     // "fixed" | "float"
         inwardFlex: true,         // apply inward tolerance flex in float mode
+        optObjective: "area",     // "area" | "mojon" | "none"
         previewVerts: null,
         previewMetrics: null,
       },
@@ -12346,8 +12353,6 @@ EOF`;
       const btnRevMode = document.getElementById("btn-seg-adjust-reverse-mode");
       const btnText = document.getElementById("seg-adjust-reverse-btn-text");
       const sublabel = document.getElementById("seg-adjust-reverse-sublabel");
-      const btnRevBottom = document.getElementById("btn-seg-adjust-reverse-bottom");
-      const btnBottomText = document.getElementById("seg-adjust-reverse-bottom-text");
       const btnInvertAll = document.getElementById("btn-seg-adjust-invert-all");
 
       if (btnRevMode) {
@@ -12373,22 +12378,6 @@ EOF`;
             sublabel.style.color = "var(--text-muted)";
           }
           btnRevMode.title = "Click to invert processing direction (180° Back Azimuth) without changing displayed deed numbers.";
-        }
-      }
-
-      if (btnRevBottom) {
-        if (isRev) {
-          btnRevBottom.style.background = "var(--accent-cyan)";
-          btnRevBottom.style.color = "#0f172a";
-          btnRevBottom.style.fontWeight = "700";
-          btnRevBottom.style.borderColor = "var(--accent-cyan)";
-          if (btnBottomText) btnBottomText.textContent = "Reverse: ON";
-        } else {
-          btnRevBottom.style.background = "rgba(0,229,255,0.08)";
-          btnRevBottom.style.color = "var(--accent-cyan)";
-          btnRevBottom.style.fontWeight = "600";
-          btnRevBottom.style.borderColor = "rgba(0,229,255,0.35)";
-          if (btnBottomText) btnBottomText.textContent = "Reverse";
         }
       }
 
@@ -12421,7 +12410,9 @@ EOF`;
       const btnBFloat = document.getElementById("btn-anchor-b-float");
       const summaryEl = document.getElementById("lbl-endpoints-mode-summary");
       const inwardWrap = document.getElementById("wrap-float-inward-toggle");
-      const chkInward = document.getElementById("chk-float-inward-flex");
+      const chkMinArea = document.getElementById("chk-float-minimize-area");
+      const chkMinMojon = document.getElementById("chk-float-minimize-mojon");
+      const lblObjSummary = document.getElementById("lbl-float-objective-summary");
 
       const aIsFixed = sa.anchorAMode !== "float";
       const bIsFixed = sa.anchorBMode !== "float";
@@ -12455,8 +12446,20 @@ EOF`;
         if (inwardWrap) inwardWrap.style.display = "flex";
       }
 
-      if (chkInward) {
-        chkInward.checked = sa.inwardFlex !== false;
+      const opt = sa.optObjective || (sa.inwardFlex !== false ? "area" : "none");
+      if (chkMinArea) chkMinArea.checked = (opt === "area");
+      if (chkMinMojon) chkMinMojon.checked = (opt === "mojon");
+      if (lblObjSummary) {
+        if (opt === "area") {
+          lblObjSummary.textContent = "📐 Min Area";
+          lblObjSummary.style.color = "var(--accent-cyan)";
+        } else if (opt === "mojon") {
+          lblObjSummary.textContent = "🎯 Min Dist Mojón";
+          lblObjSummary.style.color = "#ffd600";
+        } else {
+          lblObjSummary.textContent = "➔ Raw Deed (0°)";
+          lblObjSummary.style.color = "var(--text-muted)";
+        }
       }
     }
 
@@ -12761,6 +12764,7 @@ EOF`;
       sa.anchorAMode = "fixed";
       sa.anchorBMode = "fixed";
       sa.inwardFlex = true;
+      sa.optObjective = "area";
       if (typeof updateAnchorModeButtonsUI === "function") {
         updateAnchorModeButtonsUI();
       }
@@ -12817,11 +12821,45 @@ EOF`;
         if (az == null) {
           az = (Math.atan2(vB.x - vA.x, vB.y - vA.y) * 180 / Math.PI + 360) % 360;
         }
-        const theta = az * Math.PI / 180;
+
+        const isAnchorStart = (sa.singleAnchorIdx === 0);
+        const tauRad = (sa.toleranceDeg || 0) * Math.PI / 180;
+        const tauDeg = sa.toleranceDeg || 0;
+        const opt = sa.optObjective || (sa.inwardFlex !== false ? "area" : "none");
+
+        let effAz = az;
+        let angleShiftUsed = 0;
+
+        if (opt === "mojon" && tauDeg > 0) {
+          // Steer towards target vertex (vB if isAnchorStart, else vA)
+          const targetAz = isAnchorStart
+            ? (Math.atan2(vB.x - vA.x, vB.y - vA.y) * 180 / Math.PI + 360) % 360
+            : (Math.atan2(vA.x - vB.x, vA.y - vB.y) * 180 / Math.PI + 360) % 360;
+          let diff = targetAz - az;
+          while (diff > 180) diff -= 360;
+          while (diff < -180) diff += 360;
+          const tilt = Math.sign(diff) * Math.min(tauDeg, Math.abs(diff));
+          effAz = (az + tilt + 360) % 360;
+          angleShiftUsed = Math.abs(tilt);
+        } else if (opt === "area" && tauRad > 0) {
+          let sumX = 0, sumY = 0;
+          poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
+          const centX = sumX / N, centY = sumY / N;
+          const midX = (vA.x + vB.x) / 2;
+          const midY = (vA.y + vB.y) / 2;
+          const centAz = (Math.atan2(centX - midX, centY - midY) * 180 / Math.PI + 360) % 360;
+          let diff = centAz - az;
+          while (diff > 180) diff -= 360;
+          while (diff < -180) diff += 360;
+          const tilt = Math.sign(diff) * Math.min(tauDeg, Math.abs(diff));
+          effAz = (az + tilt + 360) % 360;
+          angleShiftUsed = Math.abs(tilt);
+        }
+
+        const theta = effAz * Math.PI / 180;
         const dx = L * Math.sin(theta);
         const dy = L * Math.cos(theta);
 
-        const isAnchorStart = (sa.singleAnchorIdx === 0);
         const newVerts = poly.vertices.map(v => ({ ...v }));
 
         if (isAnchorStart) {
@@ -12840,16 +12878,14 @@ EOF`;
 
         const newArea = calcPolyArea(newVerts);
         const deltaArea = newArea - origArea;
-        const curAz = (Math.atan2(vB.x - vA.x, vB.y - vA.y) * 180 / Math.PI + 360) % 360;
-        let angleShift = Math.abs(az - curAz);
-        if (angleShift > 180) angleShift = 360 - angleShift;
+        const optLabel = opt === "mojon" ? "🎯 Min Mojón" : (opt === "area" ? "📐 Min Area" : "✓ Exact");
 
         return {
           feasible: true,
           candidateVerts: newVerts,
           deltaArea: deltaArea,
-          maxAngleDelta: angleShift,
-          statusText: "✓ Exact fit from anchor",
+          maxAngleDelta: angleShiftUsed,
+          statusText: `${optLabel} from Anchor`,
           previewChain: [
             { x: newVerts[vAIdx].x, y: newVerts[vAIdx].y },
             { x: newVerts[vBIdx].x, y: newVerts[vBIdx].y }
@@ -12891,27 +12927,109 @@ EOF`;
         theta0.push(az * Math.PI / 180);
       }
 
+      /**
+       * Numerically optimizes chain bearings within [-tauRad, +tauRad]
+       * to strictly minimize Euclidean distance to a target mojón.
+       */
+      function optimizeThetasForTarget(startPt, targetPt, lengths, initialThetas, tauRad, isBackward = false) {
+        const kSegs = lengths.length;
+        if (kSegs === 0 || tauRad <= 1e-6) return [...initialThetas];
+
+        const sign = isBackward ? -1 : 1;
+        let currentThetas = [...initialThetas];
+        let bestThetas = [...initialThetas];
+
+        function computeDistSq(th) {
+          let x = startPt.x, y = startPt.y;
+          for (let j = 0; j < kSegs; j++) {
+            x += sign * lengths[j] * Math.sin(th[j]);
+            y += sign * lengths[j] * Math.cos(th[j]);
+          }
+          const dx = x - targetPt.x;
+          const dy = y - targetPt.y;
+          return dx * dx + dy * dy;
+        }
+
+        let bestDistSq = computeDistSq(bestThetas);
+        if (bestDistSq < 1e-10) return bestThetas;
+
+        let stepSize = 0.05;
+        for (let iter = 0; iter < 100; iter++) {
+          let x = startPt.x, y = startPt.y;
+          for (let j = 0; j < kSegs; j++) {
+            x += sign * lengths[j] * Math.sin(currentThetas[j]);
+            y += sign * lengths[j] * Math.cos(currentThetas[j]);
+          }
+          const rx = x - targetPt.x;
+          const ry = y - targetPt.y;
+          const curDistSq = rx * rx + ry * ry;
+          if (curDistSq < bestDistSq) {
+            bestDistSq = curDistSq;
+            bestThetas = [...currentThetas];
+          }
+          if (curDistSq < 1e-8) break;
+
+          const nextThetas = new Array(kSegs);
+          let maxGrad = 0;
+          for (let j = 0; j < kSegs; j++) {
+            const grad_j = 2 * sign * lengths[j] * (rx * Math.cos(currentThetas[j]) - ry * Math.sin(currentThetas[j]));
+            if (Math.abs(grad_j) > maxGrad) maxGrad = Math.abs(grad_j);
+
+            let newTh = currentThetas[j] - stepSize * grad_j;
+            let diff = newTh - initialThetas[j];
+            while (diff > Math.PI) diff -= 2 * Math.PI;
+            while (diff < -Math.PI) diff += 2 * Math.PI;
+            if (diff > tauRad) newTh = initialThetas[j] + tauRad;
+            else if (diff < -tauRad) newTh = initialThetas[j] - tauRad;
+            nextThetas[j] = newTh;
+          }
+
+          const nextDistSq = computeDistSq(nextThetas);
+          if (nextDistSq < curDistSq) {
+            currentThetas = nextThetas;
+            if (nextDistSq < bestDistSq) {
+              bestDistSq = nextDistSq;
+              bestThetas = [...nextThetas];
+            }
+            stepSize = Math.min(stepSize * 1.1, 0.25);
+          } else {
+            stepSize *= 0.5;
+            if (stepSize < 1e-7) break;
+          }
+        }
+
+        return bestThetas;
+      }
+
       // Multi-segment Float Mode: Forward (A Fixed, B Float) or Backward (B Fixed, A Float)
       if (sa.anchorAMode === "fixed" && sa.anchorBMode === "float") {
         // Forward Open Traverse from pA to pB
-        const chainPts = [{ x: pA.x, y: pA.y }];
-        let cx = pA.x, cy = pA.y;
-
-        // Centroid for inward orientation
-        let sumX = 0, sumY = 0;
-        poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
-        const centX = sumX / N, centY = sumY / N;
-
         const tauRad = (sa.toleranceDeg || 0) * Math.PI / 180;
-        const useInward = sa.inwardFlex !== false && tauRad > 0;
+        const opt = sa.optObjective || (sa.inwardFlex !== false ? "area" : "none");
 
-        for (let j = 0; j < k; j++) {
-          const sIdx = indices[j];
-          const v1 = poly.vertices[sIdx];
-          const v2 = poly.vertices[(sIdx + 1) % N];
-          let az = theta0[j];
+        let effThetas = [...theta0];
+        let maxAngleDeltaDeg = 0;
 
-          if (useInward) {
+        if (opt === "mojon" && tauRad > 0) {
+          effThetas = optimizeThetasForTarget(pA, pB, L, theta0, tauRad, false);
+          let maxD = 0;
+          for (let j = 0; j < k; j++) {
+            let diff = Math.abs(effThetas[j] - theta0[j]);
+            if (diff > Math.PI) diff = 2 * Math.PI - diff;
+            if (diff > maxD) maxD = diff;
+          }
+          maxAngleDeltaDeg = maxD * 180 / Math.PI;
+        } else if (opt === "area" && tauRad > 0) {
+          // Centroid for inward orientation
+          let sumX = 0, sumY = 0;
+          poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
+          const centX = sumX / N, centY = sumY / N;
+
+          for (let j = 0; j < k; j++) {
+            const sIdx = indices[j];
+            const v1 = poly.vertices[sIdx];
+            const v2 = poly.vertices[(sIdx + 1) % N];
+            let az = theta0[j];
             const midX = (v1.x + v2.x) / 2;
             const midY = (v1.y + v2.y) / 2;
             const toCentX = centX - midX;
@@ -12921,11 +13039,16 @@ EOF`;
             while (diff > Math.PI) diff -= 2 * Math.PI;
             while (diff < -Math.PI) diff += 2 * Math.PI;
             const tilt = Math.sign(diff) * Math.min(tauRad, Math.abs(diff));
-            az += tilt;
+            effThetas[j] = az + tilt;
           }
+          maxAngleDeltaDeg = sa.toleranceDeg || 0;
+        }
 
-          cx += L[j] * Math.sin(az);
-          cy += L[j] * Math.cos(az);
+        const chainPts = [{ x: pA.x, y: pA.y }];
+        let cx = pA.x, cy = pA.y;
+        for (let j = 0; j < k; j++) {
+          cx += L[j] * Math.sin(effThetas[j]);
+          cy += L[j] * Math.cos(effThetas[j]);
           chainPts.push({ x: cx, y: cy });
         }
 
@@ -12945,6 +13068,7 @@ EOF`;
 
         const newArea = calcPolyArea(fullVerts);
         const deltaArea = newArea - origArea;
+        const optLabel = opt === "mojon" ? "🎯 Min Mojón" : (opt === "area" ? "📐 Min Area" : "➔ Raw Deed");
 
         return {
           feasible: true,
@@ -12953,8 +13077,8 @@ EOF`;
           candidateVerts: fullVerts,
           previewChain: chainPts,
           deltaArea: deltaArea,
-          maxAngleDelta: useInward ? sa.toleranceDeg : 0,
-          statusText: `🎈 Float B: Mojón P${endVertIdx + 1} offset ${offsetDist.toFixed(2)}m (${offsetBearing})`,
+          maxAngleDelta: maxAngleDeltaDeg,
+          statusText: `${optLabel}: Mojón P${endVertIdx + 1} offset ${offsetDist.toFixed(2)}m (${offsetBearing})`,
           targetMojon: {
             pt: pB,
             tip: projTip,
@@ -12967,24 +13091,31 @@ EOF`;
 
       if (sa.anchorAMode === "float" && sa.anchorBMode === "fixed") {
         // Backward Open Traverse from pB down to pA
-        const chainPts = new Array(k + 1);
-        chainPts[k] = { x: pB.x, y: pB.y };
-        let cx = pB.x, cy = pB.y;
-
-        let sumX = 0, sumY = 0;
-        poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
-        const centX = sumX / N, centY = sumY / N;
-
         const tauRad = (sa.toleranceDeg || 0) * Math.PI / 180;
-        const useInward = sa.inwardFlex !== false && tauRad > 0;
+        const opt = sa.optObjective || (sa.inwardFlex !== false ? "area" : "none");
 
-        for (let j = k - 1; j >= 0; j--) {
-          const sIdx = indices[j];
-          const v1 = poly.vertices[sIdx];
-          const v2 = poly.vertices[(sIdx + 1) % N];
-          let az = theta0[j];
+        let effThetas = [...theta0];
+        let maxAngleDeltaDeg = 0;
 
-          if (useInward) {
+        if (opt === "mojon" && tauRad > 0) {
+          effThetas = optimizeThetasForTarget(pB, pA, L, theta0, tauRad, true);
+          let maxD = 0;
+          for (let j = 0; j < k; j++) {
+            let diff = Math.abs(effThetas[j] - theta0[j]);
+            if (diff > Math.PI) diff = 2 * Math.PI - diff;
+            if (diff > maxD) maxD = diff;
+          }
+          maxAngleDeltaDeg = maxD * 180 / Math.PI;
+        } else if (opt === "area" && tauRad > 0) {
+          let sumX = 0, sumY = 0;
+          poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
+          const centX = sumX / N, centY = sumY / N;
+
+          for (let j = k - 1; j >= 0; j--) {
+            const sIdx = indices[j];
+            const v1 = poly.vertices[sIdx];
+            const v2 = poly.vertices[(sIdx + 1) % N];
+            let az = theta0[j];
             const midX = (v1.x + v2.x) / 2;
             const midY = (v1.y + v2.y) / 2;
             const toCentX = centX - midX;
@@ -12994,11 +13125,17 @@ EOF`;
             while (diff > Math.PI) diff -= 2 * Math.PI;
             while (diff < -Math.PI) diff += 2 * Math.PI;
             const tilt = Math.sign(diff) * Math.min(tauRad, Math.abs(diff));
-            az += tilt;
+            effThetas[j] = az + tilt;
           }
+          maxAngleDeltaDeg = sa.toleranceDeg || 0;
+        }
 
-          cx -= L[j] * Math.sin(az);
-          cy -= L[j] * Math.cos(az);
+        const chainPts = new Array(k + 1);
+        chainPts[k] = { x: pB.x, y: pB.y };
+        let cx = pB.x, cy = pB.y;
+        for (let j = k - 1; j >= 0; j--) {
+          cx -= L[j] * Math.sin(effThetas[j]);
+          cy -= L[j] * Math.cos(effThetas[j]);
           chainPts[j] = { x: cx, y: cy };
         }
 
@@ -13018,6 +13155,7 @@ EOF`;
 
         const newArea = calcPolyArea(fullVerts);
         const deltaArea = newArea - origArea;
+        const optLabel = opt === "mojon" ? "🎯 Min Mojón" : (opt === "area" ? "📐 Min Area" : "➔ Raw Deed");
 
         return {
           feasible: true,
@@ -13026,8 +13164,8 @@ EOF`;
           candidateVerts: fullVerts,
           previewChain: chainPts,
           deltaArea: deltaArea,
-          maxAngleDelta: useInward ? sa.toleranceDeg : 0,
-          statusText: `🎈 Float A: Mojón P${startVertIdx + 1} offset ${offsetDist.toFixed(2)}m (${offsetBearing})`,
+          maxAngleDelta: maxAngleDeltaDeg,
+          statusText: `${optLabel}: Mojón P${startVertIdx + 1} offset ${offsetDist.toFixed(2)}m (${offsetBearing})`,
           targetMojon: {
             pt: pA,
             tip: projTip,
@@ -16377,9 +16515,6 @@ EOF`;
     const btnSegAdjustRevMode = document.getElementById("btn-seg-adjust-reverse-mode");
     if (btnSegAdjustRevMode) btnSegAdjustRevMode.addEventListener("click", () => toggleReverseProcessingMode());
 
-    const btnSegAdjustRevBottom = document.getElementById("btn-seg-adjust-reverse-bottom");
-    if (btnSegAdjustRevBottom) btnSegAdjustRevBottom.addEventListener("click", () => toggleReverseProcessingMode());
-
     const btnSegAdjustInvertAll = document.getElementById("btn-seg-adjust-invert-all");
     if (btnSegAdjustInvertAll) btnSegAdjustInvertAll.addEventListener("click", () => toggleReverseProcessingMode());
 
@@ -16438,12 +16573,38 @@ EOF`;
         updateSegmentsAdjustMetrics();
       });
     }
-    const chkFloatInwardFlex = document.getElementById("chk-float-inward-flex");
-    if (chkFloatInwardFlex) {
-      chkFloatInwardFlex.addEventListener("change", (e) => {
+    const chkFloatMinArea = document.getElementById("chk-float-minimize-area");
+    const chkFloatMinMojon = document.getElementById("chk-float-minimize-mojon");
+    if (chkFloatMinArea) {
+      chkFloatMinArea.addEventListener("change", (e) => {
         if (!state.segmentsAdjust) return;
-        state.segmentsAdjust.inwardFlex = e.target.checked;
+        if (e.target.checked) {
+          state.segmentsAdjust.optObjective = "area";
+          state.segmentsAdjust.inwardFlex = true;
+          if (chkFloatMinMojon) chkFloatMinMojon.checked = false;
+        } else {
+          state.segmentsAdjust.optObjective = "none";
+          state.segmentsAdjust.inwardFlex = false;
+        }
+        updateAnchorModeButtonsUI();
         updateSegmentsAdjustMetrics();
+        redrawTrueCanvas();
+      });
+    }
+    if (chkFloatMinMojon) {
+      chkFloatMinMojon.addEventListener("change", (e) => {
+        if (!state.segmentsAdjust) return;
+        if (e.target.checked) {
+          state.segmentsAdjust.optObjective = "mojon";
+          state.segmentsAdjust.inwardFlex = false;
+          if (chkFloatMinArea) chkFloatMinArea.checked = false;
+        } else {
+          state.segmentsAdjust.optObjective = "none";
+          state.segmentsAdjust.inwardFlex = false;
+        }
+        updateAnchorModeButtonsUI();
+        updateSegmentsAdjustMetrics();
+        redrawTrueCanvas();
       });
     }
 
