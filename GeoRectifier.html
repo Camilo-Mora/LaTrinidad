@@ -2561,28 +2561,32 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       </select>
                     </div>
 
-                    <!-- Step size and Simulations per point -->
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.70rem;">
-                      <div style="display:flex;flex-direction:column;gap:2px;">
+                    <!-- Step Distance Slider (5 cm to 1 m) -->
+                    <div style="display:flex;flex-direction:column;gap:2px;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;">
                         <span style="color:var(--text-muted);">Step Distance:</span>
-                        <select id="null-model-step-select" class="select-dropdown" style="padding:2px 5px;font-size:0.70rem;background:#0e1422;border:1px solid rgba(255,255,255,0.15);color:#fff;">
-                          <option value="0.25">0.25 m</option>
-                          <option value="0.5">0.50 m</option>
-                          <option value="1.0" selected>1.00 m</option>
-                          <option value="2.0">2.00 m</option>
-                          <option value="5.0">5.00 m</option>
-                        </select>
+                        <strong id="null-model-step-val" style="color:#e040fb;font-family:monospace;font-size:0.72rem;">0.25 m (25 cm)</strong>
                       </div>
-                      <div style="display:flex;flex-direction:column;gap:2px;">
-                        <span style="color:var(--text-muted);">Sims / Point:</span>
-                        <select id="null-model-sims-select" class="select-dropdown" style="padding:2px 5px;font-size:0.70rem;background:#0e1422;border:1px solid rgba(255,255,255,0.15);color:#fff;">
-                          <option value="50">50 runs (Fast)</option>
-                          <option value="100" selected>100 runs (Std)</option>
-                          <option value="250">250 runs</option>
-                          <option value="500">500 runs (Deep)</option>
-                          <option value="1000">1,000 runs (HD)</option>
-                        </select>
+                      <input type="range" id="null-model-step-slider" min="0.05" max="1.00" step="0.01" value="0.25" class="opacity-slider" style="height:4px;width:100%;accent-color:#e040fb;cursor:pointer;">
+                      <div style="display:flex;justify-content:space-between;font-size:0.60rem;color:var(--text-muted);">
+                        <span>5 cm</span>
+                        <span>25 cm</span>
+                        <span>50 cm</span>
+                        <span>75 cm</span>
+                        <span>1.0 m</span>
                       </div>
+                    </div>
+
+                    <!-- Simulations per point -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.70rem;">
+                      <span style="color:var(--text-muted);white-space:nowrap;">Sims / Point:</span>
+                      <select id="null-model-sims-select" class="select-dropdown" style="flex:1;max-width:180px;padding:2px 5px;font-size:0.70rem;background:#0e1422;border:1px solid rgba(255,255,255,0.15);color:#fff;">
+                        <option value="50">50 runs (Fast)</option>
+                        <option value="100" selected>100 runs (Std)</option>
+                        <option value="250">250 runs</option>
+                        <option value="500">500 runs (Deep)</option>
+                        <option value="1000">1,000 runs (HD)</option>
+                      </select>
                     </div>
 
                     <!-- Buffer Radius Selection -->
@@ -6478,7 +6482,7 @@ EOF`;
         paused: false,
         cancelRequested: false,
         selectedAxisId: null,
-        stepMeters: 1.0,
+        stepMeters: 0.25,
         simsPerPoint: 100,
         bufferRadius: 1.04,
         thresholdPercent: 0.50,
@@ -15347,6 +15351,24 @@ EOF`;
         }
       }
 
+      // 0c. Click on 2D Axis Ribbon Plot to Adopt Station
+      if (e.button === 0 && !spacePressed && state.nullModel && state.nullModel.enabled && !state.nullModel.running && state.nullModel.hoverStationIdx >= 0) {
+        const res = applyStationHypothesis(state.nullModel.hoverStationIdx, true);
+        if (res) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          state.nullModel.currentStationIdx = state.nullModel.hoverStationIdx;
+          drawNullModelChart();
+          redrawTrueCanvas();
+          renderAnchorTable();
+          updateAnalyticsUI();
+          if (typeof saveCurrentDeedState === "function") saveCurrentDeedState();
+          if (typeof saveAxesToStorage === "function") saveAxesToStorage();
+          updateStatus(`🎯 Adopted Station #${state.nullModel.hoverStationIdx + 1} (${res.targetAxis.name} @ ${res.station.dist.toFixed(1)}m) from map plot.`);
+          return;
+        }
+      }
+
       // In Anchor Mode: block ALL polygon interactions — move, create, delete — anchors have exclusive control
       if (state.toolMode === "anchor") {
         return;
@@ -17467,6 +17489,7 @@ EOF`;
                 }
               });
               if (nearestStationIdx >= 0) {
+                trueCanvas.style.cursor = "pointer";
                 if (state.nullModel.hoverStationIdx !== nearestStationIdx) {
                   state.nullModel.hoverStationIdx = nearestStationIdx;
                   const st = state.nullModel.stations[nearestStationIdx];
@@ -17474,7 +17497,7 @@ EOF`;
                   const bIdx = Math.min(199, Math.max(0, Math.round(tauVal * 100) - 1));
                   const fVal = (st.cdfBins && st.cdfBins[bIdx] != null) ? st.cdfBins[bIdx] : 0;
                   const errStr = st.meanError != null ? `${st.meanError.toFixed(2)}% (±${st.sdError.toFixed(2)}%)` : "—";
-                  coordsBar.textContent = `🎲 Null Model Station #${nearestStationIdx + 1} (${st.dist.toFixed(1)}m): Avg Err ${errStr} • Freq < ${tauVal.toFixed(2)}%: ${fVal.toFixed(1)}%`;
+                  coordsBar.textContent = `🎲 Null Model Station #${nearestStationIdx + 1} (${st.dist.toFixed(1)}m): Err ${errStr} • Freq < ${tauVal.toFixed(2)}%: ${fVal.toFixed(1)}% [Click to adopt]`;
                   drawNullModelChart();
                   redrawTrueCanvas();
                 }
@@ -23131,11 +23154,11 @@ EOF`;
       }
 
       // Read parameters from UI
-      const stepSelect = document.getElementById("null-model-step-select");
+      const stepSlider = document.getElementById("null-model-step-slider") || document.getElementById("null-model-step-select");
       const simsSelect = document.getElementById("null-model-sims-select");
       const bufSelect = document.getElementById("null-model-buffer-select");
 
-      const stepMeters = stepSelect ? parseFloat(stepSelect.value) || 1.0 : 1.0;
+      const stepMeters = stepSlider ? parseFloat(stepSlider.value) || 0.25 : (state.nullModel.stepMeters || 0.25);
       const simsPerPoint = simsSelect ? parseInt(simsSelect.value, 10) || 100 : 100;
       let bufferRadius = 1.04;
       if (bufSelect) {
@@ -23156,10 +23179,10 @@ EOF`;
       // Build station list along axis
       const stationDistances = [];
       for (let d = 0; d < geom.len; d += stepMeters) {
-        stationDistances.push(d);
+        stationDistances.push(Math.round(d * 1000) / 1000);
       }
-      if (stationDistances.length === 0 || stationDistances[stationDistances.length - 1] < geom.len - 0.05) {
-        stationDistances.push(geom.len);
+      if (stationDistances.length === 0 || stationDistances[stationDistances.length - 1] < geom.len - (stepMeters * 0.5)) {
+        stationDistances.push(Math.round(geom.len * 1000) / 1000);
       }
 
       const stations = stationDistances.map((dist, idx) => {
@@ -23863,13 +23886,13 @@ EOF`;
       const desiredMeters = Math.max(4.0, Math.min(25.0, geom.len * 0.18));
       const hScreen = desiredMeters * vp.scale;
       let hEffMeters = desiredMeters;
-      if (hScreen < 45) {
-        hEffMeters = 45 / vp.scale;
+      if (hScreen < 50) {
+        hEffMeters = 50 / vp.scale;
       } else if (hScreen > 140) {
         hEffMeters = 140 / vp.scale;
       }
 
-      // Base offset from axis line (approx 5-15px in screen space)
+      // Base offset from axis line (approx 5-18px in screen space)
       const baseOffsetMeters = Math.max(3.0 / vp.scale, Math.min(18.0 / vp.scale, 2.2));
 
       // Error scale (auto-scaled to max mean+sd error, min 1.0%)
@@ -23903,7 +23926,7 @@ EOF`;
         let sErr = null, sLo = null, sHi = null, sFreq = null, sTau = null;
 
         if (s.meanError != null) {
-          // Mean Error point
+          // Mean Error point (0% at baseline, yErrMax at top)
           const normErr = Math.max(0, Math.min(1, s.meanError / yErrMax));
           const ex = bx + (normErr * hEffMeters) * nx;
           const ey = by + (normErr * hEffMeters) * ny;
@@ -23915,7 +23938,7 @@ EOF`;
           sLo = worldToScreenGIS({ x: bx + (normLo * hEffMeters) * nx, y: by + (normLo * hEffMeters) * ny }, vp, canvasH);
           sHi = worldToScreenGIS({ x: bx + (normHi * hEffMeters) * nx, y: by + (normHi * hEffMeters) * ny }, vp, canvasH);
 
-          // Frequency point
+          // Frequency point (0% at baseline, 100% at top)
           const freqVal = (s.cdfBins && s.cdfBins[binIdx] != null) ? s.cdfBins[binIdx] : 0;
           const normFreq = Math.max(0, Math.min(1, freqVal / 100));
           const fx = bx + (normFreq * hEffMeters) * nx;
@@ -23935,54 +23958,68 @@ EOF`;
 
       ctx.save();
 
-      // 1. Semi-transparent backdrop ribbon panel
       const firstB = pts[0].sB;
       const lastB = pts[pts.length - 1].sB;
       const firstT = pts[0].sT;
       const lastT = pts[pts.length - 1].sT;
 
+      // Base direction vector along ribbon in screen space
+      const baseDx = lastB.x - firstB.x;
+      const baseDy = lastB.y - firstB.y;
+      const baseLen = Math.hypot(baseDx, baseDy) || 1;
+      const bUnit = { x: baseDx / baseLen, y: baseDy / baseLen };
+
+      // 1. Semi-transparent glassmorphic backdrop with vertical gradient fade
       ctx.beginPath();
       ctx.moveTo(firstB.x, firstB.y);
       for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sB.x, pts[i].sB.y);
       for (let i = pts.length - 1; i >= 0; i--) ctx.lineTo(pts[i].sT.x, pts[i].sT.y);
       ctx.closePath();
-      ctx.fillStyle = "rgba(7, 11, 20, 0.78)";
+
+      const bgGrad = ctx.createLinearGradient(firstB.x, firstB.y, firstT.x, firstT.y);
+      bgGrad.addColorStop(0, "rgba(8, 14, 26, 0.76)");
+      bgGrad.addColorStop(1, "rgba(8, 14, 26, 0.25)");
+      ctx.fillStyle = bgGrad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.32)";
       ctx.lineWidth = 1.2;
       ctx.stroke();
 
-      // 2. Reference rails & baseline
-      // Baseline
-      ctx.beginPath();
-      ctx.moveTo(firstB.x, firstB.y);
-      ctx.lineTo(lastB.x, lastB.y);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.30)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+      // 2. Reference Grid: Horizontal Guide Rails at 25%, 50%, 75%
+      [0.25, 0.50, 0.75].forEach(frac => {
+        const g0 = { x: firstB.x + frac * (firstT.x - firstB.x), y: firstB.y + frac * (firstT.y - firstB.y) };
+        const g1 = { x: lastB.x + frac * (lastT.x - lastB.x), y: lastB.y + frac * (lastT.y - lastB.y) };
+        ctx.beginPath();
+        ctx.moveTo(g0.x, g0.y);
+        ctx.lineTo(g1.x, g1.y);
+        ctx.strokeStyle = (frac === 0.50) ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.06)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 4]);
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
 
-      // Top rail (100% / Max Error)
+      // Top rail (dashed)
       ctx.beginPath();
       ctx.moveTo(firstT.x, firstT.y);
       ctx.lineTo(lastT.x, lastT.y);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.20)";
       ctx.lineWidth = 1;
       ctx.setLineDash([3, 3]);
       ctx.stroke();
-
-      // Mid reference rail (50% / half error)
-      const mid0 = { x: (firstB.x + firstT.x) / 2, y: (firstB.y + firstT.y) / 2 };
-      const midEnd = { x: (lastB.x + lastT.x) / 2, y: (lastB.y + lastT.y) / 2 };
-      ctx.beginPath();
-      ctx.moveTo(mid0.x, mid0.y);
-      ctx.lineTo(midEnd.x, midEnd.y);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-      ctx.setLineDash([2, 4]);
-      ctx.stroke();
       ctx.setLineDash([]);
 
-      // Station connector ticks connecting each station from the axis to the graph baseline
-      pts.forEach(p => {
+      // Baseline (solid)
+      ctx.beginPath();
+      ctx.moveTo(firstB.x, firstB.y);
+      ctx.lineTo(lastB.x, lastB.y);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Station connector ticks to the axis (faint magenta)
+      pts.forEach((p, idx) => {
+        if (pts.length > 40 && (idx % Math.ceil(pts.length / 25) !== 0)) return;
         ctx.beginPath();
         ctx.moveTo(p.sC.x, p.sC.y);
         ctx.lineTo(p.sB.x, p.sB.y);
@@ -23991,21 +24028,84 @@ EOF`;
         ctx.stroke();
       });
 
-      // Amber threshold reference line along the ribbon
+      // 3. Y-Axes Rails and Ticks (Brief names with units in brackets, NO numbers on tickmarks)
+      const drawHUDText = (txt, x, y, color, align = "center", baseline = "middle", font = "bold 9px monospace") => {
+        ctx.font = font;
+        ctx.textAlign = align;
+        ctx.textBaseline = baseline;
+        ctx.strokeStyle = "rgba(4, 8, 16, 0.95)";
+        ctx.lineWidth = 2.5;
+        ctx.strokeText(txt, x, y);
+        ctx.fillStyle = color;
+        ctx.fillText(txt, x, y);
+      };
+
+      // Left Rail (Error axis: Err [%]) - Cyan
+      ctx.beginPath();
+      ctx.moveTo(firstB.x, firstB.y);
+      ctx.lineTo(firstT.x, firstT.y);
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Left Rail Ticks (at 0%, 25%, 50%, 75%, 100% of height) - outward in direction -bUnit
+      [0, 0.25, 0.50, 0.75, 1.0].forEach(f => {
+        const tx = firstB.x + f * (firstT.x - firstB.x);
+        const ty = firstB.y + f * (firstT.y - firstB.y);
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx - 5 * bUnit.x, ty - 5 * bUnit.y);
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+      // Left Rail Title: Err [%] at top
+      drawHUDText("Err [%]", firstT.x - 7 * bUnit.x, firstT.y - 8, "#00e5ff", "right", "bottom");
+
+      // Right Rail (Frequency axis: Freq [%]) - Emerald Green
+      ctx.beginPath();
+      ctx.moveTo(lastB.x, lastB.y);
+      ctx.lineTo(lastT.x, lastT.y);
+      ctx.strokeStyle = "#00e676";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Right Rail Ticks (at 0%, 25%, 50%, 75%, 100% of height) - outward in direction +bUnit
+      [0, 0.25, 0.50, 0.75, 1.0].forEach(f => {
+        const tx = lastB.x + f * (lastT.x - lastB.x);
+        const ty = lastB.y + f * (lastT.y - lastB.y);
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(tx + 5 * bUnit.x, ty + 5 * bUnit.y);
+        ctx.strokeStyle = "#00e676";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+      // Right Rail Title: Freq [%] at top
+      drawHUDText("Freq [%]", lastT.x + 7 * bUnit.x, lastT.y - 8, "#00e676", "left", "bottom");
+
+      // Baseline Title: Dist [m]
+      drawHUDText("Dist [m]", firstB.x - 7 * bUnit.x, firstB.y + 6, "rgba(255, 255, 255, 0.75)", "right", "top");
+
+      // 4. Amber threshold reference line (τ [%])
       if (tau <= yErrMax) {
         ctx.beginPath();
         computedPts.forEach((p, idx) => {
           if (idx === 0) ctx.moveTo(p.sTau.x, p.sTau.y);
           else ctx.lineTo(p.sTau.x, p.sTau.y);
         });
-        ctx.strokeStyle = "rgba(255, 179, 0, 0.65)";
-        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = "rgba(255, 179, 0, 0.75)";
+        ctx.lineWidth = 1.3;
         ctx.setLineDash([4, 3]);
         ctx.stroke();
         ctx.setLineDash([]);
+
+        // Tag at right edge of tau line
+        const lastTau = computedPts[computedPts.length - 1].sTau;
+        drawHUDText(`τ [${tau.toFixed(2)}%]`, lastTau.x + 6 * bUnit.x, lastTau.y, "#ffb300", "left", "middle", "bold 8px monospace");
       }
 
-      // 3. Shaded ±1 SD error band (Cyan)
+      // 5. Shaded ±1 SD error band (Cyan)
       if (computedPts.length >= 2) {
         ctx.beginPath();
         computedPts.forEach((p, idx) => {
@@ -24016,11 +24116,25 @@ EOF`;
           ctx.lineTo(computedPts[i].sHi.x, computedPts[i].sHi.y);
         }
         ctx.closePath();
-        ctx.fillStyle = "rgba(0, 229, 255, 0.20)";
+        ctx.fillStyle = "rgba(0, 229, 255, 0.12)";
         ctx.fill();
       }
 
-      // 4. Mean Error curve (Cyan)
+      // 6. Area Under Mean Error Curve (Glowing Cyan Gradient)
+      if (computedPts.length >= 2) {
+        ctx.beginPath();
+        ctx.moveTo(computedPts[0].sB.x, computedPts[0].sB.y);
+        computedPts.forEach(p => ctx.lineTo(p.sErr.x, p.sErr.y));
+        ctx.lineTo(computedPts[computedPts.length - 1].sB.x, computedPts[computedPts.length - 1].sB.y);
+        ctx.closePath();
+        const errGrad = ctx.createLinearGradient(firstB.x, firstB.y, firstT.x, firstT.y);
+        errGrad.addColorStop(0, "rgba(0, 229, 255, 0.03)");
+        errGrad.addColorStop(1, "rgba(0, 229, 255, 0.18)");
+        ctx.fillStyle = errGrad;
+        ctx.fill();
+      }
+
+      // Mean Error curve stroke
       ctx.beginPath();
       computedPts.forEach((p, idx) => {
         if (idx === 0) ctx.moveTo(p.sErr.x, p.sErr.y);
@@ -24033,28 +24147,21 @@ EOF`;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Cyan nodes
-      computedPts.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.sErr.x, p.sErr.y, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
-        ctx.fill();
-        ctx.strokeStyle = "#00e5ff";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      });
-
-      // 5. Frequency curve (Emerald Green) & Under-fill
+      // 7. Area Under Frequency Curve (Glowing Emerald Gradient)
       if (computedPts.length >= 2) {
         ctx.beginPath();
         ctx.moveTo(computedPts[0].sB.x, computedPts[0].sB.y);
         computedPts.forEach(p => ctx.lineTo(p.sFreq.x, p.sFreq.y));
         ctx.lineTo(computedPts[computedPts.length - 1].sB.x, computedPts[computedPts.length - 1].sB.y);
         ctx.closePath();
-        ctx.fillStyle = "rgba(0, 230, 118, 0.15)";
+        const freqGrad = ctx.createLinearGradient(firstB.x, firstB.y, firstT.x, firstT.y);
+        freqGrad.addColorStop(0, "rgba(0, 230, 118, 0.02)");
+        freqGrad.addColorStop(1, "rgba(0, 230, 118, 0.16)");
+        ctx.fillStyle = freqGrad;
         ctx.fill();
       }
 
+      // Frequency curve stroke
       ctx.beginPath();
       computedPts.forEach((p, idx) => {
         if (idx === 0) ctx.moveTo(p.sFreq.x, p.sFreq.y);
@@ -24067,10 +24174,43 @@ EOF`;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Green nodes
+      // 8. Find Optimal Station (Best Fit: lowest Mean Error)
+      let bestPt = computedPts[0];
       computedPts.forEach(p => {
+        if (p.s.meanError != null && p.s.meanError < bestPt.s.meanError) {
+          bestPt = p;
+        }
+      });
+
+      // 9. Adaptive Node Rendering (Prevents thick bead-blobs on dense slider steps)
+      const probeIdx = (state.nullModel.hoverStationIdx >= 0)
+        ? state.nullModel.hoverStationIdx
+        : (state.nullModel.running ? state.nullModel.currentStationIdx : -1);
+
+      const isDense = computedPts.length > 35;
+      const stepInterval = isDense ? Math.max(2, Math.round(computedPts.length / 25)) : 1;
+
+      // Cyan nodes
+      computedPts.forEach((p, idx) => {
+        const isKeyPoint = (idx % stepInterval === 0) || (p === bestPt) || (p.s.idx === probeIdx);
+        if (!isKeyPoint) return;
         ctx.beginPath();
-        ctx.arc(p.sFreq.x, p.sFreq.y, 2.5, 0, Math.PI * 2);
+        const r = (p === bestPt || p.s.idx === probeIdx) ? 3.8 : 2.0;
+        ctx.arc(p.sErr.x, p.sErr.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+
+      // Green nodes
+      computedPts.forEach((p, idx) => {
+        const isKeyPoint = (idx % stepInterval === 0) || (p === bestPt) || (p.s.idx === probeIdx);
+        if (!isKeyPoint) return;
+        ctx.beginPath();
+        const r = (p.s.idx === probeIdx) ? 3.8 : 2.0;
+        ctx.arc(p.sFreq.x, p.sFreq.y, r, 0, Math.PI * 2);
         ctx.fillStyle = "#00e676";
         ctx.fill();
         ctx.strokeStyle = "#ffffff";
@@ -24078,21 +24218,88 @@ EOF`;
         ctx.stroke();
       });
 
-      // 6. Header Badges & Legend along ribbon
+      // 10. Best Fit Beacon, Glowing Pin & Badge
+      if (bestPt && bestPt.s && bestPt.s.meanError != null) {
+        // Vertical dashed beacon guide from axis through graph
+        ctx.beginPath();
+        ctx.moveTo(bestPt.sC.x, bestPt.sC.y);
+        ctx.lineTo(bestPt.sT.x, bestPt.sT.y);
+        ctx.strokeStyle = "rgba(255, 214, 0, 0.55)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Target diamond/pin at best error point
+        ctx.beginPath();
+        ctx.arc(bestPt.sErr.x, bestPt.sErr.y, 6.0, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffd600";
+        ctx.shadowColor = "#ffd600";
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(bestPt.sErr.x, bestPt.sErr.y, 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = "#000000";
+        ctx.fill();
+
+        // Best Fit floating badge (show when not probed, or probed at another station)
+        if (probeIdx !== bestPt.s.idx) {
+          const bestFreqVal = (bestPt.s.cdfBins && bestPt.s.cdfBins[binIdx] != null) ? bestPt.s.cdfBins[binIdx] : 0;
+          const bestText = `★ Best Fit: ${bestPt.s.dist.toFixed(1)}m | Err: ${bestPt.s.meanError.toFixed(2)}% | Freq: ${bestFreqVal.toFixed(1)}%`;
+          ctx.font = "bold 9px monospace";
+          const btw = ctx.measureText(bestText).width;
+          const bbx = bestPt.sT.x - btw / 2 - 8;
+          const bby = bestPt.sT.y - 28;
+
+          ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          if (typeof ctx.roundRect === "function") {
+            ctx.roundRect(bbx, bby, btw + 16, 20, 4);
+          } else {
+            ctx.rect(bbx, bby, btw + 16, 20);
+          }
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = "#ffd600";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(bestText, bestPt.sT.x, bby + 10);
+        }
+      }
+
+      // 11. Header Pill Legend (Clean & Compact)
+      const hdrText = "📈 Axis Plot • Err [%] • Freq [%]";
       ctx.font = "bold 9px monospace";
+      const htw = ctx.measureText(hdrText).width;
+      const hbx = firstT.x;
+      const hby = firstT.y - 28;
+
+      ctx.fillStyle = "rgba(10, 16, 26, 0.88)";
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(hbx, hby, htw + 14, 18, 4);
+      } else {
+        ctx.rect(hbx, hby, htw + 14, 18);
+      }
+      ctx.fill();
+      ctx.stroke();
+
       ctx.fillStyle = "#00e5ff";
-      ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
-      ctx.lineWidth = 2.5;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(hdrText, hbx + 7, hby + 9);
 
-      const legendText = `📈 2D Axis Plot: Cyan=AvgErr (Max ${yErrMax.toFixed(1)}%) • Green=Freq<${tau.toFixed(2)}% (Max 100%)`;
-      ctx.strokeText(legendText, firstT.x, firstT.y - 6);
-      ctx.fillText(legendText, firstT.x, firstT.y - 6);
-
-      // 7. Active / Hovered Station Alignment Probe
-      const probeIdx = (state.nullModel.hoverStationIdx >= 0)
-        ? state.nullModel.hoverStationIdx
-        : (state.nullModel.running ? state.nullModel.currentStationIdx : -1);
-
+      // 12. Active / Hovered Station Alignment Probe
       if (probeIdx >= 0 && probeIdx < pts.length) {
         const p = pts[probeIdx];
         if (p && p.s) {
@@ -24109,14 +24316,14 @@ EOF`;
           // Highlight rings on curves
           if (p.sErr) {
             ctx.beginPath();
-            ctx.arc(p.sErr.x, p.sErr.y, 5.5, 0, Math.PI * 2);
+            ctx.arc(p.sErr.x, p.sErr.y, 6.0, 0, Math.PI * 2);
             ctx.strokeStyle = "#00e5ff";
             ctx.lineWidth = 2.5;
             ctx.stroke();
           }
           if (p.sFreq) {
             ctx.beginPath();
-            ctx.arc(p.sFreq.x, p.sFreq.y, 5.5, 0, Math.PI * 2);
+            ctx.arc(p.sFreq.x, p.sFreq.y, 6.0, 0, Math.PI * 2);
             ctx.strokeStyle = "#00e676";
             ctx.lineWidth = 2.5;
             ctx.stroke();
@@ -24126,21 +24333,21 @@ EOF`;
           const freqVal = (p.s.cdfBins && p.s.cdfBins[binIdx] != null) ? p.s.cdfBins[binIdx] : 0;
           const errStr = (p.s.meanError != null) ? `${p.s.meanError.toFixed(2)}% (±${p.s.sdError.toFixed(2)}%)` : "...";
           const callout1 = `Station #${probeIdx + 1} (${p.s.dist.toFixed(1)}m)`;
-          const callout2 = `Avg: ${errStr} | Freq: ${freqVal.toFixed(1)}%`;
+          const callout2 = `Err: ${errStr} | Freq: ${freqVal.toFixed(1)}%`;
 
           ctx.font = "bold 9px monospace";
           const tw = Math.max(ctx.measureText(callout1).width, ctx.measureText(callout2).width);
           const bxBox = p.sT.x - tw / 2 - 8;
-          const byBox = p.sT.y - 32;
+          const byBox = p.sT.y - 34;
 
-          ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
+          ctx.fillStyle = "rgba(10, 16, 26, 0.95)";
           ctx.strokeStyle = "#e040fb";
-          ctx.lineWidth = 1.2;
+          ctx.lineWidth = 1.4;
           ctx.beginPath();
           if (typeof ctx.roundRect === "function") {
-            ctx.roundRect(bxBox, byBox, tw + 16, 26, 4);
+            ctx.roundRect(bxBox, byBox, tw + 16, 28, 4);
           } else {
-            ctx.rect(bxBox, byBox, tw + 16, 26);
+            ctx.rect(bxBox, byBox, tw + 16, 28);
           }
           ctx.fill();
           ctx.stroke();
@@ -24148,10 +24355,10 @@ EOF`;
           ctx.fillStyle = "#e040fb";
           ctx.textAlign = "center";
           ctx.textBaseline = "top";
-          ctx.fillText(callout1, p.sT.x, byBox + 3);
+          ctx.fillText(callout1, p.sT.x, byBox + 4);
 
           ctx.fillStyle = "#00e5ff";
-          ctx.fillText(callout2, p.sT.x, byBox + 14);
+          ctx.fillText(callout2, p.sT.x, byBox + 16);
         }
       }
 
@@ -24162,7 +24369,8 @@ EOF`;
       const chkEnable = document.getElementById("chk-enable-null-model");
       const controls = document.getElementById("null-model-controls");
       const axisSelect = document.getElementById("null-model-axis-select");
-      const stepSelect = document.getElementById("null-model-step-select");
+      const stepSlider = document.getElementById("null-model-step-slider") || document.getElementById("null-model-step-select");
+      const stepVal = document.getElementById("null-model-step-val");
       const simsSelect = document.getElementById("null-model-sims-select");
       const bufSelect = document.getElementById("null-model-buffer-select");
       const btnRun = document.getElementById("btn-null-model-run");
@@ -24200,10 +24408,17 @@ EOF`;
         });
       }
 
-      if (stepSelect) {
-        stepSelect.addEventListener("change", e => {
-          state.nullModel.stepMeters = parseFloat(e.target.value) || 1.0;
-        });
+      if (stepSlider) {
+        const handleStepChange = (val) => {
+          const m = Math.max(0.05, Math.min(1.0, parseFloat(val) || 0.25));
+          state.nullModel.stepMeters = m;
+          if (stepVal) {
+            const cm = Math.round(m * 100);
+            stepVal.textContent = cm >= 100 ? `1.00 m (100 cm)` : `${m.toFixed(2)} m (${cm} cm)`;
+          }
+        };
+        stepSlider.addEventListener("input", e => handleStepChange(e.target.value));
+        stepSlider.addEventListener("change", e => handleStepChange(e.target.value));
       }
 
       if (simsSelect) {
