@@ -2720,11 +2720,21 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       </div>
                     </div>
 
-                    <!-- Raster Opacity Slider Row -->
-                    <div id="null-model-raster-opacity-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.65rem;color:var(--text-muted);padding:2px 2px 0 2px;">
-                      <span style="display:flex;align-items:center;gap:3px;"><span style="color:#00e5ff;">🗺️</span> Raster Opacity:</span>
-                      <input type="range" id="null-model-raster-opacity-slider" min="0.10" max="1.00" step="0.05" value="0.70" style="flex:1;max-width:110px;height:3px;accent-color:#00e5ff;cursor:pointer;">
-                      <span id="null-model-raster-opacity-val" style="font-family:monospace;color:#00e5ff;font-size:0.65rem;min-width:26px;text-align:right;">70%</span>
+                    <!-- Raster / Contour Style Options -->
+                    <div id="null-model-swath-options" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:0.65rem;color:var(--text-muted);padding:2px 2px 0 2px;">
+                      <label style="display:flex;align-items:center;gap:3px;cursor:pointer;color:#00e676;font-weight:600;" title="Draw error contour isolines (0.25%, 0.50%, 1.00%, etc.) across the buffer corridor">
+                        <input type="checkbox" id="chk-null-model-show-contours" checked style="accent-color:#00e676;">
+                        <span>〰️ Contours</span>
+                      </label>
+                      <label style="display:flex;align-items:center;gap:3px;cursor:pointer;color:#00e5ff;font-weight:600;" title="Fill raster cells with color gradient. Uncheck to view clean contour lines only.">
+                        <input type="checkbox" id="chk-null-model-show-raster-fill" checked style="accent-color:#00e5ff;">
+                        <span>🎨 Color Fill</span>
+                      </label>
+                      <div style="display:flex;align-items:center;gap:4px;">
+                        <span>Opacity:</span>
+                        <input type="range" id="null-model-raster-opacity-slider" min="0.05" max="1.00" step="0.05" value="0.65" style="width:65px;height:3px;accent-color:#00e5ff;cursor:pointer;">
+                        <span id="null-model-raster-opacity-val" style="font-family:monospace;color:#00e5ff;font-size:0.65rem;min-width:24px;text-align:right;">65%</span>
+                      </div>
                     </div>
 
                     <!-- Chart Container (Dual Y-Axis) -->
@@ -6544,8 +6554,10 @@ EOF`;
         thresholdPercent: 0.50,
         showChart: true,
         showRaster: true,
+        showContours: true,
+        showRasterFill: true,
         deedPrecision: false,
-        rasterOpacity: 0.70,
+        rasterOpacity: 0.65,
         highlightStationOnMap: true,
         zeroOrigin: false,
         plotSide: "left",
@@ -23740,7 +23752,15 @@ EOF`;
     function drawTestAxesGIS(ctx, vp, canvasH) {
       const axes = (state.testAxes || []).filter(a => a.visible !== false);
 
-      // 1. Draw defined test axes
+      // 0. Draw 2D Error Swath / Contours & Aligned Chart Plot FIRST (so Boundary Axis stays in front)
+      if (typeof drawNullModelRasterGIS === "function") {
+        drawNullModelRasterGIS(ctx, vp, canvasH);
+      }
+      if (typeof drawNullModelAxisPlotGIS === "function") {
+        drawNullModelAxisPlotGIS(ctx, vp, canvasH);
+      }
+
+      // 1. Draw defined test axes (crisp boundary lines on top of heatmap/chart)
       axes.forEach(ax => {
         const geom = computeAxisGeometry(ax);
         const s1 = worldToScreenGIS(ax.p1, vp, canvasH);
@@ -24194,15 +24214,6 @@ EOF`;
         }
       }
 
-      // 4b. Draw 2D Error Heatmap Raster Corridor on Map Canvas
-      if (typeof drawNullModelRasterGIS === "function") {
-        drawNullModelRasterGIS(ctx, vp, canvasH);
-      }
-
-      // 5. Draw 2D XY Plot aligned on the axis when Map Probe is ticked
-      if (typeof drawNullModelAxisPlotGIS === "function") {
-        drawNullModelAxisPlotGIS(ctx, vp, canvasH);
-      }
     }
 
     // Attach button listeners for Test Axes
@@ -25159,6 +25170,41 @@ EOF`;
       updateStatus(`💾 Exported Null Model results for ${stations.length} stations to JSON.`);
     }
 
+    function drawStarPolygon(ctx, cx, cy, spikes = 5, outerRadius = 7, innerRadius = 3.5, fillStyle = "#ffd700", strokeStyle = "#ffffff", lineWidth = 1.5) {
+      let rot = Math.PI / 2 * 3;
+      let x = cx;
+      let y = cy;
+      const step = Math.PI / spikes;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - outerRadius);
+      for (let i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+      }
+      ctx.lineTo(cx, cy - outerRadius);
+      ctx.closePath();
+      if (fillStyle) {
+        ctx.fillStyle = fillStyle;
+        ctx.shadowColor = fillStyle;
+        ctx.shadowBlur = 4;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      if (strokeStyle) {
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
     function drawNullModelChart() {
       const canvas = document.getElementById("null-model-chart-canvas");
       if (!canvas) return;
@@ -25573,13 +25619,82 @@ EOF`;
         ctx.restore();
       }
 
+      const distFromMojon = (mojonDist != null && bestDist != null) ? (bestDist - mojonDist) : null;
+      const distFromMojonStr = distFromMojon != null ? `${distFromMojon >= 0 ? '+' : ''}${distFromMojon.toFixed(1)}m` : null;
+
+      // Connecting Bridge Line between Original Field Mojón and Best Optimization Point
+      if (xMojon != null && xBest != null) {
+        const yBridge = mTop + 16;
+        ctx.save();
+
+        // Dimension line connecting Mojón to Best
+        ctx.beginPath();
+        ctx.moveTo(xMojon, yBridge);
+        ctx.lineTo(xBest, yBridge);
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 1.6;
+        ctx.setLineDash([3, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Arrowhead pointing towards Best Optimization
+        const dir = (xBest >= xMojon) ? 1 : -1;
+        ctx.beginPath();
+        ctx.moveTo(xBest, yBridge);
+        ctx.lineTo(xBest - dir * 5, yBridge - 3);
+        ctx.lineTo(xBest - dir * 5, yBridge + 3);
+        ctx.closePath();
+        ctx.fillStyle = "#d97706";
+        ctx.fill();
+
+        // Star marker at original Field Mojón (★)
+        drawStarPolygon(ctx, xMojon, yBridge, 5, 7, 3.4, "#ffd700", "#7c3aed", 1.5);
+
+        // Circular beacon at Best Optimization
+        ctx.beginPath();
+        ctx.arc(xBest, yBridge, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#00e676";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Center badge on connecting line: "Off by +X.Xm"
+        const deltaMeters = distFromMojon != null ? distFromMojon : (bestDist - mojonDist);
+        const deltaSign = deltaMeters >= 0 ? '+' : '';
+        const offBadge = Math.abs(deltaMeters) < 0.05 ? "Exact (0.0m)" : `Off by ${deltaSign}${deltaMeters.toFixed(1)}m`;
+
+        ctx.font = "bold 8px monospace";
+        const bw = ctx.measureText(offBadge).width;
+        const xMid = (xMojon + xBest) / 2;
+        const badgeY = (Math.abs(xBest - xMojon) < bw + 18) ? (yBridge + 12) : yBridge;
+
+        ctx.fillStyle = "rgba(15, 23, 42, 0.94)";
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(xMid - bw / 2 - 4, badgeY - 6.5, bw + 8, 13, 3);
+        } else {
+          ctx.rect(xMid - bw / 2 - 4, badgeY - 6.5, bw + 8, 13);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#fbbf24";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(offBadge, xMid, badgeY);
+        ctx.restore();
+      } else if (xMojon != null) {
+        // Draw star marker even if best is not yet available
+        drawStarPolygon(ctx, xMojon, mTop + 16, 5, 7, 3.4, "#ffd700", "#7c3aed", 1.5);
+      }
+
       // Mojón & Best Simulation Labels at the same level (mTop + 3)
       ctx.save();
       ctx.font = "bold 8px monospace";
       ctx.textBaseline = "top";
-
-      const distFromMojon = (mojonDist != null && bestDist != null) ? (bestDist - mojonDist) : null;
-      const distFromMojonStr = distFromMojon != null ? `${distFromMojon >= 0 ? '+' : ''}${distFromMojon.toFixed(1)}m` : null;
 
       // Determine text alignments so Mojón and Best labels do not collide
       let mojonAlign = (xMojon != null && xMojon > mLeft + plotW / 2) ? "right" : "left";
@@ -25599,7 +25714,7 @@ EOF`;
       if (xMojon != null) {
         ctx.fillStyle = "#c026d3";
         ctx.textAlign = mojonAlign;
-        const mojonText = useZeroOrigin ? `📍Mojón 0m` : `📍Mojón ${mojonDist.toFixed(1)}m`;
+        const mojonText = useZeroOrigin ? `★ True Mojón (0m)` : `★ Mojón ${mojonDist.toFixed(1)}m`;
         ctx.fillText(mojonText, mojonAlign === "right" ? (xMojon - 4) : (xMojon + 4), mTop + 3);
       }
 
@@ -25727,6 +25842,213 @@ EOF`;
       return `rgba(${r}, ${g}, ${b}, ${opacity})`;
     }
 
+    function computeGridContourSegments(grid, level) {
+      if (!grid || !grid.cells || grid.cells.length < 2) return [];
+      const nStations = grid.cells.length;
+      const nOffsets = (grid.cells[0] || []).length;
+      if (nOffsets < 2) return [];
+
+      const segments = [];
+
+      function interp(vA, vB) {
+        const d = vB.error - vA.error;
+        const t = Math.abs(d) < 1e-9 ? 0.5 : Math.max(0, Math.min(1, (level - vA.error) / d));
+        return {
+          x: vA.x + t * (vB.x - vA.x),
+          y: vA.y + t * (vB.y - vA.y)
+        };
+      }
+
+      for (let sIdx = 0; sIdx < nStations - 1; sIdx++) {
+        const rowA = grid.cells[sIdx];
+        const rowB = grid.cells[sIdx + 1];
+        if (!rowA || !rowB) continue;
+
+        for (let nIdx = 0; nIdx < nOffsets - 1; nIdx++) {
+          const v00 = rowA[nIdx];
+          const v10 = rowB[nIdx];
+          const v11 = rowB[nIdx + 1];
+          const v01 = rowA[nIdx + 1];
+
+          if (!v00 || !v10 || !v11 || !v01) continue;
+          if (v00.error == null || v10.error == null || v11.error == null || v01.error == null) continue;
+
+          const e00 = v00.error;
+          const e10 = v10.error;
+          const e11 = v11.error;
+          const e01 = v01.error;
+
+          const minE = Math.min(e00, e10, e11, e01);
+          const maxE = Math.max(e00, e10, e11, e01);
+          if (level < minE || level > maxE) continue;
+
+          const b0 = e00 >= level ? 1 : 0;
+          const b1 = e10 >= level ? 2 : 0;
+          const b2 = e11 >= level ? 4 : 0;
+          const b3 = e01 >= level ? 8 : 0;
+          const caseIdx = b0 | b1 | b2 | b3;
+
+          if (caseIdx === 0 || caseIdx === 15) continue;
+
+          let pE0 = null, pE1 = null, pE2 = null, pE3 = null;
+          function getE0() { if (!pE0) pE0 = interp(v00, v10); return pE0; }
+          function getE1() { if (!pE1) pE1 = interp(v10, v11); return pE1; }
+          function getE2() { if (!pE2) pE2 = interp(v11, v01); return pE2; }
+          function getE3() { if (!pE3) pE3 = interp(v01, v00); return pE3; }
+
+          switch (caseIdx) {
+            case 1:
+            case 14:
+              segments.push([getE3(), getE0()]);
+              break;
+            case 2:
+            case 13:
+              segments.push([getE0(), getE1()]);
+              break;
+            case 3:
+            case 12:
+              segments.push([getE3(), getE1()]);
+              break;
+            case 4:
+            case 11:
+              segments.push([getE1(), getE2()]);
+              break;
+            case 5: {
+              const avg = (e00 + e10 + e11 + e01) / 4;
+              if (avg >= level) {
+                segments.push([getE3(), getE2()]);
+                segments.push([getE0(), getE1()]);
+              } else {
+                segments.push([getE3(), getE0()]);
+                segments.push([getE1(), getE2()]);
+              }
+              break;
+            }
+            case 6:
+            case 9:
+              segments.push([getE0(), getE2()]);
+              break;
+            case 7:
+            case 8:
+              segments.push([getE2(), getE3()]);
+              break;
+            case 10: {
+              const avg = (e00 + e10 + e11 + e01) / 4;
+              if (avg >= level) {
+                segments.push([getE0(), getE3()]);
+                segments.push([getE1(), getE2()]);
+              } else {
+                segments.push([getE0(), getE1()]);
+                segments.push([getE2(), getE3()]);
+              }
+              break;
+            }
+          }
+        }
+      }
+      return segments;
+    }
+
+    function drawGridContourLines(ctx, vp, canvasH, grid, minE, maxE, thresholdPercent) {
+      if (!grid || !grid.cells || grid.cells.length < 2) return;
+      const span = maxE - minE;
+      if (span <= 0.04) return;
+
+      let step = 0.5;
+      if (span < 0.6) step = 0.1;
+      else if (span < 1.2) step = 0.2;
+      else if (span < 2.5) step = 0.25;
+      else if (span < 5.0) step = 0.5;
+      else step = 1.0;
+
+      const tau = (typeof thresholdPercent === "number") ? thresholdPercent : null;
+      const levels = [];
+      const start = Math.ceil((minE + 0.01) / step) * step;
+      for (let lvl = start; lvl < maxE - 0.01; lvl += step) {
+        const rounded = Math.round(lvl * 100) / 100;
+        levels.push(rounded);
+      }
+
+      if (tau != null && tau > minE + 0.02 && tau < maxE - 0.02) {
+        if (!levels.some(l => Math.abs(l - tau) < step * 0.25)) {
+          levels.push(tau);
+          levels.sort((a, b) => a - b);
+        }
+      }
+
+      if (levels.length === 0) return;
+
+      ctx.save();
+
+      levels.forEach(lvl => {
+        const segs = computeGridContourSegments(grid, lvl);
+        if (!segs || segs.length === 0) return;
+
+        const isTau = (tau != null && Math.abs(lvl - tau) < 0.005);
+        const strokeColor = isTau ? "#00e5ff" : getNullModelRasterColor(lvl, minE, maxE, 0.90);
+        const lineWidth = isTau ? 2.0 : 1.2;
+
+        ctx.beginPath();
+        for (let i = 0; i < segs.length; i++) {
+          const sA = worldToScreenGIS(segs[i][0], vp, canvasH);
+          const sB = worldToScreenGIS(segs[i][1], vp, canvasH);
+          ctx.moveTo(sA.x, sA.y);
+          ctx.lineTo(sB.x, sB.y);
+        }
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = lineWidth;
+        if (isTau) {
+          ctx.setLineDash([4, 3]);
+        } else {
+          ctx.setLineDash([]);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Contour Label (at the longest segment)
+        if (segs.length > 0 && vp.scale > 6) {
+          let bestSeg = segs[0];
+          let maxLenSq = 0;
+          for (let i = 0; i < segs.length; i++) {
+            const dx = segs[i][1].x - segs[i][0].x;
+            const dy = segs[i][1].y - segs[i][0].y;
+            const lenSq = dx * dx + dy * dy;
+            if (lenSq > maxLenSq) {
+              maxLenSq = lenSq;
+              bestSeg = segs[i];
+            }
+          }
+          const midPt = {
+            x: (bestSeg[0].x + bestSeg[1].x) / 2,
+            y: (bestSeg[0].y + bestSeg[1].y) / 2
+          };
+          const sMid = worldToScreenGIS(midPt, vp, canvasH);
+          const lbl = isTau ? `τ ${lvl.toFixed(2)}%` : `${lvl.toFixed(2)}%`;
+          ctx.font = "bold 8px monospace";
+          const tw = ctx.measureText(lbl).width;
+
+          ctx.fillStyle = "rgba(10, 16, 26, 0.92)";
+          ctx.strokeStyle = strokeColor;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          if (typeof ctx.roundRect === "function") {
+            ctx.roundRect(sMid.x - tw / 2 - 3, sMid.y - 6, tw + 6, 12, 2.5);
+          } else {
+            ctx.rect(sMid.x - tw / 2 - 3, sMid.y - 6, tw + 6, 12);
+          }
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = isTau ? "#00e5ff" : "#ffffff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(lbl, sMid.x, sMid.y);
+        }
+      });
+
+      ctx.restore();
+    }
+
     function drawNullModelRasterGIS(ctx, vp, canvasH) {
       if (!state.nullModel || !state.nullModel.enabled) return;
       if (state.nullModel.showRaster === false) return;
@@ -25752,42 +26074,49 @@ EOF`;
 
       ctx.save();
 
-      // 1. Draw each cell quad
-      const nStations = grid.cells.length;
-      for (let sIdx = 0; sIdx < nStations; sIdx++) {
-        const row = grid.cells[sIdx];
-        if (!row) continue;
-        for (let nIdx = 0; nIdx < row.length; nIdx++) {
-          const cell = row[nIdx];
-          if (!cell || cell.error == null) continue;
+      // 1. Draw each cell quad (only if Color Fill is checked)
+      if (state.nullModel.showRasterFill !== false) {
+        const nStations = grid.cells.length;
+        for (let sIdx = 0; sIdx < nStations; sIdx++) {
+          const row = grid.cells[sIdx];
+          if (!row) continue;
+          for (let nIdx = 0; nIdx < row.length; nIdx++) {
+            const cell = row[nIdx];
+            if (!cell || cell.error == null) continue;
 
-          const cx = cell.x, cy = cell.y;
-          const p1 = { x: cx - halfS * ux - halfN * nx, y: cy - halfS * uy - halfN * ny };
-          const p2 = { x: cx + halfS * ux - halfN * nx, y: cy + halfS * uy - halfN * ny };
-          const p3 = { x: cx + halfS * ux + halfN * nx, y: cy + halfS * uy + halfN * ny };
-          const p4 = { x: cx - halfS * ux + halfN * nx, y: cy - halfS * uy + halfN * ny };
+            const cx = cell.x, cy = cell.y;
+            const p1 = { x: cx - halfS * ux - halfN * nx, y: cy - halfS * uy - halfN * ny };
+            const p2 = { x: cx + halfS * ux - halfN * nx, y: cy + halfS * uy - halfN * ny };
+            const p3 = { x: cx + halfS * ux + halfN * nx, y: cy + halfS * uy + halfN * ny };
+            const p4 = { x: cx - halfS * ux + halfN * nx, y: cy - halfS * uy + halfN * ny };
 
-          const s1 = worldToScreenGIS(p1, vp, canvasH);
-          const s2 = worldToScreenGIS(p2, vp, canvasH);
-          const s3 = worldToScreenGIS(p3, vp, canvasH);
-          const s4 = worldToScreenGIS(p4, vp, canvasH);
+            const s1 = worldToScreenGIS(p1, vp, canvasH);
+            const s2 = worldToScreenGIS(p2, vp, canvasH);
+            const s3 = worldToScreenGIS(p3, vp, canvasH);
+            const s4 = worldToScreenGIS(p4, vp, canvasH);
 
-          ctx.beginPath();
-          ctx.moveTo(s1.x, s1.y);
-          ctx.lineTo(s2.x, s2.y);
-          ctx.lineTo(s3.x, s3.y);
-          ctx.lineTo(s4.x, s4.y);
-          ctx.closePath();
+            ctx.beginPath();
+            ctx.moveTo(s1.x, s1.y);
+            ctx.lineTo(s2.x, s2.y);
+            ctx.lineTo(s3.x, s3.y);
+            ctx.lineTo(s4.x, s4.y);
+            ctx.closePath();
 
-          ctx.fillStyle = getNullModelRasterColor(cell.error, minE, maxE, opacity);
-          ctx.fill();
+            ctx.fillStyle = getNullModelRasterColor(cell.error, minE, maxE, opacity);
+            ctx.fill();
 
-          if (vp.scale > 15) {
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
+            if (vp.scale > 15) {
+              ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
           }
         }
+      }
+
+      // 1b. Error Contour Isolines (Marching Squares)
+      if (state.nullModel.showContours !== false) {
+        drawGridContourLines(ctx, vp, canvasH, grid, minE, maxE, state.nullModel.thresholdPercent);
       }
 
       // 2. Swath corridor border outlines
@@ -25829,10 +26158,111 @@ EOF`;
         ctx.setLineDash([]);
       }
 
-      // 4. Best global pixel marker
+      // Resolve Field Mojón distance along axis
+      let mojonDist = state.nullModel.mojonDist;
+      if (mojonDist == null) {
+        let testAnchor = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
+        if (!testAnchor && (state.anchors || []).length > 0) {
+          let bestD = Infinity, bestA = null;
+          state.anchors.forEach(a => {
+            if (a.active !== false && a.enabled !== false && a.dst) {
+              const p = projectPointOnAxis(a.dst, targetAxis);
+              if (p.d < bestD) { bestD = p.d; bestA = a; }
+            }
+          });
+          testAnchor = bestA;
+        }
+        if (testAnchor && testAnchor.dst) {
+          const pr = projectPointOnAxis(testAnchor.dst, targetAxis);
+          mojonDist = pr.t * geom.len;
+          state.nullModel.mojonDist = mojonDist;
+        }
+      }
+
+      // 4. Best global pixel marker & True Mojón Star with Connection Line
+      let sBest = null;
+      let bp = null;
       if (grid.bestCell) {
-        const bp = { x: grid.bestCell.bestX || grid.bestCell.x, y: grid.bestCell.bestY || grid.bestCell.y };
-        const sBest = worldToScreenGIS(bp, vp, canvasH);
+        bp = { x: grid.bestCell.bestX || grid.bestCell.x, y: grid.bestCell.bestY || grid.bestCell.y };
+        sBest = worldToScreenGIS(bp, vp, canvasH);
+      }
+
+      let sMojon = null;
+      let pMojon = null;
+      if (mojonDist != null && mojonDist >= -5 && mojonDist <= geom.len + 5) {
+        pMojon = {
+          x: targetAxis.p1.x + mojonDist * ux,
+          y: targetAxis.p1.y + mojonDist * uy
+        };
+        sMojon = worldToScreenGIS(pMojon, vp, canvasH);
+      }
+
+      // Connecting Bridge Line between True Mojón and Best Pixel Candidate
+      if (sMojon && sBest && bp && pMojon) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(sMojon.x, sMojon.y);
+        ctx.lineTo(sBest.x, sBest.y);
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Offset distance badge in the middle
+        const offDist = Math.hypot(bp.x - pMojon.x, bp.y - pMojon.y);
+        const sMidX = (sMojon.x + sBest.x) / 2;
+        const sMidY = (sMojon.y + sBest.y) / 2;
+        const offLbl = `Off by +${offDist.toFixed(2)}m`;
+        ctx.font = "bold 8.5px monospace";
+        const ow = ctx.measureText(offLbl).width;
+
+        ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(sMidX - ow / 2 - 4, sMidY - 7, ow + 8, 14, 3);
+        } else {
+          ctx.rect(sMidX - ow / 2 - 4, sMidY - 7, ow + 8, 14);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffd600";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(offLbl, sMidX, sMidY);
+        ctx.restore();
+      }
+
+      // True Mojón Original Location Star Marker (★)
+      if (sMojon) {
+        drawStarPolygon(ctx, sMojon.x, sMojon.y, 5, 8.0, 4.0, "#ffd700", "#7c3aed", 1.8);
+
+        ctx.font = "bold 8.5px monospace";
+        const mojonLbl = state.nullModel.zeroOrigin ? "★ True Mojón (0m)" : `★ Mojón (${mojonDist.toFixed(1)}m)`;
+        const mw = ctx.measureText(mojonLbl).width;
+        ctx.fillStyle = "rgba(10, 16, 26, 0.92)";
+        ctx.strokeStyle = "#e040fb";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(sMojon.x - mw / 2 - 4, sMojon.y + 10, mw + 8, 15, 3);
+        } else {
+          ctx.rect(sMojon.x - mw / 2 - 4, sMojon.y + 10, mw + 8, 15);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#e040fb";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(mojonLbl, sMojon.x, sMojon.y + 17.5);
+      }
+
+      // Best global pixel marker
+      if (sBest && grid.bestCell) {
         ctx.beginPath();
         ctx.arc(sBest.x, sBest.y, 6.5, 0, Math.PI * 2);
         ctx.fillStyle = "#00e676";
@@ -25842,7 +26272,7 @@ EOF`;
         ctx.stroke();
 
         ctx.font = "bold 9px monospace";
-        const bestLbl = `★ Best: ${grid.bestCell.error.toFixed(2)}% (s:${grid.bestCell.s.toFixed(1)}m, n:${grid.bestCell.n > 0 ? '+' : ''}${grid.bestCell.n.toFixed(2)}m)`;
+        const bestLbl = `🏆 Best: ${grid.bestCell.error.toFixed(2)}% (s:${grid.bestCell.s.toFixed(1)}m, n:${grid.bestCell.n > 0 ? '+' : ''}${grid.bestCell.n.toFixed(2)}m)`;
         const bw = ctx.measureText(bestLbl).width;
         ctx.fillStyle = "rgba(10, 16, 26, 0.92)";
         ctx.strokeStyle = "#00e676";
@@ -26391,6 +26821,9 @@ EOF`;
         ctx.stroke();
         ctx.setLineDash([]);
 
+        // Star marker at top of vertical line
+        drawStarPolygon(ctx, mojonPt.sT.x, mojonPt.sT.y, 5, 7.5, 3.8, "#ffd700", "#7c3aed", 1.5);
+
         // Notch marker at baseline
         ctx.beginPath();
         ctx.arc(mojonPt.sB.x, mojonPt.sB.y, 3.5, 0, Math.PI * 2);
@@ -26429,6 +26862,20 @@ EOF`;
         ctx.fill();
       }
 
+      // Connecting Bridge Line between Mojón and Best Fit Station
+      if (mojonPt && bestPt && bestPt.s && bestPt.s.meanError != null) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(mojonPt.sT.x, mojonPt.sT.y);
+        ctx.lineTo(bestPt.sT.x, bestPt.sT.y);
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 1.6;
+        ctx.setLineDash([3, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
       // Non-overlapping Floating Badges for Mojón and Best Fit Simulation (at same vertical level)
       if (probeIdx !== bestPt?.s?.idx) {
         ctx.save();
@@ -26463,7 +26910,7 @@ EOF`;
         };
 
         if (mojonPt) {
-          const mojonText = useZeroOrigin ? "📍 Mojón 0m" : `📍 Mojón ${mojonDist.toFixed(1)}m`;
+          const mojonText = useZeroOrigin ? "★ True Mojón 0m" : `★ Mojón ${mojonDist.toFixed(1)}m`;
           drawBadgeCard(mojonText, mojonPt, "#e040fb", isMojonEarlier, -22);
         }
 
@@ -26641,8 +27088,27 @@ EOF`;
 
       const chkShowRaster = document.getElementById("chk-null-model-show-raster");
       if (chkShowRaster) {
+        chkShowRaster.checked = state.nullModel.showRaster !== false;
         chkShowRaster.addEventListener("change", e => {
           state.nullModel.showRaster = e.target.checked;
+          redrawTrueCanvas();
+        });
+      }
+
+      const chkShowContours = document.getElementById("chk-null-model-show-contours");
+      if (chkShowContours) {
+        chkShowContours.checked = state.nullModel.showContours !== false;
+        chkShowContours.addEventListener("change", e => {
+          state.nullModel.showContours = e.target.checked;
+          redrawTrueCanvas();
+        });
+      }
+
+      const chkShowRasterFill = document.getElementById("chk-null-model-show-raster-fill");
+      if (chkShowRasterFill) {
+        chkShowRasterFill.checked = state.nullModel.showRasterFill !== false;
+        chkShowRasterFill.addEventListener("change", e => {
+          state.nullModel.showRasterFill = e.target.checked;
           redrawTrueCanvas();
         });
       }
