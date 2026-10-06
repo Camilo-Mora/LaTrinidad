@@ -1659,20 +1659,20 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <span style="cursor:pointer;color:#94a3b8;font-size:0.75rem;" id="btn-close-help-box">✕</span>
                 </div>
                 <div>
-                  <strong>• Principle:</strong> Historical deeds recorded angles rounded to the nearest integer degree (±0.5° error). This tool tests the likelihood that deed segments can bridge physical field anchors by flexing angles within this tolerance while <em>strictly preserving deed lengths</em> and <em>minimizing property area change</em>.
+                  <strong>• Principle:</strong> Historical deed angles create varying lateral displacement depending on segment length. This tool controls the resulting <em>angular/lateral displacement</em> in meters (testing against IGAC allowable precision of <strong>±1.04 m</strong> for 1:2,000 plans) while <em>strictly preserving deed lengths</em> and <em>minimizing property area change</em>.
                 </div>
                 <div>
                   <strong>• ⚓ Fixed vs 🎈 Float Anchors:</strong>
                   <ul style="margin:2px 0 2px 14px;padding:0;">
-                    <li><strong>Both Fixed (⚓ ➔ ⚓):</strong> Closed traverse that closes the gap between anchors with minimal area change.</li>
-                    <li><strong>Fixed ➔ Float (⚓ ➔ 🎈):</strong> Open traverse forward projection with inward tolerance flex to measure the true displacement of the field mojón.</li>
+                    <li><strong>Both Fixed (⚓ ➔ ⚓):</strong> Closed traverse that closes the gap between anchors within allowable lateral displacement.</li>
+                    <li><strong>Fixed ➔ Float (⚓ ➔ 🎈):</strong> Open traverse forward projection with displacement tolerance flex to measure the offset to the field mojón.</li>
                   </ul>
                 </div>
                 <div>
                   <strong>• Quick How-To:</strong>
                   1. Click connected segments on canvas.<br>
                   2. Toggle <em>Reverse Direction</em> if surveyed opposite to the polygon order.<br>
-                  3. Adjust Tolerance or click <em>Auto-Fit</em>.<br>
+                  3. Adjust Displacement Tolerance (e.g. ±1.04m) or click <em>Auto-Fit</em>.<br>
                   4. Click <em>Preview</em> then <em>Apply Changes</em>.
                 </div>
               </div>
@@ -1682,19 +1682,19 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 ℹ Click connected segments on canvas. For 1 segment, choose the anchor endpoint.
               </div>
 
-              <!-- Universal Tolerance Slider -->
+              <!-- Universal Tolerance Slider (Allowable Displacement in Meters) -->
               <div style="display:flex;flex-direction:column;gap:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 9px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.71rem;">
-                  <span style="color:var(--text-muted);font-weight:600;">Tolerance for All Segments:</span>
-                  <strong id="seg-adjust-tol-val" style="color:var(--accent-cyan);font-family:monospace;font-size:0.74rem;">± 0.50°</strong>
+                  <span style="color:var(--text-muted);font-weight:600;">Displacement Tolerance:</span>
+                  <strong id="seg-adjust-tol-val" style="color:var(--accent-cyan);font-family:monospace;font-size:0.74rem;">± 1.04 m (IGAC)</strong>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
-                  <input type="range" id="seg-adjust-tol-slider" min="0.00" max="5.00" step="0.10" value="0.50" class="opacity-slider" style="flex:1;height:4px;accent-color:var(--accent-cyan);cursor:pointer;">
+                  <input type="range" id="seg-adjust-tol-slider" min="0.05" max="5.00" step="0.05" value="1.04" class="opacity-slider" style="flex:1;height:4px;accent-color:var(--accent-cyan);cursor:pointer;">
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:0.60rem;color:var(--text-muted);">
-                  <span>0.00° (Exact)</span>
-                  <span style="color:var(--accent-cyan);">0.50°</span>
-                  <span>5.00°</span>
+                  <span>0.05m (Exact)</span>
+                  <span style="color:var(--accent-cyan);" title="IGAC Graphical Tolerance standard for 1:2000 plan">1.04m (IGAC)</span>
+                  <span>5.00m</span>
                 </div>
               </div>
 
@@ -1812,7 +1812,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <strong id="seg-adjust-delta-area" style="color:#ffd600;font-family:monospace;font-size:0.74rem;">—</strong>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                  <span style="color:var(--text-muted);">Max Angle Shift Used:</span>
+                  <span style="color:var(--text-muted);">Max Displ. Shift Used:</span>
                   <strong id="seg-adjust-max-angle" style="color:var(--accent-cyan);font-family:monospace;font-size:0.74rem;">—</strong>
                 </div>
               </div>
@@ -6579,7 +6579,8 @@ EOF`;
       segmentsAdjust: {
         active: false,
         selectedSegIndices: [],
-        toleranceDeg: 0.50,
+        toleranceDist: 1.04,      // allowable lateral/angular displacement in meters (IGAC 1:2000 precision default: 1.04m)
+        toleranceDeg: 0.50,       // fallback/secondary angle tolerance
         singleAnchorIdx: 0, // 0: start, 1: end
         deedData: {},       // { [segIdx]: { length, bearing, azimuth } }
         reverseProcessing: false, // when true, internally inverts bearings by 180° for solver while preserving exact deed rumbos in UI and JSON
@@ -8370,6 +8371,11 @@ EOF`;
 
       // Layer 9: Measuring Tool overlay
       drawMeasuringToolGIS(trueCtx, vp, h);
+
+      // Layer 10: Segments Adjust Tool overlay
+      if (typeof drawSegmentsAdjustOverlay === "function") {
+        drawSegmentsAdjustOverlay(trueCtx, vp, h);
+      }
     }
 
     /* ── Measuring Tool Visual Renderer ──────────────────────────────── */
@@ -12551,6 +12557,16 @@ EOF`;
         if (typeof setToolMode === "function") setToolMode("pan");
         trueCanvas.style.cursor = "crosshair";
         updateStatus("📐 Segments Adjust mode active — click connected segments on the reconstructed polygon to select them.");
+        const tolSlider = document.getElementById("seg-adjust-tol-slider");
+        const tolVal = document.getElementById("seg-adjust-tol-val");
+        const curTol = (state.segmentsAdjust.toleranceDist != null && !isNaN(state.segmentsAdjust.toleranceDist))
+          ? Number(state.segmentsAdjust.toleranceDist)
+          : 1.04;
+        if (tolSlider) tolSlider.value = curTol;
+        if (tolVal) {
+          const igacTag = (Math.abs(curTol - 1.04) < 0.03) ? " (IGAC)" : "";
+          tolVal.textContent = `± ${curTol.toFixed(2)} m${igacTag}`;
+        }
         updateReverseModeUI();
         renderSegmentsAdjustTable();
         updateSegmentsAdjustMetrics();
@@ -12821,8 +12837,10 @@ EOF`;
       const N = poly.vertices.length;
       const indices = sa.selectedSegIndices;
       const k = indices.length;
-      const tauDeg = sa.toleranceDeg != null ? sa.toleranceDeg : 0.50;
-      const tau = tauDeg * Math.PI / 180;
+      // Allowable lateral / angular displacement tolerance in meters (IGAC standard 1.04m default)
+      const tolDist = (sa.toleranceDist != null && !isNaN(sa.toleranceDist) && sa.toleranceDist > 0)
+        ? Number(sa.toleranceDist)
+        : (sa.toleranceDeg != null ? sa.toleranceDeg * 2.0 : 1.04);
 
       // Helper to compute polygon area
       function calcPolyArea(verts) {
@@ -12857,14 +12875,14 @@ EOF`;
         }
 
         const isAnchorStart = (sa.singleAnchorIdx === 0);
-        const tauRad = (sa.toleranceDeg || 0) * Math.PI / 180;
-        const tauDeg = sa.toleranceDeg || 0;
+        const tauRad = (L > 1e-4) ? Math.asin(Math.min(1.0, tolDist / L)) : (Math.PI / 2);
+        const tauDeg = tauRad * 180 / Math.PI;
         const opt = sa.optObjective || (sa.inwardFlex !== false ? "area" : "none");
 
         let effAz = az;
         let angleShiftUsed = 0;
 
-        if (opt === "mojon" && tauDeg > 0) {
+        if (opt === "mojon" && tolDist > 0) {
           // Steer towards target vertex (vB if isAnchorStart, else vA)
           const targetAz = isAnchorStart
             ? (Math.atan2(vB.x - vA.x, vB.y - vA.y) * 180 / Math.PI + 360) % 360
@@ -12875,7 +12893,7 @@ EOF`;
           const tilt = Math.sign(diff) * Math.min(tauDeg, Math.abs(diff));
           effAz = (az + tilt + 360) % 360;
           angleShiftUsed = Math.abs(tilt);
-        } else if (opt === "area" && tauRad > 0) {
+        } else if (opt === "area" && tolDist > 0) {
           let sumX = 0, sumY = 0;
           poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
           const centX = sumX / N, centY = sumY / N;
@@ -12913,13 +12931,15 @@ EOF`;
         const newArea = calcPolyArea(newVerts);
         const deltaArea = newArea - origArea;
         const optLabel = opt === "mojon" ? "🎯 Min Mojón" : (opt === "area" ? "📐 Min Area" : "✓ Exact");
+        const displUsed = L * Math.abs(Math.sin(angleShiftUsed * Math.PI / 180));
 
         return {
           feasible: true,
           candidateVerts: newVerts,
           deltaArea: deltaArea,
+          maxDisplacement: displUsed,
           maxAngleDelta: angleShiftUsed,
-          statusText: `${optLabel} from Anchor`,
+          statusText: `${optLabel} from Anchor (Displ: ${displUsed.toFixed(2)}m)`,
           previewChain: [
             { x: newVerts[vAIdx].x, y: newVerts[vAIdx].y },
             { x: newVerts[vBIdx].x, y: newVerts[vBIdx].y }
@@ -12939,6 +12959,7 @@ EOF`;
 
       const L = [];
       const theta0 = [];
+      const segTauRads = [];
 
       let sumL = 0;
       for (let j = 0; j < k; j++) {
@@ -12951,6 +12972,10 @@ EOF`;
         L.push(segL);
         sumL += segL;
 
+        // Angular budget per segment based on allowable lateral displacement tolerance
+        const tau_j = (segL > 1e-4) ? Math.asin(Math.min(1.0, tolDist / segL)) : (Math.PI / 2);
+        segTauRads.push(tau_j);
+
         let az = dData.bearing ? parseDeedBearing(dData.bearing) : null;
         if (az != null && sa.reverseProcessing) {
           az = (az + 180) % 360;
@@ -12962,12 +12987,12 @@ EOF`;
       }
 
       /**
-       * Numerically optimizes chain bearings within [-tauRad, +tauRad]
+       * Numerically optimizes chain bearings within per-segment bounds [-tau_j, +tau_j]
        * to strictly minimize Euclidean distance to a target mojón.
        */
-      function optimizeThetasForTarget(startPt, targetPt, lengths, initialThetas, tauRad, isBackward = false) {
+      function optimizeThetasForTarget(startPt, targetPt, lengths, initialThetas, tauLimits, isBackward = false) {
         const kSegs = lengths.length;
-        if (kSegs === 0 || tauRad <= 1e-6) return [...initialThetas];
+        if (kSegs === 0) return [...initialThetas];
 
         const sign = isBackward ? -1 : 1;
         let currentThetas = [...initialThetas];
@@ -13013,8 +13038,9 @@ EOF`;
             let diff = newTh - initialThetas[j];
             while (diff > Math.PI) diff -= 2 * Math.PI;
             while (diff < -Math.PI) diff += 2 * Math.PI;
-            if (diff > tauRad) newTh = initialThetas[j] + tauRad;
-            else if (diff < -tauRad) newTh = initialThetas[j] - tauRad;
+            const lim = tauLimits[j];
+            if (diff > lim) newTh = initialThetas[j] + lim;
+            else if (diff < -lim) newTh = initialThetas[j] - lim;
             nextThetas[j] = newTh;
           }
 
@@ -13038,22 +13064,24 @@ EOF`;
       // Multi-segment Float Mode: Forward (A Fixed, B Float) or Backward (B Fixed, A Float)
       if (sa.anchorAMode === "fixed" && sa.anchorBMode === "float") {
         // Forward Open Traverse from pA to pB
-        const tauRad = (sa.toleranceDeg || 0) * Math.PI / 180;
         const opt = sa.optObjective || (sa.inwardFlex !== false ? "area" : "none");
 
         let effThetas = [...theta0];
         let maxAngleDeltaDeg = 0;
+        let maxDisplUsed = 0;
 
-        if (opt === "mojon" && tauRad > 0) {
-          effThetas = optimizeThetasForTarget(pA, pB, L, theta0, tauRad, false);
+        if (opt === "mojon" && tolDist > 0) {
+          effThetas = optimizeThetasForTarget(pA, pB, L, theta0, segTauRads, false);
           let maxD = 0;
           for (let j = 0; j < k; j++) {
             let diff = Math.abs(effThetas[j] - theta0[j]);
             if (diff > Math.PI) diff = 2 * Math.PI - diff;
             if (diff > maxD) maxD = diff;
+            const dMeters = L[j] * Math.abs(Math.sin(diff));
+            if (dMeters > maxDisplUsed) maxDisplUsed = dMeters;
           }
           maxAngleDeltaDeg = maxD * 180 / Math.PI;
-        } else if (opt === "area" && tauRad > 0) {
+        } else if (opt === "area" && tolDist > 0) {
           // Centroid for inward orientation
           let sumX = 0, sumY = 0;
           poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
@@ -13072,10 +13100,14 @@ EOF`;
             let diff = centAz - az;
             while (diff > Math.PI) diff -= 2 * Math.PI;
             while (diff < -Math.PI) diff += 2 * Math.PI;
-            const tilt = Math.sign(diff) * Math.min(tauRad, Math.abs(diff));
+            const lim = segTauRads[j];
+            const tilt = Math.sign(diff) * Math.min(lim, Math.abs(diff));
             effThetas[j] = az + tilt;
+            const tiltDeg = Math.abs(tilt) * 180 / Math.PI;
+            if (tiltDeg > maxAngleDeltaDeg) maxAngleDeltaDeg = tiltDeg;
+            const dMeters = L[j] * Math.abs(Math.sin(tilt));
+            if (dMeters > maxDisplUsed) maxDisplUsed = dMeters;
           }
-          maxAngleDeltaDeg = sa.toleranceDeg || 0;
         }
 
         const chainPts = [{ x: pA.x, y: pA.y }];
@@ -13111,6 +13143,7 @@ EOF`;
           candidateVerts: fullVerts,
           previewChain: chainPts,
           deltaArea: deltaArea,
+          maxDisplacement: maxDisplUsed,
           maxAngleDelta: maxAngleDeltaDeg,
           statusText: `${optLabel}: Mojón P${endVertIdx + 1} offset ${offsetDist.toFixed(2)}m (${offsetBearing})`,
           targetMojon: {
@@ -13125,22 +13158,24 @@ EOF`;
 
       if (sa.anchorAMode === "float" && sa.anchorBMode === "fixed") {
         // Backward Open Traverse from pB down to pA
-        const tauRad = (sa.toleranceDeg || 0) * Math.PI / 180;
         const opt = sa.optObjective || (sa.inwardFlex !== false ? "area" : "none");
 
         let effThetas = [...theta0];
         let maxAngleDeltaDeg = 0;
+        let maxDisplUsed = 0;
 
-        if (opt === "mojon" && tauRad > 0) {
-          effThetas = optimizeThetasForTarget(pB, pA, L, theta0, tauRad, true);
+        if (opt === "mojon" && tolDist > 0) {
+          effThetas = optimizeThetasForTarget(pB, pA, L, theta0, segTauRads, true);
           let maxD = 0;
           for (let j = 0; j < k; j++) {
             let diff = Math.abs(effThetas[j] - theta0[j]);
             if (diff > Math.PI) diff = 2 * Math.PI - diff;
             if (diff > maxD) maxD = diff;
+            const dMeters = L[j] * Math.abs(Math.sin(diff));
+            if (dMeters > maxDisplUsed) maxDisplUsed = dMeters;
           }
           maxAngleDeltaDeg = maxD * 180 / Math.PI;
-        } else if (opt === "area" && tauRad > 0) {
+        } else if (opt === "area" && tolDist > 0) {
           let sumX = 0, sumY = 0;
           poly.vertices.forEach(v => { sumX += v.x; sumY += v.y; });
           const centX = sumX / N, centY = sumY / N;
@@ -13158,10 +13193,14 @@ EOF`;
             let diff = centAz - az;
             while (diff > Math.PI) diff -= 2 * Math.PI;
             while (diff < -Math.PI) diff += 2 * Math.PI;
-            const tilt = Math.sign(diff) * Math.min(tauRad, Math.abs(diff));
+            const lim = segTauRads[j];
+            const tilt = Math.sign(diff) * Math.min(lim, Math.abs(diff));
             effThetas[j] = az + tilt;
+            const tiltDeg = Math.abs(tilt) * 180 / Math.PI;
+            if (tiltDeg > maxAngleDeltaDeg) maxAngleDeltaDeg = tiltDeg;
+            const dMeters = L[j] * Math.abs(Math.sin(tilt));
+            if (dMeters > maxDisplUsed) maxDisplUsed = dMeters;
           }
-          maxAngleDeltaDeg = sa.toleranceDeg || 0;
         }
 
         const chainPts = new Array(k + 1);
@@ -13198,6 +13237,7 @@ EOF`;
           candidateVerts: fullVerts,
           previewChain: chainPts,
           deltaArea: deltaArea,
+          maxDisplacement: maxDisplUsed,
           maxAngleDelta: maxAngleDeltaDeg,
           statusText: `${optLabel}: Mojón P${startVertIdx + 1} offset ${offsetDist.toFixed(2)}m (${offsetBearing})`,
           targetMojon: {
@@ -13215,6 +13255,7 @@ EOF`;
           feasible: false,
           statusText: `Unreachable (Sum ${sumL.toFixed(1)}m < Chord ${chordDist.toFixed(1)}m)`,
           deltaArea: null,
+          maxDisplacement: null,
           maxAngleDelta: null,
           candidateVerts: null,
           previewChain: null
@@ -13254,6 +13295,7 @@ EOF`;
             feasible: false,
             statusText: `2-Bar closure impossible (d=${d.toFixed(1)}m, r1+r2=${(r0+r1).toFixed(1)}m)`,
             deltaArea: null,
+            maxDisplacement: null,
             maxAngleDelta: null,
             candidateVerts: null,
             previewChain: null
@@ -13283,12 +13325,17 @@ EOF`;
           let d1 = Math.abs(th1 - theta0[1]); if (d1 > Math.PI) d1 = 2 * Math.PI - d1;
           const maxD = Math.max(d0, d1);
 
+          // Measure resulting lateral displacements
+          const disp0 = r0 * Math.sin(d0);
+          const disp1 = r1 * Math.sin(d1);
+          const maxDisp = Math.max(disp0, disp1);
+
           const chainPts = [pA, ptInter, pB];
           const fullVerts = assembleFullPolyVerts(chainPts);
           const newArea = calcPolyArea(fullVerts);
           const dArea = newArea - origArea;
 
-          const isWithin = maxD <= tau + 1e-5;
+          const isWithin = maxDisp <= tolDist + 1e-4;
           if (isWithin) {
             if (bestSol === null || dArea < minAddedArea) {
               minAddedArea = dArea;
@@ -13297,16 +13344,18 @@ EOF`;
                 chainPts,
                 fullVerts,
                 maxAngleDelta: maxD * 180 / Math.PI,
+                maxDisplacement: maxDisp,
                 deltaArea: dArea,
                 feasible: true
               };
             }
-          } else if (bestSol === null || (!bestSol.feasible && maxD < bestSol.maxAngleDelta * Math.PI / 180)) {
+          } else if (bestSol === null || (!bestSol.feasible && maxDisp < bestSol.maxDisplacement)) {
             bestSol = {
               thetas: [th0, th1],
               chainPts,
               fullVerts,
               maxAngleDelta: maxD * 180 / Math.PI,
+              maxDisplacement: maxDisp,
               deltaArea: dArea,
               feasible: false
             };
@@ -13316,8 +13365,11 @@ EOF`;
         if (bestSol) {
           return {
             feasible: bestSol.feasible,
-            statusText: bestSol.feasible ? "✓ Solution found" : `Tolerance ±${tauDeg.toFixed(2)}° too tight (Needs ±${bestSol.maxAngleDelta.toFixed(2)}°)`,
+            statusText: bestSol.feasible
+              ? `✓ Solution found (Displ: ${bestSol.maxDisplacement.toFixed(2)}m ≤ ±${tolDist.toFixed(2)}m)`
+              : `Displacement ±${tolDist.toFixed(2)}m tight (Needs ±${bestSol.maxDisplacement.toFixed(2)}m)`,
             deltaArea: bestSol.deltaArea,
+            maxDisplacement: bestSol.maxDisplacement,
             maxAngleDelta: bestSol.maxAngleDelta,
             candidateVerts: bestSol.fullVerts,
             previewChain: bestSol.chainPts
@@ -13411,26 +13463,32 @@ EOF`;
         const newArea = calcPolyArea(fullVerts);
         const dArea = newArea - origArea;
 
-        let maxDev = 0;
+        let maxDevRad = 0;
+        let maxDisplMeters = 0;
         let penalty = 0;
         for (let j = 0; j < k; j++) {
           let diff = Math.abs(closedThetas[j] - theta0[j]);
           if (diff > Math.PI) diff = 2 * Math.PI - diff;
-          if (diff > maxDev) maxDev = diff;
-          if (diff > tau) {
-            const excess = diff - tau;
-            penalty += excess * excess * 1e6;
+          if (diff > maxDevRad) maxDevRad = diff;
+
+          const segDispl = L[j] * Math.sin(diff);
+          if (segDispl > maxDisplMeters) maxDisplMeters = segDispl;
+
+          if (segDispl > tolDist) {
+            const excess = segDispl - tolDist;
+            penalty += excess * excess * 1e5;
           }
         }
 
         return {
           loss: dArea + penalty,
           deltaArea: dArea,
-          maxDev,
+          maxDevRad,
+          maxDisplMeters,
           thetas: closedThetas,
           chainPts,
           fullVerts,
-          isWithinTol: maxDev <= tau + 1e-4
+          isWithinTol: maxDisplMeters <= tolDist + 1e-4
         };
       }
 
@@ -13459,13 +13517,14 @@ EOF`;
           const ev = evaluateAlpha(point);
           if (ev.isWithinTol && (!bestEval.isWithinTol || ev.deltaArea < bestEval.deltaArea)) {
             bestEval = ev;
-          } else if (!bestEval.isWithinTol && ev.maxDev < bestEval.maxDev) {
+          } else if (!bestEval.isWithinTol && ev.maxDisplMeters < bestEval.maxDisplMeters) {
             bestEval = ev;
           }
         }
       }
 
-      const maxAngleDeltaDeg = bestEval.maxDev * 180 / Math.PI;
+      const maxAngleDeltaDeg = bestEval.maxDevRad * 180 / Math.PI;
+      const maxDisplMeters = bestEval.maxDisplMeters;
       const isFeasible = bestEval.isWithinTol;
 
       // Check if deed bearings are pointing generally opposite to the chord vector AB
@@ -13478,8 +13537,11 @@ EOF`;
 
       return {
         feasible: isFeasible,
-        statusText: isFeasible ? "✓ Solution found" : `Tolerance ±${tauDeg.toFixed(2)}° too tight (Needs ±${maxAngleDeltaDeg.toFixed(2)}°)`,
+        statusText: isFeasible
+          ? `✓ Solution found (Displ: ${maxDisplMeters.toFixed(2)}m ≤ ±${tolDist.toFixed(2)}m)`
+          : `Displacement ±${tolDist.toFixed(2)}m tight (Needs ±${maxDisplMeters.toFixed(2)}m)`,
         deltaArea: bestEval.deltaArea,
+        maxDisplacement: maxDisplMeters,
         maxAngleDelta: maxAngleDeltaDeg,
         candidateVerts: bestEval.fullVerts,
         previewChain: bestEval.chainPts,
@@ -13530,6 +13592,8 @@ EOF`;
       sa.previewVerts = sol.previewChain || sol.candidateVerts;
       sa.previewMetrics = sol;
 
+      const curTolDist = (sa.toleranceDist != null && !isNaN(sa.toleranceDist)) ? Number(sa.toleranceDist) : 1.04;
+
       if (statusTextEl) {
         if (!sol.feasible && sol.isOppositeDirection) {
           statusTextEl.innerHTML = `<span style="color:#ffb300;font-size:0.67rem;">⚠️ Sentido de escritura inverso:</span> <button id="btn-quick-toggle-rev" type="button" style="background:var(--accent-cyan);color:#0f172a;font-weight:700;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.65rem;margin-left:4px;" title="Activar inversión de dirección para procesar">Invertir Dirección</button>`;
@@ -13537,18 +13601,21 @@ EOF`;
           if (qBtn) {
             qBtn.addEventListener("click", () => toggleReverseProcessingMode(true));
           }
-        } else if (!sol.feasible && sol.maxAngleDelta > 0 && sol.maxAngleDelta <= 5.00) {
-          const needed = (Math.ceil(sol.maxAngleDelta * 10) / 10).toFixed(2);
-          statusTextEl.innerHTML = `<span style="color:#ffb300;font-size:0.66rem;">Tol ±${sa.toleranceDeg.toFixed(2)}° tight (needs ±${sol.maxAngleDelta.toFixed(2)}°):</span> <button id="btn-quick-fit-tol" type="button" style="background:var(--accent-cyan);color:#0f172a;font-weight:700;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.65rem;margin-left:4px;" title="Set tolerance to ±${needed}°">Auto-Fit (±${needed}°)</button>`;
+        } else if (!sol.feasible && sol.maxDisplacement != null && sol.maxDisplacement > 0 && sol.maxDisplacement <= 5.00) {
+          const needed = (Math.ceil(sol.maxDisplacement * 20) / 20).toFixed(2);
+          statusTextEl.innerHTML = `<span style="color:#ffb300;font-size:0.66rem;">Tol ±${curTolDist.toFixed(2)}m tight (needs ±${sol.maxDisplacement.toFixed(2)}m):</span> <button id="btn-quick-fit-tol" type="button" style="background:var(--accent-cyan);color:#0f172a;font-weight:700;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.65rem;margin-left:4px;" title="Set tolerance to ±${needed}m">Auto-Fit (±${needed}m)</button>`;
           const qTol = document.getElementById("btn-quick-fit-tol");
           if (qTol) {
             qTol.addEventListener("click", () => {
-              const newTol = Math.min(5.00, Math.ceil(sol.maxAngleDelta * 10) / 10);
-              sa.toleranceDeg = newTol;
+              const newTol = Math.min(5.00, Math.ceil(sol.maxDisplacement * 20) / 20);
+              sa.toleranceDist = newTol;
               const tolSlider = document.getElementById("seg-adjust-tol-slider");
               const tolVal = document.getElementById("seg-adjust-tol-val");
               if (tolSlider) tolSlider.value = newTol;
-              if (tolVal) tolVal.textContent = `± ${newTol.toFixed(2)}°`;
+              if (tolVal) {
+                const igacTag = (Math.abs(newTol - 1.04) < 0.03) ? " (IGAC)" : "";
+                tolVal.textContent = `± ${newTol.toFixed(2)} m${igacTag}`;
+              }
               updateSegmentsAdjustMetrics();
             });
           }
@@ -13565,7 +13632,9 @@ EOF`;
       }
 
       if (maxAngleEl) {
-        maxAngleEl.textContent = `${sol.maxAngleDelta.toFixed(2)}°`;
+        const displStr = (sol.maxDisplacement != null) ? `${sol.maxDisplacement.toFixed(2)} m` : "—";
+        const angleStr = (sol.maxAngleDelta != null) ? ` (${sol.maxAngleDelta.toFixed(2)}°)` : "";
+        maxAngleEl.textContent = `${displStr}${angleStr}`;
         maxAngleEl.style.color = sol.feasible ? "var(--accent-cyan)" : "#ffb300";
       }
 
@@ -16923,9 +16992,12 @@ EOF`;
     const segTolVal = document.getElementById("seg-adjust-tol-val");
     if (segTolSlider) {
       segTolSlider.addEventListener("input", (e) => {
-        const val = parseFloat(e.target.value) || 0;
-        state.segmentsAdjust.toleranceDeg = val;
-        if (segTolVal) segTolVal.textContent = `± ${val.toFixed(2)}°`;
+        const val = parseFloat(e.target.value) || 1.04;
+        state.segmentsAdjust.toleranceDist = val;
+        if (segTolVal) {
+          const igacTag = (Math.abs(val - 1.04) < 0.03) ? " (IGAC)" : "";
+          segTolVal.textContent = `± ${val.toFixed(2)} m${igacTag}`;
+        }
         updateSegmentsAdjustMetrics();
       });
     }
@@ -16962,7 +17034,7 @@ EOF`;
     if (btnSegAdjustRevMode) btnSegAdjustRevMode.addEventListener("click", () => toggleReverseProcessingMode());
 
     const btnSegAdjustInvertAll = document.getElementById("btn-seg-adjust-invert-all");
-    if (btnSegAdjustInvertAll) btnSegAdjustInvertAll.addEventListener("click", () => toggleReverseProcessingMode());
+    if (btnSegAdjustInvertAll) btnSegAdjustInvertAll.addEventListener("click", () => invertAllSegmentsBearings());
 
     // Segments Adjust Help toggle
     const btnHelpSegHud = document.getElementById("btn-help-segments-hud");
