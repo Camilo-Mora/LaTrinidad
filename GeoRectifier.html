@@ -18821,6 +18821,8 @@ EOF`;
             showTicks: ax.showTicks !== false,
             tickSize: ax.tickSize,
             tickWidth: ax.tickWidth,
+            tickLabelAbove: ax.tickLabelAbove !== false,
+            tickLabelBelow: ax.tickLabelBelow === true,
             linkedSegment: ax.linkedSegment ? JSON.parse(JSON.stringify(ax.linkedSegment)) : null
           }))
         };
@@ -22694,6 +22696,8 @@ EOF`;
           ax.showTicks = true;
           ax.tickSize = 6.0;
           ax.tickWidth = 1.2;
+          ax.tickLabelAbove = true;
+          ax.tickLabelBelow = false;
           notifyAxisChanged();
           renderTestAxesList();
         });
@@ -22950,6 +22954,8 @@ EOF`;
         const curShowTicks = (ax.showTicks !== false);
         const curTickSize = (typeof ax.tickSize === "number") ? Math.max(0, Math.min(30, ax.tickSize)) : 6.0;
         const curTickWidth = (typeof ax.tickWidth === "number") ? Math.max(0.5, Math.min(8, ax.tickWidth)) : 1.2;
+        const curTickLabelAbove = (ax.tickLabelAbove !== false);
+        const curTickLabelBelow = (ax.tickLabelBelow === true);
 
         const secTicks = document.createElement("div");
         secTicks.style.cssText = "display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(255,255,255,0.06);padding-top:4px;";
@@ -22974,6 +22980,50 @@ EOF`;
         tickChkWrap.appendChild(tickChkLbl);
         tickToggleLine.appendChild(tickChkWrap);
         secTicks.appendChild(tickToggleLine);
+
+        // Tick Labels placement: Above / Below checkboxes
+        const tickLabelsLine = document.createElement("div");
+        tickLabelsLine.style.cssText = "display:flex;align-items:center;gap:8px;font-size:0.68rem;";
+        const tickLabelsTitle = document.createElement("span");
+        tickLabelsTitle.textContent = "Labels:";
+        tickLabelsTitle.style.cssText = "color:var(--text-muted);font-weight:600;";
+        tickLabelsLine.appendChild(tickLabelsTitle);
+
+        const chkAboveWrap = document.createElement("label");
+        chkAboveWrap.style.cssText = "display:inline-flex;align-items:center;gap:3px;cursor:pointer;";
+        const chkAbove = document.createElement("input");
+        chkAbove.type = "checkbox";
+        chkAbove.checked = curTickLabelAbove;
+        chkAbove.style.cssText = "cursor:pointer;margin:0;";
+        chkAbove.addEventListener("change", (e) => {
+          ax.tickLabelAbove = e.target.checked;
+          notifyAxisChanged();
+        });
+        chkAboveWrap.appendChild(chkAbove);
+        const chkAboveLbl = document.createElement("span");
+        chkAboveLbl.textContent = "Above";
+        chkAboveLbl.style.cssText = "color:var(--text-main);";
+        chkAboveWrap.appendChild(chkAboveLbl);
+        tickLabelsLine.appendChild(chkAboveWrap);
+
+        const chkBelowWrap = document.createElement("label");
+        chkBelowWrap.style.cssText = "display:inline-flex;align-items:center;gap:3px;cursor:pointer;";
+        const chkBelow = document.createElement("input");
+        chkBelow.type = "checkbox";
+        chkBelow.checked = curTickLabelBelow;
+        chkBelow.style.cssText = "cursor:pointer;margin:0;";
+        chkBelow.addEventListener("change", (e) => {
+          ax.tickLabelBelow = e.target.checked;
+          notifyAxisChanged();
+        });
+        chkBelowWrap.appendChild(chkBelow);
+        const chkBelowLbl = document.createElement("span");
+        chkBelowLbl.textContent = "Below";
+        chkBelowLbl.style.cssText = "color:var(--text-main);";
+        chkBelowWrap.appendChild(chkBelowLbl);
+        tickLabelsLine.appendChild(chkBelowWrap);
+
+        secTicks.appendChild(tickLabelsLine);
 
         // Tick Size / Length Slider
         const tickSzLine = document.createElement("div");
@@ -23153,10 +23203,15 @@ EOF`;
             ctx.lineWidth = tickWidth;
             ctx.stroke();
 
-            // Numeric label at 10m intervals
+            // Numeric label at 10m intervals (Above / Below)
             if (isMajor && d > 0 && d < geom.len) {
               const labelOffset = Math.max(10, curTickLen + 7);
-              ctx.fillText(`${d}m`, sTick.x + geom.n.x * labelOffset, sTick.y - geom.n.y * labelOffset);
+              if (ax.tickLabelAbove !== false) {
+                ctx.fillText(`${d}m`, sTick.x + geom.n.x * labelOffset, sTick.y - geom.n.y * labelOffset);
+              }
+              if (ax.tickLabelBelow === true) {
+                ctx.fillText(`${d}m`, sTick.x - geom.n.x * labelOffset, sTick.y + geom.n.y * labelOffset);
+              }
             }
           }
         }
