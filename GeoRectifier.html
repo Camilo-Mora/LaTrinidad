@@ -2273,12 +2273,12 @@ Do NOT modify dormant/parked sections unless specifically requested.
                 <colgroup>
                   <col style="width: 22px;">
                   <col>
-                  <col style="width: 48px;">
-                  <col style="width: 50px;">
-                  <col style="width: 26px;">
-                  <col style="width: 26px;">
-                  <col style="width: 44px;">
+                  <col style="width: 28px;">
+                  <col style="width: 28px;">
                   <col style="width: 24px;">
+                  <col style="width: 24px;">
+                  <col style="width: 44px;">
+                  <col style="width: 22px;">
                 </colgroup>
                 <thead>
                   <tr>
@@ -2286,12 +2286,12 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <input type="checkbox" id="chk-toggle-all-anchors" checked style="accent-color:var(--accent-cyan);cursor:pointer;vertical-align:middle;width:13px;height:13px;" title="Enable / Disable All Anchors">
                     </th>
                     <th style="text-align:left;">Name</th>
-                    <th style="width:48px;text-align:center;" title="Anchor Type: 📍 Known (field monument, ground locked, searches deed buffer) vs ❓ Unknown (lost corner, searches terrain buffer)">Type</th>
-                    <th style="width:50px;text-align:center;" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth or 🌊 Floating guide on axis">Mode</th>
-                    <th style="width:26px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
-                    <th style="width:26px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
+                    <th style="width:28px;text-align:center;cursor:help;" title="Anchor Type: 📍 Known (field monument locked to GPS, searches deed drift) vs ❓ Unknown (lost corner, deed locked, searches terrain buffer)">📍</th>
+                    <th style="width:28px;text-align:center;cursor:help;" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth (locked) or 🌊 Floating guide along coupled axis">🎯</th>
+                    <th style="width:24px;text-align:center;" title="Display / Hide anchor label on canvas">👁️</th>
+                    <th style="width:24px;text-align:center;" title="Attach photo of landmark / control point">📷</th>
                     <th style="width:44px;text-align:right;" title="Transformation residual error in meters">Error</th>
-                    <th style="width:24px;text-align:center;" title="Delete anchor">🗑️</th>
+                    <th style="width:22px;text-align:center;" title="Delete anchor">🗑️</th>
                   </tr>
                 </thead>
                 <tbody id="anchor-table-body">
@@ -2327,7 +2327,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
               </div>
 
               <!-- Test Axes List -->
-              <div id="test-axes-list" style="display:flex;flex-direction:column;gap:3px;max-height:105px;overflow-y:auto;padding-right:2px;">
+              <div id="test-axes-list" style="display:flex;flex-direction:column;gap:5px;max-height:175px;overflow-y:auto;padding-right:2px;">
                 <!-- Dynamically rendered axis rows -->
               </div>
               <p style="font-size:0.65rem;color:var(--text-muted);margin:0;line-height:1.3;">
@@ -2661,25 +2661,25 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     </div>
 
                     <!-- Chart Container (Dual Y-Axis) -->
-                    <div id="null-model-chart-container" style="position:relative;display:flex;flex-direction:column;gap:3px;background:rgba(6,9,16,0.92);border:1px solid rgba(224,64,251,0.3);border-radius:5px;padding:6px;margin-top:2px;">
+                    <div id="null-model-chart-container" style="position:relative;display:flex;flex-direction:column;gap:3px;background:#ffffff;border:1px solid rgba(224,64,251,0.4);border-radius:5px;padding:6px;margin-top:2px;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
                       <!-- Chart Header / Legend -->
-                      <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.62rem;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,0.06);">
-                        <span style="color:#00e5ff;display:flex;align-items:center;gap:4px;">
-                          <span style="width:8px;height:2px;background:#00e5ff;display:inline-block;"></span> Left: Avg Error %
+                      <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.62rem;padding-bottom:3px;border-bottom:1px solid rgba(0,0,0,0.08);">
+                        <span style="color:#0077b6;font-weight:600;display:flex;align-items:center;gap:4px;" title="Promedio del error (Mean Error)">
+                          <span style="width:8px;height:2px;background:#0077b6;display:inline-block;"></span> Left: Error x̄ [%]
                         </span>
-                        <span style="color:#00e676;display:flex;align-items:center;gap:4px;">
-                          <span style="width:8px;height:2px;background:#00e676;display:inline-block;"></span> Right: Freq &lt; τ %
+                        <span style="color:#008744;font-weight:600;display:flex;align-items:center;gap:4px;cursor:help;" title="Porcentaje de simulaciones por debajo del umbral de error (Percent of simulations below the error threshold)">
+                          <span style="width:8px;height:2px;background:#008744;display:inline-block;"></span> Right: Probabilidad [%]
                         </span>
                       </div>
                       <!-- Canvas for high performance crisp drawing -->
                       <div style="position:relative;width:100%;height:130px;">
                         <canvas id="null-model-chart-canvas" style="width:100%;height:100%;display:block;cursor:crosshair;"></canvas>
-                        <div id="null-model-chart-tooltip" style="position:absolute;display:none;pointer-events:none;background:rgba(10,14,23,0.94);border:1px solid #00e5ff;border-radius:4px;padding:4px 6px;font-size:0.62rem;font-family:monospace;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:10;white-space:nowrap;"></div>
+                        <div id="null-model-chart-tooltip" style="position:absolute;display:none;pointer-events:none;background:rgba(15,23,42,0.95);border:1px solid #0077b6;border-radius:4px;padding:4px 6px;font-size:0.62rem;font-family:monospace;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:10;white-space:nowrap;"></div>
                       </div>
-                      <div id="null-model-summary-stats" style="font-size:0.62rem;color:var(--text-muted);display:flex;justify-content:space-between;font-family:monospace;padding-top:2px;">
-                        <span id="null-model-stat-best">Best: —</span>
-                        <span id="null-model-stat-freq">Peak Freq: —</span>
-                        <span id="null-model-stat-count">Stations: 0</span>
+                      <div id="null-model-summary-stats" style="font-size:0.62rem;color:#475569;display:flex;justify-content:space-between;font-family:monospace;padding-top:2px;border-top:1px solid rgba(0,0,0,0.08);">
+                        <span id="null-model-stat-best" style="color:#0f172a;">Best: —</span>
+                        <span id="null-model-stat-freq" style="color:#0f172a;">Peak Freq: —</span>
+                        <span id="null-model-stat-count" style="color:#64748b;">Stations: 0</span>
                       </div>
                     </div>
                   </div>
@@ -2779,10 +2779,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <tr>
                         <th style="width:24px;">On</th>
                         <th>Name</th>
-                        <th style="width:48px;text-align:center;" title="Anchor Type: 📍 Known (field monument, ground locked) vs ❓ Unknown (lost corner, searches terrain)">Type</th>
-                        <th style="width:50px;text-align:center;cursor:pointer;" id="th-anchor-mode-196" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth. Click to toggle all active anchors.">Mode</th>
-                        <th style="width:50px;">Res (m)</th>
-                        <th style="width:30px;">Act</th>
+                        <th style="width:28px;text-align:center;cursor:help;" title="Anchor Type: 📍 Known (field monument, ground locked) vs ❓ Unknown (lost corner, searches terrain)">📍</th>
+                        <th style="width:28px;text-align:center;cursor:pointer;" id="th-anchor-mode-196" title="Optimization Mode: 🎯 Tune in optimizer vs 🔒 Fixed ground truth. Click to toggle all active anchors.">🎯</th>
+                        <th style="width:48px;">Res (m)</th>
+                        <th style="width:24px;">Act</th>
                       </tr>
                     </thead>
                     <tbody id="anchor-table-body-196"></tbody>
@@ -18874,22 +18874,22 @@ EOF`;
           let modeBtnHtml = "";
           if (anc.axisId != null) {
             if (isOpt) {
-              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #e040fb;background:rgba(224,64,251,0.22);color:#e040fb;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="1D Auto-Tune active: optimizer actively sweeps along axis. Click to switch to Floating Guide (zero-force rubber band).">🎯 Tune</button>`;
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #e040fb;background:rgba(224,64,251,0.22);color:#e040fb;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Optimization Mode: 🎯 1D Auto-Tune active (sweeps along axis). Click to switch to 🌊 Floating Guide (zero-force rubber band).">🎯</button>`;
             } else {
-              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #00e5ff;background:rgba(0,229,255,0.18);color:#00e5ff;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Floating Guide active: slides freely along axis to natural projection (rubber band). Click to enable 1D Auto-Tune.">🌊 Float</button>`;
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #00e5ff;background:rgba(0,229,255,0.18);color:#00e5ff;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Optimization Mode: 🌊 Floating Guide active (slides freely along axis). Click to enable 🎯 1D Auto-Tune.">🌊</button>`;
             }
           } else {
             if (isOpt) {
-              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #76ff03;background:rgba(118,255,3,0.20);color:#76ff03;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Auto-Tune active: optimizer tunes anchor in field buffer. Click to lock anchor as Fixed Ground Truth.">🎯 Tune</button>`;
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #76ff03;background:rgba(118,255,3,0.20);color:#76ff03;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Optimization Mode: 🎯 Auto-Tune active (optimizer tunes anchor in field buffer). Click to lock anchor as 🔒 Fixed Ground Truth.">🎯</button>`;
             } else {
-              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #78909c;background:rgba(120,144,156,0.20);color:#b0bec5;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Fixed Ground Truth: anchor coordinate is locked (0 movement). Click to enable Auto-Tune.">🔒 Fixed</button>`;
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #78909c;background:rgba(120,144,156,0.20);color:#b0bec5;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Optimization Mode: 🔒 Fixed Ground Truth (locked coordinate, 0 movement). Click to enable 🎯 Auto-Tune.">🔒</button>`;
             }
           }
 
           const isKnown = (anc.anchorType !== "unknown");
           const typeBtnHtml = isKnown
-            ? `<button type="button" class="btn-toggle-anchor-type-196" data-id="${anc.id}" style="border:1px solid #00e676;background:rgba(0,230,118,0.18);color:#00e676;font-size:0.58rem;padding:1px 3px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="📍 Known Field Landmark: Ground coordinate is locked to GPS. Optimizer searches deed paper drift. Click to switch to Unknown.">📍 Known</button>`
-            : `<button type="button" class="btn-toggle-anchor-type-196" data-id="${anc.id}" style="border:1px solid #ff9100;background:rgba(255,145,0,0.18);color:#ff9100;font-size:0.58rem;padding:1px 3px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="❓ Unknown / Lost Corner: Deed drawing is locked. Optimizer searches terrain buffer. Click to switch to Known.">❓ Unkwn</button>`;
+            ? `<button type="button" class="btn-toggle-anchor-type-196" data-id="${anc.id}" style="border:1px solid #00e676;background:rgba(0,230,118,0.18);color:#00e676;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Anchor Type: 📍 Known Field Landmark (Ground coordinate locked to GPS, searches deed paper drift). Click to switch to ❓ Unknown.">📍</button>`
+            : `<button type="button" class="btn-toggle-anchor-type-196" data-id="${anc.id}" style="border:1px solid #ff9100;background:rgba(255,145,0,0.18);color:#ff9100;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Anchor Type: ❓ Unknown / Lost Corner (Deed drawing locked, optimizer searches terrain buffer). Click to switch to 📍 Known.">❓</button>`;
 
           tr.innerHTML = `
             <td style="text-align:center;">
@@ -18988,7 +18988,7 @@ EOF`;
           if (anc.axisId != null) {
             const ax = (state.testAxes || []).find(a => a.id === anc.axisId);
             if (ax) {
-              axisBadgeHtml = `<span class="anchor-axis-badge" data-anc-id="${anc.id}" style="font-size:0.59rem;background:${hexToRgba(ax.color, 0.20)};border:1px solid ${ax.color};color:${ax.color};padding:1px 3px;border-radius:2px;cursor:pointer;flex-shrink:0;" title="Coupled to ${ax.name}. Click to detach anchor.">📐${ax.name}</span>`;
+              axisBadgeHtml = `<span class="anchor-axis-badge" data-anc-id="${anc.id}" style="font-size:0.59rem;background:${hexToRgba(ax.color, 0.20)};border:1px solid ${ax.color};color:${ax.color};padding:1px 3px;border-radius:2px;cursor:pointer;flex-shrink:0;white-space:nowrap;" title="Linked to Axis: ${ax.name} (Coupled anchor). Click to detach anchor.">📐 ${ax.name}</span>`;
             }
           }
 
@@ -18996,22 +18996,22 @@ EOF`;
           let modeBtnHtml = "";
           if (anc.axisId != null) {
             if (isOpt) {
-              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #e040fb;background:rgba(224,64,251,0.22);color:#e040fb;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="1D Auto-Tune active: optimizer actively sweeps along axis. Click to switch to Floating Guide (zero-force rubber band).">🎯 Tune</button>`;
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #e040fb;background:rgba(224,64,251,0.22);color:#e040fb;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Optimization Mode: 🎯 1D Auto-Tune active (optimizer sweeps along axis). Click to switch to 🌊 Floating Guide (zero-force rubber band).">🎯</button>`;
             } else {
-              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #00e5ff;background:rgba(0,229,255,0.18);color:#00e5ff;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Floating Guide active: slides freely along axis to natural projection (rubber band). Click to enable 1D Auto-Tune.">🌊 Float</button>`;
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #00e5ff;background:rgba(0,229,255,0.18);color:#00e5ff;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Optimization Mode: 🌊 Floating Guide active (slides freely along axis to natural projection). Click to enable 🎯 1D Auto-Tune.">🌊</button>`;
             }
           } else {
             if (isOpt) {
-              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #76ff03;background:rgba(118,255,3,0.20);color:#76ff03;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="2D Auto-Tune active: optimizer searches in buffer. Click to lock anchor as Fixed Ground Truth.">🎯 Tune</button>`;
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #76ff03;background:rgba(118,255,3,0.20);color:#76ff03;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Optimization Mode: 🎯 2D Auto-Tune active (optimizer searches in buffer). Click to lock anchor as 🔒 Fixed Ground Truth.">🎯</button>`;
             } else {
-              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #78909c;background:rgba(120,144,156,0.20);color:#b0bec5;font-size:0.58rem;padding:1px 4px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="Fixed Ground Truth: anchor coordinate is locked (0 movement). Click to enable 2D Auto-Tune.">🔒 Fixed</button>`;
+              modeBtnHtml = `<button type="button" class="btn-toggle-anchor-opt" data-id="${anc.id}" style="border:1px solid #78909c;background:rgba(120,144,156,0.20);color:#b0bec5;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Optimization Mode: 🔒 Fixed Ground Truth (anchor coordinate locked, 0 movement). Click to enable 🎯 2D Auto-Tune.">🔒</button>`;
             }
           }
 
           const isKnown = (anc.anchorType !== "unknown");
           const typeBtnHtml = isKnown
-            ? `<button type="button" class="btn-toggle-anchor-type" data-id="${anc.id}" style="border:1px solid #00e676;background:rgba(0,230,118,0.18);color:#00e676;font-size:0.58rem;padding:1px 3px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="📍 Known Field Landmark: Ground coordinate is locked to GPS. Optimizer searches deed paper drift. Click to switch to Unknown.">📍 Known</button>`
-            : `<button type="button" class="btn-toggle-anchor-type" data-id="${anc.id}" style="border:1px solid #ff9100;background:rgba(255,145,0,0.18);color:#ff9100;font-size:0.58rem;padding:1px 3px;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;" title="❓ Unknown / Lost Corner: Deed drawing is locked. Optimizer searches terrain buffer. Click to switch to Known.">❓ Unkwn</button>`;
+            ? `<button type="button" class="btn-toggle-anchor-type" data-id="${anc.id}" style="border:1px solid #00e676;background:rgba(0,230,118,0.18);color:#00e676;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Anchor Type: 📍 Known Field Landmark (Ground coordinate locked to GPS, searches deed paper drift). Click to switch to ❓ Unknown.">📍</button>`
+            : `<button type="button" class="btn-toggle-anchor-type" data-id="${anc.id}" style="border:1px solid #ff9100;background:rgba(255,145,0,0.18);color:#ff9100;font-size:0.68rem;padding:1px 3px;border-radius:3px;cursor:pointer;line-height:1;" title="Anchor Type: ❓ Unknown / Lost Corner (Deed drawing locked, optimizer searches terrain buffer). Click to switch to 📍 Known.">❓</button>`;
 
           tr.innerHTML = `
             <td style="text-align:center;">
@@ -19020,7 +19020,7 @@ EOF`;
             <td style="overflow:hidden;">
               <div style="display:flex;align-items:center;gap:3px;min-width:0;">
                 <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;"><span style="font-size:0.52em;opacity:0.85;vertical-align:0.12em;margin-right:0.5px;">#</span>${anc.id}</span>
-                <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})">
+                <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})" style="min-width:40px;flex:1;">
                 ${axisBadgeHtml}
               </div>
             </td>
@@ -22224,11 +22224,15 @@ EOF`;
       axes.forEach(ax => {
         const geom = computeAxisGeometry(ax);
         const boundAnchors = (state.anchors || []).filter(a => a.axisId === ax.id);
+        // Row container: card with subtle background and border
         const row = document.createElement("div");
-        row.style.cssText = `display:flex;align-items:center;justify-content:space-between;gap:5px;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid ${hexToRgba(ax.color, 0.35)};font-size:0.71rem;`;
+        row.style.cssText = `display:flex;flex-direction:column;gap:3px;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,0.03);border:1px solid ${hexToRgba(ax.color, 0.35)};font-size:0.71rem;`;
         if (ax.visible === false) row.style.opacity = "0.55";
 
-        // Dot & Checkbox
+        // Top line: [Color Dot] [Visible Chk] [Name Input] ... [Snapped Anchors: ⚓ #2 #3] [Align Btn] [Snap+ Btn] [Del Btn]
+        const lineTop = document.createElement("div");
+        lineTop.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;width:100%;";
+
         const leftWrap = document.createElement("div");
         leftWrap.style.cssText = "display:flex;align-items:center;gap:4px;min-width:0;flex:1;";
 
@@ -22252,7 +22256,7 @@ EOF`;
         nameInp.type = "text";
         nameInp.value = ax.name;
         nameInp.title = "Click to rename axis";
-        nameInp.style.cssText = "background:transparent;border:none;color:inherit;font-size:0.71rem;font-weight:600;min-width:45px;flex:1;padding:1px 2px;";
+        nameInp.style.cssText = "background:transparent;border:none;color:inherit;font-size:0.71rem;font-weight:600;min-width:55px;flex:1;padding:1px 2px;";
         nameInp.addEventListener("change", e => {
           ax.name = e.target.value.trim() || `Axis ${ax.id}`;
           updateAnalyticsUI();
@@ -22265,38 +22269,43 @@ EOF`;
         leftWrap.appendChild(chkVis);
         leftWrap.appendChild(nameInp);
 
-        // Right details: Bearing / Len badge & Anchors attached
+        // Top Right: Snapped anchors list & actions
         const rightWrap = document.createElement("div");
-        rightWrap.style.cssText = "display:flex;align-items:center;gap:4px;flex-shrink:0;";
+        rightWrap.style.cssText = "display:flex;align-items:center;gap:3px;flex-shrink:0;";
 
-        // Dynamic Link Badge if linked to a boundary segment
-        if (ax.linkedSegment) {
-          const typeLabels = {
-            boundary: 'Boundary',
-            custom: 'Custom',
-            deed: 'Deed DXF',
-            field: 'Field DXF',
-            surveyValoy: 'Valoy',
-            surveyCortez: 'Cortez',
-            ref: 'Ref DXF'
-          };
-          const lbl = typeLabels[ax.linkedSegment.type] || 'Seg';
-          const linkBadge = document.createElement("span");
-          linkBadge.style.cssText = "font-size:0.60rem;background:rgba(0,229,255,0.18);border:1px solid rgba(0,229,255,0.45);color:#00e5ff;padding:1px 4px;border-radius:3px;font-weight:600;display:inline-flex;align-items:center;gap:2px;";
-          linkBadge.title = `Dynamically linked to ${ax.linkedSegment.layerName || lbl} Seg #${ax.linkedSegment.segIdx + 1}. Drag handles A or B to adjust handle distance.`;
-          linkBadge.innerHTML = `<span>🔗 ${lbl} #${ax.linkedSegment.segIdx + 1}</span>`;
+        // Snapped anchors with anchor icon: ⚓ followed by anchors snapped to it
+        if (boundAnchors.length > 0) {
+          const badgeAncWrap = document.createElement("div");
+          badgeAncWrap.style.cssText = "display:inline-flex;align-items:center;gap:2px;margin-right:2px;";
+          
+          const ancIcon = document.createElement("span");
+          ancIcon.style.cssText = `font-size:0.65rem;color:${ax.color};margin-right:1px;`;
+          ancIcon.title = `${boundAnchors.length} anchor(s) snapped to ${ax.name}`;
+          ancIcon.innerHTML = "⚓";
+          badgeAncWrap.appendChild(ancIcon);
 
-          const btnUnlink = document.createElement("button");
-          btnUnlink.type = "button";
-          btnUnlink.title = "Unlink from boundary edge (make static)";
-          btnUnlink.innerHTML = "✕";
-          btnUnlink.style.cssText = "background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:0.62rem;padding:0 1px;margin-left:2px;line-height:1;";
-          btnUnlink.addEventListener("click", e => {
-            e.stopPropagation();
-            unlinkTestAxis(ax.id);
+          boundAnchors.forEach(a => {
+            const badgeAnc = document.createElement("span");
+            badgeAnc.style.cssText = `font-family:monospace;font-size:0.60rem;background:${hexToRgba(ax.color, 0.25)};color:${ax.color};padding:0 3px;border-radius:2px;font-weight:700;display:inline-flex;align-items:center;gap:2px;`;
+            const posM = typeof a.axisT === "number" ? (a.axisT * geom.len).toFixed(1) : "0.0";
+            badgeAnc.title = `Coupled Anchor #${a.id} at ${posM}m. Click ✕ to uncouple.`;
+            badgeAnc.innerHTML = `<span>#${a.id}</span>`;
+
+            const btnUncouple = document.createElement("button");
+            btnUncouple.type = "button";
+            btnUncouple.title = `Uncouple Anchor #${a.id} from ${ax.name}`;
+            btnUncouple.innerHTML = "✕";
+            btnUncouple.style.cssText = "background:transparent;border:none;color:inherit;cursor:pointer;font-size:0.58rem;padding:0;margin:0;line-height:1;opacity:0.75;";
+            btnUncouple.addEventListener("mouseenter", () => { btnUncouple.style.opacity = "1"; });
+            btnUncouple.addEventListener("mouseleave", () => { btnUncouple.style.opacity = "0.75"; });
+            btnUncouple.addEventListener("click", e => {
+              e.stopPropagation();
+              uncoupleAnchorFromAxis(a.id);
+            });
+            badgeAnc.appendChild(btnUncouple);
+            badgeAncWrap.appendChild(badgeAnc);
           });
-          linkBadge.appendChild(btnUnlink);
-          rightWrap.appendChild(linkBadge);
+          rightWrap.appendChild(badgeAncWrap);
         }
 
         // Align Axis to Boundary Edge Button
@@ -22331,38 +22340,7 @@ EOF`;
         });
         rightWrap.appendChild(btnSnapAnc);
 
-        const badgeGeom = document.createElement("span");
-        badgeGeom.style.cssText = "font-family:monospace;font-size:0.62rem;color:var(--text-muted);";
-        badgeGeom.textContent = `${geom.len.toFixed(0)}m ${geom.bearing.toFixed(0)}°`;
-        badgeGeom.title = `Length: ${geom.len.toFixed(2)}m • Bearing: ${geom.bearing.toFixed(1)}°`;
-
-        if (boundAnchors.length > 0) {
-          const badgeAncWrap = document.createElement("div");
-          badgeAncWrap.style.cssText = "display:inline-flex;align-items:center;gap:2px;";
-          boundAnchors.forEach(a => {
-            const badgeAnc = document.createElement("span");
-            badgeAnc.style.cssText = `font-family:monospace;font-size:0.60rem;background:${hexToRgba(ax.color, 0.25)};color:${ax.color};padding:0 3px;border-radius:2px;font-weight:700;display:inline-flex;align-items:center;gap:2px;`;
-            const posM = typeof a.axisT === "number" ? (a.axisT * geom.len).toFixed(1) : "0.0";
-            badgeAnc.title = `Coupled Anchor #${a.id} at ${posM}m. Click ✕ to uncouple.`;
-            badgeAnc.innerHTML = `<span>#${a.id}</span>`;
-
-            const btnUncouple = document.createElement("button");
-            btnUncouple.type = "button";
-            btnUncouple.title = `Uncouple Anchor #${a.id} from ${ax.name}`;
-            btnUncouple.innerHTML = "✕";
-            btnUncouple.style.cssText = "background:transparent;border:none;color:inherit;cursor:pointer;font-size:0.58rem;padding:0;margin:0;line-height:1;opacity:0.75;";
-            btnUncouple.addEventListener("mouseenter", () => { btnUncouple.style.opacity = "1"; });
-            btnUncouple.addEventListener("mouseleave", () => { btnUncouple.style.opacity = "0.75"; });
-            btnUncouple.addEventListener("click", e => {
-              e.stopPropagation();
-              uncoupleAnchorFromAxis(a.id);
-            });
-            badgeAnc.appendChild(btnUncouple);
-            badgeAncWrap.appendChild(badgeAnc);
-          });
-          rightWrap.appendChild(badgeAncWrap);
-        }
-
+        // Delete button
         const btnDel = document.createElement("button");
         btnDel.type = "button";
         btnDel.className = "custom-poly-btn-icon custom-poly-btn-del";
@@ -22370,12 +22348,53 @@ EOF`;
         btnDel.innerHTML = "✕";
         btnDel.style.cssText = "padding:0 4px;font-size:0.68rem;cursor:pointer;";
         btnDel.addEventListener("click", () => deleteTestAxis(ax.id));
-
-        rightWrap.appendChild(badgeGeom);
         rightWrap.appendChild(btnDel);
 
-        row.appendChild(leftWrap);
-        row.appendChild(rightWrap);
+        lineTop.appendChild(leftWrap);
+        lineTop.appendChild(rightWrap);
+        row.appendChild(lineTop);
+
+        // Lower line: Linked to segment (link icon placed below the snap icon, followed by the segments it is snapped to)
+        if (ax.linkedSegment) {
+          const typeLabels = {
+            boundary: 'Boundary',
+            custom: 'Custom',
+            deed: 'Deed DXF',
+            field: 'Field DXF',
+            surveyValoy: 'Valoy',
+            surveyCortez: 'Cortez',
+            ref: 'Ref DXF'
+          };
+          const lbl = typeLabels[ax.linkedSegment.type] || 'Seg';
+          const lineBottom = document.createElement("div");
+          lineBottom.style.cssText = "display:flex;align-items:center;gap:4px;padding-left:16px;font-size:0.60rem;";
+
+          const linkIcon = document.createElement("span");
+          linkIcon.style.cssText = "color:#00e5ff;font-size:0.62rem;display:inline-flex;align-items:center;";
+          linkIcon.innerHTML = "🔗";
+          linkIcon.title = `Linked to segment`;
+
+          const linkBadge = document.createElement("span");
+          linkBadge.style.cssText = "font-size:0.60rem;background:rgba(0,229,255,0.18);border:1px solid rgba(0,229,255,0.45);color:#00e5ff;padding:1px 4px;border-radius:3px;font-weight:600;display:inline-flex;align-items:center;gap:3px;";
+          linkBadge.title = `Dynamically linked to ${ax.linkedSegment.layerName || lbl} Seg #${ax.linkedSegment.segIdx + 1}. Drag handles A or B to adjust handle distance.`;
+          linkBadge.innerHTML = `<span>${lbl} #${ax.linkedSegment.segIdx + 1}</span>`;
+
+          const btnUnlink = document.createElement("button");
+          btnUnlink.type = "button";
+          btnUnlink.title = "Unlink from boundary edge (make static)";
+          btnUnlink.innerHTML = "✕";
+          btnUnlink.style.cssText = "background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:0.62rem;padding:0 1px;margin-left:2px;line-height:1;";
+          btnUnlink.addEventListener("click", e => {
+            e.stopPropagation();
+            unlinkTestAxis(ax.id);
+          });
+          linkBadge.appendChild(btnUnlink);
+
+          lineBottom.appendChild(linkIcon);
+          lineBottom.appendChild(linkBadge);
+          row.appendChild(lineBottom);
+        }
+
         container.appendChild(row);
       });
     }
@@ -23170,6 +23189,10 @@ EOF`;
       state.nullModel.stepMeters = stepMeters;
       state.nullModel.simsPerPoint = simsPerPoint;
       state.nullModel.bufferRadius = bufferRadius;
+      // Track initial field mojón position along the target axis
+      const prMojon = projectPointOnAxis(testAnchor.dst, targetAxis);
+      state.nullModel.mojonDist = Math.max(0, Math.min(geom.len, prMojon.t * geom.len));
+      state.nullModel.mojonAnchorId = testAnchor.id;
       state.nullModel.running = true;
       state.nullModel.paused = false;
       state.nullModel.cancelRequested = false;
@@ -23560,20 +23583,17 @@ EOF`;
       const stations = (state.nullModel && state.nullModel.stations) ? state.nullModel.stations : [];
       const computedStations = stations.filter(s => s.meanError != null);
 
-      // Margins for dual Y axes
-      const mLeft = 32;   // Left Y: Avg Error %
-      const mRight = 28;  // Right Y: Freq %
-      const mTop = 10;
-      const mBottom = 20; // Bottom X: Dist (m)
+      // Margins for dual Y axes (giving space for labels and ticks)
+      const mLeft = 36;   // Left Y: Error x̄ [%]
+      const mRight = 36;  // Right Y: Probabilidad [%]
+      const mTop = 18;    // Top margin for labels / badges
+      const mBottom = 22; // Bottom X: Dist (m)
       const plotW = Math.max(10, w - mLeft - mRight);
       const plotH = Math.max(10, h - mTop - mBottom);
 
-      // Background grid
-      ctx.fillStyle = "rgba(10, 15, 26, 0.95)";
-      ctx.fillRect(mLeft, mTop, plotW, plotH);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(mLeft, mTop, plotW, plotH);
+      // Background (Crisp White)
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
 
       // Threshold readout
       const thresholdInp = document.getElementById("null-model-threshold-slider");
@@ -23582,7 +23602,7 @@ EOF`;
 
       if (computedStations.length === 0) {
         ctx.font = "italic 10px sans-serif";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("Click 'Run Null Model' to generate probability curve", w / 2, h / 2);
@@ -23620,59 +23640,133 @@ EOF`;
       // 1. Draw horizontal gridlines & Left/Right axis ticks
       const nGridLines = 4;
       ctx.font = "8px monospace";
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
 
       for (let g = 0; g <= nGridLines; g++) {
         const gy = mTop + (plotH / nGridLines) * g;
         ctx.beginPath();
         ctx.moveTo(mLeft, gy);
         ctx.lineTo(mLeft + plotW, gy);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.08)";
         ctx.setLineDash([2, 2]);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Left tick: Error %
+        // Left tick: Error % (Color coded Blue #0077b6)
         const errVal = yErrMax * (1 - g / nGridLines);
-        ctx.fillStyle = "#00e5ff";
-        ctx.fillText(`${errVal.toFixed(1)}%`, mLeft - 3, gy);
-
-        // Right tick: Freq %
-        const freqVal = Math.round(100 * (1 - g / nGridLines));
-        ctx.fillStyle = "#00e676";
-        ctx.textAlign = "left";
-        ctx.fillText(`${freqVal}%`, mLeft + plotW + 3, gy);
+        ctx.beginPath();
+        ctx.moveTo(mLeft - 3, gy);
+        ctx.lineTo(mLeft, gy);
+        ctx.strokeStyle = "#0077b6";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.fillStyle = "#0077b6";
         ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${errVal.toFixed(1)}%`, mLeft - 4, gy);
+
+        // Right tick: Probabilidad % (Color coded Forest Green #008744)
+        const freqVal = Math.round(100 * (1 - g / nGridLines));
+        ctx.beginPath();
+        ctx.moveTo(mLeft + plotW, gy);
+        ctx.lineTo(mLeft + plotW + 3, gy);
+        ctx.strokeStyle = "#008744";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.fillStyle = "#008744";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${freqVal}%`, mLeft + plotW + 4, gy);
       }
 
-      // Bottom X axis labels (0m, Mid, End)
-      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      // 2. Color-coded Axes Lines: Left Y (Blue #0077b6), Right Y2 (Forest Green #008744), and Bottom X (Dark Slate #0f172a)
+      // Left Y-Axis (Blue #0077b6)
+      ctx.beginPath();
+      ctx.moveTo(mLeft, mTop);
+      ctx.lineTo(mLeft, mTop + plotH);
+      ctx.strokeStyle = "#0077b6";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Right Y2-Axis (Forest Green #008744)
+      ctx.beginPath();
+      ctx.moveTo(mLeft + plotW, mTop);
+      ctx.lineTo(mLeft + plotW, mTop + plotH);
+      ctx.strokeStyle = "#008744";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Bottom X-Axis (Dark Slate #0f172a)
+      ctx.beginPath();
+      ctx.moveTo(mLeft, mTop + plotH);
+      ctx.lineTo(mLeft + plotW, mTop + plotH);
+      ctx.strokeStyle = "#0f172a";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Top boundary
+      ctx.beginPath();
+      ctx.moveTo(mLeft, mTop);
+      ctx.lineTo(mLeft + plotW, mTop);
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // 3. Axis Titles: Left Error x̄ [%] (Blue #0077b6) & Right Probabilidad [%] (Green #008744)
+      // Left Axis Title: Error x̄ [%] with crisp overline over x
+      ctx.save();
+      ctx.font = "bold 8.5px monospace";
+      ctx.fillStyle = "#0077b6";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+      ctx.fillText("Error x̄ [%]", mLeft - 4, mTop - 4);
+      // Small horizontal overline over x for visual clarity
+      const wPre = ctx.measureText("Error ").width;
+      const wX = ctx.measureText("x").width;
+      ctx.beginPath();
+      ctx.moveTo(mLeft - 4 + wPre - 0.5, mTop - 12);
+      ctx.lineTo(mLeft - 4 + wPre + wX + 0.5, mTop - 12);
+      ctx.strokeStyle = "#0077b6";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.restore();
+
+      // Right Axis Title: Probabilidad [%]
+      ctx.save();
+      ctx.font = "bold 8.5px monospace";
+      ctx.fillStyle = "#008744";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "bottom";
+      ctx.fillText("Probabilidad [%]", mLeft + plotW + 4, mTop - 4);
+      ctx.restore();
+
+      // Bottom X Axis Labels (Dark Slate #0f172a)
+      ctx.fillStyle = "#0f172a";
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
+      ctx.font = "8px monospace";
       ctx.fillText(`${xMin.toFixed(0)}m`, mLeft, mTop + plotH + 4);
-      ctx.fillText(`${((xMin + xMax) / 2).toFixed(0)}m`, mLeft + plotW / 2, mTop + plotH + 4);
+      ctx.fillText(`Dist [m] (${((xMin + xMax) / 2).toFixed(0)}m)`, mLeft + plotW / 2, mTop + plotH + 4);
       ctx.fillText(`${xMax.toFixed(0)}m`, mLeft + plotW, mTop + plotH + 4);
 
-      // 2. Amber threshold reference guide line
+      // 4. Amber threshold reference guide line
       if (tau <= yErrMax) {
         const tauY = errToPlotY(tau);
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(mLeft, tauY);
         ctx.lineTo(mLeft + plotW, tauY);
-        ctx.strokeStyle = "rgba(255, 179, 0, 0.75)";
+        ctx.strokeStyle = "rgba(180, 83, 9, 0.75)";
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 3]);
         ctx.stroke();
-        ctx.fillStyle = "#ffb300";
-        ctx.font = "8px monospace";
+        ctx.fillStyle = "#b45309";
+        ctx.font = "bold 8px monospace";
         ctx.textAlign = "left";
         ctx.fillText(`τ=${tau.toFixed(2)}%`, mLeft + 4, tauY - 5);
         ctx.restore();
       }
 
-      // 3. Shaded ±1 SD error band (Cyan)
+      // 5. Shaded ±1 SD error band (Cyan)
       if (computedStations.length >= 2) {
         ctx.save();
         ctx.beginPath();
@@ -23694,7 +23788,7 @@ EOF`;
         ctx.restore();
       }
 
-      // 4. Mean Error curve (Solid Cyan)
+      // 6. Mean Error curve (Solid Cyan)
       ctx.save();
       ctx.beginPath();
       computedStations.forEach((s, idx) => {
@@ -23724,7 +23818,7 @@ EOF`;
       });
       ctx.restore();
 
-      // 5. Frequency curve: % of simulations below threshold tau (Solid Emerald Green)
+      // 7. Probabilidad curve: % of simulations below threshold tau (Solid Emerald Green)
       ctx.save();
       ctx.beginPath();
       computedStations.forEach((s, idx) => {
@@ -23741,7 +23835,7 @@ EOF`;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Soft gradient fill under frequency curve
+      // Soft gradient fill under probability curve
       if (computedStations.length >= 2) {
         ctx.beginPath();
         const firstPx = worldXtoPlot(computedStations[0].dist);
@@ -23758,7 +23852,7 @@ EOF`;
         ctx.fill();
       }
 
-      // Green point markers on frequency curve
+      // Green point markers on probability curve
       computedStations.forEach(s => {
         const px = worldXtoPlot(s.dist);
         const freq = s.cdfBins ? s.cdfBins[binIdx] : 0;
@@ -23773,7 +23867,100 @@ EOF`;
       });
       ctx.restore();
 
-      // 6. Active simulation scanline (Magenta)
+      // 8. Vertical Lines: Field Mojón Position & Best Iteration Position
+      const axes = state.testAxes || [];
+      const targetAxis = axes.find(a => a.id === state.nullModel.selectedAxisId) || axes[0];
+      const geom = targetAxis ? computeAxisGeometry(targetAxis) : null;
+      let mojonDist = state.nullModel.mojonDist;
+      if (mojonDist == null && targetAxis && geom && geom.len > 0) {
+        let testAnchor = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
+        if (!testAnchor && (state.anchors || []).length > 0) {
+          let bestD = Infinity, bestA = null;
+          state.anchors.forEach(a => {
+            if (a.active !== false && a.enabled !== false && a.dst) {
+              const p = projectPointOnAxis(a.dst, targetAxis);
+              if (p.d < bestD) { bestD = p.d; bestA = a; }
+            }
+          });
+          testAnchor = bestA;
+        }
+        if (testAnchor && testAnchor.dst) {
+          const pr = projectPointOnAxis(testAnchor.dst, targetAxis);
+          mojonDist = pr.t * geom.len;
+          state.nullModel.mojonDist = mojonDist;
+        }
+      }
+
+      let bestErr = Infinity;
+      let bestDist = null;
+      computedStations.forEach(s => {
+        if (s.meanError != null && s.meanError < bestErr) {
+          bestErr = s.meanError;
+          bestDist = s.dist;
+        }
+      });
+
+      const hasMojon = (mojonDist != null && mojonDist >= xMin - 0.5 && mojonDist <= xMax + 0.5);
+      const hasBest = (bestDist != null && bestDist >= xMin - 0.5 && bestDist <= xMax + 0.5);
+
+      const xMojon = hasMojon ? worldXtoPlot(Math.max(xMin, Math.min(xMax, mojonDist))) : null;
+      const xBest = hasBest ? worldXtoPlot(Math.max(xMin, Math.min(xMax, bestDist))) : null;
+
+      // Draw Field Mojón Vertical Line down to X-axis (Magenta / Purple #e040fb)
+      if (xMojon != null) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(xMojon, mTop);
+        ctx.lineTo(xMojon, mTop + plotH);
+        ctx.strokeStyle = "#e040fb";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+
+        // Little notch tick at bottom white X-axis
+        ctx.beginPath();
+        ctx.moveTo(xMojon, mTop + plotH);
+        ctx.lineTo(xMojon, mTop + plotH + 5);
+        ctx.strokeStyle = "#e040fb";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw Best Iteration Vertical Line down to X-axis (Gold #ffd600)
+      if (xBest != null) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(xBest, mTop);
+        ctx.lineTo(xBest, mTop + plotH);
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+
+        // Little notch tick at bottom white X-axis
+        ctx.beginPath();
+        ctx.moveTo(xBest, mTop + plotH);
+        ctx.lineTo(xBest, mTop + plotH + 5);
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Field Mojón label on sidebar chart (Best result label removed in favor of tooltip)
+      ctx.save();
+      ctx.font = "bold 8px monospace";
+      if (xMojon != null) {
+        ctx.fillStyle = "#e040fb";
+        const alignRight = (xMojon > mLeft + plotW / 2);
+        ctx.textAlign = alignRight ? "right" : "left";
+        ctx.textBaseline = "top";
+        ctx.fillText(`📍Mojón ${mojonDist.toFixed(1)}m`, alignRight ? (xMojon - 4) : (xMojon + 4), mTop + 3);
+      }
+      ctx.restore();
+
+      // 9. Active simulation scanline (Magenta)
       if (state.nullModel.running && state.nullModel.currentStationIdx >= 0 && state.nullModel.currentStationIdx < stations.length) {
         const activeDist = stations[state.nullModel.currentStationIdx].dist;
         const scanX = worldXtoPlot(activeDist);
@@ -23789,7 +23976,7 @@ EOF`;
         ctx.restore();
       }
 
-      // 7. Hover crosshair & point highlight
+      // 10. Hover crosshair & point highlight
       if (state.nullModel.hoverStationIdx >= 0 && state.nullModel.hoverStationIdx < stations.length) {
         const hSt = stations[state.nullModel.hoverStationIdx];
         if (hSt.meanError != null) {
@@ -23803,7 +23990,7 @@ EOF`;
           ctx.beginPath();
           ctx.moveTo(hx, mTop);
           ctx.lineTo(hx, mTop + plotH);
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+          ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
           ctx.lineWidth = 1;
           ctx.setLineDash([2, 2]);
           ctx.stroke();
@@ -23825,16 +24012,10 @@ EOF`;
       }
 
       // Summary stat cards
-      let bestErr = Infinity;
-      let bestDist = 0;
       let peakFreq = -1;
       let peakDist = 0;
 
       computedStations.forEach(s => {
-        if (s.meanError < bestErr) {
-          bestErr = s.meanError;
-          bestDist = s.dist;
-        }
         const freq = s.cdfBins ? s.cdfBins[binIdx] : 0;
         if (freq > peakFreq) {
           peakFreq = freq;
@@ -24009,12 +24190,12 @@ EOF`;
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Baseline (solid)
+      // Baseline (solid white)
       ctx.beginPath();
       ctx.moveTo(firstB.x, firstB.y);
       ctx.lineTo(lastB.x, lastB.y);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.8;
       ctx.stroke();
 
       // Station connector ticks to the axis (faint magenta)
@@ -24040,7 +24221,7 @@ EOF`;
         ctx.fillText(txt, x, y);
       };
 
-      // Left Rail (Error axis: Err [%]) - Cyan
+      // Left Rail (Error axis: Error x̄ [%]) - Cyan
       ctx.beginPath();
       ctx.moveTo(firstB.x, firstB.y);
       ctx.lineTo(firstT.x, firstT.y);
@@ -24059,10 +24240,10 @@ EOF`;
         ctx.lineWidth = 1.5;
         ctx.stroke();
       });
-      // Left Rail Title: Err [%] at top
-      drawHUDText("Err [%]", firstT.x - 7 * bUnit.x, firstT.y - 8, "#00e5ff", "right", "bottom");
+      // Left Rail Title: Error x̄ [%] at top
+      drawHUDText("Error x̄ [%]", firstT.x - 7 * bUnit.x, firstT.y - 8, "#00e5ff", "right", "bottom");
 
-      // Right Rail (Frequency axis: Freq [%]) - Emerald Green
+      // Right Rail (Probability axis: Probabilidad [%]) - Emerald Green
       ctx.beginPath();
       ctx.moveTo(lastB.x, lastB.y);
       ctx.lineTo(lastT.x, lastT.y);
@@ -24081,11 +24262,11 @@ EOF`;
         ctx.lineWidth = 1.5;
         ctx.stroke();
       });
-      // Right Rail Title: Freq [%] at top
-      drawHUDText("Freq [%]", lastT.x + 7 * bUnit.x, lastT.y - 8, "#00e676", "left", "bottom");
+      // Right Rail Title: Probabilidad [%] at top
+      drawHUDText("Probabilidad [%]", lastT.x + 7 * bUnit.x, lastT.y - 8, "#00e676", "left", "bottom");
 
-      // Baseline Title: Dist [m]
-      drawHUDText("Dist [m]", firstB.x - 7 * bUnit.x, firstB.y + 6, "rgba(255, 255, 255, 0.75)", "right", "top");
+      // Baseline Title: Dist [m] (White)
+      drawHUDText("Dist [m]", firstB.x - 7 * bUnit.x, firstB.y + 6, "#ffffff", "right", "top");
 
       // 4. Amber threshold reference line (τ [%])
       if (tau <= yErrMax) {
@@ -24218,19 +24399,73 @@ EOF`;
         ctx.stroke();
       });
 
-      // 10. Best Fit Beacon, Glowing Pin & Badge
-      if (bestPt && bestPt.s && bestPt.s.meanError != null) {
-        // Vertical dashed beacon guide from axis through graph
+      // 10. Vertical Lines: Field Mojón Position & Best Fit Position
+      let mojonDist = state.nullModel.mojonDist;
+      if (mojonDist == null) {
+        let testAnchor = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
+        if (!testAnchor && (state.anchors || []).length > 0) {
+          let bestD = Infinity, bestA = null;
+          state.anchors.forEach(a => {
+            if (a.active !== false && a.enabled !== false && a.dst) {
+              const p = projectPointOnAxis(a.dst, targetAxis);
+              if (p.d < bestD) { bestD = p.d; bestA = a; }
+            }
+          });
+          testAnchor = bestA;
+        }
+        if (testAnchor && testAnchor.dst) {
+          const pr = projectPointOnAxis(testAnchor.dst, targetAxis);
+          mojonDist = pr.t * geom.len;
+          state.nullModel.mojonDist = mojonDist;
+        }
+      }
+
+      let mojonPt = null;
+      if (mojonDist != null && mojonDist >= 0 && mojonDist <= geom.len) {
+        const mcx = targetAxis.p1.x + mojonDist * geom.u.x;
+        const mcy = targetAxis.p1.y + mojonDist * geom.u.y;
+        const sC = worldToScreenGIS({ x: mcx, y: mcy }, vp, canvasH);
+        const bx = mcx + baseOffsetMeters * nx;
+        const by = mcy + baseOffsetMeters * ny;
+        const sB = worldToScreenGIS({ x: bx, y: by }, vp, canvasH);
+        const tx = bx + hEffMeters * nx;
+        const ty = by + hEffMeters * ny;
+        const sT = worldToScreenGIS({ x: tx, y: ty }, vp, canvasH);
+        mojonPt = { dist: mojonDist, sC, sB, sT };
+      }
+
+      // Draw Field Mojón Vertical Line down to axis (Magenta / Purple #e040fb)
+      if (mojonPt) {
         ctx.beginPath();
-        ctx.moveTo(bestPt.sC.x, bestPt.sC.y);
-        ctx.lineTo(bestPt.sT.x, bestPt.sT.y);
-        ctx.strokeStyle = "rgba(255, 214, 0, 0.55)";
+        ctx.moveTo(mojonPt.sC.x, mojonPt.sC.y);
+        ctx.lineTo(mojonPt.sT.x, mojonPt.sT.y);
+        ctx.strokeStyle = "#e040fb";
         ctx.lineWidth = 1.5;
         ctx.setLineDash([3, 3]);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Target diamond/pin at best error point
+        // Notch marker at baseline
+        ctx.beginPath();
+        ctx.arc(mojonPt.sB.x, mojonPt.sB.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#e040fb";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // Draw Best Fit Beacon & Pin (Gold #ffd600)
+      if (bestPt && bestPt.s && bestPt.s.meanError != null) {
+        ctx.beginPath();
+        ctx.moveTo(bestPt.sC.x, bestPt.sC.y);
+        ctx.lineTo(bestPt.sT.x, bestPt.sT.y);
+        ctx.strokeStyle = "rgba(255, 214, 0, 0.75)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
         ctx.beginPath();
         ctx.arc(bestPt.sErr.x, bestPt.sErr.y, 6.0, 0, Math.PI * 2);
         ctx.fillStyle = "#ffd600";
@@ -24246,60 +24481,46 @@ EOF`;
         ctx.arc(bestPt.sErr.x, bestPt.sErr.y, 2.2, 0, Math.PI * 2);
         ctx.fillStyle = "#000000";
         ctx.fill();
+      }
 
-        // Best Fit floating badge (show when not probed, or probed at another station)
-        if (probeIdx !== bestPt.s.idx) {
-          const bestFreqVal = (bestPt.s.cdfBins && bestPt.s.cdfBins[binIdx] != null) ? bestPt.s.cdfBins[binIdx] : 0;
-          const bestText = `★ Best Fit: ${bestPt.s.dist.toFixed(1)}m | Err: ${bestPt.s.meanError.toFixed(2)}% | Freq: ${bestFreqVal.toFixed(1)}%`;
-          ctx.font = "bold 9px monospace";
-          const btw = ctx.measureText(bestText).width;
-          const bbx = bestPt.sT.x - btw / 2 - 8;
-          const bby = bestPt.sT.y - 28;
+      // Non-overlapping Floating Badges for Mojón and Best Fit:
+      // "the left vertical line should have its label to the left, and the right vertical line to the right"
+      if (probeIdx !== bestPt?.s?.idx) {
+        ctx.save();
+        ctx.font = "bold 9px monospace";
+
+        // Helper to draw floating badge card
+        const drawBadgeCard = (txt, pt, color, isLeft, yOffset = -26) => {
+          const tw = ctx.measureText(txt).width;
+          const bx = isLeft ? (pt.sT.x - tw - 12) : (pt.sT.x + 4);
+          const by = pt.sT.y + yOffset;
 
           ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
-          ctx.strokeStyle = "#ffd600";
+          ctx.strokeStyle = color;
           ctx.lineWidth = 1.2;
           ctx.beginPath();
           if (typeof ctx.roundRect === "function") {
-            ctx.roundRect(bbx, bby, btw + 16, 20, 4);
+            ctx.roundRect(bx, by, tw + 10, 18, 4);
           } else {
-            ctx.rect(bbx, bby, btw + 16, 20);
+            ctx.rect(bx, by, tw + 10, 18);
           }
           ctx.fill();
           ctx.stroke();
 
-          ctx.fillStyle = "#ffd600";
-          ctx.textAlign = "center";
+          ctx.fillStyle = color;
+          ctx.textAlign = "left";
           ctx.textBaseline = "middle";
-          ctx.fillText(bestText, bestPt.sT.x, bby + 10);
+          ctx.fillText(txt, bx + 5, by + 9);
+        };
+
+        if (mojonPt) {
+          const mojonText = `📍 Mojón: ${mojonPt.dist.toFixed(1)}m`;
+          drawBadgeCard(mojonText, mojonPt, "#e040fb", false, -26);
         }
+        ctx.restore();
       }
 
-      // 11. Header Pill Legend (Clean & Compact)
-      const hdrText = "📈 Axis Plot • Err [%] • Freq [%]";
-      ctx.font = "bold 9px monospace";
-      const htw = ctx.measureText(hdrText).width;
-      const hbx = firstT.x;
-      const hby = firstT.y - 28;
-
-      ctx.fillStyle = "rgba(10, 16, 26, 0.88)";
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      if (typeof ctx.roundRect === "function") {
-        ctx.roundRect(hbx, hby, htw + 14, 18, 4);
-      } else {
-        ctx.rect(hbx, hby, htw + 14, 18);
-      }
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = "#00e5ff";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(hdrText, hbx + 7, hby + 9);
-
-      // 12. Active / Hovered Station Alignment Probe
+      // 11. Active / Hovered Station Alignment Probe
       if (probeIdx >= 0 && probeIdx < pts.length) {
         const p = pts[probeIdx];
         if (p && p.s) {
@@ -24332,8 +24553,10 @@ EOF`;
           // Floating Callout Badge above top rail
           const freqVal = (p.s.cdfBins && p.s.cdfBins[binIdx] != null) ? p.s.cdfBins[binIdx] : 0;
           const errStr = (p.s.meanError != null) ? `${p.s.meanError.toFixed(2)}% (±${p.s.sdError.toFixed(2)}%)` : "...";
-          const callout1 = `Station #${probeIdx + 1} (${p.s.dist.toFixed(1)}m)`;
+          const isBestProbe = (bestPt && bestPt.s && bestPt.s.idx === p.s.idx);
+          const callout1 = isBestProbe ? `★ Best Fit Simulation (${p.s.dist.toFixed(1)}m)` : `Station #${probeIdx + 1} (${p.s.dist.toFixed(1)}m)`;
           const callout2 = `Err: ${errStr} | Freq: ${freqVal.toFixed(1)}%`;
+          const badgeThemeColor = isBestProbe ? "#ffd600" : "#e040fb";
 
           ctx.font = "bold 9px monospace";
           const tw = Math.max(ctx.measureText(callout1).width, ctx.measureText(callout2).width);
@@ -24341,7 +24564,7 @@ EOF`;
           const byBox = p.sT.y - 34;
 
           ctx.fillStyle = "rgba(10, 16, 26, 0.95)";
-          ctx.strokeStyle = "#e040fb";
+          ctx.strokeStyle = badgeThemeColor;
           ctx.lineWidth = 1.4;
           ctx.beginPath();
           if (typeof ctx.roundRect === "function") {
@@ -24352,12 +24575,12 @@ EOF`;
           ctx.fill();
           ctx.stroke();
 
-          ctx.fillStyle = "#e040fb";
+          ctx.fillStyle = badgeThemeColor;
           ctx.textAlign = "center";
           ctx.textBaseline = "top";
           ctx.fillText(callout1, p.sT.x, byBox + 4);
 
-          ctx.fillStyle = "#00e5ff";
+          ctx.fillStyle = isBestProbe ? "#ffd600" : "#00e5ff";
           ctx.fillText(callout2, p.sT.x, byBox + 16);
         }
       }
@@ -24523,6 +24746,17 @@ EOF`;
           state.nullModel.hoverStationIdx = nearestIdx;
           const st = stations[nearestIdx];
 
+          // Check for Best station
+          let bestIdx = -1;
+          let minErrVal = Infinity;
+          stations.forEach((s, sIdx) => {
+            if (s.meanError != null && s.meanError < minErrVal) {
+              minErrVal = s.meanError;
+              bestIdx = sIdx;
+            }
+          });
+          const isBestStation = (nearestIdx === bestIdx);
+
           if (tooltip && st) {
             const tauVal = parseFloat(thresholdSlider ? thresholdSlider.value : 0.50) || 0.50;
             const bin = Math.min(199, Math.max(0, Math.round(tauVal * 100) - 1));
@@ -24530,14 +24764,22 @@ EOF`;
             const errStr = st.meanError != null ? `${st.meanError.toFixed(2)}% (±${st.sdError.toFixed(2)}%)` : "—";
             const minMaxStr = (st.minError != null && st.maxError != null) ? `[${st.minError.toFixed(2)}% - ${st.maxError.toFixed(2)}%]` : "";
 
+            let titleHtml = `<div style="font-weight:700;color:#e040fb;">Station #${nearestIdx + 1} (${st.dist.toFixed(1)}m)</div>`;
+            if (isBestStation) {
+              const mojonD = state.nullModel.mojonDist;
+              const deltaStr = (mojonD != null) ? ` | Δ ${(st.dist - mojonD >= 0 ? '+' : '')}${(st.dist - mojonD).toFixed(1)}m from Mojón` : '';
+              titleHtml = `<div style="font-weight:700;color:#ffd600;">★ Best Fit Simulation (#${nearestIdx + 1} @ ${st.dist.toFixed(1)}m${deltaStr})</div>`;
+            }
+
             tooltip.innerHTML = `
-              <div style="font-weight:700;color:#e040fb;">Station #${nearestIdx + 1} (${st.dist.toFixed(1)}m)</div>
-              <div style="color:#00e5ff;">Avg Err: <strong>${errStr}</strong></div>
+              ${titleHtml}
+              <div style="color:#0077b6;">Error x̄: <strong>${errStr}</strong></div>
               ${minMaxStr ? `<div style="color:var(--text-muted);font-size:0.58rem;">Range: ${minMaxStr}</div>` : ''}
-              <div style="color:#00e676;">Freq &lt; ${tauVal.toFixed(2)}%: <strong>${freq.toFixed(1)}%</strong></div>
+              <div style="color:#008744;">Probabilidad (&lt; ${tauVal.toFixed(2)}%): <strong>${freq.toFixed(1)}%</strong></div>
+              <div style="color:var(--text-muted);font-size:0.56rem;border-top:1px solid rgba(0,0,0,0.1);margin-top:2px;padding-top:2px;">(Percent of simulations below error threshold)</div>
             `;
             tooltip.style.display = "block";
-            const tipW = tooltip.offsetWidth || 130;
+            const tipW = tooltip.offsetWidth || 140;
             const posX = Math.max(0, Math.min(rect.width - tipW - 6, mouseX + 10));
             tooltip.style.left = `${posX}px`;
             tooltip.style.top = `6px`;
