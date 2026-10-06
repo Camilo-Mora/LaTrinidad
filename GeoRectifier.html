@@ -24111,109 +24111,6 @@ EOF`;
         }
       }
 
-      // 4. Highlight active or hovered Null Model station probe & Monte Carlo scatter cloud
-      if (state.nullModel && state.nullModel.enabled) {
-        const hasStations = (state.nullModel.stations && state.nullModel.stations.length > 0);
-        const probeIdx = (state.nullModel.hoverStationIdx >= 0)
-          ? state.nullModel.hoverStationIdx
-          : (state.nullModel.highlightStationOnMap ? state.nullModel.currentStationIdx : -1);
-
-        let probePt = null;
-        let st = null;
-        if (hasStations && probeIdx >= 0 && probeIdx < state.nullModel.stations.length) {
-          st = state.nullModel.stations[probeIdx];
-          probePt = st ? st.center : null;
-        } else if (!state.nullModel.running) {
-          // Preview buffer before simulation or when idle: show buffer at coupled anchor or axis p1
-          const targetAxis = (state.testAxes || []).find(a => a.id === state.nullModel.selectedAxisId) || (state.testAxes ? state.testAxes[0] : null);
-          if (targetAxis) {
-            const coupledAnc = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
-            if (coupledAnc && coupledAnc.dst) {
-              probePt = coupledAnc.dst;
-            } else if (targetAxis.p1) {
-              probePt = targetAxis.p1;
-            }
-          }
-        }
-
-        if (probePt) {
-          const sPt = worldToScreenGIS(probePt, vp, canvasH);
-          const bufRadius = state.nullModel.bufferRadius || 1.04;
-          const rPx = Math.max(2, bufRadius * vp.scale);
-          ctx.save();
-
-          // A. Buffer disk (dashed circle with translucent violet fill)
-          ctx.beginPath();
-          ctx.arc(sPt.x, sPt.y, rPx, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(224, 64, 251, 0.16)";
-          ctx.fill();
-          ctx.strokeStyle = "#e040fb";
-          ctx.lineWidth = 1.8;
-          ctx.setLineDash([4, 3]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          // B. Monte Carlo sample scatter cloud within the buffer disk
-          if (st && st.samplePoints && st.samplePoints.length > 0) {
-            const tauVal = state.nullModel.thresholdPercent || 0.50;
-            st.samplePoints.forEach(pt => {
-              const sp = worldToScreenGIS(pt, vp, canvasH);
-              ctx.beginPath();
-              ctx.arc(sp.x, sp.y, 2.2, 0, Math.PI * 2);
-              const isBelowTau = (pt.error != null && pt.error <= tauVal);
-              ctx.fillStyle = isBelowTau ? "#00e676" : "rgba(224, 64, 251, 0.85)";
-              ctx.fill();
-              ctx.strokeStyle = isBelowTau ? "#ffffff" : "rgba(255, 255, 255, 0.5)";
-              ctx.lineWidth = 0.6;
-              ctx.stroke();
-            });
-          }
-
-          // C. Center target bullseye
-          ctx.beginPath();
-          ctx.arc(sPt.x, sPt.y, 4, 0, Math.PI * 2);
-          ctx.fillStyle = "#ffb300";
-          ctx.fill();
-          ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-
-          // D. Descriptive floating badge showing buffer radius & station statistics
-          const hasAlignedPlot = (state.nullModel.stations && state.nullModel.stations.some(s => s.meanError != null));
-          let lbl = "";
-          if (st) {
-            const errStr = (st.meanError != null) ? `${st.meanError.toFixed(2)}% (±${st.sdError.toFixed(2)}%)` : "calculating...";
-            lbl = `Station #${(probeIdx >= 0 ? probeIdx : 0) + 1} (${st.dist.toFixed(1)}m) • Avg: ${errStr} • Buffer ±${bufRadius.toFixed(2)}m`;
-          } else {
-            lbl = `🎲 Null Model Probe • Buffer: ±${bufRadius.toFixed(2)}m`;
-          }
-
-          if (!hasAlignedPlot || state.nullModel.running || probeIdx < 0) {
-            ctx.font = "bold 9.5px monospace";
-            const tw = ctx.measureText(lbl).width;
-            ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
-            ctx.strokeStyle = "#e040fb";
-            ctx.lineWidth = 1.2;
-            ctx.beginPath();
-            const badgeY = sPt.y - rPx - 22;
-            if (typeof ctx.roundRect === "function") {
-              ctx.roundRect(sPt.x - tw / 2 - 7, badgeY, tw + 14, 18, 4);
-            } else {
-              ctx.rect(sPt.x - tw / 2 - 7, badgeY, tw + 14, 18);
-            }
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = "#00e5ff";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(lbl, sPt.x, badgeY + 9);
-          }
-
-          ctx.restore();
-        }
-      }
-
     }
 
     // Attach button listeners for Test Axes
@@ -25659,32 +25556,6 @@ EOF`;
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Center badge on connecting line: "Off by +X.Xm"
-        const deltaMeters = distFromMojon != null ? distFromMojon : (bestDist - mojonDist);
-        const deltaSign = deltaMeters >= 0 ? '+' : '';
-        const offBadge = Math.abs(deltaMeters) < 0.05 ? "Exact (0.0m)" : `Off by ${deltaSign}${deltaMeters.toFixed(1)}m`;
-
-        ctx.font = "bold 8px monospace";
-        const bw = ctx.measureText(offBadge).width;
-        const xMid = (xMojon + xBest) / 2;
-        const badgeY = (Math.abs(xBest - xMojon) < bw + 18) ? (yBridge + 12) : yBridge;
-
-        ctx.fillStyle = "rgba(15, 23, 42, 0.94)";
-        ctx.strokeStyle = "#f59e0b";
-        ctx.lineWidth = 1.0;
-        ctx.beginPath();
-        if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(xMid - bw / 2 - 4, badgeY - 6.5, bw + 8, 13, 3);
-        } else {
-          ctx.rect(xMid - bw / 2 - 4, badgeY - 6.5, bw + 8, 13);
-        }
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = "#fbbf24";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(offBadge, xMid, badgeY);
         ctx.restore();
       } else if (xMojon != null) {
         // Draw star marker even if best is not yet available
@@ -25718,14 +25589,19 @@ EOF`;
         ctx.fillText(mojonText, mojonAlign === "right" ? (xMojon - 4) : (xMojon + 4), mTop + 3);
       }
 
-      // 2) Best Simulation label (same baseline, with winner icon 🏆 and distance from mojón)
+      // 2) Merged Best Simulation label: simply (Best: off by +x m)
       if (xBest != null) {
         ctx.fillStyle = "#b45309";
         ctx.textAlign = bestAlign;
-        const deltaBracket = distFromMojonStr ? ` [${distFromMojonStr}]` : '';
-        const bestText = useZeroOrigin
-          ? `🏆 Best${deltaBracket}`
-          : `🏆 Best ${bestDist.toFixed(1)}m${deltaBracket}`;
+        let bestText;
+        if (distFromMojon != null) {
+          const deltaSign = distFromMojon >= 0 ? '+' : '';
+          bestText = (Math.abs(distFromMojon) < 0.05)
+            ? "(Best: off by 0 m)"
+            : `(Best: off by ${deltaSign}${distFromMojon.toFixed(1)} m)`;
+        } else {
+          bestText = `(Best: ${bestDist.toFixed(1)}m)`;
+        }
         ctx.fillText(bestText, bestAlign === "right" ? (xBest - 4) : (xBest + 4), mTop + 3);
       }
       ctx.restore();
@@ -26213,7 +26089,7 @@ EOF`;
         const offDist = Math.hypot(bp.x - pMojon.x, bp.y - pMojon.y);
         const sMidX = (sMojon.x + sBest.x) / 2;
         const sMidY = (sMojon.y + sBest.y) / 2;
-        const offLbl = `Off by +${offDist.toFixed(2)}m`;
+        const offLbl = (offDist < 0.05) ? "(Best: off by 0 m)" : `(Best: off by +${offDist.toFixed(1)} m)`;
         ctx.font = "bold 8.5px monospace";
         const ow = ctx.measureText(offLbl).width;
 
@@ -26915,10 +26791,15 @@ EOF`;
         }
 
         if (bestPt && bestPt.s && bestPt.s.meanError != null) {
-          const deltaBracket = distFromMojonStr ? ` [${distFromMojonStr}]` : '';
-          const bestText = useZeroOrigin
-            ? `🏆 Best${deltaBracket}`
-            : `🏆 Best ${bestPt.s.dist.toFixed(1)}m${deltaBracket}`;
+          let bestText;
+          if (distFromMojon != null) {
+            const deltaSign = distFromMojon >= 0 ? '+' : '';
+            bestText = (Math.abs(distFromMojon) < 0.05)
+              ? "(Best: off by 0 m)"
+              : `(Best: off by ${deltaSign}${distFromMojon.toFixed(1)} m)`;
+          } else {
+            bestText = `(Best: ${bestPt.s.dist.toFixed(1)}m)`;
+          }
           drawBadgeCard(bestText, bestPt, "#ffd600", !isMojonEarlier, -22);
         }
         ctx.restore();
