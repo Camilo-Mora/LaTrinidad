@@ -2645,7 +2645,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     </div>
 
                     <!-- Chart & Map Display Toggles -->
-                    <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.68rem;padding-top:4px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;font-size:0.68rem;padding-top:4px;">
                       <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);" title="Show or hide the null model dual Y-axis chart">
                         <input type="checkbox" id="chk-null-model-show-chart" checked style="accent-color:#e040fb;">
                         <span>📈 Chart</span>
@@ -2653,6 +2653,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);" title="Highlight the current or hovered simulation station directly on the Field map canvas and render the 2D XY plot along the axis">
                         <input type="checkbox" id="chk-null-model-highlight-map" checked style="accent-color:var(--accent-cyan);">
                         <span>📍 Map Probe</span>
+                      </label>
+                      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#e040fb;" title="Set Field Mojón as x=0 intercept. Distances become negative and positive relative to the current Mojón.">
+                        <input type="checkbox" id="chk-null-model-zero-origin" style="accent-color:#e040fb;">
+                        <span>📍 Mojón=0</span>
                       </label>
                       <div style="display:flex;align-items:center;gap:4px;">
                         <button type="button" id="btn-null-model-flip-side" class="btn btn-secondary btn-sm" style="font-size:0.60rem;padding:1px 5px;" title="Flip axis-aligned 2D plot between left and right side of axis">⇄ Side</button>
@@ -2665,10 +2669,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <!-- Chart Header / Legend -->
                       <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.62rem;padding-bottom:3px;border-bottom:1px solid rgba(0,0,0,0.08);">
                         <span style="color:#0077b6;font-weight:600;display:flex;align-items:center;gap:4px;" title="Promedio del error (Mean Error)">
-                          <span style="width:8px;height:2px;background:#0077b6;display:inline-block;"></span> Left: Error x̄ [%]
+                          <span style="width:8px;height:2px;background:#0077b6;display:inline-block;"></span> Error x̄ [%]
                         </span>
                         <span style="color:#008744;font-weight:600;display:flex;align-items:center;gap:4px;cursor:help;" title="Porcentaje de simulaciones por debajo del umbral de error (Percent of simulations below the error threshold)">
-                          <span style="width:8px;height:2px;background:#008744;display:inline-block;"></span> Right: Probabilidad [%]
+                          <span style="width:8px;height:2px;background:#008744;display:inline-block;"></span> Probabilidad [%]
                         </span>
                       </div>
                       <!-- Canvas for high performance crisp drawing -->
@@ -6488,6 +6492,7 @@ EOF`;
         thresholdPercent: 0.50,
         showChart: true,
         highlightStationOnMap: true,
+        zeroOrigin: false,
         plotSide: "left",
         currentStationIdx: -1,
         hoverStationIdx: -1,
@@ -17457,12 +17462,60 @@ EOF`;
         return;
       }
 
+      // 0b2. Test Axis Linked Segment Icon Hover detection (shows rich tooltip)
+      let hitLinkedIconAxis = null;
+      if (!isPanning && !draggingAnchor && !state.creatingTestAxis && (state.testAxes || []).length > 0) {
+        const linkedAxes = (state.testAxes || []).filter(a => a.visible !== false && a.linkedSegment);
+        for (const ax of linkedAxes) {
+          const s1 = worldToScreenGIS(ax.p1, vp, h);
+          const badgeX = s1.x - 13;
+          const badgeY = s1.y - 9;
+          if (Math.hypot(mouseX - badgeX, mouseY - badgeY) <= 12) {
+            hitLinkedIconAxis = ax;
+            break;
+          }
+        }
+      }
+
+      if (hitLinkedIconAxis) {
+        trueCanvas.style.cursor = "pointer";
+        const linkInfo = getLinkedAxisSegmentDesc(hitLinkedIconAxis);
+        const axName = hitLinkedIconAxis.name || `Axis ${hitLinkedIconAxis.id}`;
+        coordsBar.textContent = `🔗 ${axName}: Coincident / Linked to ${linkInfo.label}${linkInfo.extra} • Handle A is start of axis`;
+        const labelTooltipEl = document.getElementById("segment-label-tooltip");
+        if (labelTooltipEl) {
+          labelTooltipEl.innerHTML = `
+            <div style="font-weight:700;color:#00e5ff;font-size:0.75rem;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;gap:6px;">
+              <span>🔗 Coincident / Linked Axis</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;font-size:0.72rem;line-height:1.5;">
+              <div><span style="color:#94a3b8;">Axis:</span> <strong style="color:#f8fafc;">${axName}</strong></div>
+              <div><span style="color:#94a3b8;">Coincident to:</span> <strong style="color:#00e5ff;">${linkInfo.label}</strong></div>
+              ${linkInfo.extra ? `<div><span style="color:#94a3b8;">Segment:</span> <strong style="color:#f8fafc;font-family:monospace;">${linkInfo.extra.replace(/^ • /, '')}</strong></div>` : ''}
+              <div><span style="color:#94a3b8;">Status:</span> <span style="color:#00e676;">Dynamically locked to boundary edge</span></div>
+            </div>
+          `;
+          labelTooltipEl.style.display = "block";
+          const cw = trueCanvas.width || trueCanvas.clientWidth;
+          const ch = trueCanvas.height || trueCanvas.clientHeight;
+          let leftPx = mouseX + 14;
+          let topPx = mouseY + 14;
+          if (leftPx + 260 > cw) leftPx = mouseX - 270;
+          if (topPx + 110 > ch) topPx = mouseY - 115;
+          labelTooltipEl.style.left = `${Math.max(10, leftPx)}px`;
+          labelTooltipEl.style.top = `${Math.max(10, topPx)}px`;
+        }
+        return;
+      }
+
       // 0c. Test Axis Handle Hover detection
       if (!isPanning && !draggingAnchor && !state.creatingTestAxis && (state.testAxes || []).length > 0) {
         const axisHit = findTestAxisHandleAt(mouseX, mouseY, vp, h);
         if (axisHit) {
           trueCanvas.style.cursor = "move";
           coordsBar.textContent = `📐 ${axisHit.axis.name} Handle ${axisHit.handle.toUpperCase()}: Drag to rotate/move axis (attached anchors slide with it).`;
+          const tip = document.getElementById("segment-label-tooltip");
+          if (tip && tip.style.display !== "none") tip.style.display = "none";
           return;
         }
       }
@@ -21727,6 +21780,38 @@ EOF`;
       return null;
     }
 
+    function getLinkedAxisSegmentDesc(ax) {
+      if (!ax || !ax.linkedSegment) return null;
+      const link = ax.linkedSegment;
+      const typeLabels = {
+        boundary: 'Boundary',
+        custom: 'Custom Poly',
+        deed: 'Deed DXF',
+        field: 'Field DXF',
+        surveyValoy: 'Valoy Survey',
+        surveyCortez: 'Cortez Survey',
+        ref: 'Reference DXF'
+      };
+      const typeStr = typeLabels[link.type] || 'Segment';
+      const layerStr = link.layerName || typeStr;
+      const segNum = (typeof link.segIdx === 'number') ? (link.segIdx + 1) : 1;
+      const vEndpoints = getLinkedSegmentVertices(link);
+      let extra = "";
+      if (vEndpoints && vEndpoints.v1 && vEndpoints.v2) {
+        const dx = vEndpoints.v2.x - vEndpoints.v1.x;
+        const dy = vEndpoints.v2.y - vEndpoints.v1.y;
+        const len = Math.hypot(dx, dy);
+        const brg = computeAxisBearing(vEndpoints.v1, vEndpoints.v2);
+        extra = ` • ${len.toFixed(1)}m at ${brg.toFixed(1)}°`;
+      }
+      return {
+        label: `${layerStr} Seg #${segNum}`,
+        layerName: layerStr,
+        segNum,
+        extra
+      };
+    }
+
     function findBoundarySegmentForAxisAlign(mouseX, mouseY, vp, canvasH, hitDist = 20) {
       let best = null;
       let minDist = hitDist;
@@ -22369,10 +22454,11 @@ EOF`;
           const lineBottom = document.createElement("div");
           lineBottom.style.cssText = "display:flex;align-items:center;gap:4px;padding-left:16px;font-size:0.60rem;";
 
+          const linkInfo = getLinkedAxisSegmentDesc(ax);
           const linkIcon = document.createElement("span");
-          linkIcon.style.cssText = "color:#00e5ff;font-size:0.62rem;display:inline-flex;align-items:center;";
+          linkIcon.style.cssText = "color:#00e5ff;font-size:0.62rem;display:inline-flex;align-items:center;cursor:help;";
           linkIcon.innerHTML = "🔗";
-          linkIcon.title = `Linked to segment`;
+          linkIcon.title = linkInfo ? `Coincident / Linked to ${linkInfo.label}${linkInfo.extra}` : `Linked to segment`;
 
           const linkBadge = document.createElement("span");
           linkBadge.style.cssText = "font-size:0.60rem;background:rgba(0,229,255,0.18);border:1px solid rgba(0,229,255,0.45);color:#00e5ff;padding:1px 4px;border-radius:3px;font-weight:600;display:inline-flex;align-items:center;gap:3px;";
@@ -22510,27 +22596,23 @@ EOF`;
           }
         });
 
-        // Linked segment indicator badge on axis line
+        // Linked segment indicator: link icon at start of axis (Handle A)
         if (ax.linkedSegment) {
-          const typeLabels = {
-            boundary: 'Boundary',
-            custom: 'Custom',
-            deed: 'Deed DXF',
-            field: 'Field DXF',
-            surveyValoy: 'Valoy',
-            surveyCortez: 'Cortez',
-            ref: 'Ref DXF'
-          };
-          const lbl = typeLabels[ax.linkedSegment.type] || 'Seg';
-          const midPt = { x: (s1.x + s2.x) / 2, y: (s1.y + s2.y) / 2 };
           ctx.save();
-          ctx.font = "bold 9px sans-serif";
-          ctx.fillStyle = "#00e5ff";
-          ctx.strokeStyle = "rgba(10,16,26,0.85)";
-          ctx.lineWidth = 2.5;
-          const linkLabel = `🔗 Linked: ${lbl} #${ax.linkedSegment.segIdx + 1}`;
-          ctx.strokeText(linkLabel, midPt.x + 8, midPt.y + 14);
-          ctx.fillText(linkLabel, midPt.x + 8, midPt.y + 14);
+          const badgeX = s1.x - 13;
+          const badgeY = s1.y - 9;
+          ctx.beginPath();
+          ctx.arc(badgeX, badgeY, 8, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+          ctx.fill();
+          ctx.strokeStyle = "#00e5ff";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.font = "10px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("🔗", badgeX, badgeY + 0.5);
           ctx.restore();
         }
 
@@ -23637,7 +23719,32 @@ EOF`;
         return mTop + plotH - norm * plotH;
       }
 
-      // 1. Draw horizontal gridlines & Left/Right axis ticks
+      // Resolve Mojón position along target axis early (for zero-origin and markers)
+      const axes = state.testAxes || [];
+      const targetAxis = axes.find(a => a.id === state.nullModel.selectedAxisId) || axes[0];
+      const geom = targetAxis ? computeAxisGeometry(targetAxis) : null;
+      let mojonDist = state.nullModel.mojonDist;
+      if (mojonDist == null && targetAxis && geom && geom.len > 0) {
+        let testAnchor = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
+        if (!testAnchor && (state.anchors || []).length > 0) {
+          let bestD = Infinity, bestA = null;
+          state.anchors.forEach(a => {
+            if (a.active !== false && a.enabled !== false && a.dst) {
+              const p = projectPointOnAxis(a.dst, targetAxis);
+              if (p.d < bestD) { bestD = p.d; bestA = a; }
+            }
+          });
+          testAnchor = bestA;
+        }
+        if (testAnchor && testAnchor.dst) {
+          const pr = projectPointOnAxis(testAnchor.dst, targetAxis);
+          mojonDist = pr.t * geom.len;
+          state.nullModel.mojonDist = mojonDist;
+        }
+      }
+      const useZeroOrigin = Boolean(state.nullModel.zeroOrigin && mojonDist != null);
+
+      // 1. Draw horizontal gridlines & Left/Right axis ticks (no % symbol on ticks)
       const nGridLines = 4;
       ctx.font = "8px monospace";
 
@@ -23651,7 +23758,7 @@ EOF`;
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Left tick: Error % (Color coded Blue #0077b6)
+        // Left tick: Error x̄ (Color coded Blue #0077b6, value without % sign)
         const errVal = yErrMax * (1 - g / nGridLines);
         ctx.beginPath();
         ctx.moveTo(mLeft - 3, gy);
@@ -23662,9 +23769,9 @@ EOF`;
         ctx.fillStyle = "#0077b6";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        ctx.fillText(`${errVal.toFixed(1)}%`, mLeft - 4, gy);
+        ctx.fillText(`${errVal.toFixed(1)}`, mLeft - 4, gy);
 
-        // Right tick: Probabilidad % (Color coded Forest Green #008744)
+        // Right tick: Probabilidad (Color coded Forest Green #008744, value without % sign)
         const freqVal = Math.round(100 * (1 - g / nGridLines));
         ctx.beginPath();
         ctx.moveTo(mLeft + plotW, gy);
@@ -23675,10 +23782,10 @@ EOF`;
         ctx.fillStyle = "#008744";
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(`${freqVal}%`, mLeft + plotW + 4, gy);
+        ctx.fillText(`${freqVal}`, mLeft + plotW + 4, gy);
       }
 
-      // 2. Color-coded Axes Lines: Left Y (Blue #0077b6), Right Y2 (Forest Green #008744), and Bottom X (Dark Slate #0f172a)
+      // 2. Color-coded Axes Lines: Left Y (Blue #0077b6), Right Y2 (Forest Green #008744), and Bottom X (Solid Black #000000)
       // Left Y-Axis (Blue #0077b6)
       ctx.beginPath();
       ctx.moveTo(mLeft, mTop);
@@ -23695,12 +23802,24 @@ EOF`;
       ctx.lineWidth = 1.8;
       ctx.stroke();
 
-      // Bottom X-Axis (Dark Slate #0f172a)
+      // Bottom X-Axis (Solid Black #000000)
       ctx.beginPath();
       ctx.moveTo(mLeft, mTop + plotH);
       ctx.lineTo(mLeft + plotW, mTop + plotH);
-      ctx.strokeStyle = "#0f172a";
+      ctx.strokeStyle = "#000000";
       ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // X-Axis downward tick marks (Solid Black #000000)
+      ctx.beginPath();
+      const nXTicks = 4;
+      for (let txIdx = 0; txIdx <= nXTicks; txIdx++) {
+        const tx = mLeft + (plotW / nXTicks) * txIdx;
+        ctx.moveTo(tx, mTop + plotH);
+        ctx.lineTo(tx, mTop + plotH + (txIdx % 2 === 0 ? 4 : 2.5));
+      }
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 1.2;
       ctx.stroke();
 
       // Top boundary
@@ -23739,14 +23858,27 @@ EOF`;
       ctx.fillText("Probabilidad [%]", mLeft + plotW + 4, mTop - 4);
       ctx.restore();
 
-      // Bottom X Axis Labels (Dark Slate #0f172a)
-      ctx.fillStyle = "#0f172a";
+      // Bottom X Axis Labels (Solid Black #000000)
+      function formatXDist(val) {
+        if (!useZeroOrigin) return `${val.toFixed(0)}m`;
+        const delta = val - mojonDist;
+        if (Math.abs(delta) < 0.1) return "0m";
+        return `${delta > 0 ? '+' : ''}${delta.toFixed(0)}m`;
+      }
+
+      ctx.fillStyle = "#000000";
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       ctx.font = "8px monospace";
-      ctx.fillText(`${xMin.toFixed(0)}m`, mLeft, mTop + plotH + 4);
-      ctx.fillText(`Dist [m] (${((xMin + xMax) / 2).toFixed(0)}m)`, mLeft + plotW / 2, mTop + plotH + 4);
-      ctx.fillText(`${xMax.toFixed(0)}m`, mLeft + plotW, mTop + plotH + 4);
+      ctx.fillText(formatXDist(xMin), mLeft, mTop + plotH + 5);
+
+      const xMid = (xMin + xMax) / 2;
+      const centerLabel = useZeroOrigin
+        ? `Δ Dist [m] (${formatXDist(xMid)})`
+        : `Dist [m] (${xMid.toFixed(0)}m)`;
+      ctx.fillText(centerLabel, mLeft + plotW / 2, mTop + plotH + 5);
+
+      ctx.fillText(formatXDist(xMax), mLeft + plotW, mTop + plotH + 5);
 
       // 4. Amber threshold reference guide line
       if (tau <= yErrMax) {
@@ -23868,29 +24000,6 @@ EOF`;
       ctx.restore();
 
       // 8. Vertical Lines: Field Mojón Position & Best Iteration Position
-      const axes = state.testAxes || [];
-      const targetAxis = axes.find(a => a.id === state.nullModel.selectedAxisId) || axes[0];
-      const geom = targetAxis ? computeAxisGeometry(targetAxis) : null;
-      let mojonDist = state.nullModel.mojonDist;
-      if (mojonDist == null && targetAxis && geom && geom.len > 0) {
-        let testAnchor = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
-        if (!testAnchor && (state.anchors || []).length > 0) {
-          let bestD = Infinity, bestA = null;
-          state.anchors.forEach(a => {
-            if (a.active !== false && a.enabled !== false && a.dst) {
-              const p = projectPointOnAxis(a.dst, targetAxis);
-              if (p.d < bestD) { bestD = p.d; bestA = a; }
-            }
-          });
-          testAnchor = bestA;
-        }
-        if (testAnchor && testAnchor.dst) {
-          const pr = projectPointOnAxis(testAnchor.dst, targetAxis);
-          mojonDist = pr.t * geom.len;
-          state.nullModel.mojonDist = mojonDist;
-        }
-      }
-
       let bestErr = Infinity;
       let bestDist = null;
       computedStations.forEach(s => {
@@ -23906,7 +24015,7 @@ EOF`;
       const xMojon = hasMojon ? worldXtoPlot(Math.max(xMin, Math.min(xMax, mojonDist))) : null;
       const xBest = hasBest ? worldXtoPlot(Math.max(xMin, Math.min(xMax, bestDist))) : null;
 
-      // Draw Field Mojón Vertical Line down to X-axis (Magenta / Purple #e040fb)
+      // Draw Field Mojón Vertical Line down to X-axis (Magenta #e040fb)
       if (xMojon != null) {
         ctx.save();
         ctx.beginPath();
@@ -23917,7 +24026,7 @@ EOF`;
         ctx.setLineDash([3, 3]);
         ctx.stroke();
 
-        // Little notch tick at bottom white X-axis
+        // Little notch tick at bottom X-axis
         ctx.beginPath();
         ctx.moveTo(xMojon, mTop + plotH);
         ctx.lineTo(xMojon, mTop + plotH + 5);
@@ -23927,36 +24036,66 @@ EOF`;
         ctx.restore();
       }
 
-      // Draw Best Iteration Vertical Line down to X-axis (Gold #ffd600)
+      // Draw Best Iteration Vertical Line down to X-axis (Vibrant Amber / Gold #d97706)
       if (xBest != null) {
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(xBest, mTop);
         ctx.lineTo(xBest, mTop + plotH);
-        ctx.strokeStyle = "#ffd600";
+        ctx.strokeStyle = "#d97706";
         ctx.lineWidth = 1.5;
         ctx.setLineDash([3, 3]);
         ctx.stroke();
 
-        // Little notch tick at bottom white X-axis
+        // Little notch tick at bottom X-axis
         ctx.beginPath();
         ctx.moveTo(xBest, mTop + plotH);
         ctx.lineTo(xBest, mTop + plotH + 5);
-        ctx.strokeStyle = "#ffd600";
+        ctx.strokeStyle = "#d97706";
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.restore();
       }
 
-      // Field Mojón label on sidebar chart (Best result label removed in favor of tooltip)
+      // Mojón & Best Simulation Labels at the same level (mTop + 3)
       ctx.save();
       ctx.font = "bold 8px monospace";
+      ctx.textBaseline = "top";
+
+      const distFromMojon = (mojonDist != null && bestDist != null) ? (bestDist - mojonDist) : null;
+      const distFromMojonStr = distFromMojon != null ? `${distFromMojon >= 0 ? '+' : ''}${distFromMojon.toFixed(1)}m` : null;
+
+      // Determine text alignments so Mojón and Best labels do not collide
+      let mojonAlign = (xMojon != null && xMojon > mLeft + plotW / 2) ? "right" : "left";
+      let bestAlign = (xBest != null && xBest > mLeft + plotW / 2) ? "right" : "left";
+
+      if (xMojon != null && xBest != null) {
+        if (xMojon < xBest) {
+          mojonAlign = (xMojon - 40 < mLeft) ? "left" : "right";
+          bestAlign = (xBest + 45 > mLeft + plotW) ? "right" : "left";
+        } else {
+          bestAlign = (xBest - 45 < mLeft) ? "left" : "right";
+          mojonAlign = (xMojon + 40 > mLeft + plotW) ? "right" : "left";
+        }
+      }
+
+      // 1) Field Mojón label
       if (xMojon != null) {
-        ctx.fillStyle = "#e040fb";
-        const alignRight = (xMojon > mLeft + plotW / 2);
-        ctx.textAlign = alignRight ? "right" : "left";
-        ctx.textBaseline = "top";
-        ctx.fillText(`📍Mojón ${mojonDist.toFixed(1)}m`, alignRight ? (xMojon - 4) : (xMojon + 4), mTop + 3);
+        ctx.fillStyle = "#c026d3";
+        ctx.textAlign = mojonAlign;
+        const mojonText = useZeroOrigin ? `📍Mojón 0m` : `📍Mojón ${mojonDist.toFixed(1)}m`;
+        ctx.fillText(mojonText, mojonAlign === "right" ? (xMojon - 4) : (xMojon + 4), mTop + 3);
+      }
+
+      // 2) Best Simulation label (same baseline, with winner icon 🏆 and distance from mojón)
+      if (xBest != null) {
+        ctx.fillStyle = "#b45309";
+        ctx.textAlign = bestAlign;
+        const deltaBracket = distFromMojonStr ? ` [${distFromMojonStr}]` : '';
+        const bestText = useZeroOrigin
+          ? `🏆 Best${deltaBracket}`
+          : `🏆 Best ${bestDist.toFixed(1)}m${deltaBracket}`;
+        ctx.fillText(bestText, bestAlign === "right" ? (xBest - 4) : (xBest + 4), mTop + 3);
       }
       ctx.restore();
 
@@ -24604,6 +24743,7 @@ EOF`;
       const thresholdVal = document.getElementById("null-model-threshold-val");
       const chkShowChart = document.getElementById("chk-null-model-show-chart");
       const chkHighlightMap = document.getElementById("chk-null-model-highlight-map");
+      const chkZeroOrigin = document.getElementById("chk-null-model-zero-origin");
       const chartContainer = document.getElementById("null-model-chart-container");
       const chartCanvas = document.getElementById("null-model-chart-canvas");
       const tooltip = document.getElementById("null-model-chart-tooltip");
@@ -24705,6 +24845,13 @@ EOF`;
         });
       }
 
+      if (chkZeroOrigin) {
+        chkZeroOrigin.addEventListener("change", e => {
+          state.nullModel.zeroOrigin = e.target.checked;
+          drawNullModelChart();
+        });
+      }
+
       // Chart hover interaction: crosshair, tooltip, and synchronized map probe
       if (chartCanvas) {
         chartCanvas.addEventListener("mousemove", e => {
@@ -24715,8 +24862,8 @@ EOF`;
           const mouseX = e.clientX - rect.left;
           const mouseY = e.clientY - rect.top;
 
-          const mLeft = 32;
-          const mRight = 28;
+          const mLeft = 36;
+          const mRight = 36;
           const plotW = Math.max(10, rect.width - mLeft - mRight);
 
           if (mouseX < mLeft || mouseX > rect.width - mRight) {
@@ -24763,12 +24910,15 @@ EOF`;
             const freq = st.cdfBins ? st.cdfBins[bin] : 0;
             const errStr = st.meanError != null ? `${st.meanError.toFixed(2)}% (±${st.sdError.toFixed(2)}%)` : "—";
             const minMaxStr = (st.minError != null && st.maxError != null) ? `[${st.minError.toFixed(2)}% - ${st.maxError.toFixed(2)}%]` : "";
+            const mojonD = state.nullModel.mojonDist;
+            const hasZeroOrigin = (state.nullModel.zeroOrigin && mojonD != null);
+            const deltaM = (mojonD != null) ? (st.dist - mojonD) : null;
+            const deltaStr = (deltaM != null) ? `${deltaM >= 0 ? '+' : ''}${deltaM.toFixed(1)}m` : null;
 
-            let titleHtml = `<div style="font-weight:700;color:#e040fb;">Station #${nearestIdx + 1} (${st.dist.toFixed(1)}m)</div>`;
+            let titleHtml = `<div style="font-weight:700;color:#c026d3;">Station #${nearestIdx + 1} (${hasZeroOrigin && deltaStr ? `${deltaStr} [${st.dist.toFixed(1)}m]` : `${st.dist.toFixed(1)}m`})</div>`;
             if (isBestStation) {
-              const mojonD = state.nullModel.mojonDist;
-              const deltaStr = (mojonD != null) ? ` | Δ ${(st.dist - mojonD >= 0 ? '+' : '')}${(st.dist - mojonD).toFixed(1)}m from Mojón` : '';
-              titleHtml = `<div style="font-weight:700;color:#ffd600;">★ Best Fit Simulation (#${nearestIdx + 1} @ ${st.dist.toFixed(1)}m${deltaStr})</div>`;
+              const deltaFromMojon = deltaStr ? ` [${deltaStr} from Mojón]` : '';
+              titleHtml = `<div style="font-weight:700;color:#d97706;">🏆 Best Fit Simulation (#${nearestIdx + 1} @ ${st.dist.toFixed(1)}m${deltaFromMojon})</div>`;
             }
 
             tooltip.innerHTML = `
