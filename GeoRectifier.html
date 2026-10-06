@@ -2545,7 +2545,39 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   </div>
                 </div>
 
-                <!-- [SUBSECTION: NULL_MODEL_PANEL] -->
+                <!-- [SUBSECTION: RADII_SWEEP_CHART_CONTAINER] -->
+                <div id="radii-chart-container" style="display:none;position:relative;flex-direction:column;gap:5px;background:#ffffff;border:1px solid rgba(0,176,255,0.45);border-radius:6px;padding:7px;margin-top:6px;box-shadow:0 3px 12px rgba(0,0,0,0.18);">
+                  <!-- Header -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;padding-bottom:4px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span style="font-size:0.72rem;font-weight:700;color:#0277bd;display:flex;align-items:center;gap:3px;">📈 Error vs Radius</span>
+                      <span id="radii-chart-winner-badge" style="display:none;font-size:0.62rem;background:rgba(0,230,118,0.18);color:#00c853;padding:1px 6px;border-radius:4px;font-weight:700;font-family:monospace;">★ ±1.2m</span>
+                    </div>
+                    <button type="button" id="btn-close-radii-chart" style="background:transparent;border:none;cursor:pointer;font-size:0.85rem;color:#888;padding:0 3px;line-height:1;border-radius:3px;" title="Hide Chart">✕</button>
+                  </div>
+
+                  <!-- Error Series Toggles -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.64rem;padding:2px 2px 0 2px;">
+                    <label style="display:flex;align-items:center;gap:3px;cursor:pointer;color:#0077b6;font-weight:600;" title="Show Area Error (%)">
+                      <input type="checkbox" id="chk-radii-err-area" checked style="accent-color:#0077b6;cursor:pointer;width:12px;height:12px;margin:0;">
+                      <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:50%;background:#0077b6;display:inline-block;"></span>Area</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:3px;cursor:pointer;color:#e65100;font-weight:600;" title="Show Average Segment Length Error (%)">
+                      <input type="checkbox" id="chk-radii-err-seg" checked style="accent-color:#e65100;cursor:pointer;width:12px;height:12px;margin:0;">
+                      <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;border-radius:2px;background:#e65100;display:inline-block;"></span>Segments</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:3px;cursor:pointer;color:#2e7d32;font-weight:600;" title="Show Overall Combined Error (%)">
+                      <input type="checkbox" id="chk-radii-err-overall" checked style="accent-color:#2e7d32;cursor:pointer;width:12px;height:12px;margin:0;">
+                      <span style="display:inline-flex;align-items:center;gap:3px;"><span style="width:7px;height:7px;transform:rotate(45deg);background:#2e7d32;display:inline-block;"></span>Both (Overall)</span>
+                    </label>
+                  </div>
+
+                  <!-- Canvas & Tooltip -->
+                  <div style="position:relative;width:100%;height:135px;margin-top:2px;">
+                    <canvas id="radii-chart-canvas" style="width:100%;height:100%;display:block;cursor:crosshair;"></canvas>
+                    <div id="radii-chart-tooltip" style="position:absolute;display:none;pointer-events:none;background:rgba(15,23,42,0.95);border:1px solid #0288d1;border-radius:4px;padding:4px 7px;font-size:0.62rem;font-family:monospace;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,0.35);z-index:20;white-space:nowrap;line-height:1.35;"></div>
+                  </div>
+                </div>
                 <div id="null-model-panel" style="margin-top:6px;padding:8px;background:rgba(224,64,251,0.06);border:1px solid rgba(224,64,251,0.3);border-radius:6px;display:flex;flex-direction:column;gap:7px;">
                   <div style="display:flex;align-items:center;justify-content:space-between;">
                     <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.75rem;font-weight:700;color:#e040fb;margin:0;" title="Simula un modelo nulo a lo largo de un eje para identificar distribuciones de probabilidad y sensibilidad de posición">
@@ -6472,6 +6504,8 @@ EOF`;
       snapNewAnchorsToAxis: false,
       optAlongAxisOnly: false,
       optCasaDelSolOnly: false,
+      radiiSweepHistory: [],       // [ { radius, areaErr, segErr, overallErr, pct104, isWinning } ]
+      radiiChartHoverIdx: -1,
       // Null Model Monte Carlo Simulation along 1D Test Axis
       nullModel: {
         enabled: false,
@@ -14206,10 +14240,21 @@ EOF`;
           return;
         }
 
-        // Ensure each vertex has baseline origX, origY
-        poly.vertices.forEach(v => {
-          if (v.origX === undefined || v.origX === null) v.origX = v.x;
-          if (v.origY === undefined || v.origY === null) v.origY = v.y;
+        // Derive clean baseline nominal coordinates warped from the current anchors
+        const activeAnchors = getActiveAnchors();
+        let warper = null;
+        if (activeAnchors.length >= 2) {
+          try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
+        }
+
+        const nominalVertices = poly.vertices.map(v => {
+          if (v.deedPt && warper) {
+            const w = warper(v.deedPt);
+            return { x: w.x, y: w.y, deedPt: v.deedPt, origX: w.x, origY: w.y };
+          }
+          const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
+          const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
+          return { x: ox, y: oy, deedPt: v.deedPt ? { ...v.deedPt } : null, origX: ox, origY: oy };
         });
 
         if (optStatusBadge) {
@@ -14218,9 +14263,12 @@ EOF`;
         }
 
         setTimeout(() => {
-          const fixedIndices = getFixedVertexIndices(poly.vertices);
+          const optimizableAnchors = state.anchors.filter(anc => anc.active !== false && anc.enabled !== false && anc.optimize === true);
+          const isAllAnchorsFixed = optimizableAnchors.length === 0;
+          const fixedIndices = isAllAnchorsFixed ? new Set() : getFixedVertexIndices(nominalVertices, state.anchors);
+
           const result = BoundaryOptimizer.optimize({
-            vertices: poly.vertices,
+            vertices: nominalVertices,
             segmentLengths: poly.segmentLengths,
             segmentOptimize: poly.segmentOptimize,
             bufferRadius: state.optBufferRadius,
@@ -14243,10 +14291,12 @@ EOF`;
           poly.vertices = result.vertices;
           recomputeUserPolygonMetrics();
           rebuildSegmentInputs();
-          redrawTrueCanvas();
+          redrawAll();
 
+          const finalOverall = document.getElementById("overall-error")?.textContent || "";
+          const errSuffix = finalOverall && finalOverall !== "—" ? ` (${finalOverall}%)` : "";
           if (optStatusBadge) {
-            optStatusBadge.textContent = `✓ Fitted (Max: ${result.maxDisplacement.toFixed(2)}m)`;
+            optStatusBadge.textContent = `✓ Fitted (Max: ${result.maxDisplacement.toFixed(2)}m)${errSuffix}`;
             optStatusBadge.style.background = "rgba(0, 230, 118, 0.22)";
             optStatusBadge.style.color = "#00e676";
           }
@@ -14386,6 +14436,15 @@ EOF`;
       state.tuningCancelRequested = false;
       state.tuningAnchorCenters = anchorCenters;
       state.tuningAnchorDeedCenters = anchorDeedCenters;
+
+      // Initialize and reveal the Radii Sweep Error Chart
+      state.radiiSweepHistory = [];
+      state.radiiChartHoverIdx = -1;
+      const radiiChartCont = document.getElementById("radii-chart-container");
+      if (radiiChartCont) radiiChartCont.style.display = "flex";
+      const radiiWinBadge = document.getElementById("radii-chart-winner-badge");
+      if (radiiWinBadge) radiiWinBadge.style.display = "none";
+      if (typeof drawRadiiSweepChart === "function") drawRadiiSweepChart();
 
       if (btnAutoTune) {
         btnAutoTune.innerHTML = "⏹ Stop Search";
@@ -15064,6 +15123,18 @@ EOF`;
           winningR = currentR;
         }
 
+        // Record data point for the Radii Sweep Chart
+        state.radiiSweepHistory.push({
+          radius: currentR,
+          areaErr: typeof globalBest.areaDiffPct === "number" ? globalBest.areaDiffPct : 0,
+          segErr: typeof globalBest.avgSegErr === "number" ? globalBest.avgSegErr : 0,
+          overallErr: typeof currentOverallErr === "number" ? currentOverallErr : 0,
+          pct104: typeof globalBest.pct104 === "number" ? globalBest.pct104 : 0,
+          loss: typeof globalBest.loss === "number" ? globalBest.loss : 0,
+          isWinning: false
+        });
+        if (typeof drawRadiiSweepChart === "function") drawRadiiSweepChart();
+
         // Convergence check: stops ONLY when Auto-Detect Min Buffer is ticked and reaches zero error (< 0.005%)
         if (isAutoMin && isZeroError) {
           winningR = currentR;
@@ -15139,6 +15210,19 @@ EOF`;
         updateStatus(`⚡ Search Across Radii finalizado: solución óptima ${isAllAnchorsFixed ? 'con anclajes fijos (optimizando nodos deed)' : (useCdsOnly ? 'para áreas Casa del Sol' : (useAxisOnly ? 'con anclajes en eje (±R)' : 'dentro del buffer sugerido'))}, radio ganador ±${winningR.toFixed(1)}m, error = ${(useCdsOnly ? globalOverallBest.loss.toFixed(2) : finalOverall)}%${(isFilterIgac && globalOverallBest.pct104 != null) ? ` (Cumplimiento IGAC ±1.04m: ${globalOverallBest.pct104.toFixed(1)}%)` : ''}.`);
       }
 
+      // Mark winner in sweep history and refresh chart
+      if (globalOverallBest && typeof winningR === "number") {
+        (state.radiiSweepHistory || []).forEach(pt => {
+          pt.isWinning = (Math.abs(pt.radius - winningR) < 0.05);
+        });
+        const radiiWinBadge = document.getElementById("radii-chart-winner-badge");
+        if (radiiWinBadge) {
+          radiiWinBadge.textContent = `★ Winner: ±${winningR.toFixed(1)}m`;
+          radiiWinBadge.style.display = "inline-block";
+        }
+        if (typeof drawRadiiSweepChart === "function") drawRadiiSweepChart();
+      }
+
       // Cleanup state & UI
       state.tuningAnchorsActive = false;
       state.tuningCancelRequested = false;
@@ -15150,6 +15234,368 @@ EOF`;
         btnAutoTune.style.background = "linear-gradient(135deg, #00b0ff, #7c4dff)";
         btnAutoTune.style.boxShadow = "0 2px 8px rgba(0, 176, 255, 0.25)";
       }
+    }
+
+    /* ==========================================================================
+       RADII SWEEP ERROR CHART (Area, Segments, Overall)
+       ========================================================================== */
+    function drawRadiiSweepChart() {
+      const canvas = document.getElementById("radii-chart-canvas");
+      if (!canvas) return;
+
+      const container = canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      const w = Math.max(200, (container && container.clientWidth > 0) ? container.clientWidth : 300);
+      const h = Math.max(80, (container && container.clientHeight > 0) ? container.clientHeight : 135);
+
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+      }
+
+      const ctx = canvas.getContext("2d");
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+
+      // Clean white background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+
+      const history = state.radiiSweepHistory || [];
+      if (history.length === 0) {
+        ctx.font = "italic 9.5px sans-serif";
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Sweeping radii… data points will appear here", w / 2, h / 2);
+        ctx.restore();
+        return;
+      }
+
+      // Checkbox filters
+      const chkArea = document.getElementById("chk-radii-err-area");
+      const chkSeg = document.getElementById("chk-radii-err-seg");
+      const chkOverall = document.getElementById("chk-radii-err-overall");
+      const showArea = chkArea ? chkArea.checked : true;
+      const showSeg = chkSeg ? chkSeg.checked : true;
+      const showOverall = chkOverall ? chkOverall.checked : true;
+
+      // Margins
+      const mLeft = 34;   // Left Y: Error %
+      const mRight = 14;  // Right margin
+      const mTop = 18;    // Top margin
+      const mBottom = 22; // Bottom X: Radius (m)
+      const plotW = Math.max(10, w - mLeft - mRight);
+      const plotH = Math.max(10, h - mTop - mBottom);
+
+      // X-range
+      const xMin = 0.0;
+      const maxR = Math.max(0.5, ...history.map(pt => pt.radius));
+      const xMax = maxR;
+
+      function toPlotX(r) {
+        return mLeft + ((r - xMin) / (xMax - xMin)) * plotW;
+      }
+
+      // Y-range: maximum error across visible series
+      let maxErr = 0.15;
+      history.forEach(pt => {
+        if (showArea && pt.areaErr > maxErr) maxErr = pt.areaErr;
+        if (showSeg && pt.segErr > maxErr) maxErr = pt.segErr;
+        if (showOverall && pt.overallErr > maxErr) maxErr = pt.overallErr;
+      });
+      const yMax = Math.max(0.2, Math.ceil(maxErr * 10) / 10);
+
+      function toPlotY(err) {
+        const norm = Math.max(0, Math.min(1, err / yMax));
+        return mTop + plotH - norm * plotH;
+      }
+
+      // 1. Gridlines & Y-ticks
+      const nGridLines = 4;
+      ctx.font = "8px monospace";
+
+      for (let g = 0; g <= nGridLines; g++) {
+        const gy = mTop + (plotH / nGridLines) * g;
+        ctx.beginPath();
+        ctx.moveTo(mLeft, gy);
+        ctx.lineTo(mLeft + plotW, gy);
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.08)";
+        ctx.setLineDash([2, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const yVal = yMax * (1 - g / nGridLines);
+        ctx.fillStyle = "#666666";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText(yVal.toFixed(2) + "%", mLeft - 4, gy);
+      }
+
+      // Y-axis Label
+      ctx.save();
+      ctx.translate(9, mTop + plotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.font = "bold 7.5px sans-serif";
+      ctx.fillStyle = "#555555";
+      ctx.textAlign = "center";
+      ctx.fillText("Error (%)", 0, 0);
+      ctx.restore();
+
+      // 2. X-axis line & Ticks
+      ctx.beginPath();
+      ctx.moveTo(mLeft, mTop + plotH);
+      ctx.lineTo(mLeft + plotW, mTop + plotH);
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      const stepR = xMax <= 1.0 ? 0.2 : (xMax <= 2.0 ? 0.5 : 1.0);
+      for (let r = stepR; r <= xMax + 0.05; r += stepR) {
+        const rx = toPlotX(r);
+        if (rx <= mLeft + plotW) {
+          ctx.beginPath();
+          ctx.moveTo(rx, mTop + plotH);
+          ctx.lineTo(rx, mTop + plotH + 3);
+          ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+          ctx.stroke();
+
+          ctx.fillStyle = "#666666";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "top";
+          ctx.fillText(r.toFixed(1) + "m", rx, mTop + plotH + 4);
+        }
+      }
+
+      // 3. Winning Radius Highlight line
+      const winPt = history.find(p => p.isWinning);
+      if (winPt) {
+        const wx = toPlotX(winPt.radius);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(wx, mTop);
+        ctx.lineTo(wx, mTop + plotH);
+        ctx.strokeStyle = "#00c853";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#00c853";
+        ctx.beginPath();
+        ctx.arc(wx, mTop, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = "bold 7.5px sans-serif";
+        ctx.textAlign = wx > mLeft + plotW - 45 ? "right" : "left";
+        ctx.fillText(`★ ±${winPt.radius.toFixed(1)}m`, wx > mLeft + plotW - 45 ? wx - 5 : wx + 5, mTop + 4);
+        ctx.restore();
+      }
+
+      // 4. Draw Series Lines & Markers
+      function renderSeries(key, color, symbol) {
+        if (history.length === 0) return;
+
+        // Line
+        ctx.beginPath();
+        history.forEach((pt, i) => {
+          const px = toPlotX(pt.radius);
+          const py = toPlotY(pt[key]);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        // Markers
+        history.forEach(pt => {
+          const px = toPlotX(pt.radius);
+          const py = toPlotY(pt[key]);
+          ctx.fillStyle = color;
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.2;
+
+          if (symbol === "circle") {
+            ctx.beginPath();
+            ctx.arc(px, py, 2.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          } else if (symbol === "square") {
+            ctx.beginPath();
+            ctx.rect(px - 2.5, py - 2.5, 5, 5);
+            ctx.fill();
+            ctx.stroke();
+          } else if (symbol === "diamond") {
+            ctx.beginPath();
+            ctx.moveTo(px, py - 3.2);
+            ctx.lineTo(px + 3.2, py);
+            ctx.lineTo(px, py + 3.2);
+            ctx.lineTo(px - 3.2, py);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+        });
+      }
+
+      if (showArea) renderSeries("areaErr", "#0077b6", "circle");
+      if (showSeg) renderSeries("segErr", "#e65100", "square");
+      if (showOverall) renderSeries("overallErr", "#2e7d32", "diamond");
+
+      // 5. Hover Crosshair & Marker highlight
+      if (state.radiiChartHoverIdx >= 0 && state.radiiChartHoverIdx < history.length) {
+        const hoverPt = history[state.radiiChartHoverIdx];
+        const hx = toPlotX(hoverPt.radius);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(hx, mTop);
+        ctx.lineTo(hx, mTop + plotH);
+        ctx.strokeStyle = "#0288d1";
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([2, 2]);
+        ctx.stroke();
+        ctx.restore();
+
+        if (showArea) {
+          ctx.beginPath();
+          ctx.arc(hx, toPlotY(hoverPt.areaErr), 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = "#0077b6";
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.5;
+          ctx.fill();
+          ctx.stroke();
+        }
+        if (showSeg) {
+          ctx.beginPath();
+          ctx.rect(hx - 4, toPlotY(hoverPt.segErr) - 4, 8, 8);
+          ctx.fillStyle = "#e65100";
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.5;
+          ctx.fill();
+          ctx.stroke();
+        }
+        if (showOverall) {
+          const oy = toPlotY(hoverPt.overallErr);
+          ctx.beginPath();
+          ctx.moveTo(hx, oy - 4.5);
+          ctx.lineTo(hx + 4.5, oy);
+          ctx.lineTo(hx, oy + 4.5);
+          ctx.lineTo(hx - 4.5, oy);
+          ctx.closePath();
+          ctx.fillStyle = "#2e7d32";
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.5;
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function initRadiiChartEvents() {
+      const canvas = document.getElementById("radii-chart-canvas");
+      const tooltip = document.getElementById("radii-chart-tooltip");
+      const closeBtn = document.getElementById("btn-close-radii-chart");
+      const chkArea = document.getElementById("chk-radii-err-area");
+      const chkSeg = document.getElementById("chk-radii-err-seg");
+      const chkOverall = document.getElementById("chk-radii-err-overall");
+
+      if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+          const container = document.getElementById("radii-chart-container");
+          if (container) container.style.display = "none";
+        });
+      }
+
+      [chkArea, chkSeg, chkOverall].forEach(chk => {
+        if (chk) chk.addEventListener("change", drawRadiiSweepChart);
+      });
+
+      if (canvas && tooltip) {
+        canvas.addEventListener("mousemove", e => {
+          const history = state.radiiSweepHistory || [];
+          if (history.length === 0) return;
+
+          const rect = canvas.getBoundingClientRect();
+          const mx = e.clientX - rect.left;
+          const my = e.clientY - rect.top;
+
+          const mLeft = 34, mRight = 14;
+          const plotW = Math.max(10, rect.width - mLeft - mRight);
+          const maxR = Math.max(0.5, ...history.map(pt => pt.radius));
+
+          let bestIdx = -1;
+          let bestDist = Infinity;
+          history.forEach((pt, idx) => {
+            const px = mLeft + (pt.radius / maxR) * plotW;
+            const dist = Math.abs(mx - px);
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestIdx = idx;
+            }
+          });
+
+          if (bestIdx >= 0 && bestDist < 25) {
+            state.radiiChartHoverIdx = bestIdx;
+            const pt = history[bestIdx];
+            const px = mLeft + (pt.radius / maxR) * plotW;
+
+            tooltip.style.display = "block";
+            tooltip.innerHTML = `
+              <div style="font-weight:bold;color:#fff;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:2px;margin-bottom:2px;">
+                Radius: ±${pt.radius.toFixed(1)}m ${pt.isWinning ? '<span style="color:#00e676;">★ Winner</span>' : ''}
+              </div>
+              <div style="color:#4fc3f7;">● Area Err: ${pt.areaErr.toFixed(2)}%</div>
+              <div style="color:#ffb74d;">■ Seg Err: ${pt.segErr.toFixed(2)}%</div>
+              <div style="color:#81c784;">◆ Overall: ${pt.overallErr.toFixed(2)}%</div>
+              ${pt.pct104 ? `<div style="color:#b388ff;font-size:0.56rem;">IGAC ±1.04m: ${pt.pct104.toFixed(1)}%</div>` : ''}
+            `;
+
+            const ttW = 125;
+            let leftPos = px + 10;
+            if (leftPos + ttW > rect.width) leftPos = px - ttW - 10;
+            tooltip.style.left = `${Math.max(4, leftPos)}px`;
+            tooltip.style.top = `${Math.max(4, Math.min(rect.height - 75, my - 20))}px`;
+
+            drawRadiiSweepChart();
+          } else if (state.radiiChartHoverIdx >= 0) {
+            state.radiiChartHoverIdx = -1;
+            tooltip.style.display = "none";
+            drawRadiiSweepChart();
+          }
+        });
+
+        canvas.addEventListener("mouseleave", () => {
+          if (state.radiiChartHoverIdx >= 0) {
+            state.radiiChartHoverIdx = -1;
+            tooltip.style.display = "none";
+            drawRadiiSweepChart();
+          }
+        });
+
+        canvas.addEventListener("click", () => {
+          const history = state.radiiSweepHistory || [];
+          if (state.radiiChartHoverIdx >= 0 && state.radiiChartHoverIdx < history.length) {
+            const pt = history[state.radiiChartHoverIdx];
+            state.optBufferRadius = pt.radius;
+            const slider = document.getElementById("opt-buffer-slider");
+            const valLabel = document.getElementById("opt-buffer-val");
+            if (slider) slider.value = pt.radius;
+            if (valLabel) valLabel.textContent = `±${pt.radius.toFixed(1)} m`;
+            updateStatus(`📍 Adopted buffer radius ±${pt.radius.toFixed(1)}m from chart. Click 'Run Current' to test.`);
+          }
+        });
+      }
+
+      window.addEventListener("resize", () => {
+        const container = document.getElementById("radii-chart-container");
+        if (container && container.style.display !== "none") {
+          drawRadiiSweepChart();
+        }
+      });
     }
 
     if (btnAutoTune) {
@@ -26604,6 +27050,7 @@ EOF`;
     algorithmSelect.value = state.algorithm;
     initConstraintsAndBuffers();
     initNullModelUI();
+    initRadiiChartEvents();
     renderCustomPolyList();
     updateCustomPolyButtonStates();
     recomputeCustomPolygonMetrics();
