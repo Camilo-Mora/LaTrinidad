@@ -1689,10 +1689,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <strong id="seg-adjust-tol-val" style="color:var(--accent-cyan);font-family:monospace;font-size:0.74rem;">± 1.04 m (IGAC)</strong>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
-                  <input type="range" id="seg-adjust-tol-slider" min="0.05" max="5.00" step="0.05" value="1.04" class="opacity-slider" style="flex:1;height:4px;accent-color:var(--accent-cyan);cursor:pointer;">
+                  <input type="range" id="seg-adjust-tol-slider" min="0.00" max="5.00" step="0.05" value="1.04" class="opacity-slider" style="flex:1;height:4px;accent-color:var(--accent-cyan);cursor:pointer;">
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:0.60rem;color:var(--text-muted);">
-                  <span>0.05m (Exact)</span>
+                  <span>0.00m (Raw)</span>
                   <span style="color:var(--accent-cyan);" title="IGAC Graphical Tolerance standard for 1:2000 plan">1.04m (IGAC)</span>
                   <span>5.00m</span>
                 </div>
@@ -12559,12 +12559,12 @@ EOF`;
         updateStatus("📐 Segments Adjust mode active — click connected segments on the reconstructed polygon to select them.");
         const tolSlider = document.getElementById("seg-adjust-tol-slider");
         const tolVal = document.getElementById("seg-adjust-tol-val");
-        const curTol = (state.segmentsAdjust.toleranceDist != null && !isNaN(state.segmentsAdjust.toleranceDist))
+        const curTol = (state.segmentsAdjust.toleranceDist != null && !isNaN(state.segmentsAdjust.toleranceDist) && state.segmentsAdjust.toleranceDist >= 0)
           ? Number(state.segmentsAdjust.toleranceDist)
           : 1.04;
         if (tolSlider) tolSlider.value = curTol;
         if (tolVal) {
-          const igacTag = (Math.abs(curTol - 1.04) < 0.03) ? " (IGAC)" : "";
+          const igacTag = (Math.abs(curTol - 1.04) < 0.03) ? " (IGAC)" : (curTol === 0 ? " (Raw)" : "");
           tolVal.textContent = `± ${curTol.toFixed(2)} m${igacTag}`;
         }
         updateReverseModeUI();
@@ -12838,7 +12838,7 @@ EOF`;
       const indices = sa.selectedSegIndices;
       const k = indices.length;
       // Allowable lateral / angular displacement tolerance in meters (IGAC standard 1.04m default)
-      const tolDist = (sa.toleranceDist != null && !isNaN(sa.toleranceDist) && sa.toleranceDist > 0)
+      const tolDist = (sa.toleranceDist != null && !isNaN(sa.toleranceDist) && sa.toleranceDist >= 0)
         ? Number(sa.toleranceDist)
         : (sa.toleranceDeg != null ? sa.toleranceDeg * 2.0 : 1.04);
 
@@ -13592,7 +13592,7 @@ EOF`;
       sa.previewVerts = sol.previewChain || sol.candidateVerts;
       sa.previewMetrics = sol;
 
-      const curTolDist = (sa.toleranceDist != null && !isNaN(sa.toleranceDist)) ? Number(sa.toleranceDist) : 1.04;
+      const curTolDist = (sa.toleranceDist != null && !isNaN(sa.toleranceDist) && sa.toleranceDist >= 0) ? Number(sa.toleranceDist) : 1.04;
 
       if (statusTextEl) {
         if (!sol.feasible && sol.isOppositeDirection) {
@@ -13613,7 +13613,7 @@ EOF`;
               const tolVal = document.getElementById("seg-adjust-tol-val");
               if (tolSlider) tolSlider.value = newTol;
               if (tolVal) {
-                const igacTag = (Math.abs(newTol - 1.04) < 0.03) ? " (IGAC)" : "";
+                const igacTag = (Math.abs(newTol - 1.04) < 0.03) ? " (IGAC)" : (newTol === 0 ? " (Raw)" : "");
                 tolVal.textContent = `± ${newTol.toFixed(2)} m${igacTag}`;
               }
               updateSegmentsAdjustMetrics();
@@ -16992,10 +16992,11 @@ EOF`;
     const segTolVal = document.getElementById("seg-adjust-tol-val");
     if (segTolSlider) {
       segTolSlider.addEventListener("input", (e) => {
-        const val = parseFloat(e.target.value) || 1.04;
+        const raw = parseFloat(e.target.value);
+        const val = (!isNaN(raw) && raw >= 0) ? raw : 1.04;
         state.segmentsAdjust.toleranceDist = val;
         if (segTolVal) {
-          const igacTag = (Math.abs(val - 1.04) < 0.03) ? " (IGAC)" : "";
+          const igacTag = (Math.abs(val - 1.04) < 0.03) ? " (IGAC)" : (val === 0 ? " (Raw)" : "");
           segTolVal.textContent = `± ${val.toFixed(2)} m${igacTag}`;
         }
         updateSegmentsAdjustMetrics();
