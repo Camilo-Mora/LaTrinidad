@@ -26074,6 +26074,7 @@ EOF`;
       }
 
       // Connecting Bridge Line between True Mojón and Best Pixel Candidate
+      let offDist = null;
       if (sMojon && sBest && bp && pMojon) {
         ctx.save();
         ctx.beginPath();
@@ -26084,32 +26085,9 @@ EOF`;
         ctx.setLineDash([3, 3]);
         ctx.stroke();
         ctx.setLineDash([]);
-
-        // Offset distance badge in the middle
-        const offDist = Math.hypot(bp.x - pMojon.x, bp.y - pMojon.y);
-        const sMidX = (sMojon.x + sBest.x) / 2;
-        const sMidY = (sMojon.y + sBest.y) / 2;
-        const offLbl = (offDist < 0.05) ? "(Best: off by 0 m)" : `(Best: off by +${offDist.toFixed(1)} m)`;
-        ctx.font = "bold 8.5px monospace";
-        const ow = ctx.measureText(offLbl).width;
-
-        ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
-        ctx.strokeStyle = "#ffd600";
-        ctx.lineWidth = 1.0;
-        ctx.beginPath();
-        if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(sMidX - ow / 2 - 4, sMidY - 7, ow + 8, 14, 3);
-        } else {
-          ctx.rect(sMidX - ow / 2 - 4, sMidY - 7, ow + 8, 14);
-        }
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = "#ffd600";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(offLbl, sMidX, sMidY);
         ctx.restore();
+
+        offDist = Math.hypot(bp.x - pMojon.x, bp.y - pMojon.y);
       }
 
       // True Mojón Original Location Star Marker (★)
@@ -26137,7 +26115,7 @@ EOF`;
         ctx.fillText(mojonLbl, sMojon.x, sMojon.y + 17.5);
       }
 
-      // Best global pixel marker
+      // Best global pixel marker (Single clean label to the right of the marker)
       if (sBest && grid.bestCell) {
         ctx.beginPath();
         ctx.arc(sBest.x, sBest.y, 6.5, 0, Math.PI * 2);
@@ -26147,24 +26125,35 @@ EOF`;
         ctx.lineWidth = 2.0;
         ctx.stroke();
 
+        // Best label positioned cleanly to the right of the marker
+        let bestLbl;
+        if (offDist != null) {
+          bestLbl = (offDist < 0.05) ? "(Best: off by 0 m)" : `(Best: off by +${offDist.toFixed(1)} m)`;
+        } else {
+          bestLbl = `(Best: ${grid.bestCell.error.toFixed(2)}%)`;
+        }
+
         ctx.font = "bold 9px monospace";
-        const bestLbl = `🏆 Best: ${grid.bestCell.error.toFixed(2)}% (s:${grid.bestCell.s.toFixed(1)}m, n:${grid.bestCell.n > 0 ? '+' : ''}${grid.bestCell.n.toFixed(2)}m)`;
         const bw = ctx.measureText(bestLbl).width;
-        ctx.fillStyle = "rgba(10, 16, 26, 0.92)";
-        ctx.strokeStyle = "#00e676";
+        const badgeX = sBest.x + 11;
+        const badgeY = sBest.y - 8;
+
+        ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
+        ctx.strokeStyle = "#ffd600";
         ctx.lineWidth = 1.0;
         ctx.beginPath();
         if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(sBest.x - bw / 2 - 5, sBest.y - 25, bw + 10, 16, 3);
+          ctx.roundRect(badgeX, badgeY, bw + 10, 16, 3);
         } else {
-          ctx.rect(sBest.x - bw / 2 - 5, sBest.y - 25, bw + 10, 16);
+          ctx.rect(badgeX, badgeY, bw + 10, 16);
         }
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = "#00e676";
-        ctx.textAlign = "center";
+
+        ctx.fillStyle = "#ffd600";
+        ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(bestLbl, sBest.x, sBest.y - 17);
+        ctx.fillText(bestLbl, badgeX + 5, sBest.y);
       }
 
       // 5. Hovered Cell highlight
