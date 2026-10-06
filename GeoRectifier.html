@@ -2666,24 +2666,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
 
                     <!-- Chart Container (Dual Y-Axis) -->
                     <div id="null-model-chart-container" style="position:relative;display:flex;flex-direction:column;gap:3px;background:#ffffff;border:1px solid rgba(224,64,251,0.4);border-radius:5px;padding:6px;margin-top:2px;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
-                      <!-- Chart Header / Legend -->
-                      <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.62rem;padding-bottom:3px;border-bottom:1px solid rgba(0,0,0,0.08);">
-                        <span style="color:#0077b6;font-weight:600;display:flex;align-items:center;gap:4px;" title="Promedio del error (Mean Error)">
-                          <span style="width:8px;height:2px;background:#0077b6;display:inline-block;"></span> Error x̄ [%]
-                        </span>
-                        <span style="color:#008744;font-weight:600;display:flex;align-items:center;gap:4px;cursor:help;" title="Porcentaje de simulaciones por debajo del umbral de error (Percent of simulations below the error threshold)">
-                          <span style="width:8px;height:2px;background:#008744;display:inline-block;"></span> Probabilidad [%]
-                        </span>
-                      </div>
                       <!-- Canvas for high performance crisp drawing -->
                       <div style="position:relative;width:100%;height:130px;">
                         <canvas id="null-model-chart-canvas" style="width:100%;height:100%;display:block;cursor:crosshair;"></canvas>
                         <div id="null-model-chart-tooltip" style="position:absolute;display:none;pointer-events:none;background:rgba(15,23,42,0.95);border:1px solid #0077b6;border-radius:4px;padding:4px 6px;font-size:0.62rem;font-family:monospace;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:10;white-space:nowrap;"></div>
-                      </div>
-                      <div id="null-model-summary-stats" style="font-size:0.62rem;color:#475569;display:flex;justify-content:space-between;font-family:monospace;padding-top:2px;border-top:1px solid rgba(0,0,0,0.08);">
-                        <span id="null-model-stat-best" style="color:#0f172a;">Best: —</span>
-                        <span id="null-model-stat-freq" style="color:#0f172a;">Peak Freq: —</span>
-                        <span id="null-model-stat-count" style="color:#64748b;">Stations: 0</span>
                       </div>
                     </div>
                   </div>
@@ -6476,6 +6462,7 @@ EOF`;
       testAxisCursorPt: null,      // live mouse position during creation
       draggingTestAxisHandle: null,// { axisId, handle: 'p1'|'p2' }
       hoverTestAxisHandle: null,   // { axisId, handle: 'p1'|'p2' }
+      openAxisSettingsId: null,    // axisId whose styling settings panel is open in UI
       snapNewAnchorsToAxis: false,
       optAlongAxisOnly: false,
       optCasaDelSolOnly: false,
@@ -18663,6 +18650,13 @@ EOF`;
             p2: { x: ax.p2.x, y: ax.p2.y },
             color: ax.color,
             visible: ax.visible !== false,
+            opacity: ax.opacity,
+            lineWidth: ax.lineWidth,
+            lineDash: ax.lineDash,
+            showRays: ax.showRays !== false,
+            rayWidth: ax.rayWidth,
+            rayDash: ax.rayDash,
+            rayOpacity: ax.rayOpacity,
             linkedSegment: ax.linkedSegment ? JSON.parse(JSON.stringify(ax.linkedSegment)) : null
           }))
         };
@@ -22226,6 +22220,7 @@ EOF`;
       if (idx < 0) return;
       const ax = state.testAxes[idx];
       state.testAxes.splice(idx, 1);
+      if (state.openAxisSettingsId === id) state.openAxisSettingsId = null;
       // Detach any anchors bound to this axis
       let detached = 0;
       (state.anchors || []).forEach(anc => {
@@ -22321,8 +22316,15 @@ EOF`;
         const leftWrap = document.createElement("div");
         leftWrap.style.cssText = "display:flex;align-items:center;gap:4px;min-width:0;flex:1;";
 
-        const dot = document.createElement("span");
-        dot.style.cssText = `width:8px;height:8px;border-radius:50%;background:${ax.color};box-shadow:0 0 6px ${ax.color};flex-shrink:0;`;
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "axis-color-dot";
+        dot.setAttribute("data-color", ax.color || "#e040fb");
+        const isDotActive = (state.openAxisSettingsId === ax.id);
+        dot.style.cssText = `width:12px;height:12px;border-radius:50%;background:${ax.color};box-shadow:${isDotActive ? `0 0 0 2px #fff, 0 0 8px ${ax.color}` : `0 0 6px ${ax.color}`};flex-shrink:0;cursor:pointer;border:1.5px solid rgba(255,255,255,0.75);padding:0;transition:transform 0.15s, box-shadow 0.15s;`;
+        dot.title = "Click to configure axis style (color, opacity, thickness, rays, dash)";
+        dot.addEventListener("mouseenter", () => { dot.style.transform = "scale(1.25)"; });
+        dot.addEventListener("mouseleave", () => { dot.style.transform = "scale(1)"; });
 
         const chkVis = document.createElement("input");
         chkVis.type = "checkbox";
@@ -22481,8 +22483,341 @@ EOF`;
           row.appendChild(lineBottom);
         }
 
+        // Collapsible styling settings panel (toggled by clicking the colored dot)
+        const curColor = ax.color || "#e040fb";
+        const curOpacity = (typeof ax.opacity === "number") ? Math.max(0.05, Math.min(1.0, ax.opacity)) : 1.0;
+        const curLineWidth = (typeof ax.lineWidth === "number") ? Math.max(0.5, Math.min(12, ax.lineWidth)) : 2.5;
+        const curLineDash = ax.lineDash || "solid";
+        const curShowRays = (ax.showRays !== false);
+        const curRayWidth = (typeof ax.rayWidth === "number") ? Math.max(0.5, Math.min(10, ax.rayWidth)) : 1.5;
+        const curRayDash = ax.rayDash || "dashed";
+        const curRayOpacity = (typeof ax.rayOpacity === "number") ? Math.max(0.05, Math.min(1.0, ax.rayOpacity)) : 0.35;
+
+        const settingsPanel = document.createElement("div");
+        settingsPanel.className = "axis-settings-panel";
+        settingsPanel.style.cssText = `display:${isDotActive ? 'flex' : 'none'};flex-direction:column;gap:5px;padding:6px 7px;margin-top:3px;border-radius:4px;background:rgba(15,15,20,0.85);border:1px solid rgba(255,255,255,0.14);font-size:0.63rem;box-shadow:inset 0 1px 3px rgba(0,0,0,0.4);`;
+
+        // Notify helper
+        const notifyAxisChanged = () => {
+          if (typeof saveCurrentDeedState === "function") saveCurrentDeedState();
+          if (typeof saveAxesToStorage === "function") saveAxesToStorage();
+          redrawTrueCanvas();
+        };
+
+        // Header
+        const spHeader = document.createElement("div");
+        spHeader.style.cssText = "display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:3px;margin-bottom:2px;";
+        spHeader.innerHTML = `<span style="font-weight:700;color:var(--text-bright,#fff);display:inline-flex;align-items:center;gap:3px;"><span style="font-size:0.65rem;">⚙️</span> ${ax.name} Style</span>`;
+        
+        const spHeaderBtns = document.createElement("div");
+        spHeaderBtns.style.cssText = "display:flex;align-items:center;gap:6px;";
+
+        const btnResetStyle = document.createElement("button");
+        btnResetStyle.type = "button";
+        btnResetStyle.style.cssText = "background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:0.59rem;padding:0;text-decoration:underline;";
+        btnResetStyle.title = "Reset to default styling";
+        btnResetStyle.textContent = "Reset";
+        btnResetStyle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          ax.color = "#e040fb";
+          ax.opacity = 1.0;
+          ax.lineWidth = 2.5;
+          ax.lineDash = "solid";
+          ax.showRays = true;
+          ax.rayWidth = 1.5;
+          ax.rayDash = "dashed";
+          ax.rayOpacity = 0.35;
+          notifyAxisChanged();
+          renderTestAxesList();
+        });
+
+        const btnCloseSp = document.createElement("button");
+        btnCloseSp.type = "button";
+        btnCloseSp.style.cssText = "background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:0.65rem;line-height:1;padding:0 2px;";
+        btnCloseSp.title = "Close style settings";
+        btnCloseSp.innerHTML = "✕";
+        btnCloseSp.addEventListener("click", (e) => {
+          e.stopPropagation();
+          state.openAxisSettingsId = null;
+          settingsPanel.style.display = "none";
+          dot.style.boxShadow = `0 0 6px ${ax.color}`;
+        });
+
+        spHeaderBtns.appendChild(btnResetStyle);
+        spHeaderBtns.appendChild(btnCloseSp);
+        spHeader.appendChild(spHeaderBtns);
+        settingsPanel.appendChild(spHeader);
+
+        // Section 1: Color picker & Swatches
+        const secColor = document.createElement("div");
+        secColor.style.cssText = "display:flex;flex-direction:column;gap:3px;";
+        
+        const colorTopLine = document.createElement("div");
+        colorTopLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:4px;";
+        colorTopLine.innerHTML = `<span style="color:var(--text-muted);font-weight:600;">Color:</span>`;
+        
+        const colorPickWrap = document.createElement("div");
+        colorPickWrap.style.cssText = "display:inline-flex;align-items:center;gap:4px;";
+
+        const colorInp = document.createElement("input");
+        colorInp.type = "color";
+        colorInp.value = curColor.startsWith("#") && curColor.length === 7 ? curColor : "#e040fb";
+        colorInp.style.cssText = "width:18px;height:16px;padding:0;border:1px solid rgba(255,255,255,0.4);border-radius:2px;background:transparent;cursor:pointer;";
+        colorInp.title = "Custom color picker";
+        
+        const updateColorUI = (newColor) => {
+          ax.color = newColor;
+          colorInp.value = newColor;
+          dot.setAttribute("data-color", newColor);
+          dot.style.background = newColor;
+          dot.style.boxShadow = `0 0 0 2px #fff, 0 0 8px ${newColor}`;
+          row.style.borderColor = hexToRgba(newColor, 0.35);
+          chkVis.style.accentColor = newColor;
+          notifyAxisChanged();
+        };
+
+        colorInp.addEventListener("input", (e) => updateColorUI(e.target.value));
+        colorPickWrap.appendChild(colorInp);
+
+        const swatches = ["#e040fb", "#00e5ff", "#ffd600", "#ff9100", "#00e676", "#ff1744", "#ffffff"];
+        swatches.forEach(swColor => {
+          const sw = document.createElement("button");
+          sw.type = "button";
+          sw.style.cssText = `width:11px;height:11px;border-radius:50%;background:${swColor};border:1px solid rgba(255,255,255,0.6);cursor:pointer;padding:0;flex-shrink:0;`;
+          sw.title = `Color preset: ${swColor}`;
+          sw.addEventListener("click", (e) => {
+            e.stopPropagation();
+            updateColorUI(swColor);
+          });
+          colorPickWrap.appendChild(sw);
+        });
+        colorTopLine.appendChild(colorPickWrap);
+        secColor.appendChild(colorTopLine);
+
+        // Opacity slider
+        const opLine = document.createElement("div");
+        opLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;";
+        const opValLbl = document.createElement("span");
+        opValLbl.style.cssText = "font-family:monospace;min-width:28px;text-align:right;";
+        opValLbl.textContent = `${Math.round(curOpacity * 100)}%`;
+        
+        const opSlider = document.createElement("input");
+        opSlider.type = "range";
+        opSlider.min = "0.1";
+        opSlider.max = "1.0";
+        opSlider.step = "0.05";
+        opSlider.value = curOpacity.toString();
+        opSlider.style.cssText = "flex:1;min-width:60px;height:3px;cursor:pointer;";
+        opSlider.title = "Main axis line opacity";
+        opSlider.addEventListener("input", (e) => {
+          const val = parseFloat(e.target.value);
+          ax.opacity = val;
+          opValLbl.textContent = `${Math.round(val * 100)}%`;
+          notifyAxisChanged();
+        });
+        opLine.innerHTML = `<span style="color:var(--text-muted);">Main Alpha:</span>`;
+        opLine.appendChild(opSlider);
+        opLine.appendChild(opValLbl);
+        secColor.appendChild(opLine);
+
+        settingsPanel.appendChild(secColor);
+
+        // Section 2: Main Axis Line (A-B)
+        const secMain = document.createElement("div");
+        secMain.style.cssText = "display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(255,255,255,0.06);padding-top:4px;";
+        
+        // Thickness
+        const thLine = document.createElement("div");
+        thLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;";
+        const thValLbl = document.createElement("span");
+        thValLbl.style.cssText = "font-family:monospace;min-width:28px;text-align:right;";
+        thValLbl.textContent = `${curLineWidth.toFixed(1)}px`;
+        
+        const thSlider = document.createElement("input");
+        thSlider.type = "range";
+        thSlider.min = "0.5";
+        thSlider.max = "8.0";
+        thSlider.step = "0.5";
+        thSlider.value = curLineWidth.toString();
+        thSlider.style.cssText = "flex:1;min-width:60px;height:3px;cursor:pointer;";
+        thSlider.title = "Main axis thickness (A-B)";
+        thSlider.addEventListener("input", (e) => {
+          const val = parseFloat(e.target.value);
+          ax.lineWidth = val;
+          thValLbl.textContent = `${val.toFixed(1)}px`;
+          notifyAxisChanged();
+        });
+        thLine.innerHTML = `<span style="color:var(--text-muted);">Main Width:</span>`;
+        thLine.appendChild(thSlider);
+        thLine.appendChild(thValLbl);
+        secMain.appendChild(thLine);
+
+        // Style
+        const stLine = document.createElement("div");
+        stLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;";
+        stLine.innerHTML = `<span style="color:var(--text-muted);">Main Style:</span>`;
+        
+        const selDash = document.createElement("select");
+        selDash.style.cssText = "background:#1e1e1e;color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:2px;font-size:0.61rem;padding:1px 3px;";
+        [
+          { val: "solid", label: "Solid ────" },
+          { val: "dashed", label: "Dashed ╌╌╌╌" },
+          { val: "dotted", label: "Dotted ････" },
+          { val: "dashdot", label: "Dash-Dot ─･─･" }
+        ].forEach(opt => {
+          const o = document.createElement("option");
+          o.value = opt.val;
+          o.textContent = opt.label;
+          if (curLineDash === opt.val) o.selected = true;
+          selDash.appendChild(o);
+        });
+        selDash.addEventListener("change", (e) => {
+          ax.lineDash = e.target.value;
+          notifyAxisChanged();
+        });
+        stLine.appendChild(selDash);
+        secMain.appendChild(stLine);
+
+        settingsPanel.appendChild(secMain);
+
+        // Section 3: Extended Rays
+        const secRays = document.createElement("div");
+        secRays.style.cssText = "display:flex;flex-direction:column;gap:3px;border-top:1px solid rgba(255,255,255,0.06);padding-top:4px;";
+
+        const rayToggleLine = document.createElement("div");
+        rayToggleLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;";
+        
+        const rayChkWrap = document.createElement("label");
+        rayChkWrap.style.cssText = "display:inline-flex;align-items:center;gap:3px;cursor:pointer;";
+        const chkRays = document.createElement("input");
+        chkRays.type = "checkbox";
+        chkRays.checked = curShowRays;
+        chkRays.style.cssText = "cursor:pointer;margin:0;";
+        chkRays.addEventListener("change", (e) => {
+          ax.showRays = e.target.checked;
+          notifyAxisChanged();
+        });
+        rayChkWrap.appendChild(chkRays);
+        const rayChkLbl = document.createElement("span");
+        rayChkLbl.textContent = "Show Rays (±150m)";
+        rayChkLbl.style.cssText = "color:var(--text-muted);font-weight:600;";
+        rayChkWrap.appendChild(rayChkLbl);
+        rayToggleLine.appendChild(rayChkWrap);
+
+        const selRayDash = document.createElement("select");
+        selRayDash.style.cssText = "background:#1e1e1e;color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:2px;font-size:0.61rem;padding:1px 3px;";
+        [
+          { val: "dashed", label: "Dashed ╌╌╌╌" },
+          { val: "solid", label: "Solid ────" },
+          { val: "dotted", label: "Dotted ････" },
+          { val: "dashdot", label: "Dash-Dot ─･─･" }
+        ].forEach(opt => {
+          const o = document.createElement("option");
+          o.value = opt.val;
+          o.textContent = opt.label;
+          if (curRayDash === opt.val) o.selected = true;
+          selRayDash.appendChild(o);
+        });
+        selRayDash.addEventListener("change", (e) => {
+          ax.rayDash = e.target.value;
+          notifyAxisChanged();
+        });
+        rayToggleLine.appendChild(selRayDash);
+        secRays.appendChild(rayToggleLine);
+
+        // Ray Thickness
+        const rayThLine = document.createElement("div");
+        rayThLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;";
+        const rayThValLbl = document.createElement("span");
+        rayThValLbl.style.cssText = "font-family:monospace;min-width:28px;text-align:right;";
+        rayThValLbl.textContent = `${curRayWidth.toFixed(1)}px`;
+        
+        const rayThSlider = document.createElement("input");
+        rayThSlider.type = "range";
+        rayThSlider.min = "0.5";
+        rayThSlider.max = "6.0";
+        rayThSlider.step = "0.5";
+        rayThSlider.value = curRayWidth.toString();
+        rayThSlider.style.cssText = "flex:1;min-width:60px;height:3px;cursor:pointer;";
+        rayThSlider.title = "Ray thickness in both directions";
+        rayThSlider.addEventListener("input", (e) => {
+          const val = parseFloat(e.target.value);
+          ax.rayWidth = val;
+          rayThValLbl.textContent = `${val.toFixed(1)}px`;
+          notifyAxisChanged();
+        });
+        rayThLine.innerHTML = `<span style="color:var(--text-muted);">Ray Width:</span>`;
+        rayThLine.appendChild(rayThSlider);
+        rayThLine.appendChild(rayThValLbl);
+        secRays.appendChild(rayThLine);
+
+        // Ray Opacity
+        const rayOpLine = document.createElement("div");
+        rayOpLine.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:5px;";
+        const rayOpValLbl = document.createElement("span");
+        rayOpValLbl.style.cssText = "font-family:monospace;min-width:28px;text-align:right;";
+        rayOpValLbl.textContent = `${Math.round(curRayOpacity * 100)}%`;
+        
+        const rayOpSlider = document.createElement("input");
+        rayOpSlider.type = "range";
+        rayOpSlider.min = "0.05";
+        rayOpSlider.max = "1.0";
+        rayOpSlider.step = "0.05";
+        rayOpSlider.value = curRayOpacity.toString();
+        rayOpSlider.style.cssText = "flex:1;min-width:60px;height:3px;cursor:pointer;";
+        rayOpSlider.title = "Ray opacity";
+        rayOpSlider.addEventListener("input", (e) => {
+          const val = parseFloat(e.target.value);
+          ax.rayOpacity = val;
+          rayOpValLbl.textContent = `${Math.round(val * 100)}%`;
+          notifyAxisChanged();
+        });
+        rayOpLine.innerHTML = `<span style="color:var(--text-muted);">Ray Alpha:</span>`;
+        rayOpLine.appendChild(rayOpSlider);
+        rayOpLine.appendChild(rayOpValLbl);
+        secRays.appendChild(rayOpLine);
+
+        settingsPanel.appendChild(secRays);
+        row.appendChild(settingsPanel);
+
+        // Dot click toggle handler
+        dot.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isCurrentlyOpen = (settingsPanel.style.display !== "none");
+          // Close all other axis settings panels
+          container.querySelectorAll(".axis-settings-panel").forEach(p => {
+            p.style.display = "none";
+          });
+          container.querySelectorAll(".axis-color-dot").forEach(d => {
+            const dColor = d.getAttribute("data-color") || "#e040fb";
+            d.style.boxShadow = `0 0 6px ${dColor}`;
+          });
+
+          if (!isCurrentlyOpen) {
+            state.openAxisSettingsId = ax.id;
+            settingsPanel.style.display = "flex";
+            dot.style.boxShadow = `0 0 0 2px #fff, 0 0 8px ${ax.color}`;
+          } else {
+            state.openAxisSettingsId = null;
+            settingsPanel.style.display = "none";
+            dot.style.boxShadow = `0 0 6px ${ax.color}`;
+          }
+        });
+
         container.appendChild(row);
       });
+    }
+
+    function getDashPattern(style, fallback = "solid") {
+      const s = style || fallback;
+      if (Array.isArray(s)) return s;
+      switch (s) {
+        case "dashed": return [8, 6];
+        case "dotted": return [3, 3];
+        case "dashdot": return [8, 4, 2, 4];
+        case "solid":
+        default: return [];
+      }
     }
 
     function drawTestAxesGIS(ctx, vp, canvasH) {
@@ -22494,40 +22829,56 @@ EOF`;
         const s1 = worldToScreenGIS(ax.p1, vp, canvasH);
         const s2 = worldToScreenGIS(ax.p2, vp, canvasH);
 
-        // Extended guideline (dashed ray extending ±150m along axis direction)
-        const extDist = Math.max(150, geom.len * 1.5);
-        const pExt1 = { x: ax.p1.x - extDist * geom.u.x, y: ax.p1.y - extDist * geom.u.y };
-        const pExt2 = { x: ax.p2.x + extDist * geom.u.x, y: ax.p2.y + extDist * geom.u.y };
-        const sExt1 = worldToScreenGIS(pExt1, vp, canvasH);
-        const sExt2 = worldToScreenGIS(pExt2, vp, canvasH);
+        const axisColor = ax.color || "#e040fb";
+        const mainOpacity = (typeof ax.opacity === "number") ? Math.max(0.05, Math.min(1.0, ax.opacity)) : 1.0;
+        const mainWidth = (typeof ax.lineWidth === "number") ? Math.max(0.5, Math.min(12, ax.lineWidth)) : 2.5;
+        const mainDash = getDashPattern(ax.lineDash, "solid");
+
+        const showRays = (ax.showRays !== false);
+        const rayWidth = (typeof ax.rayWidth === "number") ? Math.max(0.5, Math.min(10, ax.rayWidth)) : 1.5;
+        const rayDash = getDashPattern(ax.rayDash, "dashed");
+        const rayOpacity = (typeof ax.rayOpacity === "number") ? Math.max(0.05, Math.min(1.0, ax.rayOpacity)) : 0.35;
 
         ctx.save();
-        // Faint extended guideline
-        ctx.beginPath();
-        ctx.moveTo(sExt1.x, sExt1.y);
-        ctx.lineTo(sExt2.x, sExt2.y);
-        ctx.strokeStyle = hexToRgba(ax.color, 0.35);
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([8, 6]);
-        ctx.stroke();
+
+        // Extended guideline (ray extending ±150m along axis direction)
+        if (showRays) {
+          const extDist = Math.max(150, geom.len * 1.5);
+          const pExt1 = { x: ax.p1.x - extDist * geom.u.x, y: ax.p1.y - extDist * geom.u.y };
+          const pExt2 = { x: ax.p2.x + extDist * geom.u.x, y: ax.p2.y + extDist * geom.u.y };
+          const sExt1 = worldToScreenGIS(pExt1, vp, canvasH);
+          const sExt2 = worldToScreenGIS(pExt2, vp, canvasH);
+
+          ctx.beginPath();
+          ctx.moveTo(sExt1.x, sExt1.y);
+          ctx.lineTo(sExt2.x, sExt2.y);
+          ctx.strokeStyle = hexToRgba(axisColor, rayOpacity);
+          ctx.lineWidth = rayWidth;
+          ctx.setLineDash(rayDash);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
 
         // Core solid line between A and B
         ctx.beginPath();
         ctx.moveTo(s1.x, s1.y);
         ctx.lineTo(s2.x, s2.y);
-        ctx.strokeStyle = ax.color;
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([]);
-        ctx.shadowColor = ax.color;
-        ctx.shadowBlur = 6;
+        ctx.strokeStyle = hexToRgba(axisColor, mainOpacity);
+        ctx.lineWidth = mainWidth;
+        ctx.setLineDash(mainDash);
+        if (mainOpacity > 0.4) {
+          ctx.shadowColor = hexToRgba(axisColor, mainOpacity * 0.7);
+          ctx.shadowBlur = Math.min(8, mainWidth * 2.5);
+        }
         ctx.stroke();
         ctx.shadowBlur = 0;
+        ctx.setLineDash([]);
 
         // Metric distance tickmarks along axis (every 5m sub-tick, 10m labeled tick)
         const tickStep = (geom.len >= 60) ? 10 : 5;
         const tickSpan = Math.ceil(geom.len / tickStep) * tickStep;
         ctx.font = "9px monospace";
-        ctx.fillStyle = ax.color;
+        ctx.fillStyle = hexToRgba(axisColor, mainOpacity);
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
@@ -22542,7 +22893,7 @@ EOF`;
           ctx.beginPath();
           ctx.moveTo(sTick.x - tx, sTick.y - ty);
           ctx.lineTo(sTick.x + tx, sTick.y + ty);
-          ctx.strokeStyle = ax.color;
+          ctx.strokeStyle = hexToRgba(axisColor, mainOpacity);
           ctx.lineWidth = 1.2;
           ctx.stroke();
 
@@ -22558,13 +22909,13 @@ EOF`;
           ctx.arc(sPt.x, sPt.y, 6.5, 0, Math.PI * 2);
           ctx.fillStyle = "#ffffff";
           ctx.fill();
-          ctx.strokeStyle = ax.color;
-          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = hexToRgba(axisColor, mainOpacity);
+          ctx.lineWidth = Math.max(2, Math.min(3.5, mainWidth));
           ctx.stroke();
 
           ctx.beginPath();
           ctx.arc(sPt.x, sPt.y, 2, 0, Math.PI * 2);
-          ctx.fillStyle = ax.color;
+          ctx.fillStyle = hexToRgba(axisColor, mainOpacity);
           ctx.fill();
 
           // Label
@@ -24212,6 +24563,35 @@ EOF`;
         hEffMeters = 140 / vp.scale;
       }
 
+      // Resolve Field Mojón distance along axis early (for Mojón=0 intercept and labels)
+      let mojonDist = state.nullModel.mojonDist;
+      if (mojonDist == null) {
+        let testAnchor = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
+        if (!testAnchor && (state.anchors || []).length > 0) {
+          let bestD = Infinity, bestA = null;
+          state.anchors.forEach(a => {
+            if (a.active !== false && a.enabled !== false && a.dst) {
+              const p = projectPointOnAxis(a.dst, targetAxis);
+              if (p.d < bestD) { bestD = p.d; bestA = a; }
+            }
+          });
+          testAnchor = bestA;
+        }
+        if (testAnchor && testAnchor.dst) {
+          const pr = projectPointOnAxis(testAnchor.dst, targetAxis);
+          mojonDist = pr.t * geom.len;
+          state.nullModel.mojonDist = mojonDist;
+        }
+      }
+      const useZeroOrigin = Boolean(state.nullModel.zeroOrigin && mojonDist != null);
+
+      function formatXDist(val) {
+        if (!useZeroOrigin) return `${val.toFixed(0)}m`;
+        const delta = val - mojonDist;
+        if (Math.abs(delta) < 0.1) return "0m";
+        return `${delta > 0 ? '+' : ''}${delta.toFixed(0)}m`;
+      }
+
       // Base offset from axis line (approx 5-18px in screen space)
       const baseOffsetMeters = Math.max(3.0 / vp.scale, Math.min(18.0 / vp.scale, 2.2));
 
@@ -24289,19 +24669,53 @@ EOF`;
       const baseLen = Math.hypot(baseDx, baseDy) || 1;
       const bUnit = { x: baseDx / baseLen, y: baseDy / baseLen };
 
+      const hDxLeft = firstT.x - firstB.x;
+      const hDyLeft = firstT.y - firstB.y;
+      const hLenLeft = Math.hypot(hDxLeft, hDyLeft) || 1;
+      const hUnitLeft = { x: hDxLeft / hLenLeft, y: hDyLeft / hLenLeft };
+
+      const hDxRight = lastT.x - lastB.x;
+      const hDyRight = lastT.y - lastB.y;
+      const hLenRight = Math.hypot(hDxRight, hDyRight) || 1;
+      const hUnitRight = { x: hDxRight / hLenRight, y: hDyRight / hLenRight };
+
       // 1. Semi-transparent glassmorphic backdrop with vertical gradient fade
+      // Extended outward to encompass Y-axis ticks, numbers, axis titles, and baseline labels
+      const padLeft = 36;
+      const padRight = 34;
+      const padTop = 26;
+      const padBottom = 20;
+
+      const pBL = {
+        x: firstB.x - padLeft * bUnit.x - padBottom * hUnitLeft.x,
+        y: firstB.y - padLeft * bUnit.y - padBottom * hUnitLeft.y
+      };
+      const pBR = {
+        x: lastB.x + padRight * bUnit.x - padBottom * hUnitRight.x,
+        y: lastB.y + padRight * bUnit.y - padBottom * hUnitRight.y
+      };
+      const pTR = {
+        x: lastT.x + padRight * bUnit.x + padTop * hUnitRight.x,
+        y: lastT.y + padRight * bUnit.y + padTop * hUnitRight.y
+      };
+      const pTL = {
+        x: firstT.x - padLeft * bUnit.x + padTop * hUnitLeft.x,
+        y: firstT.y - padLeft * bUnit.y + padTop * hUnitLeft.y
+      };
+
       ctx.beginPath();
-      ctx.moveTo(firstB.x, firstB.y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sB.x, pts[i].sB.y);
-      for (let i = pts.length - 1; i >= 0; i--) ctx.lineTo(pts[i].sT.x, pts[i].sT.y);
+      ctx.moveTo(pBL.x, pBL.y);
+      ctx.lineTo(pBR.x, pBR.y);
+      ctx.lineTo(pTR.x, pTR.y);
+      ctx.lineTo(pTL.x, pTL.y);
       ctx.closePath();
 
-      const bgGrad = ctx.createLinearGradient(firstB.x, firstB.y, firstT.x, firstT.y);
-      bgGrad.addColorStop(0, "rgba(8, 14, 26, 0.76)");
-      bgGrad.addColorStop(1, "rgba(8, 14, 26, 0.25)");
+      const bgGrad = ctx.createLinearGradient(pBL.x, pBL.y, pTL.x, pTL.y);
+      bgGrad.addColorStop(0, "rgba(8, 14, 26, 0.88)");
+      bgGrad.addColorStop(1, "rgba(8, 14, 26, 0.60)");
       ctx.fillStyle = bgGrad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.32)";
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1.2;
       ctx.stroke();
 
@@ -24337,18 +24751,30 @@ EOF`;
       ctx.lineWidth = 1.8;
       ctx.stroke();
 
-      // Station connector ticks to the axis (faint magenta)
-      pts.forEach((p, idx) => {
-        if (pts.length > 40 && (idx % Math.ceil(pts.length / 25) !== 0)) return;
+      // Baseline downward tick marks
+      [0, 0.25, 0.50, 0.75, 1.0].forEach(f => {
+        const bx = firstB.x + f * (lastB.x - firstB.x);
+        const by = firstB.y + f * (lastB.y - firstB.y);
+        const hUx = (1 - f) * hUnitLeft.x + f * hUnitRight.x;
+        const hUy = (1 - f) * hUnitLeft.y + f * hUnitRight.y;
+        const tLen = (f === 0 || f === 0.5 || f === 1.0) ? 4.5 : 2.5;
         ctx.beginPath();
-        ctx.moveTo(p.sC.x, p.sC.y);
-        ctx.lineTo(p.sB.x, p.sB.y);
-        ctx.strokeStyle = "rgba(224, 64, 251, 0.25)";
-        ctx.lineWidth = 1;
+        ctx.moveTo(bx, by);
+        ctx.lineTo(bx - tLen * hUx, by - tLen * hUy);
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.2;
         ctx.stroke();
       });
 
-      // 3. Y-Axes Rails and Ticks (Brief names with units in brackets, NO numbers on tickmarks)
+      // Baseline station distance labels and title
+      const xMin = stations[0].dist;
+      const xMax = stations[stations.length - 1].dist;
+      const baseTitle = useZeroOrigin ? "Δ Dist [m]" : "Dist [m]";
+      const midDist = (xMin + xMax) / 2;
+      const midB = { x: (firstB.x + lastB.x) / 2, y: (firstB.y + lastB.y) / 2 };
+      const midH = { x: (hUnitLeft.x + hUnitRight.x) / 2, y: (hUnitLeft.y + hUnitRight.y) / 2 };
+
+      // Helper for HUD Text
       const drawHUDText = (txt, x, y, color, align = "center", baseline = "middle", font = "bold 9px monospace") => {
         ctx.font = font;
         ctx.textAlign = align;
@@ -24360,6 +24786,22 @@ EOF`;
         ctx.fillText(txt, x, y);
       };
 
+      drawHUDText(formatXDist(xMin), firstB.x, firstB.y - 8 * hUnitLeft.y, "#ffffff", "center", "top", "8px monospace");
+      drawHUDText(`${baseTitle} (${formatXDist(midDist)})`, midB.x, midB.y - 8 * midH.y, "#ffffff", "center", "top", "bold 8px monospace");
+      drawHUDText(formatXDist(xMax), lastB.x, lastB.y - 8 * hUnitRight.y, "#ffffff", "center", "top", "8px monospace");
+
+      // Station connector ticks to the axis (faint magenta)
+      pts.forEach((p, idx) => {
+        if (pts.length > 40 && (idx % Math.ceil(pts.length / 25) !== 0)) return;
+        ctx.beginPath();
+        ctx.moveTo(p.sC.x, p.sC.y);
+        ctx.lineTo(p.sB.x, p.sB.y);
+        ctx.strokeStyle = "rgba(224, 64, 251, 0.25)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // 3. Y-Axes Rails, Ticks & Numbers
       // Left Rail (Error axis: Error x̄ [%]) - Cyan
       ctx.beginPath();
       ctx.moveTo(firstB.x, firstB.y);
@@ -24368,7 +24810,7 @@ EOF`;
       ctx.lineWidth = 1.8;
       ctx.stroke();
 
-      // Left Rail Ticks (at 0%, 25%, 50%, 75%, 100% of height) - outward in direction -bUnit
+      // Left Rail Ticks & Numbers (at 0%, 25%, 50%, 75%, 100% of height) - outward in direction -bUnit
       [0, 0.25, 0.50, 0.75, 1.0].forEach(f => {
         const tx = firstB.x + f * (firstT.x - firstB.x);
         const ty = firstB.y + f * (firstT.y - firstB.y);
@@ -24378,9 +24820,13 @@ EOF`;
         ctx.strokeStyle = "#00e5ff";
         ctx.lineWidth = 1.5;
         ctx.stroke();
+
+        // Numeric tick value without % sign
+        const errVal = (yErrMax * f).toFixed(1);
+        drawHUDText(errVal, tx - 7 * bUnit.x, ty, "#00e5ff", "right", "middle", "8px monospace");
       });
       // Left Rail Title: Error x̄ [%] at top
-      drawHUDText("Error x̄ [%]", firstT.x - 7 * bUnit.x, firstT.y - 8, "#00e5ff", "right", "bottom");
+      drawHUDText("Error x̄ [%]", firstT.x - 7 * bUnit.x, firstT.y + 4 * hUnitLeft.y, "#00e5ff", "right", "bottom");
 
       // Right Rail (Probability axis: Probabilidad [%]) - Emerald Green
       ctx.beginPath();
@@ -24390,7 +24836,7 @@ EOF`;
       ctx.lineWidth = 1.8;
       ctx.stroke();
 
-      // Right Rail Ticks (at 0%, 25%, 50%, 75%, 100% of height) - outward in direction +bUnit
+      // Right Rail Ticks & Numbers (at 0%, 25%, 50%, 75%, 100% of height) - outward in direction +bUnit
       [0, 0.25, 0.50, 0.75, 1.0].forEach(f => {
         const tx = lastB.x + f * (lastT.x - lastB.x);
         const ty = lastB.y + f * (lastT.y - lastB.y);
@@ -24400,12 +24846,13 @@ EOF`;
         ctx.strokeStyle = "#00e676";
         ctx.lineWidth = 1.5;
         ctx.stroke();
+
+        // Numeric tick value without % sign
+        const freqVal = Math.round(100 * f);
+        drawHUDText(`${freqVal}`, tx + 7 * bUnit.x, ty, "#00e676", "left", "middle", "8px monospace");
       });
       // Right Rail Title: Probabilidad [%] at top
-      drawHUDText("Probabilidad [%]", lastT.x + 7 * bUnit.x, lastT.y - 8, "#00e676", "left", "bottom");
-
-      // Baseline Title: Dist [m] (White)
-      drawHUDText("Dist [m]", firstB.x - 7 * bUnit.x, firstB.y + 6, "#ffffff", "right", "top");
+      drawHUDText("Probabilidad [%]", lastT.x + 7 * bUnit.x, lastT.y + 4 * hUnitRight.y, "#00e676", "left", "bottom");
 
       // 4. Amber threshold reference line (τ [%])
       if (tau <= yErrMax) {
@@ -24539,26 +24986,6 @@ EOF`;
       });
 
       // 10. Vertical Lines: Field Mojón Position & Best Fit Position
-      let mojonDist = state.nullModel.mojonDist;
-      if (mojonDist == null) {
-        let testAnchor = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
-        if (!testAnchor && (state.anchors || []).length > 0) {
-          let bestD = Infinity, bestA = null;
-          state.anchors.forEach(a => {
-            if (a.active !== false && a.enabled !== false && a.dst) {
-              const p = projectPointOnAxis(a.dst, targetAxis);
-              if (p.d < bestD) { bestD = p.d; bestA = a; }
-            }
-          });
-          testAnchor = bestA;
-        }
-        if (testAnchor && testAnchor.dst) {
-          const pr = projectPointOnAxis(testAnchor.dst, targetAxis);
-          mojonDist = pr.t * geom.len;
-          state.nullModel.mojonDist = mojonDist;
-        }
-      }
-
       let mojonPt = null;
       if (mojonDist != null && mojonDist >= 0 && mojonDist <= geom.len) {
         const mcx = targetAxis.p1.x + mojonDist * geom.u.x;
@@ -24622,16 +25049,19 @@ EOF`;
         ctx.fill();
       }
 
-      // Non-overlapping Floating Badges for Mojón and Best Fit:
-      // "the left vertical line should have its label to the left, and the right vertical line to the right"
+      // Non-overlapping Floating Badges for Mojón and Best Fit Simulation (at same vertical level)
       if (probeIdx !== bestPt?.s?.idx) {
         ctx.save();
-        ctx.font = "bold 9px monospace";
+        ctx.font = "bold 8.5px monospace";
 
-        // Helper to draw floating badge card
-        const drawBadgeCard = (txt, pt, color, isLeft, yOffset = -26) => {
+        const distFromMojon = (mojonDist != null && bestPt && bestPt.s) ? (bestPt.s.dist - mojonDist) : null;
+        const distFromMojonStr = distFromMojon != null ? `${distFromMojon >= 0 ? '+' : ''}${distFromMojon.toFixed(1)}m` : null;
+        const isMojonEarlier = (mojonDist == null || (bestPt && bestPt.s && mojonDist <= bestPt.s.dist));
+
+        const drawBadgeCard = (txt, pt, color, isLeft, yOffset = -22) => {
+          ctx.font = "bold 8.5px monospace";
           const tw = ctx.measureText(txt).width;
-          const bx = isLeft ? (pt.sT.x - tw - 12) : (pt.sT.x + 4);
+          const bx = isLeft ? (pt.sT.x - tw - 9) : (pt.sT.x + 5);
           const by = pt.sT.y + yOffset;
 
           ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
@@ -24639,9 +25069,9 @@ EOF`;
           ctx.lineWidth = 1.2;
           ctx.beginPath();
           if (typeof ctx.roundRect === "function") {
-            ctx.roundRect(bx, by, tw + 10, 18, 4);
+            ctx.roundRect(bx, by, tw + 8, 16, 3);
           } else {
-            ctx.rect(bx, by, tw + 10, 18);
+            ctx.rect(bx, by, tw + 8, 16);
           }
           ctx.fill();
           ctx.stroke();
@@ -24649,12 +25079,20 @@ EOF`;
           ctx.fillStyle = color;
           ctx.textAlign = "left";
           ctx.textBaseline = "middle";
-          ctx.fillText(txt, bx + 5, by + 9);
+          ctx.fillText(txt, bx + 4, by + 8);
         };
 
         if (mojonPt) {
-          const mojonText = `📍 Mojón: ${mojonPt.dist.toFixed(1)}m`;
-          drawBadgeCard(mojonText, mojonPt, "#e040fb", false, -26);
+          const mojonText = useZeroOrigin ? "📍 Mojón 0m" : `📍 Mojón ${mojonDist.toFixed(1)}m`;
+          drawBadgeCard(mojonText, mojonPt, "#e040fb", isMojonEarlier, -22);
+        }
+
+        if (bestPt && bestPt.s && bestPt.s.meanError != null) {
+          const deltaBracket = distFromMojonStr ? ` [${distFromMojonStr}]` : '';
+          const bestText = useZeroOrigin
+            ? `🏆 Best${deltaBracket}`
+            : `🏆 Best ${bestPt.s.dist.toFixed(1)}m${deltaBracket}`;
+          drawBadgeCard(bestText, bestPt, "#ffd600", !isMojonEarlier, -22);
         }
         ctx.restore();
       }
@@ -24693,7 +25131,10 @@ EOF`;
           const freqVal = (p.s.cdfBins && p.s.cdfBins[binIdx] != null) ? p.s.cdfBins[binIdx] : 0;
           const errStr = (p.s.meanError != null) ? `${p.s.meanError.toFixed(2)}% (±${p.s.sdError.toFixed(2)}%)` : "...";
           const isBestProbe = (bestPt && bestPt.s && bestPt.s.idx === p.s.idx);
-          const callout1 = isBestProbe ? `★ Best Fit Simulation (${p.s.dist.toFixed(1)}m)` : `Station #${probeIdx + 1} (${p.s.dist.toFixed(1)}m)`;
+          const deltaProbeStr = (mojonDist != null) ? (p.s.dist - mojonDist >= 0 ? '+' : '') + (p.s.dist - mojonDist).toFixed(1) + 'm' : null;
+          const callout1 = isBestProbe
+            ? `🏆 Best Fit Simulation (${formatXDist(p.s.dist)}${deltaProbeStr ? ` [${deltaProbeStr}]` : ''})`
+            : `Station #${probeIdx + 1} (${formatXDist(p.s.dist)})`;
           const callout2 = `Err: ${errStr} | Freq: ${freqVal.toFixed(1)}%`;
           const badgeThemeColor = isBestProbe ? "#ffd600" : "#e040fb";
 
@@ -24849,6 +25290,7 @@ EOF`;
         chkZeroOrigin.addEventListener("change", e => {
           state.nullModel.zeroOrigin = e.target.checked;
           drawNullModelChart();
+          redrawTrueCanvas();
         });
       }
 
