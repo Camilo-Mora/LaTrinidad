@@ -4,7 +4,7 @@
     "algorithm": "TPS",
     "optBalance": 50,
     "optIgacFilter": true,
-    "savedAt": "2026-10-05T19:25:25.692Z"
+    "savedAt": "2026-10-06T03:38:03.4Z"
   },
   "anchors": [
     {
@@ -18,8 +18,8 @@
         "y": 606.42
       },
       "dst": {
-        "x": 1097703.3119,
-        "y": 876671.3626
+        "x": 1097703.8569,
+        "y": 876671.1726
       },
       "active": true,
       "enabled": true,
@@ -142,6 +142,8 @@
       },
       "color": "#e040fb",
       "visible": false,
+      "showRays": true,
+      "showTicks": true,
       "linkedSegment": null
     },
     {
@@ -157,6 +159,8 @@
       },
       "color": "#00e5ff",
       "visible": false,
+      "showRays": true,
+      "showTicks": true,
       "linkedSegment": null
     },
     {
@@ -172,6 +176,8 @@
       },
       "color": "#ffd600",
       "visible": false,
+      "showRays": true,
+      "showTicks": true,
       "linkedSegment": {
         "type": "boundary",
         "polyId": "userPolygon",
