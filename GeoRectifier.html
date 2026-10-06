@@ -2602,7 +2602,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     <!-- Step Distance Slider (5 cm to 1 m) -->
                     <div style="display:flex;flex-direction:column;gap:2px;">
                       <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.70rem;">
-                        <span style="color:var(--text-muted);">Step Distance:</span>
+                        <span style="color:var(--text-muted);">Step / Grid Resolution:</span>
                         <strong id="null-model-step-val" style="color:#e040fb;font-family:monospace;font-size:0.72rem;">0.25 m (25 cm)</strong>
                       </div>
                       <input type="range" id="null-model-step-slider" min="0.05" max="1.00" step="0.01" value="0.25" class="opacity-slider" style="height:4px;width:100%;accent-color:#e040fb;cursor:pointer;">
@@ -2612,6 +2612,11 @@ Do NOT modify dormant/parked sections unless specifically requested.
                         <span>50 cm</span>
                         <span>75 cm</span>
                         <span>1.0 m</span>
+                      </div>
+                      <!-- Live Grid & ETA Preview -->
+                      <div id="null-model-grid-eta" style="display:flex;align-items:center;justify-content:space-between;padding:3px 7px;background:rgba(255,255,255,0.04);border:1px solid rgba(224,64,251,0.25);border-radius:4px;font-size:0.65rem;font-family:monospace;margin-top:1px;">
+                        <span id="null-model-grid-dim" style="color:#00e5ff;">Grid: -- × -- (-- px)</span>
+                        <span id="null-model-grid-time" style="color:#ffd600;">Est: ~--s</span>
                       </div>
                     </div>
 
@@ -2638,6 +2643,15 @@ Do NOT modify dormant/parked sections unless specifically requested.
                         <option value="5.20">±5.20 m (IGAC Bosque Rural)</option>
                         <option value="slider">Current Slider Radius</option>
                       </select>
+                    </div>
+
+                    <!-- Deed Precision Error Checkbox (Stochastic Iterations vs Single Optimization) -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.70rem;padding:4px 7px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.25);border-radius:4px;">
+                      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--accent-cyan);font-weight:600;margin:0;" title="Within each pixel, test deed precision error by running stochastic micro-perturbations of the anchor within the cell/buffer radius and optimizing the best fit. If unchecked, a single direct optimization is performed per pixel.">
+                        <input type="checkbox" id="chk-null-model-deed-precision" style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;margin:0;">
+                        <span>🔬 Deed Precision (Stochastic)</span>
+                      </label>
+                      <span id="null-model-precision-badge" style="font-size:0.60rem;color:var(--text-muted);font-family:monospace;">Single Fit</span>
                     </div>
 
                     <!-- Action Buttons: Run, Pause, Stop -->
@@ -2688,6 +2702,10 @@ Do NOT modify dormant/parked sections unless specifically requested.
                         <input type="checkbox" id="chk-null-model-show-chart" checked style="accent-color:#e040fb;">
                         <span>📈 Chart</span>
                       </label>
+                      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#00e5ff;font-weight:700;" title="Display 2D color-coded error raster directly on the field canvas along the axis corridor">
+                        <input type="checkbox" id="chk-null-model-show-raster" checked style="accent-color:#00e5ff;">
+                        <span>🗺️ 2D Raster</span>
+                      </label>
                       <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--accent-cyan);" title="Highlight the current or hovered simulation station directly on the Field map canvas and render the 2D XY plot along the axis">
                         <input type="checkbox" id="chk-null-model-highlight-map" checked style="accent-color:var(--accent-cyan);">
                         <span>📍 Map Probe</span>
@@ -2700,6 +2718,13 @@ Do NOT modify dormant/parked sections unless specifically requested.
                         <button type="button" id="btn-null-model-flip-side" class="btn btn-secondary btn-sm" style="font-size:0.60rem;padding:1px 5px;" title="Flip axis-aligned 2D plot between left and right side of axis">⇄ Side</button>
                         <button type="button" id="btn-null-model-export" class="btn btn-secondary btn-sm" style="font-size:0.62rem;padding:1px 5px;" title="Export simulation results to JSON">💾 Export</button>
                       </div>
+                    </div>
+
+                    <!-- Raster Opacity Slider Row -->
+                    <div id="null-model-raster-opacity-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:0.65rem;color:var(--text-muted);padding:2px 2px 0 2px;">
+                      <span style="display:flex;align-items:center;gap:3px;"><span style="color:#00e5ff;">🗺️</span> Raster Opacity:</span>
+                      <input type="range" id="null-model-raster-opacity-slider" min="0.10" max="1.00" step="0.05" value="0.70" style="flex:1;max-width:110px;height:3px;accent-color:#00e5ff;cursor:pointer;">
+                      <span id="null-model-raster-opacity-val" style="font-family:monospace;color:#00e5ff;font-size:0.65rem;min-width:26px;text-align:right;">70%</span>
                     </div>
 
                     <!-- Chart Container (Dual Y-Axis) -->
@@ -6518,11 +6543,17 @@ EOF`;
         bufferRadius: 1.04,
         thresholdPercent: 0.50,
         showChart: true,
+        showRaster: true,
+        deedPrecision: false,
+        rasterOpacity: 0.70,
         highlightStationOnMap: true,
         zeroOrigin: false,
         plotSide: "left",
         currentStationIdx: -1,
         hoverStationIdx: -1,
+        hoverRasterCell: null,
+        currentPixel: null,
+        rasterGrid: null, // { axisId, stepMeters, bufferRadius, sDistances, nOffsets, cells: [][], minError, maxError, bestCell, valleyLine: [] }
         stations: [] // [ { dist, center: {x,y}, meanError, sdError, minError, maxError, freqPct, cdfBins: Float32Array(200) } ]
       },
       // Layer & Polygon Visual Styles
@@ -15996,21 +16027,37 @@ EOF`;
         }
       }
 
-      // 0c. Click on 2D Axis Ribbon Plot to Adopt Station
-      if (e.button === 0 && !spacePressed && state.nullModel && state.nullModel.enabled && !state.nullModel.running && state.nullModel.hoverStationIdx >= 0) {
-        const res = applyStationHypothesis(state.nullModel.hoverStationIdx, true);
-        if (res) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          state.nullModel.currentStationIdx = state.nullModel.hoverStationIdx;
-          drawNullModelChart();
-          redrawTrueCanvas();
-          renderAnchorTable();
-          updateAnalyticsUI();
-          if (typeof saveCurrentDeedState === "function") saveCurrentDeedState();
-          if (typeof saveAxesToStorage === "function") saveAxesToStorage();
-          updateStatus(`🎯 Adopted Station #${state.nullModel.hoverStationIdx + 1} (${res.targetAxis.name} @ ${res.station.dist.toFixed(1)}m) from map plot.`);
-          return;
+      // 0c. Click on 2D Raster Pixel or 1D Station to Adopt
+      if (e.button === 0 && !spacePressed && state.nullModel && state.nullModel.enabled && !state.nullModel.running) {
+        if (state.nullModel.hoverRasterCell) {
+          const res = applyRasterPixelHypothesis(state.nullModel.hoverRasterCell, true);
+          if (res) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            drawNullModelChart();
+            redrawTrueCanvas();
+            renderAnchorTable();
+            updateAnalyticsUI();
+            if (typeof saveCurrentDeedState === "function") saveCurrentDeedState();
+            if (typeof saveAxesToStorage === "function") saveAxesToStorage();
+            updateStatus(`🎯 Adopted 2D Pixel Hypothesis (s=${res.cell.s.toFixed(1)}m, offset=${res.cell.n > 0 ? '+' : ''}${res.cell.n.toFixed(2)}m, Err: ${res.cell.error.toFixed(2)}%) from field raster.`);
+            return;
+          }
+        } else if (state.nullModel.hoverStationIdx >= 0) {
+          const res = applyStationHypothesis(state.nullModel.hoverStationIdx, true);
+          if (res) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            state.nullModel.currentStationIdx = state.nullModel.hoverStationIdx;
+            drawNullModelChart();
+            redrawTrueCanvas();
+            renderAnchorTable();
+            updateAnalyticsUI();
+            if (typeof saveCurrentDeedState === "function") saveCurrentDeedState();
+            if (typeof saveAxesToStorage === "function") saveAxesToStorage();
+            updateStatus(`🎯 Adopted Station #${state.nullModel.hoverStationIdx + 1} (${res.targetAxis.name} @ ${res.station.dist.toFixed(1)}m) from map plot.`);
+            return;
+          }
         }
       }
 
@@ -18187,8 +18234,8 @@ EOF`;
         }
       }
 
-      // 0d. Null Model 2D Plot Station Hover on Map Canvas
-      if (!isPanning && !draggingAnchor && state.nullModel && state.nullModel.highlightStationOnMap && (state.nullModel.stations || []).length > 0) {
+      // 0d. Null Model 2D Raster & 1D Station Hover on Map Canvas
+      if (!isPanning && !draggingAnchor && state.nullModel && state.nullModel.enabled) {
         const targetAx = (state.testAxes || []).find(a => a.id === state.nullModel.selectedAxisId) || state.testAxes[0];
         if (targetAx && targetAx.visible !== false) {
           const geom = computeAxisGeometry(targetAx);
@@ -18197,35 +18244,86 @@ EOF`;
             const pr = projectPointOnAxis(mouseWorld, targetAx);
             const dMouse = pr.t * geom.len;
             const distPx = pr.d * vp.scale;
-            // Check if cursor is within 85 screen pixels of the axis line (covering the aligned plot ribbon)
-            if (distPx <= 85 && pr.t >= -0.05 && pr.t <= 1.05) {
-              let nearestStationIdx = -1;
-              let minStationDist = Infinity;
-              state.nullModel.stations.forEach((st, sIdx) => {
-                const diff = Math.abs(st.dist - dMouse);
-                if (diff < minStationDist) {
-                  minStationDist = diff;
-                  nearestStationIdx = sIdx;
+
+            // A. Check 2D Raster swath cell hover
+            const grid = state.nullModel.rasterGrid;
+            let foundRasterCell = false;
+            if (state.nullModel.showRaster !== false && grid && grid.cells && grid.cells.length > 0) {
+              const bufR = grid.bufferRadius || 1.04;
+              const stepM = grid.stepMeters || 0.25;
+              const maxPx = (bufR + stepM * 0.6) * vp.scale;
+
+              if (distPx <= maxPx && pr.t >= -0.05 && pr.t <= 1.05) {
+                const offSigned = (mouseWorld.x - (targetAx.p1.x + dMouse * geom.u.x)) * geom.n.x + 
+                                  (mouseWorld.y - (targetAx.p1.y + dMouse * geom.u.y)) * geom.n.y;
+
+                let closestCell = null;
+                let minSq = Infinity;
+                for (let sI = 0; sI < grid.cells.length; sI++) {
+                  const row = grid.cells[sI];
+                  if (!row) continue;
+                  for (let nI = 0; nI < row.length; nI++) {
+                    const c = row[nI];
+                    if (!c) continue;
+                    const dSq = (c.s - dMouse) * (c.s - dMouse) + (c.n - offSigned) * (c.n - offSigned);
+                    if (dSq < minSq) {
+                      minSq = dSq;
+                      closestCell = c;
+                    }
+                  }
                 }
-              });
-              if (nearestStationIdx >= 0) {
-                trueCanvas.style.cursor = "pointer";
-                if (state.nullModel.hoverStationIdx !== nearestStationIdx) {
-                  state.nullModel.hoverStationIdx = nearestStationIdx;
-                  const st = state.nullModel.stations[nearestStationIdx];
-                  const tauVal = state.nullModel.thresholdPercent || 0.50;
-                  const bIdx = Math.min(199, Math.max(0, Math.round(tauVal * 100) - 1));
-                  const fVal = (st.cdfBins && st.cdfBins[bIdx] != null) ? st.cdfBins[bIdx] : 0;
-                  const errStr = st.meanError != null ? `${st.meanError.toFixed(2)}% (±${st.sdError.toFixed(2)}%)` : "—";
-                  coordsBar.textContent = `🎲 Null Model Station #${nearestStationIdx + 1} (${st.dist.toFixed(1)}m): Err ${errStr} • Freq < ${tauVal.toFixed(2)}%: ${fVal.toFixed(1)}% [Click to adopt]`;
-                  drawNullModelChart();
-                  redrawTrueCanvas();
+
+                if (closestCell) {
+                  foundRasterCell = true;
+                  trueCanvas.style.cursor = "pointer";
+                  if (state.nullModel.hoverRasterCell !== closestCell) {
+                    state.nullModel.hoverRasterCell = closestCell;
+                    state.nullModel.hoverStationIdx = closestCell.sIdx;
+                    const errStr = closestCell.error != null ? `${closestCell.error.toFixed(2)}%` : "—";
+                    const precStr = closestCell.meanError != null ? ` (Avg: ${closestCell.meanError.toFixed(2)}%)` : "";
+                    coordsBar.textContent = `🗺️ Null Model 2D Pixel: s=${closestCell.s.toFixed(1)}m, offset=${closestCell.n > 0 ? '+' : ''}${closestCell.n.toFixed(2)}m • Err: ${errStr}${precStr} [Click to adopt]`;
+                    redrawTrueCanvas();
+                  }
                 }
               }
-            } else if (state.nullModel.hoverStationIdx >= 0) {
-              state.nullModel.hoverStationIdx = -1;
-              drawNullModelChart();
+            }
+
+            if (!foundRasterCell && state.nullModel.hoverRasterCell) {
+              state.nullModel.hoverRasterCell = null;
               redrawTrueCanvas();
+            }
+
+            // B. Check 1D Aligned Ribbon Plot Station Hover
+            if (!foundRasterCell && state.nullModel.highlightStationOnMap && (state.nullModel.stations || []).length > 0) {
+              if (distPx <= 85 && pr.t >= -0.05 && pr.t <= 1.05) {
+                let nearestStationIdx = -1;
+                let minStationDist = Infinity;
+                state.nullModel.stations.forEach((st, sIdx) => {
+                  const diff = Math.abs(st.dist - dMouse);
+                  if (diff < minStationDist) {
+                    minStationDist = diff;
+                    nearestStationIdx = sIdx;
+                  }
+                });
+                if (nearestStationIdx >= 0) {
+                  trueCanvas.style.cursor = "pointer";
+                  if (state.nullModel.hoverStationIdx !== nearestStationIdx) {
+                    state.nullModel.hoverStationIdx = nearestStationIdx;
+                    const st = state.nullModel.stations[nearestStationIdx];
+                    const tauVal = state.nullModel.thresholdPercent || 0.50;
+                    const bIdx = Math.min(199, Math.max(0, Math.round(tauVal * 100) - 1));
+                    const fVal = (st.cdfBins && st.cdfBins[bIdx] != null) ? st.cdfBins[bIdx] : 0;
+                    const errStr = st.meanError != null ? `${st.meanError.toFixed(2)}% (±${st.sdError.toFixed(2)}%)` : "—";
+                    coordsBar.textContent = `🎲 Null Model Station #${nearestStationIdx + 1} (${st.dist.toFixed(1)}m): Err ${errStr} • Freq < ${tauVal.toFixed(2)}%: ${fVal.toFixed(1)}% [Click to adopt]`;
+                    drawNullModelChart();
+                    redrawTrueCanvas();
+                  }
+                }
+              } else if (state.nullModel.hoverStationIdx >= 0) {
+                state.nullModel.hoverStationIdx = -1;
+                drawNullModelChart();
+                redrawTrueCanvas();
+              }
             }
           }
         }
@@ -24096,6 +24194,11 @@ EOF`;
         }
       }
 
+      // 4b. Draw 2D Error Heatmap Raster Corridor on Map Canvas
+      if (typeof drawNullModelRasterGIS === "function") {
+        drawNullModelRasterGIS(ctx, vp, canvasH);
+      }
+
       // 5. Draw 2D XY Plot aligned on the axis when Map Probe is ticked
       if (typeof drawNullModelAxisPlotGIS === "function") {
         drawNullModelAxisPlotGIS(ctx, vp, canvasH);
@@ -24203,6 +24306,76 @@ EOF`;
         select.value = axes[0].id;
         state.nullModel.selectedAxisId = Number(axes[0].id);
       }
+      updateNullModelGridAndETA();
+    }
+
+    function updateNullModelGridAndETA() {
+      const dimEl = document.getElementById("null-model-grid-dim");
+      const timeEl = document.getElementById("null-model-grid-time");
+      const badgeEl = document.getElementById("null-model-precision-badge");
+      if (!dimEl || !timeEl) return;
+
+      const axes = state.testAxes || [];
+      const axisSelect = document.getElementById("null-model-axis-select");
+      const axisId = axisSelect && axisSelect.value ? Number(axisSelect.value) : state.nullModel.selectedAxisId;
+      const targetAxis = axes.find(a => a.id === axisId) || axes[0];
+
+      if (!targetAxis) {
+        dimEl.textContent = "Grid: (No axis selected)";
+        timeEl.textContent = "Est: --";
+        return;
+      }
+
+      const geom = computeAxisGeometry(targetAxis);
+      const stepSlider = document.getElementById("null-model-step-slider") || document.getElementById("null-model-step-select");
+      const stepM = stepSlider ? (parseFloat(stepSlider.value) || 0.25) : (state.nullModel.stepMeters || 0.25);
+
+      const bufSelect = document.getElementById("null-model-buffer-select");
+      let bufR = 1.04;
+      if (bufSelect) {
+        if (bufSelect.value === "slider") bufR = state.optBufferRadius || 1.04;
+        else bufR = parseFloat(bufSelect.value) || 1.04;
+      } else {
+        bufR = state.nullModel.bufferRadius || 1.04;
+      }
+
+      const chkPrecision = document.getElementById("chk-null-model-deed-precision");
+      const isStochastic = chkPrecision ? chkPrecision.checked : !!state.nullModel.deedPrecision;
+
+      const simsSelect = document.getElementById("null-model-sims-select");
+      const simsPerPt = simsSelect ? (parseInt(simsSelect.value, 10) || 100) : (state.nullModel.simsPerPoint || 100);
+      const runsPerCell = isStochastic ? Math.min(simsPerPt, 40) : 1;
+
+      if (badgeEl) {
+        badgeEl.textContent = isStochastic ? `Stochastic (${runsPerCell} runs/px)` : "Single Fit (1 run/px)";
+        badgeEl.style.color = isStochastic ? "var(--accent-cyan)" : "var(--text-muted)";
+      }
+
+      // Dimensions: longitudinal stations x transverse rows
+      const nS = Math.max(1, Math.floor(geom.len / stepM) + 1);
+      const nN = Math.max(1, Math.floor((2 * bufR) / stepM) + 1);
+      const totalCells = nS * nN;
+
+      dimEl.textContent = `Grid: ${nS}×${nN} (${totalCells.toLocaleString()} px)`;
+
+      // Computation estimate: ~0.025ms per evaluation plus ~7ms per-station yield overhead
+      const msPerEval = 0.025;
+      const yieldOverheadMs = nS * 7;
+      const totalMs = (totalCells * runsPerCell * msPerEval) + yieldOverheadMs;
+      const totalSec = totalMs / 1000;
+
+      let timeStr = "";
+      if (totalSec < 0.2) timeStr = "< 0.2s";
+      else if (totalSec < 1.0) timeStr = `~${totalSec.toFixed(1)}s`;
+      else if (totalSec < 60) timeStr = `~${Math.round(totalSec)}s`;
+      else {
+        const m = Math.floor(totalSec / 60);
+        const s = Math.round(totalSec % 60);
+        timeStr = `~${m}m ${s < 10 ? '0' : ''}${s}s`;
+      }
+
+      timeEl.textContent = `Est: ${timeStr}`;
+      timeEl.style.color = totalSec > 15 ? "#ff9100" : (totalSec > 40 ? "#ff1744" : "#ffd600");
     }
 
     function evaluateNullModelFit(candAnchors) {
@@ -24383,6 +24556,81 @@ EOF`;
       return { anchor: testAnchor, station: st };
     }
 
+    function applyRasterPixelHypothesis(cell, updateDeedNodes = true) {
+      if (!cell) return null;
+      const axes = state.testAxes || [];
+      const axisId = state.nullModel.selectedAxisId;
+      const targetAxis = axes.find(a => a.id === axisId) || axes[0];
+      if (!targetAxis) return null;
+
+      let testAnchor = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
+      if (!testAnchor) {
+        let bestDist = Infinity;
+        let bestAnc = null;
+        (state.anchors || []).forEach(anc => {
+          if (anc.active !== false && anc.enabled !== false && anc.dst) {
+            const pr = projectPointOnAxis(anc.dst, targetAxis);
+            if (pr.d < bestDist) {
+              bestDist = pr.d;
+              bestAnc = anc;
+            }
+          }
+        });
+        if (bestAnc) {
+          bestAnc.axisId = targetAxis.id;
+          bestAnc.optimize = true;
+          testAnchor = bestAnc;
+        }
+      }
+      if (!testAnchor) return null;
+
+      const px = cell.bestX != null ? cell.bestX : cell.x;
+      const py = cell.bestY != null ? cell.bestY : cell.y;
+      testAnchor.dst.x = px;
+      testAnchor.dst.y = py;
+      const pr = projectPointOnAxis(testAnchor.dst, targetAxis);
+      testAnchor.axisT = pr.t;
+
+      state.nullModel.currentPixel = cell;
+      if (cell.sIdx != null) {
+        state.nullModel.currentStationIdx = cell.sIdx;
+      }
+
+      if (updateDeedNodes) {
+        const activeAnchors = getActiveAnchors();
+        let warper = null;
+        if (activeAnchors.length >= 2) {
+          try {
+            warper = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors);
+          } catch (_) {}
+        }
+        if (warper) {
+          if (state.activeDeed === "196") {
+            if (typeof recompute196Metrics === "function") recompute196Metrics();
+          } else {
+            if (state.userPolygon && state.userPolygon.vertices) {
+              state.userPolygon.vertices.forEach(v => {
+                if (v.deedPt) {
+                  const w = warper(v.deedPt);
+                  v.x = w.x;
+                  v.y = w.y;
+                  v.origX = w.x;
+                  v.origY = w.y;
+                }
+              });
+              if (typeof recomputeUserPolygonMetrics === "function") {
+                recomputeUserPolygonMetrics();
+              }
+            }
+            if (typeof updateCustomPolygonAnchors === "function") {
+              updateCustomPolygonAnchors();
+            }
+          }
+        }
+      }
+      return { anchor: testAnchor, cell, targetAxis };
+    }
+
     async function startNullModelSimulation() {
       if (state.nullModel.running) return;
 
@@ -24454,6 +24702,11 @@ EOF`;
       state.nullModel.stepMeters = stepMeters;
       state.nullModel.simsPerPoint = simsPerPoint;
       state.nullModel.bufferRadius = bufferRadius;
+
+      const chkPrecision = document.getElementById("chk-null-model-deed-precision");
+      const isDeedPrecision = chkPrecision ? chkPrecision.checked : !!state.nullModel.deedPrecision;
+      state.nullModel.deedPrecision = isDeedPrecision;
+
       // Track initial field mojón position along the target axis
       const prMojon = projectPointOnAxis(testAnchor.dst, targetAxis);
       state.nullModel.mojonDist = Math.max(0, Math.min(geom.len, prMojon.t * geom.len));
@@ -24463,8 +24716,10 @@ EOF`;
       state.nullModel.cancelRequested = false;
       state.nullModel.currentStationIdx = -1;
       state.nullModel.hoverStationIdx = -1;
+      state.nullModel.hoverRasterCell = null;
+      state.nullModel.currentPixel = null;
 
-      // Build station list along axis
+      // Build longitudinal station list along axis
       const stationDistances = [];
       for (let d = 0; d < geom.len; d += stepMeters) {
         stationDistances.push(Math.round(d * 1000) / 1000);
@@ -24472,6 +24727,30 @@ EOF`;
       if (stationDistances.length === 0 || stationDistances[stationDistances.length - 1] < geom.len - (stepMeters * 0.5)) {
         stationDistances.push(Math.round(geom.len * 1000) / 1000);
       }
+
+      // Build transverse offsets across [-bufferRadius, +bufferRadius]
+      const transverseOffsets = [];
+      for (let off = -bufferRadius; off <= bufferRadius + (stepMeters * 0.05); off += stepMeters) {
+        transverseOffsets.push(Math.round(off * 1000) / 1000);
+      }
+      if (transverseOffsets.length === 0 || transverseOffsets[transverseOffsets.length - 1] < bufferRadius - (stepMeters * 0.5)) {
+        transverseOffsets.push(Math.round(bufferRadius * 1000) / 1000);
+      }
+
+      // Initialize 2D Raster Grid structure
+      state.nullModel.rasterGrid = {
+        axisId: targetAxis.id,
+        axisName: targetAxis.name,
+        stepMeters: stepMeters,
+        bufferRadius: bufferRadius,
+        sDistances: stationDistances,
+        nOffsets: transverseOffsets,
+        cells: [], // [sIdx][nIdx]
+        minError: Infinity,
+        maxError: -Infinity,
+        bestCell: null,
+        valleyLine: []
+      };
 
       const stations = stationDistances.map((dist, idx) => {
         const t = geom.len > 0 ? (dist / geom.len) : 0;
@@ -24488,7 +24767,8 @@ EOF`;
           sdError: null,
           minError: null,
           maxError: null,
-          cdfBins: new Float32Array(200) // 200 bins: 0.01% to 2.00% in 0.01% increments
+          samplePoints: [],
+          cdfBins: new Float32Array(200) // 200 bins: 0.01% to 2.00%
         };
       });
 
@@ -24539,7 +24819,7 @@ EOF`;
         : null;
       const startTime = performance.now();
 
-      // Station execution loop
+      // Station execution loop (2D Raster + 1D Aggregates)
       for (let sIdx = 0; sIdx < stations.length; sIdx++) {
         if (state.nullModel.cancelRequested) break;
 
@@ -24563,9 +24843,12 @@ EOF`;
 
         state.nullModel.currentStationIdx = sIdx;
         const station = stations[sIdx];
-        const errors = new Float32Array(simsPerPoint);
+        const stationErrors = [];
+        const rowCells = [];
+        let rowMinErr = Infinity;
+        let rowBestCell = null;
 
-        // 1. Pre-clone candidate anchor array with station center
+        // Pre-clone candidate anchor array
         const candAnchors = state.anchors.map(a => ({
           ...a,
           src: { ...a.src },
@@ -24573,103 +24856,147 @@ EOF`;
         }));
         const targetCandAnchor = candAnchors.find(a => a.id === testAnchor.id);
 
-        // 2. Monte Carlo perturbations within buffer disk (with live visual variability)
-        station.samplePoints = [];
-        const maxScatter = Math.min(simsPerPoint, 36);
-        const scatterStep = Math.max(1, Math.floor(simsPerPoint / maxScatter));
-
-        // Sample perturbation frames to visibly demonstrate the spatial variability within the station buffer
-        const jitterMilestones = [
-          0,
-          Math.floor(simsPerPoint * 0.35),
-          Math.floor(simsPerPoint * 0.70)
-        ];
-
-        for (let j = 0; j < simsPerPoint; j++) {
+        // Compute 2D swath cells for this station row across transverse offsets
+        for (let nIdx = 0; nIdx < transverseOffsets.length; nIdx++) {
           if (state.nullModel.cancelRequested) break;
+          const nVal = transverseOffsets[nIdx];
+          const px = station.center.x + nVal * geom.n.x;
+          const py = station.center.y + nVal * geom.n.y;
 
-          const theta = Math.random() * 2 * Math.PI;
-          const r = bufferRadius * Math.sqrt(Math.random());
-          const px = station.center.x + r * Math.cos(theta);
-          const py = station.center.y + r * Math.sin(theta);
+          let cellObj;
+          if (isDeedPrecision) {
+            // Stochastic micro-perturbations within cell / point buffer
+            const runsPerCell = Math.min(simsPerPoint, 40);
+            const rCell = Math.min(stepMeters * 0.5, bufferRadius);
+            let cellMin = Infinity;
+            let cellSum = 0;
+            let bestMicroPt = { x: px, y: py };
 
-          targetCandAnchor.dst.x = px;
-          targetCandAnchor.dst.y = py;
+            for (let k = 0; k < runsPerCell; k++) {
+              const th = Math.random() * 2 * Math.PI;
+              const rSub = rCell * Math.sqrt(Math.random());
+              const subX = px + rSub * Math.cos(th);
+              const subY = py + rSub * Math.sin(th);
 
-          const fitErr = evaluateNullModelFit(candAnchors);
-          errors[j] = fitErr;
+              targetCandAnchor.dst.x = subX;
+              targetCandAnchor.dst.y = subY;
+              const fitErr = evaluateNullModelFit(candAnchors);
+              cellSum += fitErr;
+              stationErrors.push(fitErr);
 
-          if (j % scatterStep === 0 && station.samplePoints.length < maxScatter) {
-            station.samplePoints.push({ x: px, y: py, error: fitErr });
-          }
-
-          // Live visual jitter of anchor and deed nodes inside the station buffer
-          if (jitterMilestones.includes(j)) {
-            testAnchor.dst.x = px;
-            testAnchor.dst.y = py;
-            const activeAnchors = getActiveAnchors();
-            if (activeAnchors.length >= 2) {
-              let w = null;
-              try { w = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors); } catch (_) {}
-              if (w) {
-                if (state.activeDeed === "196") {
-                  if (typeof recompute196Metrics === "function") recompute196Metrics();
-                } else if (state.userPolygon && state.userPolygon.vertices) {
-                  state.userPolygon.vertices.forEach(v => {
-                    if (v.deedPt) {
-                      const wpt = w(v.deedPt);
-                      v.x = wpt.x;
-                      v.y = wpt.y;
-                      v.origX = wpt.x;
-                      v.origY = wpt.y;
-                    }
-                  });
-                  if (typeof recomputeUserPolygonMetrics === "function") recomputeUserPolygonMetrics();
-                  if (typeof updateCustomPolygonAnchors === "function") updateCustomPolygonAnchors();
-                }
+              if (fitErr < cellMin) {
+                cellMin = fitErr;
+                bestMicroPt = { x: subX, y: subY };
               }
             }
-            redrawTrueCanvas();
-            await new Promise(res => setTimeout(res, 8));
+            cellObj = {
+              sIdx, nIdx, s: station.dist, n: nVal,
+              x: px, y: py,
+              bestX: bestMicroPt.x, bestY: bestMicroPt.y,
+              error: cellMin,
+              meanError: cellSum / runsPerCell
+            };
+          } else {
+            // Single deterministic direct fit at cell center
+            targetCandAnchor.dst.x = px;
+            targetCandAnchor.dst.y = py;
+            const fitErr = evaluateNullModelFit(candAnchors);
+            stationErrors.push(fitErr);
+            cellObj = {
+              sIdx, nIdx, s: station.dist, n: nVal,
+              x: px, y: py,
+              bestX: px, bestY: py,
+              error: fitErr
+            };
+          }
+
+          if (cellObj.error < rowMinErr) {
+            rowMinErr = cellObj.error;
+            rowBestCell = cellObj;
+          }
+
+          state.nullModel.rasterGrid.minError = Math.min(state.nullModel.rasterGrid.minError, cellObj.error);
+          state.nullModel.rasterGrid.maxError = Math.max(state.nullModel.rasterGrid.maxError, cellObj.error);
+
+          if (!state.nullModel.rasterGrid.bestCell || cellObj.error < state.nullModel.rasterGrid.bestCell.error) {
+            state.nullModel.rasterGrid.bestCell = cellObj;
+          }
+
+          rowCells.push(cellObj);
+
+          // Populate samplePoints for station probe
+          if (station.samplePoints.length < 32 && Math.random() < 0.6) {
+            station.samplePoints.push({ x: cellObj.bestX || px, y: cellObj.bestY || py, error: cellObj.error });
           }
         }
 
-        // Settle anchor and deed nodes cleanly back at station hypothesis center
-        applyStationHypothesis(sIdx, true);
-
-        // Statistical aggregation
-        let sum = 0;
-        let minE = Infinity;
-        let maxE = -Infinity;
-        for (let j = 0; j < simsPerPoint; j++) {
-          const v = errors[j];
-          sum += v;
-          if (v < minE) minE = v;
-          if (v > maxE) maxE = v;
+        state.nullModel.rasterGrid.cells[sIdx] = rowCells;
+        if (rowBestCell) {
+          state.nullModel.rasterGrid.valleyLine.push(rowBestCell);
         }
-        const mean = sum / simsPerPoint;
 
-        let varSum = 0;
-        for (let j = 0; j < simsPerPoint; j++) {
-          const diff = errors[j] - mean;
-          varSum += diff * diff;
-        }
-        const sd = simsPerPoint > 1 ? Math.sqrt(varSum / (simsPerPoint - 1)) : 0;
-
-        station.meanError = mean;
-        station.sdError = sd;
-        station.minError = minE;
-        station.maxError = maxE;
-
-        // Precalculate 200 cumulative frequency bins: tau = 0.01% ... 2.00%
-        // Bin b corresponds to threshold (b + 1) * 0.01%
-        for (let b = 0; b < 200; b++) {
-          const threshold = (b + 1) * 0.01;
-          let count = 0;
-          for (let j = 0; j < simsPerPoint; j++) {
-            if (errors[j] <= threshold) count++;
+        // Statistical aggregation for 1D station metrics
+        const nErrCount = stationErrors.length;
+        if (nErrCount > 0) {
+          let sum = 0;
+          let minE = Infinity;
+          let maxE = -Infinity;
+          for (let j = 0; j < nErrCount; j++) {
+            const v = stationErrors[j];
+            sum += v;
+            if (v < minE) minE = v;
+            if (v > maxE) maxE = v;
           }
-          station.cdfBins[b] = (count / simsPerPoint) * 100;
+          const mean = sum / nErrCount;
+          let varSum = 0;
+          for (let j = 0; j < nErrCount; j++) {
+            const diff = stationErrors[j] - mean;
+            varSum += diff * diff;
+          }
+          const sd = nErrCount > 1 ? Math.sqrt(varSum / (nErrCount - 1)) : 0;
+
+          station.meanError = mean;
+          station.sdError = sd;
+          station.minError = minE;
+          station.maxError = maxE;
+
+          // 200 cumulative frequency bins: tau = 0.01% ... 2.00%
+          for (let b = 0; b < 200; b++) {
+            const threshold = (b + 1) * 0.01;
+            let count = 0;
+            for (let j = 0; j < nErrCount; j++) {
+              if (stationErrors[j] <= threshold) count++;
+            }
+            station.cdfBins[b] = (count / nErrCount) * 100;
+          }
+        }
+
+        // Live visual feedback: settle anchor temporarily at station/valley point
+        if (rowBestCell) {
+          testAnchor.dst.x = rowBestCell.bestX || rowBestCell.x;
+          testAnchor.dst.y = rowBestCell.bestY || rowBestCell.y;
+          const activeAnchors = getActiveAnchors();
+          if (activeAnchors.length >= 2) {
+            let w = null;
+            try { w = TransformMath.createWarper(state.algorithm || "SIMILARITY", activeAnchors); } catch (_) {}
+            if (w) {
+              if (state.activeDeed === "196") {
+                if (typeof recompute196Metrics === "function") recompute196Metrics();
+              } else if (state.userPolygon && state.userPolygon.vertices) {
+                state.userPolygon.vertices.forEach(v => {
+                  if (v.deedPt) {
+                    const wpt = w(v.deedPt);
+                    v.x = wpt.x;
+                    v.y = wpt.y;
+                    v.origX = wpt.x;
+                    v.origY = wpt.y;
+                  }
+                });
+                if (typeof recomputeUserPolygonMetrics === "function") recomputeUserPolygonMetrics();
+                if (typeof updateCustomPolygonAnchors === "function") updateCustomPolygonAnchors();
+              }
+            }
+          }
         }
 
         // Live progress update
@@ -24684,12 +25011,12 @@ EOF`;
         const sRemain = remainingSec % 60;
         if (progressEta) progressEta.textContent = `ETA: ${mRemain}:${sRemain < 10 ? '0' : ''}${sRemain}`;
 
-        // Live chart draw and field probe render - Deed moves live in background!
+        // Live chart draw and field canvas render (drapes 2D raster live!)
         drawNullModelChart();
         redrawTrueCanvas();
 
-        // Smooth yield pacing so deed movement is visible and responsive
-        await new Promise(r => setTimeout(r, 12));
+        // Yield pacing so user can watch progress smoothly
+        await new Promise(r => setTimeout(r, 6));
       }
 
       // Wrap up simulation
@@ -24728,18 +25055,24 @@ EOF`;
           badge.style.background = "rgba(255,23,68,0.18)";
         }
       } else {
-        // Find best station with lowest mean error and settle anchor and deed nodes there
-        let bestIdx = 0;
-        let lowestMean = Infinity;
-        stations.forEach((st, idx) => {
-          if (st.meanError != null && st.meanError < lowestMean) {
-            lowestMean = st.meanError;
-            bestIdx = idx;
-          }
-        });
-        applyStationHypothesis(bestIdx, true);
+        // Settle anchor and deed at the best 2D raster pixel (or best station)
+        if (state.nullModel.rasterGrid && state.nullModel.rasterGrid.bestCell) {
+          applyRasterPixelHypothesis(state.nullModel.rasterGrid.bestCell, true);
+        } else {
+          let bestIdx = 0;
+          let lowestMean = Infinity;
+          stations.forEach((st, idx) => {
+            if (st.meanError != null && st.meanError < lowestMean) {
+              lowestMean = st.meanError;
+              bestIdx = idx;
+            }
+          });
+          applyStationHypothesis(bestIdx, true);
+        }
+        const bestCell = state.nullModel.rasterGrid ? state.nullModel.rasterGrid.bestCell : null;
+        const bestErrVal = bestCell ? bestCell.error.toFixed(2) : "0.00";
         if (badge) {
-          badge.textContent = `Done (Best: #${bestIdx + 1})`;
+          badge.textContent = `Done (Best: ${bestErrVal}%)`;
           badge.style.color = "#00e676";
           badge.style.background = "rgba(0,230,118,0.18)";
         }
@@ -24753,12 +25086,12 @@ EOF`;
       drawNullModelChart();
       redrawTrueCanvas();
 
-      const bestSt = stations.find(s => s.idx === state.nullModel.currentStationIdx) || stations[0];
-      const bestErrStr = bestSt && bestSt.meanError != null ? `${bestSt.meanError.toFixed(2)}% (±${bestSt.sdError.toFixed(2)}%)` : "";
-
+      const bestCell = state.nullModel.rasterGrid ? state.nullModel.rasterGrid.bestCell : null;
       updateStatus(wasCancelled
         ? `⏹ Null model simulation stopped. Anchor #${testAnchor.id} restored to original position.`
-        : `✅ Null model complete! Aligned to Best Station #${state.nullModel.currentStationIdx + 1} (${bestSt.dist.toFixed(1)}m, Avg Err: ${bestErrStr}).`);
+        : (bestCell 
+            ? `✅ Null model complete! Aligned to Best Pixel (s=${bestCell.s.toFixed(1)}m, offset=${bestCell.n > 0 ? '+' : ''}${bestCell.n.toFixed(2)}m, Err: ${bestCell.error.toFixed(2)}%).`
+            : `✅ Null model complete!`));
     }
 
     function togglePauseNullModel() {
@@ -25359,6 +25692,221 @@ EOF`;
       }
       if (statCount) {
         statCount.textContent = `Stations: ${computedStations.length}/${stations.length}`;
+      }
+
+      ctx.restore();
+    }
+
+    function getNullModelRasterColor(error, minErr, maxErr, opacity = 0.70) {
+      if (error == null) return `rgba(128, 128, 128, ${opacity})`;
+      const span = Math.max(0.001, maxErr - minErr);
+      const t = Math.max(0, Math.min(1, (error - minErr) / span));
+
+      let r, g, b;
+      if (t < 0.25) {
+        const f = t / 0.25;
+        r = Math.round(0 * (1 - f) + 0 * f);
+        g = Math.round(229 * (1 - f) + 230 * f);
+        b = Math.round(255 * (1 - f) + 118 * f);
+      } else if (t < 0.50) {
+        const f = (t - 0.25) / 0.25;
+        r = Math.round(0 * (1 - f) + 255 * f);
+        g = Math.round(230 * (1 - f) + 214 * f);
+        b = Math.round(118 * (1 - f) + 0 * f);
+      } else if (t < 0.75) {
+        const f = (t - 0.50) / 0.25;
+        r = Math.round(255 * (1 - f) + 255 * f);
+        g = Math.round(214 * (1 - f) + 145 * f);
+        b = Math.round(0 * (1 - f) + 0 * f);
+      } else {
+        const f = (t - 0.75) / 0.25;
+        r = Math.round(255 * (1 - f) + 255 * f);
+        g = Math.round(145 * (1 - f) + 23 * f);
+        b = Math.round(0 * (1 - f) + 68 * f);
+      }
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+
+    function drawNullModelRasterGIS(ctx, vp, canvasH) {
+      if (!state.nullModel || !state.nullModel.enabled) return;
+      if (state.nullModel.showRaster === false) return;
+      const grid = state.nullModel.rasterGrid;
+      if (!grid || !grid.cells || grid.cells.length === 0) return;
+
+      const axes = state.testAxes || [];
+      const targetAxis = axes.find(a => a.id === state.nullModel.selectedAxisId) || axes[0];
+      if (!targetAxis || targetAxis.visible === false) return;
+
+      const geom = computeAxisGeometry(targetAxis);
+      if (geom.len <= 0.1) return;
+
+      const stepM = grid.stepMeters || 0.25;
+      const halfS = stepM * 0.5;
+      const halfN = stepM * 0.5;
+      const ux = geom.u.x, uy = geom.u.y;
+      const nx = geom.n.x, ny = geom.n.y;
+
+      const opacity = state.nullModel.rasterOpacity != null ? state.nullModel.rasterOpacity : 0.70;
+      const minE = grid.minError < Infinity ? grid.minError : 0;
+      const maxE = grid.maxError > -Infinity ? Math.max(minE + 0.3, grid.maxError) : 2.0;
+
+      ctx.save();
+
+      // 1. Draw each cell quad
+      const nStations = grid.cells.length;
+      for (let sIdx = 0; sIdx < nStations; sIdx++) {
+        const row = grid.cells[sIdx];
+        if (!row) continue;
+        for (let nIdx = 0; nIdx < row.length; nIdx++) {
+          const cell = row[nIdx];
+          if (!cell || cell.error == null) continue;
+
+          const cx = cell.x, cy = cell.y;
+          const p1 = { x: cx - halfS * ux - halfN * nx, y: cy - halfS * uy - halfN * ny };
+          const p2 = { x: cx + halfS * ux - halfN * nx, y: cy + halfS * uy - halfN * ny };
+          const p3 = { x: cx + halfS * ux + halfN * nx, y: cy + halfS * uy + halfN * ny };
+          const p4 = { x: cx - halfS * ux + halfN * nx, y: cy - halfS * uy + halfN * ny };
+
+          const s1 = worldToScreenGIS(p1, vp, canvasH);
+          const s2 = worldToScreenGIS(p2, vp, canvasH);
+          const s3 = worldToScreenGIS(p3, vp, canvasH);
+          const s4 = worldToScreenGIS(p4, vp, canvasH);
+
+          ctx.beginPath();
+          ctx.moveTo(s1.x, s1.y);
+          ctx.lineTo(s2.x, s2.y);
+          ctx.lineTo(s3.x, s3.y);
+          ctx.lineTo(s4.x, s4.y);
+          ctx.closePath();
+
+          ctx.fillStyle = getNullModelRasterColor(cell.error, minE, maxE, opacity);
+          ctx.fill();
+
+          if (vp.scale > 15) {
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // 2. Swath corridor border outlines
+      const bufR = grid.bufferRadius || 1.04;
+      const p1Top = { x: targetAxis.p1.x + bufR * nx, y: targetAxis.p1.y + bufR * ny };
+      const p2Top = { x: targetAxis.p2.x + bufR * nx, y: targetAxis.p2.y + bufR * ny };
+      const p1Bot = { x: targetAxis.p1.x - bufR * nx, y: targetAxis.p1.y - bufR * ny };
+      const p2Bot = { x: targetAxis.p2.x - bufR * nx, y: targetAxis.p2.y - bufR * ny };
+
+      const s1T = worldToScreenGIS(p1Top, vp, canvasH);
+      const s2T = worldToScreenGIS(p2Top, vp, canvasH);
+      const s1B = worldToScreenGIS(p1Bot, vp, canvasH);
+      const s2B = worldToScreenGIS(p2Bot, vp, canvasH);
+
+      ctx.beginPath();
+      ctx.moveTo(s1T.x, s1T.y);
+      ctx.lineTo(s2T.x, s2T.y);
+      ctx.moveTo(s1B.x, s1B.y);
+      ctx.lineTo(s2B.x, s2B.y);
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([4, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 3. Valley floor ridge (minimum error along axis)
+      if (grid.valleyLine && grid.valleyLine.length > 1) {
+        ctx.beginPath();
+        for (let i = 0; i < grid.valleyLine.length; i++) {
+          const pt = grid.valleyLine[i];
+          const sp = worldToScreenGIS(pt, vp, canvasH);
+          if (i === 0) ctx.moveTo(sp.x, sp.y);
+          else ctx.lineTo(sp.x, sp.y);
+        }
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 2.0;
+        ctx.setLineDash([3, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 4. Best global pixel marker
+      if (grid.bestCell) {
+        const bp = { x: grid.bestCell.bestX || grid.bestCell.x, y: grid.bestCell.bestY || grid.bestCell.y };
+        const sBest = worldToScreenGIS(bp, vp, canvasH);
+        ctx.beginPath();
+        ctx.arc(sBest.x, sBest.y, 6.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#00e676";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2.0;
+        ctx.stroke();
+
+        ctx.font = "bold 9px monospace";
+        const bestLbl = `★ Best: ${grid.bestCell.error.toFixed(2)}% (s:${grid.bestCell.s.toFixed(1)}m, n:${grid.bestCell.n > 0 ? '+' : ''}${grid.bestCell.n.toFixed(2)}m)`;
+        const bw = ctx.measureText(bestLbl).width;
+        ctx.fillStyle = "rgba(10, 16, 26, 0.92)";
+        ctx.strokeStyle = "#00e676";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(sBest.x - bw / 2 - 5, sBest.y - 25, bw + 10, 16, 3);
+        } else {
+          ctx.rect(sBest.x - bw / 2 - 5, sBest.y - 25, bw + 10, 16);
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#00e676";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(bestLbl, sBest.x, sBest.y - 17);
+      }
+
+      // 5. Hovered Cell highlight
+      if (state.nullModel.hoverRasterCell) {
+        const hCell = state.nullModel.hoverRasterCell;
+        const cx = hCell.x, cy = hCell.y;
+        const p1 = { x: cx - halfS * ux - halfN * nx, y: cy - halfS * uy - halfN * ny };
+        const p2 = { x: cx + halfS * ux - halfN * nx, y: cy + halfS * uy - halfN * ny };
+        const p3 = { x: cx + halfS * ux + halfN * nx, y: cy + halfS * uy + halfN * ny };
+        const p4 = { x: cx - halfS * ux + halfN * nx, y: cy - halfS * uy + halfN * ny };
+
+        const s1 = worldToScreenGIS(p1, vp, canvasH);
+        const s2 = worldToScreenGIS(p2, vp, canvasH);
+        const s3 = worldToScreenGIS(p3, vp, canvasH);
+        const s4 = worldToScreenGIS(p4, vp, canvasH);
+
+        ctx.beginPath();
+        ctx.moveTo(s1.x, s1.y);
+        ctx.lineTo(s2.x, s2.y);
+        ctx.lineTo(s3.x, s3.y);
+        ctx.lineTo(s4.x, s4.y);
+        ctx.closePath();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Tooltip badge
+        const sCenter = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
+        const errText = hCell.error != null ? `${hCell.error.toFixed(2)}%` : "—";
+        const precText = hCell.meanError != null ? ` (Avg: ${hCell.meanError.toFixed(2)}%)` : "";
+        const hLabel = `Pixel s:${hCell.s.toFixed(1)}m, n:${hCell.n > 0 ? '+' : ''}${hCell.n.toFixed(2)}m • Err: ${errText}${precText} [Click to adopt]`;
+        ctx.font = "bold 9.5px monospace";
+        const hw = ctx.measureText(hLabel).width;
+        ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(sCenter.x - hw / 2 - 6, sCenter.y - 30, hw + 12, 18, 3);
+        } else {
+          ctx.rect(sCenter.x - hw / 2 - 6, sCenter.y - 30, hw + 12, 18);
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#00e5ff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(hLabel, sCenter.x, sCenter.y - 21);
       }
 
       ctx.restore();
@@ -26039,6 +26587,7 @@ EOF`;
       if (axisSelect) {
         axisSelect.addEventListener("change", e => {
           state.nullModel.selectedAxisId = e.target.value ? Number(e.target.value) : null;
+          updateNullModelGridAndETA();
           drawNullModelChart();
           redrawTrueCanvas();
         });
@@ -26052,6 +26601,7 @@ EOF`;
             const cm = Math.round(m * 100);
             stepVal.textContent = cm >= 100 ? `1.00 m (100 cm)` : `${m.toFixed(2)} m (${cm} cm)`;
           }
+          updateNullModelGridAndETA();
         };
         stepSlider.addEventListener("input", e => handleStepChange(e.target.value));
         stepSlider.addEventListener("change", e => handleStepChange(e.target.value));
@@ -26060,6 +26610,7 @@ EOF`;
       if (simsSelect) {
         simsSelect.addEventListener("change", e => {
           state.nullModel.simsPerPoint = parseInt(e.target.value, 10) || 100;
+          updateNullModelGridAndETA();
         });
       }
 
@@ -26069,11 +26620,42 @@ EOF`;
             ? (state.optBufferRadius || 1.04)
             : (parseFloat(val) || 1.04);
           state.nullModel.bufferRadius = newR;
+          updateNullModelGridAndETA();
           redrawTrueCanvas();
           updateStatus(`🎲 Null Model Buffer Radius set to ±${newR.toFixed(2)} m.`);
         };
         bufSelect.addEventListener("change", e => handleBufferChange(e.target.value));
         bufSelect.addEventListener("input", e => handleBufferChange(e.target.value));
+      }
+
+      const chkPrecision = document.getElementById("chk-null-model-deed-precision");
+      if (chkPrecision) {
+        chkPrecision.addEventListener("change", e => {
+          state.nullModel.deedPrecision = e.target.checked;
+          updateNullModelGridAndETA();
+          updateStatus(e.target.checked
+            ? "🔬 Deed Precision stochastic iterations enabled for Null Model."
+            : "⚡ Single direct optimization per pixel enabled for Null Model.");
+        });
+      }
+
+      const chkShowRaster = document.getElementById("chk-null-model-show-raster");
+      if (chkShowRaster) {
+        chkShowRaster.addEventListener("change", e => {
+          state.nullModel.showRaster = e.target.checked;
+          redrawTrueCanvas();
+        });
+      }
+
+      const opacitySlider = document.getElementById("null-model-raster-opacity-slider");
+      const opacityVal = document.getElementById("null-model-raster-opacity-val");
+      if (opacitySlider) {
+        opacitySlider.addEventListener("input", e => {
+          const op = parseFloat(e.target.value) || 0.70;
+          state.nullModel.rasterOpacity = op;
+          if (opacityVal) opacityVal.textContent = `${Math.round(op * 100)}%`;
+          redrawTrueCanvas();
+        });
       }
 
       if (btnRun) btnRun.addEventListener("click", startNullModelSimulation);
