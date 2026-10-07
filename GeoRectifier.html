@@ -23752,9 +23752,9 @@ EOF`;
     function drawTestAxesGIS(ctx, vp, canvasH) {
       const axes = (state.testAxes || []).filter(a => a.visible !== false);
 
-      // 0. Draw 2D Error Swath / Contours & Aligned Chart Plot FIRST (so Boundary Axis stays in front)
+      // 0. Draw 2D Error Swath / Contours & Aligned Chart Plot FIRST (underneath boundary line)
       if (typeof drawNullModelRasterGIS === "function") {
-        drawNullModelRasterGIS(ctx, vp, canvasH);
+        drawNullModelRasterGIS(ctx, vp, canvasH, "swath");
       }
       if (typeof drawNullModelAxisPlotGIS === "function") {
         drawNullModelAxisPlotGIS(ctx, vp, canvasH);
@@ -24109,6 +24109,11 @@ EOF`;
             ctx.restore();
           }
         }
+      }
+
+      // 3. Draw True Mojón & Optimal Markers FORWARD (in front of / on top of the boundary axis line)
+      if (typeof drawNullModelRasterGIS === "function") {
+        drawNullModelRasterGIS(ctx, vp, canvasH, "markers");
       }
 
     }
@@ -25925,7 +25930,7 @@ EOF`;
       ctx.restore();
     }
 
-    function drawNullModelRasterGIS(ctx, vp, canvasH) {
+    function drawNullModelRasterGIS(ctx, vp, canvasH, layer = "all") {
       if (!state.nullModel || !state.nullModel.enabled) return;
       if (state.nullModel.showRaster === false) return;
       const grid = state.nullModel.rasterGrid;
@@ -25948,91 +25953,100 @@ EOF`;
       const minE = grid.minError < Infinity ? grid.minError : 0;
       const maxE = grid.maxError > -Infinity ? Math.max(minE + 0.3, grid.maxError) : 2.0;
 
-      ctx.save();
+      // PART 1: 2D Swath Heatmap, Contours, Borders, Valley Line (Background Layer underneath axis)
+      if (layer === "all" || layer === "swath") {
+        ctx.save();
 
-      // 1. Draw each cell quad (only if Color Fill is checked)
-      if (state.nullModel.showRasterFill !== false) {
-        const nStations = grid.cells.length;
-        for (let sIdx = 0; sIdx < nStations; sIdx++) {
-          const row = grid.cells[sIdx];
-          if (!row) continue;
-          for (let nIdx = 0; nIdx < row.length; nIdx++) {
-            const cell = row[nIdx];
-            if (!cell || cell.error == null) continue;
+        // 1. Draw each cell quad (only if Color Fill is checked)
+        if (state.nullModel.showRasterFill !== false) {
+          const nStations = grid.cells.length;
+          for (let sIdx = 0; sIdx < nStations; sIdx++) {
+            const row = grid.cells[sIdx];
+            if (!row) continue;
+            for (let nIdx = 0; nIdx < row.length; nIdx++) {
+              const cell = row[nIdx];
+              if (!cell || cell.error == null) continue;
 
-            const cx = cell.x, cy = cell.y;
-            const p1 = { x: cx - halfS * ux - halfN * nx, y: cy - halfS * uy - halfN * ny };
-            const p2 = { x: cx + halfS * ux - halfN * nx, y: cy + halfS * uy - halfN * ny };
-            const p3 = { x: cx + halfS * ux + halfN * nx, y: cy + halfS * uy + halfN * ny };
-            const p4 = { x: cx - halfS * ux + halfN * nx, y: cy - halfS * uy + halfN * ny };
+              const cx = cell.x, cy = cell.y;
+              const p1 = { x: cx - halfS * ux - halfN * nx, y: cy - halfS * uy - halfN * ny };
+              const p2 = { x: cx + halfS * ux - halfN * nx, y: cy + halfS * uy - halfN * ny };
+              const p3 = { x: cx + halfS * ux + halfN * nx, y: cy + halfS * uy + halfN * ny };
+              const p4 = { x: cx - halfS * ux + halfN * nx, y: cy - halfS * uy + halfN * ny };
 
-            const s1 = worldToScreenGIS(p1, vp, canvasH);
-            const s2 = worldToScreenGIS(p2, vp, canvasH);
-            const s3 = worldToScreenGIS(p3, vp, canvasH);
-            const s4 = worldToScreenGIS(p4, vp, canvasH);
+              const s1 = worldToScreenGIS(p1, vp, canvasH);
+              const s2 = worldToScreenGIS(p2, vp, canvasH);
+              const s3 = worldToScreenGIS(p3, vp, canvasH);
+              const s4 = worldToScreenGIS(p4, vp, canvasH);
 
-            ctx.beginPath();
-            ctx.moveTo(s1.x, s1.y);
-            ctx.lineTo(s2.x, s2.y);
-            ctx.lineTo(s3.x, s3.y);
-            ctx.lineTo(s4.x, s4.y);
-            ctx.closePath();
+              ctx.beginPath();
+              ctx.moveTo(s1.x, s1.y);
+              ctx.lineTo(s2.x, s2.y);
+              ctx.lineTo(s3.x, s3.y);
+              ctx.lineTo(s4.x, s4.y);
+              ctx.closePath();
 
-            ctx.fillStyle = getNullModelRasterColor(cell.error, minE, maxE, opacity);
-            ctx.fill();
+              ctx.fillStyle = getNullModelRasterColor(cell.error, minE, maxE, opacity);
+              ctx.fill();
 
-            if (vp.scale > 15) {
-              ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
-              ctx.lineWidth = 0.5;
-              ctx.stroke();
+              if (vp.scale > 15) {
+                ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+              }
             }
           }
         }
-      }
 
-      // 1b. Error Contour Isolines (Marching Squares)
-      if (state.nullModel.showContours !== false) {
-        drawGridContourLines(ctx, vp, canvasH, grid, minE, maxE, state.nullModel.thresholdPercent);
-      }
-
-      // 2. Swath corridor border outlines
-      const bufR = grid.bufferRadius || 1.04;
-      const p1Top = { x: targetAxis.p1.x + bufR * nx, y: targetAxis.p1.y + bufR * ny };
-      const p2Top = { x: targetAxis.p2.x + bufR * nx, y: targetAxis.p2.y + bufR * ny };
-      const p1Bot = { x: targetAxis.p1.x - bufR * nx, y: targetAxis.p1.y - bufR * ny };
-      const p2Bot = { x: targetAxis.p2.x - bufR * nx, y: targetAxis.p2.y - bufR * ny };
-
-      const s1T = worldToScreenGIS(p1Top, vp, canvasH);
-      const s2T = worldToScreenGIS(p2Top, vp, canvasH);
-      const s1B = worldToScreenGIS(p1Bot, vp, canvasH);
-      const s2B = worldToScreenGIS(p2Bot, vp, canvasH);
-
-      ctx.beginPath();
-      ctx.moveTo(s1T.x, s1T.y);
-      ctx.lineTo(s2T.x, s2T.y);
-      ctx.moveTo(s1B.x, s1B.y);
-      ctx.lineTo(s2B.x, s2B.y);
-      ctx.strokeStyle = "#00e5ff";
-      ctx.lineWidth = 1.4;
-      ctx.setLineDash([4, 3]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // 3. Valley floor ridge (minimum error along axis)
-      if (grid.valleyLine && grid.valleyLine.length > 1) {
-        ctx.beginPath();
-        for (let i = 0; i < grid.valleyLine.length; i++) {
-          const pt = grid.valleyLine[i];
-          const sp = worldToScreenGIS(pt, vp, canvasH);
-          if (i === 0) ctx.moveTo(sp.x, sp.y);
-          else ctx.lineTo(sp.x, sp.y);
+        // 1b. Error Contour Isolines (Marching Squares)
+        if (state.nullModel.showContours !== false) {
+          drawGridContourLines(ctx, vp, canvasH, grid, minE, maxE, state.nullModel.thresholdPercent);
         }
-        ctx.strokeStyle = "#ffd600";
-        ctx.lineWidth = 2.0;
-        ctx.setLineDash([3, 2]);
+
+        // 2. Swath corridor border outlines
+        const bufR = grid.bufferRadius || 1.04;
+        const p1Top = { x: targetAxis.p1.x + bufR * nx, y: targetAxis.p1.y + bufR * ny };
+        const p2Top = { x: targetAxis.p2.x + bufR * nx, y: targetAxis.p2.y + bufR * ny };
+        const p1Bot = { x: targetAxis.p1.x - bufR * nx, y: targetAxis.p1.y - bufR * ny };
+        const p2Bot = { x: targetAxis.p2.x - bufR * nx, y: targetAxis.p2.y - bufR * ny };
+
+        const s1T = worldToScreenGIS(p1Top, vp, canvasH);
+        const s2T = worldToScreenGIS(p2Top, vp, canvasH);
+        const s1B = worldToScreenGIS(p1Bot, vp, canvasH);
+        const s2B = worldToScreenGIS(p2Bot, vp, canvasH);
+
+        ctx.beginPath();
+        ctx.moveTo(s1T.x, s1T.y);
+        ctx.lineTo(s2T.x, s2T.y);
+        ctx.moveTo(s1B.x, s1B.y);
+        ctx.lineTo(s2B.x, s2B.y);
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([4, 3]);
         ctx.stroke();
         ctx.setLineDash([]);
+
+        // 3. Valley floor ridge (minimum error along axis)
+        if (grid.valleyLine && grid.valleyLine.length > 1) {
+          ctx.beginPath();
+          for (let i = 0; i < grid.valleyLine.length; i++) {
+            const pt = grid.valleyLine[i];
+            const sp = worldToScreenGIS(pt, vp, canvasH);
+            if (i === 0) ctx.moveTo(sp.x, sp.y);
+            else ctx.lineTo(sp.x, sp.y);
+          }
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 2.0;
+          ctx.setLineDash([3, 2]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        ctx.restore();
       }
+
+      // PART 2: True Mojón Marker, Optimal Beacon, Connection Line & Labels (Forward Layer - Above Axis Line)
+      if (layer === "all" || layer === "markers") {
+        ctx.save();
 
       // Resolve Field Mojón distance along axis
       let mojonDist = state.nullModel.mojonDist;
@@ -26090,21 +26104,23 @@ EOF`;
         offDist = Math.hypot(bp.x - pMojon.x, bp.y - pMojon.y);
       }
 
-      // True Mojón Original Location Star Marker (★)
+      // True Mojón Original Location Star Marker (★) (Prominent in front of / above axis line)
       if (sMojon) {
-        drawStarPolygon(ctx, sMojon.x, sMojon.y, 5, 8.0, 4.0, "#ffd700", "#7c3aed", 1.8);
+        drawStarPolygon(ctx, sMojon.x, sMojon.y, 5, 9.5, 4.8, "#ffd700", "#7c3aed", 2.0);
 
         ctx.font = "bold 8.5px monospace";
         const mojonLbl = state.nullModel.zeroOrigin ? "★ True Mojón (0m)" : `★ Mojón (${mojonDist.toFixed(1)}m)`;
         const mw = ctx.measureText(mojonLbl).width;
-        ctx.fillStyle = "rgba(10, 16, 26, 0.92)";
+        const badgeY = sMojon.y - 25; // Positioned cleanly above the axis line
+
+        ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
         ctx.strokeStyle = "#e040fb";
-        ctx.lineWidth = 1.0;
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
         if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(sMojon.x - mw / 2 - 4, sMojon.y + 10, mw + 8, 15, 3);
+          ctx.roundRect(sMojon.x - mw / 2 - 4, badgeY, mw + 8, 15, 3);
         } else {
-          ctx.rect(sMojon.x - mw / 2 - 4, sMojon.y + 10, mw + 8, 15);
+          ctx.rect(sMojon.x - mw / 2 - 4, badgeY, mw + 8, 15);
         }
         ctx.fill();
         ctx.stroke();
@@ -26112,7 +26128,7 @@ EOF`;
         ctx.fillStyle = "#e040fb";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(mojonLbl, sMojon.x, sMojon.y + 17.5);
+        ctx.fillText(mojonLbl, sMojon.x, badgeY + 7.5);
       }
 
       // Best global pixel marker (Single clean label to the right of the marker)
@@ -26206,6 +26222,7 @@ EOF`;
 
       ctx.restore();
     }
+  }
 
     function drawNullModelAxisPlotGIS(ctx, vp, canvasH) {
       if (!state.nullModel || !state.nullModel.highlightStationOnMap) return;
