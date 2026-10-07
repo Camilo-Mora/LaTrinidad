@@ -1689,12 +1689,12 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <strong id="seg-adjust-tol-val" style="color:var(--accent-cyan);font-family:monospace;font-size:0.74rem;">± 1.04 m (IGAC)</strong>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
-                  <input type="range" id="seg-adjust-tol-slider" min="0.00" max="5.00" step="0.05" value="1.04" class="opacity-slider" style="flex:1;height:4px;accent-color:var(--accent-cyan);cursor:pointer;">
+                  <input type="range" id="seg-adjust-tol-slider" min="0.00" max="10.00" step="0.05" value="1.04" class="opacity-slider" style="flex:1;height:4px;accent-color:var(--accent-cyan);cursor:pointer;">
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:0.60rem;color:var(--text-muted);">
                   <span>0.00m (Raw)</span>
                   <span style="color:var(--accent-cyan);" title="IGAC Graphical Tolerance standard for 1:2000 plan">1.04m (IGAC)</span>
-                  <span>5.00m</span>
+                  <span>10.00m</span>
                 </div>
               </div>
 
@@ -8568,11 +8568,12 @@ EOF`;
       const { x: sx, y: sy } = screenPt;
       ctx.save();
       const ringColor = (sourceType === 'deed') ? "#ff1744" :
-                        (sourceType === 'boundary') ? "#00e5ff" :
+                        (sourceType === 'boundary' || sourceType === 'polygon') ? "#00e5ff" :
                         (sourceType === 'field') ? "#00e676" :
                         (sourceType === 'anchor') ? "#d500f9" :
                         (sourceType === 'marker') ? "#ff5252" :
                         (sourceType === 'custom') ? "#ffb300" :
+                        (sourceType === 'ref') ? "#38bdf8" :
                         (sourceType === 'measure') ? "#ffd600" : "#ffd600";
 
       ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI * 2);
@@ -8647,10 +8648,10 @@ EOF`;
       const chk = document.getElementById("chk-polygon-snap");
       if ((chk && !chk.checked) || state.constrainPolyToDeed) return null;
 
-      let minDistance = POLY_SNAP_RADIUS;
+      let minDistance = (typeof POLY_SNAP_RADIUS === "number") ? POLY_SNAP_RADIUS : 18;
       let closestTarget = null;
 
-      const checkPoint = (pt, sourceType, deedPt = null, isPolyPt = false, ptIdx = null) => {
+      const checkPoint = (pt, sourceType, deedPt = null, isPolyPt = false, ptIdx = null, label = null) => {
         if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number" || isNaN(pt.x) || isNaN(pt.y)) return;
         if (isPolyPt && ignorePtIdx !== null && ptIdx === ignorePtIdx) return;
         const sp = worldToScreenGIS(pt, vp, canvasH);
@@ -8661,49 +8662,103 @@ EOF`;
             worldPt: { x: pt.x, y: pt.y },
             screenPt: { x: sp.x, y: sp.y },
             sourceType,
+            label,
             deedPt: deedPt ? { x: deedPt.x, y: deedPt.y } : null,
             dist
           };
         }
       };
 
-      // 1. Warped deed DXF vertices (Historical Deed) -> store original deedPt!
-      const activeAnchors = getActiveAnchors();
-      if (activeAnchors.length >= 2) {
-        try {
-          const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
+      // 1. Warped deed DXF vertices (Historical Deed overlay) - only when visible!
+      if (state.showOverlay && state.showWarpedDxf !== false && (state.warpedDxfOpacity == null || state.warpedDxfOpacity > 0)) {
+        const activeAnchors = getActiveAnchors();
+        if (activeAnchors.length >= 2) {
+          try {
+            const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
+            (state.histEntities || []).forEach(ent => {
+              (ent.points || []).forEach((dPt, ptIdx) => {
+                const wPt = warper(dPt);
+                checkPoint(wPt, "deed", dPt, false, null, `📜 Escritura #${ptIdx + 1}`);
+              });
+            });
+          } catch (_) {}
+        } else {
           (state.histEntities || []).forEach(ent => {
-            (ent.points || []).forEach(dPt => {
-              const wPt = warper(dPt);
-              checkPoint(wPt, "deed", dPt);
+            (ent.points || []).forEach((dPt, ptIdx) => {
+              checkPoint(dPt, "deed", dPt, false, null, `📜 Escritura #${ptIdx + 1}`);
             });
           });
-        } catch (_) {}
-      } else {
-        (state.histEntities || []).forEach(ent => {
-          (ent.points || []).forEach(dPt => {
-            checkPoint(dPt, "deed", dPt);
-          });
+        }
+      }
+
+      // 2. Field Survey DXF files (all visible surveys on field canvas)
+      // 2a. In 2019 by Cristian Cortez
+      if (state.showTrueDxf !== false && (state.trueDxfOpacity == null || state.trueDxfOpacity > 0)) {
+        (state.trueEntities || []).forEach(ent => {
+          (ent.points || []).forEach((pt, ptIdx) => checkPoint(pt, "field", null, false, null, `Cortez 2019 #${ptIdx + 1}`));
+        });
+      }
+      // 2b. In 2025 by Wilmar Valoy
+      if (state.showSurveyValoy2025 !== false && (state.surveyValoy2025Opacity == null || state.surveyValoy2025Opacity > 0)) {
+        (state.surveyValoy2025Entities || []).forEach(ent => {
+          (ent.points || []).forEach((pt, ptIdx) => checkPoint(pt, "field", null, false, null, `Valoy 2025 #${ptIdx + 1}`));
+        });
+      }
+      // 2c. In 2026 (Sep) by Cristian Cortez
+      if (state.showSurveyCortez2025 !== false && (state.surveyCortez2025Opacity == null || state.surveyCortez2025Opacity > 0)) {
+        (state.surveyCortez2025Entities || []).forEach(ent => {
+          (ent.points || []).forEach((pt, ptIdx) => checkPoint(pt, "field", null, false, null, `Cortez Sep 2026 #${ptIdx + 1}`));
+        });
+      }
+      // 2d. In 2026 (Oct) by Cristian Cortez
+      if (state.showSurveyCortezOct2026 !== false && (state.surveyCortezOct2026Opacity == null || state.surveyCortezOct2026Opacity > 0)) {
+        (state.surveyCortezOct2026Entities || []).forEach(ent => {
+          (ent.points || []).forEach((pt, ptIdx) => checkPoint(pt, "field", null, false, null, `Cortez Oct 2026 #${ptIdx + 1}`));
         });
       }
 
-      // 2. True field DXF vertices (GIS ground truth)
-      (state.trueEntities || []).forEach(ent => {
-        (ent.points || []).forEach(pt => checkPoint(pt, "field", null));
-      });
-
-      // 2b. Temporary Reference DXF vertices
+      // 3. Temporary Reference DXF vertices (only visible)
       (state.refDxfFiles || []).forEach(ref => {
-        if (!ref.visible || ref.opacity <= 0) return;
+        if (!ref.visible || (ref.opacity != null && ref.opacity <= 0)) return;
         (ref.entities || []).forEach(ent => {
-          (ent.points || []).forEach(pt => checkPoint(pt, "ref", null));
+          (ent.points || []).forEach((pt, ptIdx) => checkPoint(pt, "ref", null, false, null, `${ref.name || 'Ref DXF'} #${ptIdx + 1}`));
         });
       });
 
-      // 3. User polygon's other vertices
-      (state.userPolygon.vertices || []).forEach((pt, i) => {
-        checkPoint(pt, "polygon", pt.deedPt || null, true, i);
+      // 4. Ground Control Mojones / Anchors (Field pins)
+      (state.anchors || []).forEach(anc => {
+        if (anc.active === false || anc.enabled === false || !anc.dst) return;
+        checkPoint(anc.dst, "anchor", null, false, null, `Mojón ${anc.name || '#' + anc.id}`);
       });
+
+      // 5. Temporary Reference Checkpoint Markers
+      (state.tempMarkers || []).forEach(m => {
+        if (!m || typeof m.x !== "number" || typeof m.y !== "number") return;
+        checkPoint(m, "marker", null, false, null, `Marker ${m.label || '#' + m.id}`);
+      });
+
+      // 6. Parametric Test Axes endpoints
+      (state.testAxes || []).forEach(ax => {
+        if (ax.visible === false) return;
+        if (ax.p1) checkPoint(ax.p1, "field", null, false, null, `${ax.name || 'Axis'} P1`);
+        if (ax.p2) checkPoint(ax.p2, "field", null, false, null, `${ax.name || 'Axis'} P2`);
+      });
+
+      // 7. Custom Field Polygons
+      const customPolys = state.customPolygons || (state.customPolygon ? [state.customPolygon] : []);
+      customPolys.forEach(cpoly => {
+        if (!cpoly || cpoly.visible === false || !cpoly.vertices) return;
+        cpoly.vertices.forEach((cv, i) => {
+          checkPoint(cv, "custom", null, false, null, `${cpoly.name || 'Custom'} #${i + 1}`);
+        });
+      });
+
+      // 8. Reconstructed Boundary polygon's other vertices
+      if (state.userPolygon && state.userPolygon.vertices) {
+        state.userPolygon.vertices.forEach((pt, i) => {
+          checkPoint(pt, "boundary", pt.deedPt || null, true, i, `Lindero #${i + 1}`);
+        });
+      }
 
       return closestTarget;
     }
@@ -10047,10 +10102,18 @@ EOF`;
         }
       }
 
-      // 3. Snap & anchor to Field Survey DXF vertices (state.trueEntities)
-      if (state.trueEntities && state.trueEntities.length > 0) {
-        for (let entIdx = 0; entIdx < state.trueEntities.length; entIdx++) {
-          const ent = state.trueEntities[entIdx];
+      // 3. Snap & anchor to Field Survey DXF vertices (all visible surveys)
+      const fieldSurveys = [
+        (state.showTrueDxf !== false && (state.trueDxfOpacity == null || state.trueDxfOpacity > 0)) ? { name: "Cortez 2019", ents: state.trueEntities } : null,
+        (state.showSurveyValoy2025 !== false && (state.surveyValoy2025Opacity == null || state.surveyValoy2025Opacity > 0)) ? { name: "Valoy 2025", ents: state.surveyValoy2025Entities } : null,
+        (state.showSurveyCortez2025 !== false && (state.surveyCortez2025Opacity == null || state.surveyCortez2025Opacity > 0)) ? { name: "Cortez Sep 2026", ents: state.surveyCortez2025Entities } : null,
+        (state.showSurveyCortezOct2026 !== false && (state.surveyCortezOct2026Opacity == null || state.surveyCortezOct2026Opacity > 0)) ? { name: "Cortez Oct 2026", ents: state.surveyCortezOct2026Entities } : null
+      ].filter(Boolean);
+
+      for (const survey of fieldSurveys) {
+        if (!survey.ents || survey.ents.length === 0) continue;
+        for (let entIdx = 0; entIdx < survey.ents.length; entIdx++) {
+          const ent = survey.ents[entIdx];
           const pts = ent.points || ent.vertices;
           if (!pts) continue;
           for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
@@ -10063,7 +10126,7 @@ EOF`;
                 type: 'field',
                 worldPt: { x: pt.x, y: pt.y },
                 screenPt: sp,
-                label: `Field Survey #${ptIdx + 1}`,
+                label: `${survey.name} #${ptIdx + 1}`,
                 anchor: { type: 'field', entIdx, ptIdx }
               };
             }
@@ -13042,13 +13105,13 @@ EOF`;
           if (qBtn) {
             qBtn.addEventListener("click", () => toggleReverseProcessingMode(true));
           }
-        } else if (!sol.feasible && sol.maxDisplacement != null && sol.maxDisplacement > 0 && sol.maxDisplacement <= 5.00) {
+        } else if (!sol.feasible && sol.maxDisplacement != null && sol.maxDisplacement > 0 && sol.maxDisplacement <= 10.00) {
           const needed = (Math.ceil(sol.maxDisplacement * 20) / 20).toFixed(2);
           statusTextEl.innerHTML = `<span style="color:#ffb300;font-size:0.66rem;">Tol ±${curTolDist.toFixed(2)}m tight (needs ±${sol.maxDisplacement.toFixed(2)}m):</span> <button id="btn-quick-fit-tol" type="button" style="background:var(--accent-cyan);color:#0f172a;font-weight:700;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.65rem;margin-left:4px;" title="Set tolerance to ±${needed}m">Auto-Fit (±${needed}m)</button>`;
           const qTol = document.getElementById("btn-quick-fit-tol");
           if (qTol) {
             qTol.addEventListener("click", () => {
-              const newTol = Math.min(5.00, Math.ceil(sol.maxDisplacement * 20) / 20);
+              const newTol = Math.min(10.00, Math.ceil(sol.maxDisplacement * 20) / 20);
               sa.toleranceDist = newTol;
               const tolSlider = document.getElementById("seg-adjust-tol-slider");
               const tolVal = document.getElementById("seg-adjust-tol-val");
@@ -18145,6 +18208,10 @@ EOF`;
         if (isConstrained && targetPt.origX != null) {
           const shift = Math.hypot(targetPt.x - targetPt.origX, targetPt.y - targetPt.origY);
           coordsBar.textContent = `Polygon Node #${state.draggingUserPolyNode + 1}: (${targetPt.x.toFixed(2)}, ${targetPt.y.toFixed(2)}) | Deed offset: ${shift.toFixed(2)}m (max ±${state.optBufferRadius.toFixed(1)}m)`;
+        } else if (snap) {
+          coordsBar.textContent = `Polygon Node #${state.draggingUserPolyNode + 1}: Snapped to ${snap.label || 'Vertex'} | UTM: (${targetPt.x.toFixed(2)}, ${targetPt.y.toFixed(2)})`;
+        } else {
+          coordsBar.textContent = `Polygon Node #${state.draggingUserPolyNode + 1}: (${targetPt.x.toFixed(2)}, ${targetPt.y.toFixed(2)})`;
         }
         recomputeUserPolygonMetrics();
         redrawTrueCanvas();
