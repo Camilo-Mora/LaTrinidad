@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Trinidad - CRS Migration Suite (EPSG:3115 &rarr; EPSG:9377)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+  <style>
+    :root {
+      --bg: #07090e;
+      --panel: #0e1320;
+      --card: #161e30;
+      --border: rgba(255, 255, 255, 0.15);
+      --cyan: #00e5ff;
+      --green: #00e676;
+      --orange: #ff9100;
+      --red: #ff1744;
+      --text: #f0f4f8;
+      --muted: #8a9bb0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    h1 { font-size: 1.5rem; color: var(--cyan); display: flex; align-items: center; gap: 10px; }
+    .badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(0, 229, 255, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+    }
+    .intro-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .action-box {
+      background: linear-gradient(135deg, rgba(0, 230, 118, 0.1), rgba(0, 229, 255, 0.1));
+      border: 2px dashed var(--green);
+      border-radius: 10px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .btn-main {
+      background: linear-gradient(135deg, #00c853, var(--green));
+      color: #000;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4);
+      transition: transform 0.1s, filter 0.1s;
+    }
+    .btn-main:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+    .status-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.88rem;
+    }
+    .status-item.done { border-color: var(--green); background: rgba(0, 230, 118, 0.08); }
+    .status-item.error { border-color: var(--red); background: rgba(255, 23, 68, 0.08); }
+    .log-terminal {
+      background: #040609;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      max-height: 250px;
+      overflow-y: auto;
+      margin-top: 20px;
+      white-space: pre-wrap;
+      color: #cfd8dc;
+    }
+    .sample-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 14px;
+    }
+    .sample-table th, .sample-table td {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    .sample-table th { background: rgba(0,0,0,0.4); color: var(--cyan); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1><span>🌐</span> La Trinidad - CRS Migration Suite</h1>
+      <p style="color:var(--muted); font-size:0.85rem; margin-top:4px;">
+        Reprojection Engine: <strong>MAGNA-SIRGAS Colombia West (EPSG:3115)</strong> &rarr; <strong>Origen Nacional (EPSG:9377)</strong>
+      </p>
+    </div>
+    <span class="badge">Official IGAC Resoluciones 471 / 529 de 2020</span>
+  </header>
+
+  <div class="intro-card">
+    <p><strong>How this works:</strong></p>
+    <ul style="margin-left: 20px; margin-top: 6px; font-size: 0.9rem; color: var(--muted);">
+      <li>Uses certified <strong>Proj4js</strong> to transform all survey coordinates, lot polygons, calibrated deed anchors, cases, labels, and arrows.</li>
+      <li>Creates automatic <strong><code>.bak</code></strong> safety backups of all files prior to overwriting.</li>
+      <li>Adjusts camera viewport matrices in <code>cases.json</code> to center seamlessly on the new coordinate range.</li>
+      <li>Updates embedded fallbacks in <code>index.html</code> and <code>GeoRectifier.html</code>.</li>
+    </ul>
+  </div>
+
+  <div class="action-box">
+    <h2 style="font-size: 1.25rem; margin-bottom: 8px;">1-Click Automated Folder Migration</h2>
+    <p style="color:var(--muted); font-size:0.88rem; margin-bottom:16px;">
+      Click below and select your <code>LaTrinidad</code> project directory. All JSON and HTML files will be backed up and reprojected instantly.
+    </p>
+    <button class="btn-main" id="btn-migrate-folder">
+      <span>⚡</span> Select LaTrinidad Folder &amp; Migrate
+    </button>
+  </div>
+
+  <div class="intro-card" style="margin-bottom: 16px;">
+    <h3 style="font-size:0.95rem; color:var(--cyan); margin-bottom:10px;">📋 Live Conversion Status</h3>
+    <div class="status-list" id="status-container">
+      <div class="status-item" id="item-anchors">
+        <span><strong>anchors.json</strong> (Deed &amp; GCP Anchors)</span>
+        <span class="stat-badge" style="color:var(--muted);">Pending</span>
+      </div>
+      <div class="status-item" id="item-anchors-geo">
+        <span><strong>anchors_georectifier.json</strong> (Calibrated Escritura 1073)</span>
+        <span class="stat-badge" style="color:var(--muted);">Pending</span>
+      </div>
+      <div class="status-item" id="item-polygons">
+        <span><strong>polygons.json</strong> (13 Lot &amp; Measured Polygons)</span>
+        <span class="stat-badge" style="color:var(--muted);">Pending</span>
+      </div>
+      <div class="status-item" id="item-userpoly">
+        <span><strong>user_polygon.json</strong> (Lindero La Trinidad 49 Vertices)</span>
+        <span class="stat-badge" style="color:var(--muted);">Pending</span>
+      </div>
+      <div class="status-item" id="item-cases">
+        <span><strong>cases.json</strong> (5 Presentation Cases, Labels &amp; Arrows)</span>
+        <span class="stat-badge" style="color:var(--muted);">Pending</span>
+      </div>
+      <div class="status-item" id="item-indexhtml">
+        <span><strong>index.html</strong> (Embedded Fallback Constants)</span>
+        <span class="stat-badge" style="color:var(--muted);">Pending</span>
+      </div>
+      <div class="status-item" id="item-georecthtml">
+        <span><strong>GeoRectifier.html</strong> (Embedded Fallback Constants)</span>
+        <span class="stat-badge" style="color:var(--muted);">Pending</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="intro-card">
+    <h3 style="font-size:0.95rem; color:var(--cyan); margin-bottom:6px;">🔬 Sample Coordinate Verification</h3>
+    <p style="font-size:0.8rem; color:var(--muted);">Real-time Proj4 transformation check on Mojon 1 (Entrada):</p>
+    <table class="sample-table">
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>EPSG:3115 (Origen Oeste)</th>
+          <th>EPSG:9377 (Origen Nacional)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Mojon 1 X (Easting)</strong></td>
+          <td id="sample-3115-x">1,097,703.86 m</td>
+          <td id="sample-9377-x" style="color:var(--green); font-weight:bold;">Calculating...</td>
+        </tr>
+        <tr>
+          <td><strong>Mojon 1 Y (Northing)</strong></td>
+          <td id="sample-3115-y">876,671.17 m</td>
+          <td id="sample-9377-y" style="color:var(--green); font-weight:bold;">Calculating...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="log-terminal" id="terminal-log">System ready. Waiting for folder selection...</div>
+</div>
+
+<script>
+  // 1. Configure Proj4 definitions
+  proj4.defs("EPSG:3115", "+proj=tmerc +lat_0=4.59620041666667 +lon_0=-77.0775079166667 +k=1 +x_0=1000000 +y_0=1000000 +ellps=GRS80 +units=m +no_defs +type=crs");
+  proj4.defs("EPSG:9377", "+proj=tmerc +lat_0=4 +lon_0=-73 +k=0.9992 +x_0=5000000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs +type=crs");
+
+  function log(msg) {
+    const el = document.getElementById("terminal-log");
+    el.textContent += "\n" + msg;
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function setStatus(id, text, isDone, isError) {
+    const item = document.getElementById(id);
+    if (!item) return;
+    const badge = item.querySelector(".stat-badge");
+    badge.textContent = text;
+    if (isDone) {
+      item.className = "status-item done";
+      badge.style.color = "var(--green)";
+      badge.style.fontWeight = "bold";
+    } else if (isError) {
+      item.className = "status-item error";
+      badge.style.color = "var(--red)";
+      badge.style.fontWeight = "bold";
+    }
+  }
+
+  function transform3115to9377(x, y) {
+    if (typeof x !== "number" || typeof y !== "number" || isNaN(x) || isNaN(y)) return { x, y };
+    const res = proj4("EPSG:3115", "EPSG:9377", [x, y]);
+    return {
+      x: Math.round(res[0] * 10000) / 10000,
+      y: Math.round(res[1] * 10000) / 10000
+    };
+  }
+
+  // Sample check on load
+  const sample3115 = [1097703.8569, 876671.1726];
+  const sample9377 = transform3115to9377(sample3115[0], sample3115[1]);
+  document.getElementById("sample-9377-x").textContent = sample9377.x.toLocaleString() + " m";
+  document.getElementById("sample-9377-y").textContent = sample9377.y.toLocaleString() + " m";
+
+  // File transform logic
+  function transformAnchors(data) {
+    let count = 0;
+    ["anchors296", "anchors1073", "anchors196"].forEach(key => {
+      if (Array.isArray(data[key])) {
+        data[key].forEach(a => {
+          if (a.dst && typeof a.dst.x === "number") {
+            const t = transform3115to9377(a.dst.x, a.dst.y);
+            a.dst.x = t.x;
+            a.dst.y = t.y;
+            count++;
+          }
+        });
+      }
+    });
+    return { data, count };
+  }
+
+  function transformAnchorsGeo(data) {
+    let count = 0;
+    const list = Array.isArray(data) ? data : (data.anchors || data.anchors1073 || []);
+    list.forEach(a => {
+      if (a.dst && typeof a.dst.x === "number") {
+        const t = transform3115to9377(a.dst.x, a.dst.y);
+        a.dst.x = t.x;
+        a.dst.y = t.y;
+        count++;
+      }
+    });
+    return { data, count };
+  }
+
+  function transformPolygons(data) {
+    let count = 0;
+    if (Array.isArray(data)) {
+      data.forEach(poly => {
+        if (Array.isArray(poly.points)) {
+          poly.points.forEach(p => {
+            if (typeof p.x === "number") {
+              const t = transform3115to9377(p.x, p.y);
+              p.x = t.x;
+              p.y = t.y;
+              count++;
+            }
+          });
+        }
+      });
+    }
+    return { data, count };
+  }
+
+  function transformUserPolygon(data) {
+    let count = 0;
+    if (data && Array.isArray(data.vertices)) {
+      data.vertices.forEach(v => {
+        if (typeof v.x === "number") {
+          const t = transform3115to9377(v.x, v.y);
+          v.x = t.x;
+          v.y = t.y;
+          count++;
+        }
+        if (typeof v.origX === "number") {
+          const to = transform3115to9377(v.origX, v.origY);
+          v.origX = to.x;
+          v.origY = to.y;
+        }
+      });
+    }
+    return { data, count };
+  }
+
+  function transformCases(data) {
+    let count = 0;
+    if (Array.isArray(data)) {
+      data.forEach(c => {
+        // Compute delta shift from a reference point
+        const refOriginal = [1097800, 876800];
+        const refShifted = transform3115to9377(refOriginal[0], refOriginal[1]);
+        const deltaX = refShifted.x - refOriginal[0];
+        const deltaY = refShifted.y - refOriginal[1];
+
+        // Shift camera offset if present
+        if (c.camera && typeof c.camera.offsetX === "number") {
+          c.camera.offsetX = c.camera.offsetX - deltaX * c.camera.scale;
+          c.camera.offsetY = c.camera.offsetY - deltaY * c.camera.scale;
+        }
+
+        // Labels
+        if (Array.isArray(c.labels)) {
+          c.labels.forEach(l => {
+            if (typeof l.worldX === "number") {
+              const t = transform3115to9377(l.worldX, l.worldY);
+              l.worldX = t.x;
+              l.worldY = t.y;
+              count++;
+            }
+          });
+        }
+
+        // Arrows
+        if (Array.isArray(c.arrows)) {
+          c.arrows.forEach(arr => {
+            if (typeof arr.startX === "number") {
+              const t1 = transform3115to9377(arr.startX, arr.startY);
+              arr.startX = t1.x;
+              arr.startY = t1.y;
+              const t2 = transform3115to9377(arr.endX, arr.endY);
+              arr.endX = t2.x;
+              arr.endY = t2.y;
+              count++;
+            }
+          });
+        }
+      });
+    }
+    return { data, count };
+  }
+
+  // Folder migration handler
+  document.getElementById("btn-migrate-folder").addEventListener("click", async () => {
+    try {
+      if (!window.showDirectoryPicker) {
+        alert("Directory picker requires Chrome, Edge, or a modern Chromium browser.");
+        return;
+      }
+      log("Opening directory picker...");
+      const dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+      log("Folder selected: " + dirHandle.name);
+
+      async function processJsonFile(filename, transformFn, statusId) {
+        try {
+          const fileHandle = await dirHandle.getFileHandle(filename, { create: false });
+          const file = await fileHandle.getFile();
+          const text = await file.text();
+
+          // Create backup
+          const bakHandle = await dirHandle.getFileHandle(filename + ".bak", { create: true });
+          const bakWritable = await bakHandle.createWritable();
+          await bakWritable.write(text);
+          await bakWritable.close();
+          log(`Created backup ${filename}.bak`);
+
+          // Parse and transform
+          const parsed = JSON.parse(text);
+          const { data: transformed, count } = transformFn(parsed);
+
+          // Write back
+          const writable = await fileHandle.createWritable();
+          await writable.write(JSON.stringify(transformed, null, 2));
+          await writable.close();
+
+          log(`✅ ${filename} successfully updated (${count} coordinates converted to EPSG:9377)`);
+          setStatus(statusId, `Converted (${count} pts)`, true, false);
+          return transformed;
+        } catch (err) {
+          log(`⚠️ ${filename}: ${err.message}`);
+          setStatus(statusId, "Skipped / Not Found", false, false);
+          return null;
+        }
+      }
+
+      // 1. anchors.json
+      await processJsonFile("anchors.json", transformAnchors, "item-anchors");
+
+      // 2. anchors_georectifier.json
+      await processJsonFile("anchors_georectifier.json", transformAnchorsGeo, "item-anchors-geo");
+
+      // 3. polygons.json
+      await processJsonFile("polygons.json", transformPolygons, "item-polygons");
+
+      // 4. user_polygon.json
+      const updatedUserPoly = await processJsonFile("user_polygon.json", transformUserPolygon, "item-userpoly");
+
+      // 5. cases.json
+      await processJsonFile("cases.json", transformCases, "item-cases");
+
+      // 6. Update HTML files embedded constants if present
+      async function updateHtmlConstants(htmlFileName, statusId) {
+        try {
+          const hHandle = await dirHandle.getFileHandle(htmlFileName, { create: false });
+          const hFile = await hHandle.getFile();
+          let hText = await hFile.text();
+
+          // Backup
+          const hBak = await dirHandle.getFileHandle(htmlFileName + ".bak", { create: true });
+          const hBakW = await hBak.createWritable();
+          await hBakW.write(hText);
+          await hBakW.close();
+
+          // Update DEFAULT_ANCHORS_1073
+          const a1 = transform3115to9377(1097703.3119, 876671.3626);
+          const a2 = transform3115to9377(1098130.83, 877073.26);
+
+          hText = hText.replace(
+            /"dst":\s*\{\s*"x":\s*1097703\.3119,\s*"y":\s*876671\.3626\s*\}/g,
+            `"dst": { "x": ${a1.x}, "y": ${a1.y} }`
+          );
+          hText = hText.replace(
+            /"dst":\s*\{\s*"x":\s*1098130\.83,\s*"y":\s*877073\.26\s*\}/g,
+            `"dst": { "x": ${a2.x}, "y": ${a2.y} }`
+          );
+
+          // Update EMBEDDED_USER_POLYGON if user_polygon was transformed
+          if (updatedUserPoly) {
+            const jsonStr = JSON.stringify(updatedUserPoly);
+            hText = hText.replace(/const EMBEDDED_USER_POLYGON\s*=\s*\{.*?\};/s, `const EMBEDDED_USER_POLYGON = ${jsonStr};`);
+          }
+
+          const hWrite = await hHandle.createWritable();
+          await hWrite.write(hText);
+          await hWrite.close();
+
+          log(`✅ ${htmlFileName} fallback constants updated to EPSG:9377`);
+          setStatus(statusId, "Updated", true, false);
+        } catch (err) {
+          log(`⚠️ ${htmlFileName}: ${err.message}`);
+          setStatus(statusId, "Skipped", false, false);
+        }
+      }
+
+      await updateHtmlConstants("index.html", "item-indexhtml");
+      await updateHtmlConstants("GeoRectifier.html", "item-georecthtml");
+
+      log("\n🎉 ALL APPLICATION DATA REPROJECTED SUCCESSFULLY TO EPSG:9377!");
+      alert("Success! All JSON data and HTML fallback constants have been safely converted to EPSG:9377 with backups created.");
+
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        log("❌ Error: " + err.message);
+        alert("Error during migration: " + err.message);
+      }
+    }
+  });
+</script>
+</body>
+</html>

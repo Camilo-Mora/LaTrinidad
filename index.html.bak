@@ -1,6 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!--
+================================================================================
+                    MASTER SECTION INDEX / TABLE OF CONTENTS
+================================================================================
+Use this index to quickly jump to sections using text search (Ctrl+F or grep).
+
+--- CSS STYLES ---
+  * [SECTION: CSS_STYLES]
+  * [SECTION: CSS_VECTORIZER_MODAL]
+
+--- HTML MARKUP ---
+  * [SECTION: HTML_HEADER_TOOLBAR]
+  * [SECTION: HTML_MAP_VIEWPORTS]
+  * [SECTION: HTML_SIDEBAR_PANELS]
+  * [SECTION: HTML_MODALS_AND_FOOTER]
+
+--- JAVASCRIPT LOGIC ---
+  * [SECTION: JS_DXF_PARSER]
+  * [SECTION: JS_TRANSFORM_MATH]
+  * [SECTION: JS_STATE_INIT]
+  * [SECTION: JS_ASSET_LOADERS_AND_DOM]
+  * [SECTION: JS_CANVAS_RENDERERS]
+  * [SECTION: JS_RECONSTRUCTED_POLYGON]
+  * [SECTION: JS_POLYGON_SUMMARY_TABLE]
+  * [SECTION: JS_EVENT_LISTENERS]
+  * [SECTION: JS_INTERACTION_HANDLERS]
+  * [SECTION: JS_ANALYTICS_AND_TABLES]
+  * [SECTION: JS_PDF_AND_DXF_EXPORT]
+  * [SECTION: JS_VECTORIZER_LOGIC]
+  * [SECTION: JS_CASE_BUILDER_SYSTEM]
+================================================================================
+-->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Trinidad</title>
@@ -9,6 +41,7 @@
   <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- [SECTION: CSS_STYLES] -->
   <style>
     /* Core Design System & Styling Tokens */
     :root {
@@ -595,6 +628,7 @@
     /* Panel body collapse: .panel-body-collapsed hides the body of a panel-card */
     .panel-body-collapsed { display: none !important; }
 
+    /* [SECTION: CSS_VECTORIZER_MODAL] */
     /* Modal Dialog for Integrated PolygonCreator Vectorizer */
     .modal-overlay {
       display: none;
@@ -680,15 +714,33 @@
       overflow: auto;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: flex-start;
       padding: 24px;
+    }
+    .vectorizer-viewport::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    .vectorizer-viewport::-webkit-scrollbar-track {
+      background: rgba(10, 14, 22, 0.95);
+      border: 1px solid var(--border-color);
+    }
+    .vectorizer-viewport::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, var(--accent-cyan), #0091ea);
+      border-radius: 6px;
+      border: 2px solid rgba(10, 14, 22, 0.95);
+      box-shadow: 0 0 6px rgba(0, 229, 255, 0.35);
+    }
+    .vectorizer-viewport::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-green, #00e676);
     }
 
     .vectorizer-canvas-wrap {
       position: relative;
-      display: inline-block;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+      display: block;
+      margin: auto;
+      flex-shrink: 0;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
     }
 
     #vec-pdf-canvas { display: block; background: #fff; }
@@ -769,10 +821,20 @@
       color: #ff1744;
     }
     .btn-danger-sm:hover { background: rgba(255,23,68,0.3); }
+    .opacity-slider {
+      flex: 1; -webkit-appearance: none; height: 4px;
+      border-radius: 2px; background: rgba(255,255,255,0.12); outline: none;
+    }
+    .opacity-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 12px; height: 12px;
+      border-radius: 50%; background: var(--accent-cyan); cursor: pointer;
+    }
+    .opacity-val { font-size: 0.68rem; color: var(--accent-cyan); font-family: monospace; min-width: 28px; text-align: right; }
   </style>
 </head>
 <body>
   <div class="app-container">
+    <!-- [SECTION: HTML_HEADER_TOOLBAR] -->
     <!-- Header -->
     <header class="app-header">
       <div class="logo-group">
@@ -827,6 +889,7 @@
     <!-- Floating strip to restore header (only visible when header is hidden) -->
     <button id="btn-show-header" class="header-restore-strip" title="Restore header">▼</button>
 
+    <!-- [SECTION: HTML_MAP_VIEWPORTS] -->
     <!-- Workspace -->
     <main class="app-workspace">
       <!-- Split Viewports -->
@@ -837,7 +900,7 @@
             <span class="view-title title-296">📜 Escritura 296</span>
             <div class="view-controls">
               <button class="btn btn-accent btn-sm" id="btn-edit-296" title="Edit or Vectorize PDF for Escritura 296">✏️</button>
-              <span id="status-296" class="view-badge">Preloaded DXF</span>
+              <span id="status-296" class="view-badge" style="background:rgba(213,0,249,0.15);color:var(--accent-purple);border-color:rgba(213,0,249,0.3);">Plano PDF</span>
             </div>
           </div>
           <div class="canvas-container" id="container-296">
@@ -923,18 +986,70 @@
           <div class="canvas-container" id="container-true">
             <canvas id="canvas-true"></canvas>
           </div>
-          <div class="viewport-hint" id="hint-true">
-            <button class="vp-tool-btn active" data-map="true" data-mode="pan" title="Pan Mode [P]">🖐️</button>
-            <div class="vp-tool-sep"></div>
-            <button class="vp-tool-btn" data-map="true" data-mode="anchor" title="Anchor Mode [A]">🎯</button>
-            <div class="vp-tool-sep"></div>
-            <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View">⛶</button>
-            <div class="vp-tool-sep"></div>
-            <button class="vp-tool-btn" data-map="true" data-mode="measure" title="Measure Distances [M]">📏</button>
+          <!-- Toolbar under True Field Canvas: Controles Lindero La Trinidad & Escritura 1073 (Single Line) -->
+          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:3px 10px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(0,229,255,0.25);font-size:0.71rem;color:var(--text-main);flex-wrap:nowrap;white-space:nowrap;overflow-x:auto;z-index:10;">
+            <!-- 1. Map Action Tools (Left Side: Center, Measure, Edit Polygons) -->
+            <div style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
+              <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View (Centrar mapa en límites)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">⛶</button>
+              <button class="vp-tool-btn" data-map="true" data-mode="measure" title="Measure Distances [M] (Medir distancias en el mapa)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">📏</button>
+              <button class="vp-tool-btn" id="btn-edit-polygons-toggle" title="Editar Polígonos (Modificar vértices de linderos - Próxima función)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(0,229,255,0.25);cursor:pointer;color:var(--accent-cyan);line-height:1.2;">✏️</button>
+            </div>
+
+            <!-- Divider -->
+            <div style="height:16px;width:1px;background:rgba(255,255,255,0.15);margin:0 1px;flex-shrink:0;"></div>
+
+            <!-- 2. Lindero La Trinidad Control -->
+            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,229,255,0.08);padding:2px 7px;border-radius:4px;border:1px solid rgba(0,229,255,0.3);flex-shrink:0;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Lindero La Trinidad (user_polygon.json)">
+                <input type="checkbox" id="chk-show-reconstructed-poly" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
+                <span style="color:var(--accent-cyan);font-weight:700;">🔷 Lindero La Trinidad</span>
+              </label>
+              <input type="range" class="opacity-slider" id="reconstructed-poly-opacity" min="0" max="100" value="100" style="width:42px;">
+              <span class="opacity-val" id="reconstructed-poly-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">100%</span>
+            </div>
+
+            <!-- Divider -->
+            <div style="height:16px;width:1px;background:rgba(255,255,255,0.15);margin:0 1px;flex-shrink:0;"></div>
+
+            <!-- 3. Escritura 1073 Title Group -->
+            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+              <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;">
+                📜 Escritura 1073
+              </span>
+            </div>
+
+            <!-- Plano PDF overlay control (50% default) -->
+            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
+                <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
+                <span>Plano PDF</span>
+              </label>
+              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50" style="width:42px;">
+              <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">50%</span>
+            </div>
+
+            <!-- Polígono DXF boundary control & styling -->
+            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
+                <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
+                <span>Polígono DXF</span>
+              </label>
+              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:42px;">
+              <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">90%</span>
+            </div>
+
+            <!-- 4. Mojones Toggle -->
+            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar los dos mojones de referencia (GCP Anchors) y sus flechas indicadoras">
+                <input type="checkbox" id="chk-show-mojones-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
+                <span>👁️ Mojones</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- [SECTION: HTML_SIDEBAR_PANELS] -->
       <!-- Sidebar -->
       <aside class="sidebar collapsed">
         <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px;">
@@ -970,13 +1085,13 @@
                   <td colspan="6" style="padding-left:6px;">📐 DXF Layers</td>
                 </tr>
                 <tr>
-                  <td><span class="poly-color-dot" style="background:var(--accent-purple);box-shadow:0 0 4px var(--accent-purple);"></span></td>
-                  <td class="col-name" style="color:var(--accent-purple);">Escritura 296</td>
+                  <td><span class="poly-color-dot" style="background:var(--accent-cyan);box-shadow:0 0 4px var(--accent-cyan);"></span></td>
+                  <td class="col-name" style="color:var(--accent-cyan);">Lindero La Trinidad</td>
                   <td style="white-space:nowrap;padding:1px 2px;">
-                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="-1" title="Send Backward (draw behind)">▼</button>
-                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="poly_reconstructed" data-dir="-1" title="Send Backward (draw behind)">▼</button>
+                    <button type="button" class="btn-order-btn btn-order-layer" data-layer="poly_reconstructed" data-dir="1" title="Bring Forward (draw on top)">▲</button>
                   </td>
-                  <td><input type="checkbox" id="sum-show-dxf-296" checked title="Show/hide Escritura 296 on field map" style="accent-color:var(--accent-purple);"></td>
+                  <td><input type="checkbox" id="sum-show-reconstructed-poly" checked title="Show/hide Lindero La Trinidad on field map" style="accent-color:var(--accent-cyan);"></td>
                   <td class="na-cell">—</td>
                   <td class="na-cell">—</td>
                 </tr>
@@ -1027,14 +1142,6 @@
                 <!-- JS renders dynamic measurement polygon rows AND the section divider here -->
                 <tr class="section-divider">
                   <td colspan="6" style="padding-left:6px;">🎯 Anchor Points</td>
-                </tr>
-                <tr>
-                  <td><span class="poly-color-dot" style="background:var(--accent-purple);box-shadow:0 0 4px var(--accent-purple);"></span></td>
-                  <td class="col-name" style="color:var(--accent-purple);">Anchors 296</td>
-                  <td class="na-cell">—</td>
-                  <td><input type="checkbox" id="sum-show-anchors-296" title="Show/hide anchor points for Escritura 296" style="accent-color:var(--accent-purple);"></td>
-                  <td class="na-cell">—</td>
-                  <td class="na-cell">—</td>
                 </tr>
                 <tr>
                   <td><span class="poly-color-dot" style="background:var(--accent-red);box-shadow:0 0 4px var(--accent-red);"></span></td>
@@ -1213,13 +1320,13 @@
             <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:6px;">
               <div style="font-size:0.7rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;">🗺️ Case DXF Layers &amp; Opacity</div>
               <div style="display:flex;flex-direction:column;gap:5px;">
-                <!-- Escritura 296 -->
+                <!-- Lindero La Trinidad -->
                 <div style="display:flex;align-items:center;gap:6px;">
-                  <input type="checkbox" id="case-dxf-vis-296" checked title="Show/hide Escritura 296 in this case" style="cursor:pointer;accent-color:#d500f9;">
-                  <span style="width:8px;height:8px;border-radius:50%;background:#d500f9;flex-shrink:0;box-shadow:0 0 4px #d500f9;display:inline-block;"></span>
-                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Escritura 296</span>
-                  <input type="range" id="dxf-opacity-296" min="0" max="100" value="100" style="flex:2;accent-color:#d500f9;">
-                  <span id="dxf-opacity-296-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
+                  <input type="checkbox" id="case-dxf-vis-reconstructed" checked title="Show/hide Lindero La Trinidad in this case" style="cursor:pointer;accent-color:var(--accent-cyan);">
+                  <span style="width:8px;height:8px;border-radius:50%;background:var(--accent-cyan);flex-shrink:0;box-shadow:0 0 4px var(--accent-cyan);display:inline-block;"></span>
+                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Lindero La Trinidad</span>
+                  <input type="range" id="dxf-opacity-reconstructed" min="0" max="100" value="100" style="flex:2;accent-color:var(--accent-cyan);">
+                  <span id="dxf-opacity-reconstructed-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
                 </div>
                 <!-- Escritura 1073 -->
                 <div style="display:flex;align-items:center;gap:6px;">
@@ -1274,9 +1381,8 @@
           </div>
           <div id="body-panel-rmse" class="panel-body-collapsed">
           <div style="display:flex; gap:8px; justify-content:space-between;">
-            <span id="rmse-296-display" class="badge-rmse" style="color:var(--accent-purple); border-color:var(--accent-purple);">296 RMSE: 0.00 m</span>
-            <span id="rmse-1073-display" class="badge-rmse" style="color:var(--accent-red); border-color:var(--accent-red);">1073 RMSE: 0.00 m</span>
-            <span id="rmse-196-display" class="badge-rmse" style="color:var(--accent-orange); border-color:var(--accent-orange);">196 RMSE: 0.00 m</span>
+            <span id="rmse-1073-display" class="badge-rmse" style="color:var(--accent-red); border-color:var(--accent-red); flex:1; text-align:center;">1073 RMSE: 0.00 m</span>
+            <span id="rmse-196-display" class="badge-rmse" style="color:var(--accent-orange); border-color:var(--accent-orange); flex:1; text-align:center;">196 RMSE: 0.00 m</span>
           </div>
           </div>
         </section>
@@ -1289,9 +1395,9 @@
           </div>
           <div id="body-panel-dxf-layers" class="panel-body-collapsed">
           <div style="display:flex; flex-direction:column; gap:6px; margin-top:2px;">
-            <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-purple); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Display or hide Escritura 296 on Field map">
-              <input type="checkbox" id="chk-show-field-296" checked style="cursor:pointer; accent-color:var(--accent-purple);">
-              <span class="layer-area-stats" id="area-stats-296">Area 296: --</span>
+            <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-cyan); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Mostrar u ocultar Lindero La Trinidad en Campo">
+              <input type="checkbox" id="chk-show-field-reconstructed" checked style="cursor:pointer; accent-color:var(--accent-cyan);">
+              <span class="layer-area-stats" id="area-stats-reconstructed" style="color:var(--accent-cyan);">Lindero La Trinidad: --</span>
             </label>
             <label class="window-checkbox" style="font-size:0.78rem; color:var(--accent-red); margin:0; cursor:pointer; display:flex; align-items:center; gap:6px;" title="Display or hide Escritura 1073 on Field map">
               <input type="checkbox" id="chk-show-field-1073" checked style="cursor:pointer; accent-color:var(--accent-red);">
@@ -1368,25 +1474,6 @@
             <div>
               <div class="panel-header">
                 <div style="display:flex; align-items:center; gap:6px;">
-                  <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-purple); margin:0; cursor:pointer;" title="Display or hide anchor points for Escritura 296">
-                    <input type="checkbox" id="chk-show-anchors-296">
-                    <span>Show</span>
-                  </label>
-                  <h4 style="font-size:0.78rem;color:var(--accent-purple);margin:0;">Escritura 296 Anchors</h4>
-                </div>
-                <button id="btn-clear-anchors-296" class="btn-sm btn-secondary">Clear 296</button>
-              </div>
-              <div class="table-wrapper" style="margin-top:4px;">
-                <table class="anchor-table">
-                  <thead><tr><th>#</th><th title="Use point in TPS calculation">Use</th><th>296 (X, Y)</th><th>True (X, Y)</th><th>Err</th><th>✕</th></tr></thead>
-                  <tbody id="table-anchors-296"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <div>
-              <div class="panel-header">
-                <div style="display:flex; align-items:center; gap:6px;">
                   <label class="window-checkbox" style="font-size:0.75rem; color:var(--accent-red); margin:0; cursor:pointer;" title="Display or hide anchor points for Escritura 1073">
                     <input type="checkbox" id="chk-show-anchors-1073">
                     <span>Show</span>
@@ -1430,6 +1517,7 @@
       </aside>
     </main>
 
+    <!-- [SECTION: HTML_MODALS_AND_FOOTER] -->
     <!-- Footer Status Bar -->
     <footer class="app-footer">
       <div style="display:flex; align-items:center; gap:10px; min-width:0; overflow:hidden;">
@@ -1545,11 +1633,13 @@
 
           <section class="panel-card">
             <h3>Precision Zoom Controls</h3>
-            <div style="display:flex; gap:4px;">
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              <button class="preset-btn" id="btn-vec-zoom-fit" title="Fit deed to window">Fit</button>
               <button class="preset-btn" data-veczoom="1.0">100%</button>
               <button class="preset-btn" data-veczoom="2.0">200%</button>
               <button class="preset-btn" data-veczoom="4.0">400%</button>
               <button class="preset-btn" data-veczoom="8.0">800%</button>
+              <button class="preset-btn" id="btn-vec-pan-center" title="Center deed in viewport">⌖ Center</button>
             </div>
             <input type="range" id="vec-zoom-slider" min="0.5" max="8.0" step="0.1" value="1.5" style="margin-top:6px;accent-color:var(--accent-cyan);">
           </section>
@@ -1631,8 +1721,9 @@
             <div id="vec-poly-list" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;"></div>
           </section>
 
-          <div style="font-size:0.7rem; color:var(--text-muted);">
-            💡 <strong>Tips:</strong> Left-click to drop polygon vertices. Click & drag vertices to move them. Right-click vertex to delete.
+          <div style="font-size:0.7rem; color:var(--text-muted); line-height:1.4;">
+            💡 <strong>Tips:</strong> Left-click to drop polygon vertices. Click & drag vertices to move them. Right-click vertex to delete.<br>
+            ✋ <strong>Pan View:</strong> Middle-click drag, Space+drag, or drag background.
           </div>
         </aside>
 
@@ -1657,6 +1748,7 @@ const DEFAULT_DXF_1073 = `0\nSECTION\n2\nENTITIES\n0\nPOLYLINE\n8\nPolygon_1073\
 /* Configure PDF.js Worker */
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+// [SECTION: JS_DXF_PARSER]
 /* 1. DXF PARSER & SERIALIZER */
 class DXFParser {
   static parse(dxfText) {
@@ -1768,6 +1860,7 @@ function getActiveAnchors(anchors) {
   return anchors.filter(a => a.active !== false);
 }
 
+// [SECTION: JS_TRANSFORM_MATH]
 /* 2. TRANSFORMATION MATH ENGINE */
 class TransformMath {
   static tpsKernel(r) { return (r <= 1e-9) ? 0 : r * r * Math.log(r); }
@@ -1822,20 +1915,57 @@ class TransformMath {
   }
 
   static buildSimilarityWarper(anchors) {
-    const A = Array.from({ length: 4 }, () => new Array(4).fill(0));
-    const B = new Array(4).fill(0);
-    anchors.forEach(anc => {
-      const x = anc.src.x, y = anc.src.y, x_ = anc.dst.x, y_ = anc.dst.y;
-      const rows = [[x, -y, 1, 0], [y, x, 0, 1]], targets = [x_, y_];
-      for (let r = 0; r < 2; r++) {
-        for (let i = 0; i < 4; i++) {
-          for (let j = 0; j < 4; j++) A[i][j] += rows[r][i] * rows[r][j];
-          B[i] += rows[r][i] * targets[r];
+    if (!anchors || anchors.length < 2) return (pt) => ({ ...pt });
+
+    function fit(isReflected) {
+      const A = Array.from({ length: 4 }, () => new Array(4).fill(0));
+      const B = new Array(4).fill(0);
+
+      anchors.forEach(anc => {
+        const x = anc.src.x, y = anc.src.y;
+        const x_ = anc.dst.x, y_ = anc.dst.y;
+        // When isReflected is true: x' = a*x + b*y + c, y' = b*x - a*y + d.
+        // Inverting Y compensates for deed space being Y-down while GIS UTM is Y-up,
+        // resulting in a true rigid rotation on screen with NO sideways mirroring.
+        const rows = isReflected
+          ? [[x, y, 1, 0], [-y, x, 0, 1]]
+          : [[x, -y, 1, 0], [y, x, 0, 1]];
+        const targets = [x_, y_];
+
+        for (let r = 0; r < 2; r++) {
+          for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) A[i][j] += rows[r][i] * rows[r][j];
+            B[i] += rows[r][i] * targets[r];
+          }
         }
+      });
+
+      const c = TransformMath.solveLinearSystem(A, B);
+      if (isReflected) {
+        return (pt) => ({
+          x: c[0] * pt.x + c[1] * pt.y + c[2],
+          y: c[1] * pt.x - c[0] * pt.y + c[3]
+        });
+      } else {
+        return (pt) => ({
+          x: c[0] * pt.x - c[1] * pt.y + c[2],
+          y: c[1] * pt.x + c[0] * pt.y + c[3]
+        });
       }
-    });
-    const c = TransformMath.solveLinearSystem(A, B);
-    return (pt) => ({ x: c[0] * pt.x - c[1] * pt.y + c[2], y: c[1] * pt.x + c[0] * pt.y + c[3] });
+    }
+
+    // For 2 anchors, always use reflected model to prevent left-right mirroring on screen.
+    // For >= 3 anchors, pick the one with lower RMSE.
+    if (anchors.length === 2) {
+      return fit(true);
+    }
+
+    const warperReflected = fit(true);
+    const warperDirect = fit(false);
+    const rmseReflected = TransformMath.computeRMSE(warperReflected, anchors);
+    const rmseDirect = TransformMath.computeRMSE(warperDirect, anchors);
+
+    return rmseReflected <= rmseDirect ? warperReflected : warperDirect;
   }
 
   static createWarper(algorithm, anchors) {
@@ -1858,6 +1988,30 @@ class TransformMath {
 }
 
 /* 3. APPLICATION STATE */
+const DEFAULT_ANCHORS_1073 = [
+  {
+    "id": 1,
+    "name": "Entrada",
+    "active": true,
+    "color": "#ff1744",
+    "src": { "x": 252.71, "y": 606.42 },
+    "dst": { "x": 1097703.3119, "y": 876671.3626 }
+  },
+  {
+    "id": 2,
+    "name": "Tres cercos",
+    "active": true,
+    "color": "#00e676",
+    "src": { "x": 283, "y": 86.45 },
+    "dst": { "x": 1098130.83, "y": 877073.26 }
+  }
+];
+
+const EMBEDDED_USER_POLYGON = {"vertices":[{"x":1098077.13,"y":877078.7,"deedPt":null,"origX":1098077.13,"origY":877078.7},{"x":1098130.83,"y":877073.26,"deedPt":null,"origX":1098130.83,"origY":877073.26},{"x":1098148.88,"y":877134.63,"deedPt":null,"origX":1098146.690943762,"origY":877127.2472678409},{"x":1098167.46,"y":877173.35,"deedPt":null,"origX":1098167.46,"origY":877173.35},{"x":1098170.92,"y":877221.25,"deedPt":null,"origX":1098170.4405,"origY":877207.7676},{"x":1098074.184,"y":877259.4472,"deedPt":null,"origX":1098078.388724669,"origY":877256.1666770407},{"x":1098031.743,"y":877218.4624,"deedPt":null,"origX":1098031.742957494,"origY":877218.462360458},{"x":1097976.2051,"y":877280.1434,"deedPt":null,"origX":1097976.205117166,"origY":877280.1433809726},{"x":1097913.2895,"y":877249.4574,"deedPt":null,"origX":1097913.289533926,"origY":877249.4574006975},{"x":1097805.6282,"y":877218.586,"deedPt":null,"origX":1097805.62822398,"origY":877218.5860168457},{"x":1097781.008,"y":877214.2448,"deedPt":null,"origX":1097781.008030155,"origY":877214.2448124042},{"x":1097756.1441,"y":877206.6431,"deedPt":null,"origX":1097756.1441065,"origY":877206.6431480814},{"x":1097745.0009,"y":877199.9477,"deedPt":null,"origX":1097745.000931591,"origY":877199.9476531076},{"x":1097713.7357,"y":877149.9128,"deedPt":null,"origX":1097720.673,"origY":877155.0750000002},{"x":1097728.9132,"y":877078.508,"deedPt":null,"origX":1097723.99,"origY":877136.607},{"x":1097729.3321,"y":877054.5117,"deedPt":null,"origX":1097727.9805,"origY":877100.5587000002},{"x":1097721.9087,"y":877022.3575,"deedPt":null,"origX":1097723.6645,"origY":877070.1596},{"x":1097725.7453,"y":876967.4915,"deedPt":null,"origX":1097718.8953,"origY":877027.3667999998},{"x":1097757.0707,"y":876906.012,"deedPt":null,"origX":1097720.7162,"origY":877003.3017000002},{"x":1097809.4181,"y":876897.721,"deedPt":null,"origX":1097757.07067193,"origY":876906.0120108258},{"x":1097781.8039,"y":876845.0776,"deedPt":null,"origX":1097781.8039,"origY":876845.0776},{"x":1097777.702901042,"y":876833.836605712,"deedPt":null,"origX":1097782.81296945,"origY":876836.3289526041},{"x":1097779.943901042,"y":876829.7576057117,"deedPt":null,"origX":1097785.05396945,"origY":876832.2499526041},{"x":1097780.985901041,"y":876823.0136057117,"deedPt":null,"origX":1097786.09596945,"origY":876825.505952604},{"x":1097757.491901042,"y":876812.4716057116,"deedPt":null,"origX":1097762.60196945,"origY":876814.9639526042},{"x":1097751.367901041,"y":876808.6956057115,"deedPt":null,"origX":1097756.47796945,"origY":876811.187952604},{"x":1097757.868901042,"y":876795.4106057116,"deedPt":null,"origX":1097762.97896945,"origY":876797.9029526043},{"x":1097745.936901042,"y":876786.7086057115,"deedPt":null,"origX":1097751.04696945,"origY":876789.2009526041},{"x":1097729.259901042,"y":876785.4396057115,"deedPt":null,"origX":1097734.36996945,"origY":876787.9319526041},{"x":1097716.630901041,"y":876770.1846057116,"deedPt":null,"origX":1097721.74096945,"origY":876772.676952604},{"x":1097695.002901041,"y":876757.4586057117,"deedPt":null,"origX":1097700.11296945,"origY":876759.9509526041},{"x":1097702.344901042,"y":876728.2346057115,"deedPt":null,"origX":1097707.45496945,"origY":876730.7269526041},{"x":1097704.617901041,"y":876724.0206057115,"deedPt":null,"origX":1097709.72796945,"origY":876726.5129526041},{"x":1097702.752901041,"y":876715.9686057116,"deedPt":null,"origX":1097702.752901041,"origY":876715.9686057116},{"x":1097700.938901042,"y":876706.3416057117,"deedPt":null,"origX":1097700.938901042,"origY":876706.3416057117},{"x":1097692.419901042,"y":876668.7586057114,"deedPt":null,"origX":1097697.52996945,"origY":876671.2509526042},{"x":1097703.311901042,"y":876671.3626057116,"deedPt":null,"origX":1097703.311901042,"origY":876671.3626057116},{"x":1097705.9032135718,"y":876673.0099530047,"deedPt":{"x":252.71,"y":606.37},"origX":1097705.4444711495,"origY":876672.5061940061},{"x":1097778.9961656847,"y":876689.8148440614,"deedPt":{"x":289.25,"y":548.84},"origX":1097779.77062966,"origY":876691.4194415287},{"x":1097911.7954853969,"y":876815.7233394212,"deedPt":{"x":299.5,"y":389.46},"origX":1097911.1737926581,"origY":876814.0341093781},{"x":1097933.3308830347,"y":876811.2258640318,"deedPt":{"x":316.13,"y":378.09},"origX":1097933.568389534,"origY":876810.5106986036},{"x":1097945.6055604345,"y":876817.9587839124,"deedPt":{"x":318.5,"y":365.84},"origX":1097944.9638212651,"origY":876818.7137815506},{"x":1097960.5998844518,"y":876817.5459913221,"deedPt":{"x":329.13,"y":355.96},"origX":1097961.2946922614,"origY":876818.6008986506},{"x":1097997.5325116962,"y":876844.6314056937,"deedPt":{"x":336.5,"y":318.21},"origX":1097996.4657125783,"origY":876843.828438858},{"x":1098002.6121501727,"y":876863.9755814578,"deedPt":{"x":328.38,"y":302.59},"origX":1098001.87122396,"origY":876862.8875509612},{"x":1098067.2204964291,"y":876874.7462571915,"deedPt":{"x":362.25,"y":254.84},"origX":1098066.462599268,"origY":876875.8520813663},{"x":1098047.39391295,"y":876972.7606023586,"deedPt":{"x":290.75,"y":204.96},"origX":1098046.404262186,"origY":876971.8851333905},{"x":1098018.8608105322,"y":876982.0262514618,"deedPt":{"x":267.25,"y":216.71},"origX":1098018.0901392123,"origY":876980.3995782565},{"x":1098075.0084161474,"y":877057.8068303695,"deedPt":{"x":258.13,"y":130.96},"origX":1098076.8027430193,"origY":877057.6640330416}],"segmentLengths":[54,64,43,48,104,59,83,70,112,25,26,13,59,73,24,33,55,69,53,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,75,183,22,14,15,45.8,20,65.5,100,30,94.3,21],"segmentSections":["E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","E296","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","Quebrada","E1073","E1073","E1073","E1073","E1073","E1073","E1073","E1073","E1073","E1073","E1073","E1073"],"segmentParts":["4-5","3-4","2-3","1-2","27-1","26-27","25-26","24-25","23-24","22-23","21-22","20-21","19-20","18-19","17-18","16-17","15-16","14-15","13-14",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"35-34","34-32","32-31","31-30","30-29","29-28","26-27","27-25","25-23","23-22","22-21","21-20"],"segmentOptimize":[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,true,true,true,true,true,true,true,true,true,true,true],"closed":true,"drawMode":false,"show":true,"sectionStyles":{"1073":{"color":"#ff0000","dash":"solid","width":3.5,"showNodes":false},"e296":{"color":"#80ffff","dash":"solid","width":3.5,"showNodes":false},"quebrada":{"color":"#00ff40","dash":"solid","width":3.5,"showNodes":false},"e1073":{"color":"#0000ff","dash":"solid","width":3.5,"showNodes":false}},"defaultPolyStyle":{"color":"#0066ff","dash":"solid","width":3.5,"showNodes":false}};
+
+
+
+// [SECTION: JS_STATE_INIT]
 const state = {
   snapEnabled: true,
   snapRadius: 15,
@@ -1867,13 +2021,21 @@ const state = {
   entities196: [],
   entitiesTrue: [],
   anchors296: [],
-  anchors1073: [],
+  anchors1073: JSON.parse(JSON.stringify(DEFAULT_ANCHORS_1073)),
   anchors196: [],
   showAnchors296: false,
   showAnchors1073: false,
   showAnchors196: false,
   showWarped296OnField: true,
   showWarped1073OnField: true,
+  showWarpedPdf1073: true,
+  warpedPdf1073Opacity: 0.50, // 50% default transparency as requested
+  showMojones1073: true,      // true by default to show the two anchor labels and arrows
+  deedMeshRes1073: 64,        // 64 finest resolution default
+  showDeedMeshWireframe1073: false,
+  showReconstructedPolygon: true,
+  reconstructedPolyOpacity: 1.0,
+  reconstructedPolygon: null,
   showWarped196OnField: true,
   showFieldDXFOnField: true,
   overlayLayer: {
@@ -2069,7 +2231,8 @@ const coordsBar = document.getElementById("coords-bar");
 const chkMeasureLabels = document.getElementById("chk-measure-labels");
 const measurePolygonList = document.getElementById("measure-polygon-list");
 
-/* INITIALIZATION */
+// [SECTION: JS_ASSET_LOADERS_AND_DOM]
+/* INITIALIZATION & PRELOAD */
 window.addEventListener("DOMContentLoaded", () => {
   localStorage.removeItem("dxf_296");
   localStorage.removeItem("dxf_1073");
@@ -2084,7 +2247,6 @@ window.addEventListener("DOMContentLoaded", () => {
   loadDefaultPdf("Mapa2096_LaTrinidad.pdf", "296");
   loadDefaultPdf("Mapa1073_FerminSuarez.pdf", "1073");
   loadDefaultPdf("Mapa196_ErrorCasaDelSol.pdf", "196");
-  autoLoadDXF296();
   autoLoadDXF1073();
   autoLoadDXF196();
   autoLoadGeoTiff();
@@ -2092,6 +2254,7 @@ window.addEventListener("DOMContentLoaded", () => {
   autoLoadOverlayDXF();
   autoLoadAnchors();
   autoLoadPolygons();
+  autoLoadReconstructedPolygon();
   autoLoadCases();
 
   setupEventListeners();
@@ -2122,6 +2285,11 @@ function renderPdfPage(pdfDoc, pageNum, target) {
         state.pdf296Canvas = offCanvas;
         state.pdf296Width = origViewport.width;
         state.pdf296Height = origViewport.height;
+        if (canvas296.width > 0 && (!state.entities296 || state.entities296.length === 0)) {
+          state.vp296 = fitViewport(canvas296, { minX: 0, minY: 0, maxX: origViewport.width, maxY: origViewport.height, width: origViewport.width, height: origViewport.height });
+        }
+        const st296 = document.getElementById("status-296");
+        if (st296) st296.textContent = "Plano PDF";
       }
       if (target === "1073") {
         state.pdf1073Canvas = offCanvas;
@@ -2190,7 +2358,10 @@ function resizeCanvases() {
   canvasTrue.width  = c4.clientWidth  || 300;
   canvasTrue.height = c4.clientHeight || 500;
 
-  if (!state.vp296.bbox  && state.entities296.length  > 0) state.vp296  = fitViewport(canvas296,  computeBoundingBox(state.entities296));
+  if (!state.vp296.bbox) {
+    if (state.entities296 && state.entities296.length > 0) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
+    else if (state.pdf296Width > 0 && state.pdf296Height > 0) state.vp296 = fitViewport(canvas296, { minX: 0, minY: 0, maxX: state.pdf296Width, maxY: state.pdf296Height, width: state.pdf296Width, height: state.pdf296Height });
+  }
   if (!state.vp1073.bbox && state.entities1073.length > 0) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
   if (!state.vp196.bbox  && state.entities196.length  > 0) state.vp196  = fitViewport(canvas196,  computeBoundingBox(state.entities196));
   if (!state.vpTrue.bbox && state.entitiesTrue.length > 0) state.vpTrue  = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue));
@@ -2230,12 +2401,29 @@ async function autoLoadAnchors() {
       if (data.anchors296  && Array.isArray(data.anchors296))  state.anchors296  = data.anchors296;
       if (data.anchors1073 && Array.isArray(data.anchors1073)) state.anchors1073 = data.anchors1073;
       if (data.anchors196  && Array.isArray(data.anchors196))  state.anchors196  = data.anchors196;
-      redrawAll();
-      statusBar.textContent = "✅ Anchors loaded from anchors.json";
     }
   } catch (err) {
     console.log("anchors.json auto-load skipped (CORS or missing file).");
   }
+
+  // Load dedicated calibrated anchors for Escritura 1073 (anchors_georectifier.json)
+  try {
+    const rGeo = await fetch("anchors_georectifier.json?_t=" + Date.now(), { cache: "no-store" });
+    if (rGeo.ok) {
+      const dGeo = await rGeo.json();
+      const list = Array.isArray(dGeo) ? dGeo : (dGeo.anchors || dGeo.anchors1073 || []);
+      if (list.length > 0) {
+        state.anchors1073 = list;
+        updateReconstructedPolygonWarp();
+        console.log(`Loaded ${list.length} anchors for Escritura 1073 from anchors_georectifier.json`);
+      }
+    }
+  } catch (err) {
+    console.warn("anchors_georectifier.json auto-load skipped:", err);
+  }
+
+  redrawAll();
+  statusBar.textContent = "✅ Anchors & Escritura 1073 loaded";
 }
 
 async function autoLoadPolygons() {
@@ -2282,25 +2470,6 @@ async function autoLoadTrueDXF() {
   }
 }
 
-async function autoLoadDXF296() {
-  try {
-    const response = await fetch("Polygon_Escritura296.dxf");
-    if (response.ok) {
-      const text = await response.text();
-      state.entities296 = DXFParser.parse(text);
-      if (state.entities296.length > 0) {
-        state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
-      }
-      const el = document.getElementById("status-296");
-      if (el) el.textContent = `DXF Loaded (${state.entities296.length} entities)`;
-      redrawAll();
-    } else {
-      console.warn("Polygon_Escritura296.dxf not found — panel will be empty.");
-    }
-  } catch (err) {
-    console.log("autoLoadDXF296 skipped (CORS or missing file):", err);
-  }
-}
 
 async function autoLoadDXF1073() {
   try {
@@ -2693,6 +2862,7 @@ function getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, isShiftPressed 
   return closestTarget;
 }
 
+// [SECTION: JS_CANVAS_RENDERERS]
 function redrawAll() {
   drawViewport296();
   drawViewport1073();
@@ -2815,14 +2985,24 @@ function drawLayerByKey(key, ctx, vp, h) {
       break;
     }
     case "dxf_1073": {
-      const isVisible = ac ? (ac.layers?.dxf1073 !== false) : (state.showWarped1073OnField !== false);
-      if (isVisible && getActiveAnchors(state.anchors1073).length >= 2) {
+      const isDxfVisible = ac ? (ac.layers?.dxf1073 !== false) : (state.showWarped1073OnField !== false);
+      const isPdfVisible = (state.showWarpedPdf1073 !== false);
+      if ((isDxfVisible || isPdfVisible) && getActiveAnchors(state.anchors1073).length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
-          const op = ac ? (ac.dxfOpacity?.dxf_1073 ?? 1) : (state.dxfOpacity.dxf_1073 ?? 1);
-          drawWithOffscreen(ctx, op, offCtx =>
-            drawWarpedEntitiesGIS(offCtx, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.85)")
-          );
+
+          // 1. Draw warped deed PDF image if enabled (default 50% opacity)
+          if (isPdfVisible && state.pdf1073Canvas && state.pdf1073Width > 0) {
+            drawWarpedPdfImage1073(ctx, warper, vp, canvasTrue.width, h);
+          }
+
+          // 2. Draw warped DXF vector polygon if enabled
+          if (isDxfVisible) {
+            const op = ac ? (ac.dxfOpacity?.dxf_1073 ?? 1) : (state.dxfOpacity?.dxf_1073 ?? 0.9);
+            drawWithOffscreen(ctx, op, offCtx =>
+              drawWarpedEntitiesGIS(offCtx, state.entities1073, warper, vp, h, "rgba(255, 23, 68, 0.9)")
+            );
+          }
         } catch (_) {}
       }
       break;
@@ -2832,7 +3012,7 @@ function drawLayerByKey(key, ctx, vp, h) {
       if (isVisible && getActiveAnchors(state.anchors196).length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-          const op = ac ? (ac.dxfOpacity?.dxf_196 ?? 1) : (state.dxfOpacity.dxf_196 ?? 1);
+          const op = ac ? (ac.dxfOpacity?.dxf_196 ?? 1) : (state.dxfOpacity?.dxf_196 ?? 0.85);
           drawWithOffscreen(ctx, op, offCtx =>
             drawWarpedEntitiesGIS(offCtx, state.entities196, warper, vp, h, "rgba(255, 145, 0, 0.85)")
           );
@@ -2844,7 +3024,7 @@ function drawLayerByKey(key, ctx, vp, h) {
       if (ac) break; // Suppress anchors in Case mode
       const visibleDestAnchors = [];
       if (state.showAnchors296)  visibleDestAnchors.push(...state.anchors296);
-      if (state.showAnchors1073) visibleDestAnchors.push(...state.anchors1073);
+      if (!state.showMojones1073 && state.showAnchors1073) visibleDestAnchors.push(...state.anchors1073);
       if (state.showAnchors196)  visibleDestAnchors.push(...state.anchors196);
       drawDestinationAnchorsGIS(ctx, visibleDestAnchors, vp, h);
       break;
@@ -2872,6 +3052,16 @@ function drawViewportTrue() {
   // Draw layers in user-configured stack order
   const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
   order.forEach(key => drawLayerByKey(key, ctxTrue, vp, h));
+
+  // Draw Reconstructed Polygon (Lindero La Trinidad Reconstruido) if enabled
+  if (state.showReconstructedPolygon !== false) {
+    drawReconstructedPolygon(ctxTrue, vp, h);
+  }
+
+  // Draw 1073 Mojones (Anchors #1 & #2 in corners with connecting arrows) if enabled
+  if (state.showMojones1073 !== false) {
+    drawMojones1073(ctxTrue, vp, h);
+  }
 
   if (state.caseMode) {
     drawCaseLabels(ctxTrue, vp, h);
@@ -3022,6 +3212,701 @@ function drawDestinationAnchorsGIS(ctx, anchors, vp, h) {
     ctx.fillText(`#${anc.id}${isActive ? "" : " (off)"}`, sp.x + 9, sp.y - 5);
     ctx.restore();
   });
+}
+
+/* -----------------------------------------------------------------------
+   Draw warped deed PDF image (Escritura 1073) on True Field Canvas.
+   Uses Piecewise Triangle Mesh Warper with offscreen 1.0 alpha buffer
+   to eliminate all white seam lines, preserving 1:1 square grid cells.
+----------------------------------------------------------------------- */
+function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
+  if (!state.pdf1073Canvas || !state.pdf1073Width) return;
+  const pdfW = state.pdf1073Width, pdfH = state.pdf1073Height;
+  const opacity = state.warpedPdf1073Opacity !== undefined ? state.warpedPdf1073Opacity : 0.50;
+  if (opacity <= 0) return;
+
+  const baseRes = state.deedMeshRes1073 || 64;
+  const maxDim = Math.max(pdfW, pdfH);
+  const cellSize = maxDim / baseRes;
+  const gridCols = Math.max(2, Math.round(pdfW / cellSize));
+  const gridRows = Math.max(2, Math.round(pdfH / cellSize));
+  // Linear fast-path for Pure Helmert
+  const isPureHelmert = (state.algorithm === "SIMILARITY");
+  if (isPureHelmert) {
+    const corners = [
+      { px: 0, py: 0 },
+      { px: pdfW, py: 0 },
+      { px: 0, py: pdfH }
+    ].map(c => worldToScreenGIS(warper({ x: c.px, y: c.py }), vp, canvasH));
+
+    const [s0, s1, s3] = corners;
+    const a  = (s1.x - s0.x) / pdfW;
+    const b  = (s1.y - s0.y) / pdfW;
+    const c_ = (s3.x - s0.x) / pdfH;
+    const d_ = (s3.y - s0.y) / pdfH;
+    const e  = s0.x;
+    const f  = s0.y;
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.setTransform(a, b, c_, d_, e, f);
+    ctx.drawImage(state.pdf1073Canvas, 0, 0, pdfW, pdfH);
+    ctx.restore();
+    return;
+  }
+
+  // Piecewise mesh warper: precalculate vertices
+  const pts = [];
+  for (let r = 0; r <= gridRows; r++) {
+    const row = [];
+    const v = (r / gridRows) * pdfH;
+    for (let c = 0; c <= gridCols; c++) {
+      const u = (c / gridCols) * pdfW;
+      const wGis = warper({ x: u, y: v });
+      const sScr = worldToScreenGIS(wGis, vp, canvasH);
+      row.push(sScr);
+    }
+    pts.push(row);
+  }
+
+  // Offscreen buffer at full 1.0 alpha to eliminate seam artifacts
+  if (!drawWarpedPdfImage1073._offCanvas) {
+    drawWarpedPdfImage1073._offCanvas = document.createElement("canvas");
+  }
+  const offCanvas = drawWarpedPdfImage1073._offCanvas;
+  if (offCanvas.width !== canvasW || offCanvas.height !== canvasH) {
+    offCanvas.width = canvasW;
+    offCanvas.height = canvasH;
+  }
+  const targetCtx = offCanvas.getContext("2d");
+  targetCtx.clearRect(0, 0, canvasW, canvasH);
+  targetCtx.save();
+  targetCtx.globalAlpha = 1.0;
+
+  const cellW = pdfW / gridCols;
+  const cellH = pdfH / gridRows;
+
+  function drawTriangle(u0, v0, u1, v1, u2, v2, p0, p1, p2) {
+    const du1 = u1 - u0, dv1 = v1 - v0;
+    const du2 = u2 - u0, dv2 = v2 - v0;
+    const dx1 = p1.x - p0.x, dy1 = p1.y - p0.y;
+    const dx2 = p2.x - p0.x, dy2 = p2.y - p0.y;
+    const det = du1 * dv2 - du2 * dv1;
+    if (Math.abs(det) < 1e-9) return;
+
+    const a  = (dx1 * dv2 - dx2 * dv1) / det;
+    const c_ = (dx2 * du1 - dx1 * du2) / det;
+    const b  = (dy1 * dv2 - dy2 * dv1) / det;
+    const d_ = (dy2 * du1 - dy1 * du2) / det;
+    const e  = p0.x - a * u0 - c_ * v0;
+    const f  = p0.y - b * u0 - d_ * v0;
+
+    const cx = (p0.x + p1.x + p2.x) / 3;
+    const cy = (p0.y + p1.y + p2.y) / 3;
+    const pad = 0.5;
+    const d0x = p0.x - cx, d0y = p0.y - cy, l0 = Math.hypot(d0x, d0y) || 1;
+    const d1x = p1.x - cx, d1y = p1.y - cy, l1 = Math.hypot(d1x, d1y) || 1;
+    const d2x = p2.x - cx, d2y = p2.y - cy, l2 = Math.hypot(d2x, d2y) || 1;
+
+    targetCtx.save();
+    targetCtx.beginPath();
+    targetCtx.moveTo(p0.x + (d0x / l0) * pad, p0.y + (d0y / l0) * pad);
+    targetCtx.lineTo(p1.x + (d1x / l1) * pad, p1.y + (d1y / l1) * pad);
+    targetCtx.lineTo(p2.x + (d2x / l2) * pad, p2.y + (d2y / l2) * pad);
+    targetCtx.closePath();
+    targetCtx.clip();
+
+    targetCtx.setTransform(a, b, c_, d_, e, f);
+    targetCtx.drawImage(state.pdf1073Canvas, 0, 0, pdfW, pdfH);
+    targetCtx.restore();
+  }
+
+  for (let r = 0; r < gridRows; r++) {
+    for (let c = 0; c < gridCols; c++) {
+      const u0 = c * cellW,       v0 = r * cellH;
+      const u1 = (c + 1) * cellW, v1 = (r + 1) * cellH;
+
+      const p00 = pts[r][c];
+      const p10 = pts[r][c + 1];
+      const p01 = pts[r + 1][c];
+      const p11 = pts[r + 1][c + 1];
+
+      drawTriangle(u0, v0, u1, v0, u0, v1, p00, p10, p01);
+      drawTriangle(u1, v0, u1, v1, u0, v1, p10, p11, p01);
+    }
+  }
+
+  targetCtx.restore();
+
+  // Composite seamless warped deed to main canvas with user opacity
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.drawImage(offCanvas, 0, 0);
+  ctx.restore();
+
+}
+
+// ── Helpers: Anchor Label Card and Connecting Arrows (Mojones) ───────
+function getDefaultAnchorOffset(anc, isHist) {
+  const id = anc.id != null ? Number(anc.id) : null;
+  if (id === 1) {
+    return { dx: -215, dy: -60 };
+  } else if (id === 2) {
+    return { dx: 35, dy: -135 };
+  }
+  return { dx: 25, dy: -25 };
+}
+
+function getAnchorCardBounds(anc, pt, isHist, ctx) {
+  const isEnabled = anc.active !== false && anc.enabled !== false;
+  const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+  const fullText = labelName + (isEnabled ? "" : " (off)");
+  const defOff = getDefaultAnchorOffset(anc, isHist);
+  const defDx = defOff.dx, defDy = defOff.dy;
+  const offset = isHist ? anc.labelOffsetSrc : anc.labelOffsetDst;
+  const offX = (offset && typeof offset.dx === "number") ? offset.dx : defDx;
+  const offY = (offset && typeof offset.dy === "number") ? offset.dy : defDy;
+
+  const hasImg = anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0;
+  if (hasImg) {
+    const natW = anc._imgElement.naturalWidth;
+    const natH = anc._imgElement.naturalHeight;
+    const baseW = 80;
+    const maxH = Math.max(50, Math.round(baseW * 1.35));
+    const scale = Math.min(baseW / natW, maxH / natH);
+    const imgW = Math.max(35, Math.round(natW * scale));
+    const imgH = Math.max(35, Math.round(natH * scale));
+
+    const padX = 8, padTop = 7, padBottom = 8;
+    const headerH = 18;
+    const dividerGap = 5;
+    const imgGap = 6;
+    const fontSize = 11;
+    const badgeR = 8.5;
+
+    ctx.save();
+    ctx.font = "bold " + fontSize + "px sans-serif";
+    const textW = ctx.measureText(fullText).width;
+    ctx.restore();
+
+    const cardInnerW = Math.max(imgW, (badgeR * 2) + 6 + textW + 4);
+    const cardW = cardInnerW + padX * 2;
+    const cardH = padTop + headerH + dividerGap + imgGap + imgH + padBottom;
+
+    let cardX = pt.x + offX;
+    let cardY = pt.y + offY - (cardH / 2) + 10;
+    let finalOffX = offX, finalOffY = offY;
+
+    const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
+    const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : canvasTrue.width;
+    const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : canvasTrue.height;
+    const margin = 24;
+
+    if (!isHist && !hasCustom && anc.id === 1) {
+      cardX = margin;
+      cardY = canvasH - cardH - margin;
+      finalOffX = cardX - pt.x;
+      finalOffY = cardY - pt.y + (cardH / 2) - 10;
+    } else if (!isHist && !hasCustom && anc.id === 2) {
+      cardX = canvasW - cardW - margin;
+      cardY = margin;
+      finalOffX = cardX - pt.x;
+      finalOffY = cardY - pt.y + (cardH / 2) - 10;
+    }
+
+    return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
+  } else {
+    const padX = 8;
+    const cardH = 24;
+    const fontSize = 11;
+    const badgeR = 8;
+
+    ctx.save();
+    ctx.font = "bold " + fontSize + "px sans-serif";
+    const textWithIcon = (anc.image ? "📷 " : "") + fullText;
+    const textW = ctx.measureText(textWithIcon).width;
+    ctx.restore();
+
+    const cardW = (badgeR * 2) + 8 + textW + padX * 2;
+    let cardX = pt.x + offX;
+    let cardY = pt.y + offY;
+    let finalOffX = offX, finalOffY = offY;
+
+    const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
+    const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : canvasTrue.width;
+    const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : canvasTrue.height;
+    const margin = 24;
+
+    if (!isHist && !hasCustom && anc.id === 1) {
+      cardX = margin;
+      cardY = canvasH - cardH - margin;
+      finalOffX = cardX - pt.x;
+      finalOffY = cardY - pt.y;
+    } else if (!isHist && !hasCustom && anc.id === 2) {
+      cardX = canvasW - cardW - margin;
+      cardY = margin;
+      finalOffX = cardX - pt.x;
+      finalOffY = cardY - pt.y;
+    }
+
+    return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
+  }
+}
+
+function drawAnchorLabelCard(ctx, anc, pt, isHist) {
+  const isEnabled = anc.active !== false && anc.enabled !== false;
+  const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
+  const fullText = labelName + (isEnabled ? "" : " (off)");
+  if (anc.image && !anc._imgElement) {
+    const img = new Image();
+    img.onload = () => {
+      redrawAll();
+    };
+    img.src = anc.image;
+    anc._imgElement = img;
+  }
+
+  const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
+  const cardX = bounds.cardX;
+  const cardY = bounds.cardY;
+  const cardW = bounds.cardW;
+  const cardH = bounds.cardH;
+  const offX = bounds.offX;
+  const offY = bounds.offY;
+
+  // Draw 3px connector arrow pointing towards the anchor
+  if (Math.hypot(offX, offY) > 20 || (anc.labelOffsetDst && typeof anc.labelOffsetDst.dx === "number")) {
+    const startX = Math.max(cardX, Math.min(cardX + cardW, pt.x));
+    const startY = Math.max(cardY, Math.min(cardY + cardH, pt.y));
+    const dx = pt.x - startX;
+    const dy = pt.y - startY;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist >= 10) {
+      const ux = dx / dist;
+      const uy = dy / dist;
+      const tipX = pt.x - ux * 6.5;
+      const tipY = pt.y - uy * 6.5;
+
+      const headLen = 12;
+      const headHalfW = 6.5;
+      const baseX = tipX - ux * headLen;
+      const baseY = tipY - uy * headLen;
+      const px = -uy;
+      const py = ux;
+
+      const arrowCol = isEnabled ? (anc.color || "#00e5ff") : "#888888";
+
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetY = 1;
+
+      // 3px solid arrow stem
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(baseX + ux * 2, baseY + uy * 2);
+      ctx.strokeStyle = arrowCol;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Arrowhead pointing towards the anchor
+      ctx.beginPath();
+      ctx.moveTo(tipX, tipY);
+      ctx.lineTo(baseX + px * headHalfW, baseY + py * headHalfW);
+      ctx.lineTo(baseX - px * headHalfW, baseY - py * headHalfW);
+      ctx.closePath();
+      ctx.fillStyle = arrowCol;
+      ctx.fill();
+
+      ctx.restore();
+    }
+  }
+
+  const hasImg = anc.image && anc._imgElement && anc._imgElement.complete && anc._imgElement.naturalWidth > 0;
+
+  if (hasImg) {
+    const natW = anc._imgElement.naturalWidth;
+    const natH = anc._imgElement.naturalHeight;
+    const baseW = 80;
+    const maxH = Math.max(50, Math.round(baseW * 1.35));
+    const scale = Math.min(baseW / natW, maxH / natH);
+    const imgW = Math.max(35, Math.round(natW * scale));
+    const imgH = Math.max(35, Math.round(natH * scale));
+
+    const padX = 8, padTop = 7;
+    const headerH = 18;
+    const dividerGap = 5;
+    const imgGap = 6;
+    const fontSize = 11;
+    const badgeR = 8.5;
+
+    ctx.save();
+
+    // Outer Frame (Label Card with Rounded Curvature & Shadow)
+    ctx.fillStyle = "rgba(11, 20, 36, 0.95)";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+    ctx.shadowBlur = 9;
+    ctx.shadowOffsetY = 3;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(cardX, cardY, cardW, cardH, 9);
+    else ctx.rect(cardX, cardY, cardW, cardH);
+    ctx.fill();
+
+    // Outer Frame Cyan Border
+    ctx.shadowColor = "transparent";
+    ctx.strokeStyle = isEnabled ? "#00e5ff" : "#64748b";
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+
+    // Header Row
+    const badgeCenterX = cardX + padX + badgeR;
+    const badgeCenterY = cardY + padTop + badgeR;
+
+    // Circular Anchor Color Pin Badge
+    ctx.beginPath();
+    ctx.arc(badgeCenterX, badgeCenterY, badgeR, 0, Math.PI * 2);
+    ctx.fillStyle = anc.color || "#ff1744";
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 9px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("#" + anc.id, badgeCenterX, badgeCenterY);
+
+    // Header Title in Bold Cyan
+    ctx.fillStyle = isEnabled ? "#00e5ff" : "#94a3b8";
+    ctx.font = "bold " + fontSize + "px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(fullText, badgeCenterX + badgeR + 6, badgeCenterY);
+
+    // Header Divider Line
+    const divY = cardY + padTop + headerH + dividerGap;
+    ctx.beginPath();
+    ctx.moveTo(cardX + padX, divY);
+    ctx.lineTo(cardX + cardW - padX, divY);
+    ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Inner Frame (Image Box with Rounded Curvature & Cyan Border)
+    const innerX = cardX + (cardW - imgW) / 2;
+    const innerY = divY + imgGap;
+    const innerR = 7;
+
+    ctx.save();
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(innerX, innerY, imgW, imgH, innerR);
+    else ctx.rect(innerX, innerY, imgW, imgH);
+    ctx.clip();
+    ctx.drawImage(anc._imgElement, innerX, innerY, imgW, imgH);
+    ctx.restore();
+
+    // Inner Frame Cyan Border
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(innerX, innerY, imgW, imgH, innerR);
+    else ctx.rect(innerX, innerY, imgW, imgH);
+    ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+
+    ctx.restore();
+  } else {
+    // Compact Badge without image (or loading fallback)
+    const padX = 8;
+    const fontSize = 11;
+    const badgeR = 8;
+    const textWithIcon = (anc.image ? "📷 " : "") + fullText;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(11, 20, 36, 0.94)";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.55)";
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 2;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(cardX, cardY, cardW, cardH, 6);
+    else ctx.rect(cardX, cardY, cardW, cardH);
+    ctx.fill();
+
+    ctx.shadowColor = "transparent";
+    ctx.strokeStyle = isEnabled ? "#00e5ff" : "#64748b";
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+
+    const badgeCenterX = cardX + padX + badgeR;
+    const badgeCenterY = cardY + cardH / 2;
+    ctx.beginPath();
+    ctx.arc(badgeCenterX, badgeCenterY, badgeR, 0, Math.PI * 2);
+    ctx.fillStyle = anc.color || "#ff1744";
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 9px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("#" + anc.id, badgeCenterX, badgeCenterY);
+
+    ctx.fillStyle = isEnabled ? "#00e5ff" : "#94a3b8";
+    ctx.font = "bold " + fontSize + "px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(textWithIcon, badgeCenterX + badgeR + 6, badgeCenterY);
+
+    ctx.restore();
+  }
+}
+
+function drawMojones1073(ctx, vp, h) {
+  if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length < 2) return;
+  const activeList = state.anchors1073.filter(a => a.active !== false);
+  if (activeList.length < 2) return;
+
+  activeList.forEach(anc => {
+    const sp = worldToScreenGIS(anc.dst, vp, h);
+
+    // Anchor pin on ground
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = anc.color || "#ff1744";
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+
+    // Corner card and connecting arrow
+    drawAnchorLabelCard(ctx, anc, sp, false);
+  });
+}
+
+// [SECTION: JS_RECONSTRUCTED_POLYGON]
+/* -----------------------------------------------------------------------
+   Lindero La Trinidad Reconstruido (user_polygon.json) Functions
+----------------------------------------------------------------------- */
+function applyReconstructedPolygon(obj) {
+  if (!obj || !Array.isArray(obj.vertices) || obj.vertices.length === 0) return false;
+  state.reconstructedPolygon = {
+    vertices: (obj.vertices || []).map(v => ({
+      x: v.x,
+      y: v.y,
+      deedPt: v.deedPt ? { x: v.deedPt.x, y: v.deedPt.y } : null,
+      origX: v.origX != null ? v.origX : v.x,
+      origY: v.origY != null ? v.origY : v.y
+    })),
+    segmentSections: obj.segmentSections || obj.segmentNames || [],
+    segmentLengths: obj.segmentLengths || [],
+    sectionStyles: obj.sectionStyles ? { ...obj.sectionStyles } : {
+      "1073": { color: "#ff1744", dash: "solid", width: 3.5, showNodes: false },
+      "e1073": { color: "#ff1744", dash: "solid", width: 3.5, showNodes: false },
+      "e296": { color: "#80ffff", dash: "solid", width: 3.5, showNodes: false },
+      "quebrada": { color: "#00e676", dash: "solid", width: 3.5, showNodes: false }
+    },
+    defaultPolyStyle: obj.defaultPolyStyle ? { ...obj.defaultPolyStyle } : {
+      color: "#00e5ff", dash: "solid", width: 3.5, showNodes: false
+    },
+    closed: obj.closed !== false,
+    show: obj.show !== false
+  };
+  updateReconstructedPolygonWarp();
+  return true;
+}
+
+function updateReconstructedPolygonWarp() {
+  const poly = state.reconstructedPolygon;
+  if (!poly || !poly.vertices || poly.vertices.length === 0) return;
+  const activeAnchors = getActiveAnchors(state.anchors1073);
+  if (activeAnchors.length < 2) return;
+
+  try {
+    const warper = TransformMath.createWarper(state.algorithm, activeAnchors);
+    poly.vertices.forEach(v => {
+      if (v.deedPt) {
+        const w = warper(v.deedPt);
+        if (v.origX != null && v.origY != null) {
+          const dx = w.x - v.origX;
+          const dy = w.y - v.origY;
+          v.origX = w.x;
+          v.origY = w.y;
+          if (Math.abs(dx) > 1e-6 || Math.abs(dy) > 1e-6) {
+            v.x += dx;
+            v.y += dy;
+          }
+        } else {
+          v.origX = w.x;
+          v.origY = w.y;
+          v.x = w.x;
+          v.y = w.y;
+        }
+      }
+    });
+  } catch (e) {
+    console.warn("Polygon warp error:", e);
+  }
+}
+
+async function autoLoadReconstructedPolygon() {
+  let loaded = false;
+  try {
+    const response = await fetch("user_polygon.json?_t=" + Date.now(), { cache: "no-store" });
+    if (response.ok) {
+      const data = await response.json();
+      if (applyReconstructedPolygon(data)) {
+        loaded = true;
+        console.log("Loaded user_polygon.json successfully");
+      }
+    }
+  } catch (e) {
+    console.warn("user_polygon.json auto-load skipped:", e);
+  }
+  if (!loaded && typeof EMBEDDED_USER_POLYGON !== "undefined") {
+    applyReconstructedPolygon(EMBEDDED_USER_POLYGON);
+  }
+  redrawAll();
+}
+
+function drawReconstructedPolygon(ctx, vp, canvasH) {
+  const ac = state.caseMode ? getActiveCase() : null;
+  const isVis = ac ? (ac.layers?.reconstructed !== false && ac.layers?.dxf296 !== false) : (state.showReconstructedPolygon !== false);
+  if (!isVis) return;
+  const poly = state.reconstructedPolygon;
+  if (!poly || !poly.show) return;
+  const verts = poly.vertices;
+  if (!verts || verts.length === 0) return;
+
+  const opacity = ac ? (ac.dxfOpacity?.reconstructed ?? 1.0) : (state.reconstructedPolyOpacity !== undefined ? state.reconstructedPolyOpacity : 1.0);
+  if (opacity <= 0) return;
+
+  updateReconstructedPolygonWarp();
+
+  ctx.save();
+  ctx.globalAlpha = opacity;
+
+  // 1. Semi-transparent cyan interior fill (when closed)
+  if (poly.closed && verts.length >= 3) {
+    ctx.beginPath();
+    const s0 = worldToScreenGIS(verts[0], vp, canvasH);
+    ctx.moveTo(s0.x, s0.y);
+    for (let i = 1; i < verts.length; i++) {
+      const s = worldToScreenGIS(verts[i], vp, canvasH);
+      ctx.lineTo(s.x, s.y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+    ctx.fill();
+  }
+
+  // 2. Individual segment strokes color-coded strictly by section
+  const nSegs = poly.closed ? verts.length : verts.length - 1;
+  for (let i = 0; i < nSegs; i++) {
+    const a = verts[i], b = verts[(i + 1) % verts.length];
+    const secName = poly.segmentSections ? poly.segmentSections[i] : null;
+    let secStyle = poly.defaultPolyStyle || { color: "#00e5ff", width: 3.5, dash: "solid" };
+    if (secName && typeof secName === "string") {
+      const key = secName.trim().toLowerCase();
+      if (poly.sectionStyles && poly.sectionStyles[key]) {
+        secStyle = poly.sectionStyles[key];
+      }
+    }
+
+    const strokeCol = secStyle.color || "#00e5ff";
+    const lineW = secStyle.width || 3.5;
+    const dash = secStyle.dash === "dashed" ? [6, 4] : (secStyle.dash === "dotted" ? [2, 3] : []);
+
+    const sa = worldToScreenGIS(a, vp, canvasH);
+    const sb = worldToScreenGIS(b, vp, canvasH);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(sa.x, sa.y);
+    ctx.lineTo(sb.x, sb.y);
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = lineW;
+    ctx.lineCap = "round";
+    if (dash.length > 0) ctx.setLineDash(dash);
+    else ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio) {
+  const ac = state.caseMode ? getActiveCase() : null;
+  const isVis = ac ? (ac.layers?.reconstructed !== false && ac.layers?.dxf296 !== false) : (state.showReconstructedPolygon !== false);
+  if (!isVis) return;
+  const poly = state.reconstructedPolygon;
+  if (!poly || !poly.show) return;
+  const verts = poly.vertices;
+  if (!verts || verts.length === 0) return;
+
+  const opacity = ac ? (ac.dxfOpacity?.reconstructed ?? 1.0) : (state.reconstructedPolyOpacity !== undefined ? state.reconstructedPolyOpacity : 1.0);
+  if (opacity <= 0) return;
+
+  updateReconstructedPolygonWarp();
+
+  ctx.save();
+  ctx.globalAlpha = opacity;
+
+  // 1. Fill
+  if (poly.closed && verts.length >= 3) {
+    ctx.beginPath();
+    const s0 = worldToScreenGISExport(verts[0], vpExp, EXP_H);
+    ctx.moveTo(s0.x, s0.y);
+    for (let i = 1; i < verts.length; i++) {
+      const s = worldToScreenGISExport(verts[i], vpExp, EXP_H);
+      ctx.lineTo(s.x, s.y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+    ctx.fill();
+  }
+
+  // 2. Stroke
+  const nSegs = poly.closed ? verts.length : verts.length - 1;
+  for (let i = 0; i < nSegs; i++) {
+    const a = verts[i], b = verts[(i + 1) % verts.length];
+    const secName = poly.segmentSections ? poly.segmentSections[i] : null;
+    let secStyle = poly.defaultPolyStyle || { color: "#00e5ff", width: 3.5, dash: "solid" };
+    if (secName && typeof secName === "string") {
+      const key = secName.trim().toLowerCase();
+      if (poly.sectionStyles && poly.sectionStyles[key]) {
+        secStyle = poly.sectionStyles[key];
+      }
+    }
+
+    const strokeCol = secStyle.color || "#00e5ff";
+    const lineW = (secStyle.width || 3.5) * scaleRatio;
+    const dash = secStyle.dash === "dashed" ? [6 * scaleRatio, 4 * scaleRatio] : (secStyle.dash === "dotted" ? [2 * scaleRatio, 3 * scaleRatio] : []);
+
+    const sa = worldToScreenGISExport(a, vpExp, EXP_H);
+    const sb = worldToScreenGISExport(b, vpExp, EXP_H);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(sa.x, sa.y);
+    ctx.lineTo(sb.x, sb.y);
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = lineW;
+    ctx.lineCap = "round";
+    if (dash.length > 0) ctx.setLineDash(dash);
+    else ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.restore();
 }
 
 const MEASURE_PALETTE = [
@@ -3684,6 +4569,7 @@ function moveLayerOrder(layerKey, direction) {
 }
 
 /* EVENT LISTENERS & INTERACTION */
+// [SECTION: JS_POLYGON_SUMMARY_TABLE]
 /* =========================================================
    POLYGON SUMMARY PANEL
    ========================================================= */
@@ -3818,8 +4704,8 @@ function updateMasterCheckboxes() {
   if (!masterShow) return;
 
   // For Show: consider DXF layers, anchor rows, AND measurement polygons
-  const dxfShowIds = ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"];
-  const anchorShowIds = ["sum-show-anchors-296","sum-show-anchors-1073","sum-show-anchors-196"];
+  const dxfShowIds = ["sum-show-reconstructed-poly","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"];
+  const anchorShowIds = ["sum-show-anchors-1073","sum-show-anchors-196"];
   const allShowChks = [...dxfShowIds, ...anchorShowIds].map(id => document.getElementById(id)).filter(Boolean);
   const measShowChks = Array.from(document.querySelectorAll(".sum-poly-show"));
   const allShow = [...allShowChks, ...measShowChks];
@@ -3879,7 +4765,19 @@ function setupPolygonSummaryListeners() {
     }, true); // capture so it runs before or alongside existing handler
   }
 
-  wireDXFSummaryRow("sum-show-dxf-296",  "chk-show-field-296",  "showWarped296OnField");
+  wireDXFSummaryRow("sum-show-reconstructed-poly", "chk-show-field-reconstructed", "showReconstructedPolygon");
+  const sumReconChk = document.getElementById("sum-show-reconstructed-poly");
+  const fieldReconChk = document.getElementById("chk-show-field-reconstructed");
+  const barReconChk = document.getElementById("chk-show-reconstructed-poly");
+  if (barReconChk) {
+    if (sumReconChk) sumReconChk.addEventListener("change", function() { barReconChk.checked = this.checked; });
+    if (fieldReconChk) fieldReconChk.addEventListener("change", function() { barReconChk.checked = this.checked; });
+    barReconChk.addEventListener("change", function() {
+      if (sumReconChk) sumReconChk.checked = this.checked;
+      if (fieldReconChk) fieldReconChk.checked = this.checked;
+      updateMasterCheckboxes();
+    });
+  }
   wireDXFSummaryRow("sum-show-dxf-1073", "chk-show-field-1073", "showWarped1073OnField");
   wireDXFSummaryRow("sum-show-dxf-196",  "chk-show-field-196",  "showWarped196OnField");
   wireDXFSummaryRow("sum-show-dxf-true", "chk-show-field-true", "showFieldDXFOnField");
@@ -3930,7 +4828,6 @@ function setupPolygonSummaryListeners() {
     }, true);
   }
 
-  wireAnchorSummaryRow("sum-show-anchors-296",  "chk-show-anchors-296",  "showAnchors296");
   wireAnchorSummaryRow("sum-show-anchors-1073", "chk-show-anchors-1073", "showAnchors1073");
   wireAnchorSummaryRow("sum-show-anchors-196",  "chk-show-anchors-196",  "showAnchors196");
 
@@ -3940,12 +4837,12 @@ function setupPolygonSummaryListeners() {
     masterShow.addEventListener("change", function() {
       const v = this.checked;
       // DXF layers
-      ["sum-show-dxf-296","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"].forEach(id => {
+      ["sum-show-reconstructed-poly","sum-show-dxf-1073","sum-show-dxf-196","sum-show-dxf-true","sum-show-dxf-overlay"].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.checked = v; el.dispatchEvent(new Event("change")); }
       });
       // Anchor layers
-      ["sum-show-anchors-296","sum-show-anchors-1073","sum-show-anchors-196"].forEach(id => {
+      ["sum-show-anchors-1073","sum-show-anchors-196"].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.checked = v; el.dispatchEvent(new Event("change")); }
       });
@@ -4001,8 +4898,87 @@ function setupPolygonSummaryListeners() {
   // Initial render of summary
   updatePolygonSummaryUI();
 }
+// [SECTION: JS_EVENT_LISTENERS]
 function setupEventListeners() {
   setupCasesPanel();
+
+  // ── Bottom Toolbar: Escritura 1073 Controls ──────────────────────
+  const chkReconstructedPoly = document.getElementById("chk-show-reconstructed-poly");
+  const rngReconstructedPolyOp = document.getElementById("reconstructed-poly-opacity");
+  const valReconstructedPolyOp = document.getElementById("reconstructed-poly-opacity-val");
+  if (chkReconstructedPoly) {
+    chkReconstructedPoly.addEventListener("change", e => {
+      state.showReconstructedPolygon = e.target.checked;
+      redrawAll();
+    });
+  }
+  if (rngReconstructedPolyOp) {
+    rngReconstructedPolyOp.addEventListener("input", e => {
+      const val = parseInt(e.target.value, 10);
+      state.reconstructedPolyOpacity = val / 100;
+      if (valReconstructedPolyOp) valReconstructedPolyOp.textContent = val + "%";
+      if (chkReconstructedPoly && !chkReconstructedPoly.checked && val > 0) {
+        chkReconstructedPoly.checked = true;
+        state.showReconstructedPolygon = true;
+      }
+      redrawAll();
+    });
+  }
+
+  const chkWarpedPdf = document.getElementById("chk-show-warped-pdf");
+  const rngWarpedPdfOp = document.getElementById("warped-pdf-opacity");
+  const valWarpedPdfOp = document.getElementById("warped-pdf-opacity-val");
+  if (chkWarpedPdf) {
+    chkWarpedPdf.addEventListener("change", e => {
+      state.showWarpedPdf1073 = e.target.checked;
+      redrawAll();
+    });
+  }
+  if (rngWarpedPdfOp) {
+    rngWarpedPdfOp.addEventListener("input", e => {
+      const val = parseInt(e.target.value, 10);
+      state.warpedPdf1073Opacity = val / 100;
+      if (valWarpedPdfOp) valWarpedPdfOp.textContent = val + "%";
+      if (chkWarpedPdf && !chkWarpedPdf.checked && val > 0) {
+        chkWarpedPdf.checked = true;
+        state.showWarpedPdf1073 = true;
+      }
+      redrawAll();
+    });
+  }
+
+  const chkShowMojones = document.getElementById("chk-show-mojones-1073");
+  if (chkShowMojones) {
+    chkShowMojones.addEventListener("change", e => {
+      state.showMojones1073 = e.target.checked;
+      redrawAll();
+    });
+  }
+
+  const chkWarpedDxf = document.getElementById("chk-show-warped-dxf");
+  const rngWarpedDxfOp = document.getElementById("warped-dxf-opacity");
+  const valWarpedDxfOp = document.getElementById("warped-dxf-opacity-val");
+  if (chkWarpedDxf) {
+    chkWarpedDxf.addEventListener("change", e => {
+      state.showWarped1073OnField = e.target.checked;
+      const sumChk = document.getElementById("sum-vis-dxf-1073");
+      if (sumChk) sumChk.checked = e.target.checked;
+      redrawAll();
+    });
+  }
+  if (rngWarpedDxfOp) {
+    rngWarpedDxfOp.addEventListener("input", e => {
+      const val = parseInt(e.target.value, 10);
+      if (!state.dxfOpacity) state.dxfOpacity = {};
+      state.dxfOpacity.dxf_1073 = val / 100;
+      if (valWarpedDxfOp) valWarpedDxfOp.textContent = val + "%";
+      if (chkWarpedDxf && !chkWarpedDxf.checked && val > 0) {
+        chkWarpedDxf.checked = true;
+        state.showWarped1073OnField = true;
+      }
+      redrawAll();
+    });
+  }
 
   function updateSnapButtonUI() {
     const text = state.snapEnabled ? "🧲 Snap: ON" : "🧲 Snap: OFF";
@@ -4119,7 +5095,10 @@ function setupEventListeners() {
       const map  = btn.dataset.map;
       if (mode === "fit") {
         // Center the specific map
-        if (map === "296"  && state.entities296.length)  state.vp296  = fitViewport(canvas296,  computeBoundingBox(state.entities296));
+        if (map === "296") {
+          if (state.entities296 && state.entities296.length) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
+          else if (state.pdf296Width > 0 && state.pdf296Height > 0) state.vp296 = fitViewport(canvas296, { minX: 0, minY: 0, maxX: state.pdf296Width, maxY: state.pdf296Height, width: state.pdf296Width, height: state.pdf296Height });
+        }
         if (map === "1073" && state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
         if (map === "196"  && state.entities196.length)  state.vp196  = fitViewport(canvas196,  computeBoundingBox(state.entities196));
         if (map === "true") {
@@ -4132,6 +5111,20 @@ function setupEventListeners() {
       }
     });
   });
+
+  const btnEditPoly = document.getElementById("btn-edit-polygons-toggle");
+  if (btnEditPoly) {
+    btnEditPoly.addEventListener("click", () => {
+      state.editPolygonsActive = !state.editPolygonsActive;
+      btnEditPoly.classList.toggle("active", state.editPolygonsActive);
+      btnEditPoly.style.background = state.editPolygonsActive ? "rgba(0,229,255,0.25)" : "rgba(0,0,0,0.25)";
+      btnEditPoly.style.borderColor = state.editPolygonsActive ? "var(--accent-cyan)" : "rgba(0,229,255,0.25)";
+      statusBar.textContent = state.editPolygonsActive
+        ? "✏️ Modo Edición de Polígonos activado: selección y modificación de vértices disponible."
+        : "🖐️ Navegación: arrastre el mapa para desplazarse o use la rueda para zoom.";
+      redrawAll();
+    });
+  }
 
 
   // Palette of colors for new measurement polygons (cycles through MEASURE_PALETTE)
@@ -4435,9 +5428,12 @@ function setupEventListeners() {
   }
 
   // Clear Anchors
-  document.getElementById("btn-clear-anchors-296").addEventListener("click", () => { state.anchors296 = []; state.pendingSource = null; redrawAll(); });
-  document.getElementById("btn-clear-anchors-1073").addEventListener("click", () => { state.anchors1073 = []; state.pendingSource = null; redrawAll(); });
-  document.getElementById("btn-clear-anchors-196").addEventListener("click", () => { state.anchors196 = []; state.pendingSource = null; redrawAll(); });
+  const btnClear296 = document.getElementById("btn-clear-anchors-296");
+  if (btnClear296) btnClear296.addEventListener("click", () => { state.anchors296 = []; state.pendingSource = null; redrawAll(); });
+  const btnClear1073 = document.getElementById("btn-clear-anchors-1073");
+  if (btnClear1073) btnClear1073.addEventListener("click", () => { state.anchors1073 = []; state.pendingSource = null; redrawAll(); });
+  const btnClear196 = document.getElementById("btn-clear-anchors-196");
+  if (btnClear196) btnClear196.addEventListener("click", () => { state.anchors196 = []; state.pendingSource = null; redrawAll(); });
 
   // Save Anchors JSON
   const btnSaveAnchors = document.getElementById("btn-save-anchors-json");
@@ -4533,12 +5529,77 @@ function setupEventListeners() {
     });
   }
 
+  // Center deed in vectorizer viewport
+  function centerVecViewport() {
+    const vecViewport = document.getElementById("vec-viewport");
+    if (!vecViewport) return;
+    const scrollW = vecViewport.scrollWidth;
+    const clientW = vecViewport.clientWidth;
+    const scrollH = vecViewport.scrollHeight;
+    const clientH = vecViewport.clientHeight;
+    vecViewport.scrollLeft = scrollW > clientW ? Math.max(0, (scrollW - clientW) / 2) : 0;
+    vecViewport.scrollTop = scrollH > clientH ? Math.max(0, (scrollH - clientH) / 2) : 0;
+  }
+
+  // Fit deed to window
+  function fitVecToWindow() {
+    const vecViewport = document.getElementById("vec-viewport");
+    if (!vecState.pdfDoc || !vecViewport) return;
+    vecState.pdfDoc.getPage(vecState.pageNum).then((page) => {
+      const unscaled = page.getViewport({ scale: 1.0 });
+      const pad = 64;
+      const availW = Math.max(200, vecViewport.clientWidth - pad);
+      const availH = Math.max(200, vecViewport.clientHeight - pad);
+      const fitScale = Math.max(0.4, Math.min(8.0, Math.round(Math.min(availW / unscaled.width, availH / unscaled.height) * 100) / 100));
+      vecState.scale = fitScale;
+      const vecZoomSlider = document.getElementById("vec-zoom-slider");
+      if (vecZoomSlider) vecZoomSlider.value = fitScale;
+      renderVecPdfPage(vecState.pageNum).then(() => {
+        centerVecViewport();
+      });
+    });
+  }
+
+  const btnVecFit = document.getElementById("btn-vec-zoom-fit");
+  if (btnVecFit) btnVecFit.addEventListener("click", fitVecToWindow);
+  const btnVecCenter = document.getElementById("btn-vec-pan-center");
+  if (btnVecCenter) btnVecCenter.addEventListener("click", centerVecViewport);
+
+  // Apply zoom keeping center stable
+  function applyVecZoom(newZoom) {
+    const vecViewport = document.getElementById("vec-viewport");
+    const vecCanvasWrap = document.querySelector(".vectorizer-canvas-wrap");
+    if (!vecViewport || !vecCanvasWrap) {
+      vecState.scale = newZoom;
+      const vecZoomSlider = document.getElementById("vec-zoom-slider");
+      if (vecZoomSlider) vecZoomSlider.value = newZoom;
+      renderVecPdfPage(vecState.pageNum);
+      return;
+    }
+    const oldScale = vecState.scale || 1.5;
+    const ratio = newZoom / oldScale;
+    const centerX = vecViewport.scrollLeft + vecViewport.clientWidth / 2;
+    const centerY = vecViewport.scrollTop + vecViewport.clientHeight / 2;
+    const canvasCenterX = Math.max(0, centerX - vecCanvasWrap.offsetLeft);
+    const canvasCenterY = Math.max(0, centerY - vecCanvasWrap.offsetTop);
+
+    vecState.scale = newZoom;
+    const vecZoomSlider = document.getElementById("vec-zoom-slider");
+    if (vecZoomSlider) vecZoomSlider.value = newZoom;
+
+    renderVecPdfPage(vecState.pageNum).then(() => {
+      const newCanvasCenterX = canvasCenterX * ratio;
+      const newCanvasCenterY = canvasCenterY * ratio;
+      vecViewport.scrollLeft = Math.max(0, (vecCanvasWrap.offsetLeft + newCanvasCenterX) - vecViewport.clientWidth / 2);
+      vecViewport.scrollTop = Math.max(0, (vecCanvasWrap.offsetTop + newCanvasCenterY) - vecViewport.clientHeight / 2);
+    });
+  }
+
   // Vectorizer zoom slider
   const vecZoomSlider = document.getElementById("vec-zoom-slider");
   if (vecZoomSlider) {
     vecZoomSlider.addEventListener("input", (e) => {
-      vecState.scale = parseFloat(e.target.value);
-      renderVecPdfPage(vecState.pageNum);
+      applyVecZoom(parseFloat(e.target.value));
     });
   }
 
@@ -4546,10 +5607,112 @@ function setupEventListeners() {
   document.querySelectorAll(".preset-btn[data-veczoom]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const zoomVal = parseFloat(btn.getAttribute("data-veczoom"));
-      vecState.scale = zoomVal;
-      if (vecZoomSlider) vecZoomSlider.value = zoomVal;
-      renderVecPdfPage(vecState.pageNum);
+      applyVecZoom(zoomVal);
     });
+  });
+
+  // Mouse wheel zoom on Vectorizer viewport & canvas
+  const vecViewport = document.getElementById("vec-viewport");
+  if (vecViewport) {
+    vecViewport.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const oldScale = vecState.scale || 1.5;
+      const zoomFactor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
+      let newScale = Math.round((oldScale * zoomFactor) * 100) / 100;
+      newScale = Math.max(0.4, Math.min(8.0, newScale));
+      if (Math.abs(newScale - oldScale) < 0.01) return;
+
+      const vpRect = vecViewport.getBoundingClientRect();
+      const vecCanvasWrap = document.querySelector(".vectorizer-canvas-wrap");
+      const wrapRect = vecCanvasWrap ? vecCanvasWrap.getBoundingClientRect() : vpRect;
+
+      const mouseX = e.clientX - vpRect.left;
+      const mouseY = e.clientY - vpRect.top;
+
+      // Position on the deed relative to canvas top-left
+      const canvasX = Math.max(0, Math.min(wrapRect.width, e.clientX - wrapRect.left));
+      const canvasY = Math.max(0, Math.min(wrapRect.height, e.clientY - wrapRect.top));
+
+      const ratio = newScale / oldScale;
+      const newCanvasX = canvasX * ratio;
+      const newCanvasY = canvasY * ratio;
+
+      vecState.scale = newScale;
+      const vecZoomSlider = document.getElementById("vec-zoom-slider");
+      if (vecZoomSlider) vecZoomSlider.value = newScale;
+
+      renderVecPdfPage(vecState.pageNum).then(() => {
+        if (vecCanvasWrap) {
+          const newWrapX = vecCanvasWrap.offsetLeft;
+          const newWrapY = vecCanvasWrap.offsetTop;
+          vecViewport.scrollLeft = Math.max(0, (newWrapX + newCanvasX) - mouseX);
+          vecViewport.scrollTop = Math.max(0, (newWrapY + newCanvasY) - mouseY);
+        }
+      });
+    }, { passive: false });
+  }
+
+  // Pan navigation helpers: Middle-click drag, Space+drag, or drag on viewport background
+  function startVecPan(e) {
+    const vecViewport = document.getElementById("vec-viewport");
+    const vecDrawCanvas = document.getElementById("vec-draw-canvas");
+    vecState.isPanning = true;
+    vecState.panStart = { x: e.clientX, y: e.clientY };
+    vecState.scrollStart = { x: vecViewport ? vecViewport.scrollLeft : 0, y: vecViewport ? vecViewport.scrollTop : 0 };
+    document.body.style.cursor = "grabbing";
+    if (vecDrawCanvas) vecDrawCanvas.style.cursor = "grabbing";
+  }
+
+  window.addEventListener("keydown", (e) => {
+    const vecModal = document.getElementById("vectorizer-modal");
+    if (e.code === "Space" && vecModal && vecModal.classList.contains("visible")) {
+      const tag = (document.activeElement && document.activeElement.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      e.preventDefault();
+      vecState.isSpacePressed = true;
+      const vecDrawCanvas = document.getElementById("vec-draw-canvas");
+      if (vecDrawCanvas && !vecState.isDraggingVertex) vecDrawCanvas.style.cursor = "grab";
+    }
+  });
+
+  window.addEventListener("keyup", (e) => {
+    if (e.code === "Space") {
+      vecState.isSpacePressed = false;
+      const vecDrawCanvas = document.getElementById("vec-draw-canvas");
+      if (vecDrawCanvas && !vecState.isDraggingVertex && !vecState.isPanning) {
+        vecDrawCanvas.style.cursor = "crosshair";
+      }
+    }
+  });
+
+  if (vecViewport) {
+    vecViewport.addEventListener("mousedown", (e) => {
+      if (e.button === 1 || (e.button === 0 && vecState.isSpacePressed) || (e.target === vecViewport && e.button === 0)) {
+        e.preventDefault();
+        startVecPan(e);
+      }
+    });
+  }
+
+  window.addEventListener("mousemove", (e) => {
+    const vecViewport = document.getElementById("vec-viewport");
+    if (vecState.isPanning && vecViewport) {
+      const dx = e.clientX - vecState.panStart.x;
+      const dy = e.clientY - vecState.panStart.y;
+      vecViewport.scrollLeft = vecState.scrollStart.x - dx;
+      vecViewport.scrollTop = vecState.scrollStart.y - dy;
+    }
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (vecState.isPanning) {
+      vecState.isPanning = false;
+      document.body.style.cursor = "";
+      const vecDrawCanvas = document.getElementById("vec-draw-canvas");
+      if (vecDrawCanvas) {
+        vecDrawCanvas.style.cursor = vecState.isSpacePressed ? "grab" : "crosshair";
+      }
+    }
   });
 
   // Vectorizer outline thickness controls
@@ -4693,6 +5856,7 @@ function updateWindowLayout() {
   setTimeout(resizeCanvases, 50);
 }
 
+// [SECTION: JS_INTERACTION_HANDLERS]
 function setToolMode(mode) {
   state.toolMode = mode;
   // Update all per-panel vp-tool-btn buttons
@@ -5046,6 +6210,19 @@ function calculatePolygonArea(points) {
   return Math.abs(area) / 2;
 }
 
+function calcReconstructedPolygonArea() {
+  const poly = state.reconstructedPolygon;
+  if (!poly || !poly.vertices || poly.vertices.length < 3) return 0;
+  let area = 0;
+  const pts = poly.vertices;
+  for (let i = 0; i < pts.length; i++) {
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % pts.length];
+    area += (p1.x * p2.y) - (p2.x * p1.y);
+  }
+  return Math.abs(area) / 2;
+}
+
 function updateAreaStats() {
   const calcLayerArea = (entities, warper) => {
     let totalArea = 0;
@@ -5066,15 +6243,14 @@ function updateAreaStats() {
     return `${ha.toFixed(2)} ha (${plazas.toFixed(2)} plazas; ${m2Str} m²)`;
   };
 
-  const el296 = document.getElementById("area-stats-296");
+  const elReconstructed = document.getElementById("area-stats-reconstructed");
+  if (elReconstructed) {
+    const a = calcReconstructedPolygonArea();
+    elReconstructed.textContent = "Lindero La Trinidad: " + (a > 0 ? formatArea(a) : "--");
+  }
+
   const el1073 = document.getElementById("area-stats-1073");
   const el196  = document.getElementById("area-stats-196");
-
-  let warper296 = null;
-  if (getActiveAnchors(state.anchors296).length >= 2) {
-    try { warper296 = TransformMath.createWarper(state.algorithm, state.anchors296); } catch(_) {}
-  }
-  if (el296) el296.textContent = "Area 296: " + formatArea(calcLayerArea(state.entities296, warper296));
 
   let warper1073 = null;
   if (getActiveAnchors(state.anchors1073).length >= 2) {
@@ -5098,17 +6274,18 @@ function updateAreaStats() {
   }
 }
 
+// [SECTION: JS_ANALYTICS_AND_TABLES]
 function updateAnalyticsUI() {
   updateAreaStats();
   const rmse296  = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors296),  state.anchors296);
   const rmse1073 = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors1073), state.anchors1073);
   const rmse196  = TransformMath.computeRMSE(TransformMath.createWarper(state.algorithm, state.anchors196),  state.anchors196);
 
-  document.getElementById("rmse-296-display").textContent  = `296 RMSE: ${rmse296.toFixed(2)} m`;
+  const elRmse296 = document.getElementById("rmse-296-display");
+  if (elRmse296) elRmse296.textContent = `296 RMSE: ${rmse296.toFixed(2)} m`;
   document.getElementById("rmse-1073-display").textContent = `1073 RMSE: ${rmse1073.toFixed(2)} m`;
   document.getElementById("rmse-196-display").textContent  = `196 RMSE: ${rmse196.toFixed(2)} m`;
 
-  renderAnchorTable("table-anchors-296",  state.anchors296,  "296");
   renderAnchorTable("table-anchors-1073", state.anchors1073, "1073");
   renderAnchorTable("table-anchors-196",  state.anchors196,  "196");
 }
@@ -5166,6 +6343,7 @@ function deleteAnchor(targetKey, index) {
   redrawAll();
 }
 
+// [SECTION: JS_PDF_AND_DXF_EXPORT]
 function exportRectifiedDXF() {
   let combinedEntities = [];
   if (getActiveAnchors(state.anchors296).length >= 2) {
@@ -5594,6 +6772,7 @@ async function exportMultiPagePDF() {
   }
 }
 
+// [SECTION: JS_VECTORIZER_LOGIC]
 /* ==========================================================================
    INTEGRATED POLYGON CREATOR (PDF VECTORIZER MODAL)
    ========================================================================== */
@@ -5628,7 +6807,11 @@ const vecState = {
   activePolyIndex: 0,
   isDraggingVertex: false,
   draggedVertexIndex: null,
-  currentSnapTarget: null
+  currentSnapTarget: null,
+  isPanning: false,
+  panStart: { x: 0, y: 0 },
+  scrollStart: { x: 0, y: 0 },
+  isSpacePressed: false
 };
 
 function syncVecStyleControls() {
@@ -5879,6 +7062,11 @@ function findVecPolygonAndVertexAt(canvasX, canvasY, radius = null) {
 
 // Vectorizer Canvas Interaction (Add, Move/Drag, Delete Vertex with Snapping)
 vecDrawCanvas.addEventListener("mousedown", (e) => {
+  if (e.button === 1 || (e.button === 0 && vecState.isSpacePressed)) {
+    e.preventDefault();
+    startVecPan(e);
+    return;
+  }
   const rect = vecDrawCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left, y = e.clientY - rect.top;
   
@@ -6067,6 +7255,7 @@ document.getElementById("btn-vec-reset").addEventListener("click", () => {
 
 document.getElementById("btn-vec-close").addEventListener("click", () => vecModal.classList.remove("visible"));
 
+// [SECTION: JS_CASE_BUILDER_SYSTEM]
 /* ==========================================================================
    CASES SYSTEM
    ========================================================================== */
@@ -6391,8 +7580,8 @@ function applyActiveCase(caseObj) {
     if (arrInsp) arrInsp.style.display = "none";
 
     // Reset DXF visibility toggles to match normal workspace
-    const chk296 = document.getElementById("case-dxf-vis-296");
-    if (chk296) chk296.checked = state.showWarped296OnField !== false;
+    const chkRecon = document.getElementById("case-dxf-vis-reconstructed");
+    if (chkRecon) chkRecon.checked = state.showReconstructedPolygon !== false;
     const chk1073 = document.getElementById("case-dxf-vis-1073");
     if (chk1073) chk1073.checked = state.showWarped1073OnField !== false;
     const chk196 = document.getElementById("case-dxf-vis-196");
@@ -6404,7 +7593,7 @@ function applyActiveCase(caseObj) {
 
     // Reset opacity sliders to match general state
     [
-      { id: "dxf-opacity-296",  key: "dxf_296" },
+      { id: "dxf-opacity-reconstructed", key: "reconstructed" },
       { id: "dxf-opacity-1073", key: "dxf_1073" },
       { id: "dxf-opacity-196",  key: "dxf_196" },
       { id: "dxf-opacity-true", key: "dxf_true" }
@@ -6430,10 +7619,10 @@ function applyActiveCase(caseObj) {
   if (!caseObj.selectedPolyIds) caseObj.selectedPolyIds = [];
   if (!caseObj.polyStyles) caseObj.polyStyles = {};
   if (!caseObj.layers) {
-    caseObj.layers = { geotiff: true, dxf296: true, dxf1073: true, dxf196: true, dxfTrue: true };
+    caseObj.layers = { geotiff: true, reconstructed: true, dxf1073: true, dxf196: true, dxfTrue: true };
   }
   if (!caseObj.dxfOpacity) {
-    caseObj.dxfOpacity = { dxf_296: 1, dxf_1073: 1, dxf_196: 1, dxf_true: 1 };
+    caseObj.dxfOpacity = { reconstructed: 1, dxf_1073: 1, dxf_196: 1, dxf_true: 1 };
   }
 
   if (caseObj.camera) {
@@ -6443,8 +7632,8 @@ function applyActiveCase(caseObj) {
   }
 
   // Restore DXF visibility checkboxes in Cases panel
-  const chk296 = document.getElementById("case-dxf-vis-296");
-  if (chk296) chk296.checked = caseObj.layers.dxf296 !== false;
+  const chkRecon = document.getElementById("case-dxf-vis-reconstructed");
+  if (chkRecon) chkRecon.checked = (caseObj.layers.reconstructed !== false && caseObj.layers.dxf296 !== false);
   const chk1073 = document.getElementById("case-dxf-vis-1073");
   if (chk1073) chk1073.checked = caseObj.layers.dxf1073 !== false;
   const chk196 = document.getElementById("case-dxf-vis-196");
@@ -6458,7 +7647,7 @@ function applyActiveCase(caseObj) {
 
   // Restore DXF opacities and sliders
   [
-    { id: "dxf-opacity-296",  key: "dxf_296" },
+    { id: "dxf-opacity-reconstructed", key: "reconstructed" },
     { id: "dxf-opacity-1073", key: "dxf_1073" },
     { id: "dxf-opacity-196",  key: "dxf_196" },
     { id: "dxf-opacity-true", key: "dxf_true" }
@@ -6491,7 +7680,7 @@ function createNewCase() {
   const id = Date.now();
 
   const layers = {
-    dxf296: document.getElementById("case-dxf-vis-296") ? document.getElementById("case-dxf-vis-296").checked : (state.showWarped296OnField !== false),
+    reconstructed: document.getElementById("case-dxf-vis-reconstructed") ? document.getElementById("case-dxf-vis-reconstructed").checked : (state.showReconstructedPolygon !== false),
     dxf1073: document.getElementById("case-dxf-vis-1073") ? document.getElementById("case-dxf-vis-1073").checked : (state.showWarped1073OnField !== false),
     dxf196: document.getElementById("case-dxf-vis-196") ? document.getElementById("case-dxf-vis-196").checked : (state.showWarped196OnField !== false),
     dxfTrue: document.getElementById("case-dxf-vis-true") ? document.getElementById("case-dxf-vis-true").checked : (state.showFieldDXFOnField !== false),
@@ -6499,7 +7688,7 @@ function createNewCase() {
   };
 
   const dxfOpacity = {
-    dxf_296: (parseFloat(document.getElementById("dxf-opacity-296")?.value) || 100) / 100,
+    reconstructed: (parseFloat(document.getElementById("dxf-opacity-reconstructed")?.value) || 100) / 100,
     dxf_1073: (parseFloat(document.getElementById("dxf-opacity-1073")?.value) || 100) / 100,
     dxf_196: (parseFloat(document.getElementById("dxf-opacity-196")?.value) || 100) / 100,
     dxf_true: (parseFloat(document.getElementById("dxf-opacity-true")?.value) || 100) / 100
@@ -6586,7 +7775,7 @@ function updateActiveCase() {
 
   // 2. DXF Layers Visibility
   if (!ac.layers) ac.layers = {};
-  ac.layers.dxf296 = document.getElementById("case-dxf-vis-296") ? document.getElementById("case-dxf-vis-296").checked : true;
+  ac.layers.reconstructed = document.getElementById("case-dxf-vis-reconstructed") ? document.getElementById("case-dxf-vis-reconstructed").checked : true;
   ac.layers.dxf1073 = document.getElementById("case-dxf-vis-1073") ? document.getElementById("case-dxf-vis-1073").checked : true;
   ac.layers.dxf196 = document.getElementById("case-dxf-vis-196") ? document.getElementById("case-dxf-vis-196").checked : true;
   ac.layers.dxfTrue = document.getElementById("case-dxf-vis-true") ? document.getElementById("case-dxf-vis-true").checked : true;
@@ -6595,7 +7784,7 @@ function updateActiveCase() {
 
   // 3. DXF Opacities
   ac.dxfOpacity = {
-    dxf_296: (parseFloat(document.getElementById("dxf-opacity-296")?.value) || 100) / 100,
+    reconstructed: (parseFloat(document.getElementById("dxf-opacity-reconstructed")?.value) || 100) / 100,
     dxf_1073: (parseFloat(document.getElementById("dxf-opacity-1073")?.value) || 100) / 100,
     dxf_196: (parseFloat(document.getElementById("dxf-opacity-196")?.value) || 100) / 100,
     dxf_true: (parseFloat(document.getElementById("dxf-opacity-true")?.value) || 100) / 100
@@ -7197,6 +8386,9 @@ async function exportCaseImageHD() {
 
   const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
   order.forEach(key => drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac));
+  if (state.showReconstructedPolygon !== false) {
+    drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio);
+  }
 
   if (ac.labels && ac.labels.length > 0) {
     drawCaseLabelsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.labels);
@@ -7375,7 +8567,7 @@ function setupCasesPanel() {
       drawViewportTrue();
     });
   };
-  wireCaseVis("case-dxf-vis-296", "dxf296");
+  wireCaseVis("case-dxf-vis-reconstructed", "reconstructed");
   wireCaseVis("case-dxf-vis-1073", "dxf1073");
   wireCaseVis("case-dxf-vis-196", "dxf196");
   wireCaseVis("case-dxf-vis-true", "dxfTrue");
