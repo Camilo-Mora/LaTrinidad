@@ -2125,12 +2125,12 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   </div>
                 </div>
 
-                <!-- 3. In 2026 by Cristian Cortez -->
+                <!-- 3. 2026 (Sep) by Cristian Cortez -->
                 <div class="layer-control-block" style="background:rgba(0,0,0,0.2);border:1px solid rgba(0,229,255,0.18);border-radius:5px;padding:5px 7px;">
                   <div class="opacity-row" style="display:flex;align-items:center;gap:6px;">
                     <label style="flex:1;min-width:0;display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;font-size:0.71rem;" title="CercoCampo_CristianCortes_Sept_2026.dxf">
                       <input type="checkbox" id="chk-show-survey-cortez-2025" style="accent-color:#00e5ff;cursor:pointer;margin:0;flex-shrink:0;">
-                      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">In 2026 by Cristian Cortez</span>
+                      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2026 (Sep) by Cristian Cortez</span>
                     </label>
                     <input type="range" class="opacity-slider" id="survey-cortez-2025-opacity" min="0" max="100" value="50" style="width:65px;min-width:45px;max-width:75px;flex-shrink:0;">
                     <span class="opacity-val" id="survey-cortez-2025-opacity-val" style="min-width:28px;text-align:right;">50%</span>
@@ -2153,6 +2153,38 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     </div>
                     <label class="chk-nodes-label" title="Show or hide vertex nodes">
                       <input type="checkbox" id="style-survey-cortez-2025-nodes" style="accent-color:#00e5ff;"> Nodes
+                    </label>
+                  </div>
+                </div>
+
+                <!-- 4. 2026 (Oct) by Cristian Cortez -->
+                <div class="layer-control-block" style="background:rgba(0,0,0,0.2);border:1px solid rgba(0,176,255,0.18);border-radius:5px;padding:5px 7px;">
+                  <div class="opacity-row" style="display:flex;align-items:center;gap:6px;">
+                    <label style="flex:1;min-width:0;display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--text-main);font-weight:600;font-size:0.71rem;" title="CercoCampo_CristianCortes_Oct_2026.dxf">
+                      <input type="checkbox" id="chk-show-survey-cortez-oct-2026" style="accent-color:#00b0ff;cursor:pointer;margin:0;flex-shrink:0;">
+                      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">2026 (Oct) by Cristian Cortez</span>
+                    </label>
+                    <input type="range" class="opacity-slider" id="survey-cortez-oct-2026-opacity" min="0" max="100" value="50" style="width:65px;min-width:45px;max-width:75px;flex-shrink:0;">
+                    <span class="opacity-val" id="survey-cortez-oct-2026-opacity-val" style="min-width:28px;text-align:right;">50%</span>
+                  </div>
+                  <div class="style-row" style="margin-top:4px;">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <input type="color" id="style-survey-cortez-oct-2026-color" value="#00b0ff" class="color-picker-swatch" title="Line color">
+                      <select id="style-survey-cortez-oct-2026-dash" class="style-select" title="Line style">
+                        <option value="solid" selected>Solid ──</option>
+                        <option value="dashed">Dashed ─ ─</option>
+                        <option value="dotted">Dotted · · ·</option>
+                      </select>
+                      <select id="style-survey-cortez-oct-2026-width" class="style-select width-select" title="Line thickness">
+                        <option value="1">1px</option>
+                        <option value="2" selected>2px</option>
+                        <option value="3">3px</option>
+                        <option value="4">4px</option>
+                        <option value="6">6px</option>
+                      </select>
+                    </div>
+                    <label class="chk-nodes-label" title="Show or hide vertex nodes">
+                      <input type="checkbox" id="style-survey-cortez-oct-2026-nodes" style="accent-color:#00b0ff;"> Nodes
                     </label>
                   </div>
                 </div>
@@ -5756,8 +5788,10 @@ EOF`;
       showTrueDxf: false,
       showSurveyValoy2025: false,
       showSurveyCortez2025: false,
+      showSurveyCortezOct2026: false,
       surveyValoy2025Entities: [],
       surveyCortez2025Entities: [],
+      surveyCortezOct2026Entities: [],
       histViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
       trueViewport: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
       geoTiff: null,
@@ -5771,6 +5805,7 @@ EOF`;
       trueDxfOpacity: 0.5,     // Field DXF opacity slider set to 50% by default
       surveyValoy2025Opacity: 0.5,
       surveyCortez2025Opacity: 0.5,
+      surveyCortezOct2026Opacity: 0.5,
       histPdfCanvas: null,     // offscreen canvas: rendered Mapa1073_FerminSuarez.pdf
       histPdfW: 0,             // PDF width in PDF-space pts
       histPdfH: 0,
@@ -5917,6 +5952,12 @@ EOF`;
       },
       styleSurveyCortez2025: {
         color: "#00e5ff",
+        dash: "solid",
+        width: 2.0,
+        showNodes: false,
+      },
+      styleSurveyCortezOct2026: {
+        color: "#00b0ff",
         dash: "solid",
         width: 2.0,
         showNodes: false,
@@ -7492,9 +7533,13 @@ EOF`;
       if (state.showSurveyValoy2025 !== false) {
         drawEntitiesGIS(trueCtx, state.surveyValoy2025Entities, vp, h, (state.styleSurveyValoy2025 && state.styleSurveyValoy2025.color) || "#ffb300", state.surveyValoy2025Opacity, state.styleSurveyValoy2025);
       }
-      // 4c. In 2026 by Cristian Cortez (CercoCampo_CristianCortes_Sept_2026.dxf)
+      // 4c. In 2026 (Sep) by Cristian Cortez (CercoCampo_CristianCortes_Sept_2026.dxf)
       if (state.showSurveyCortez2025 !== false) {
         drawEntitiesGIS(trueCtx, state.surveyCortez2025Entities, vp, h, (state.styleSurveyCortez2025 && state.styleSurveyCortez2025.color) || "#00e5ff", state.surveyCortez2025Opacity, state.styleSurveyCortez2025);
+      }
+      // 4d. In 2026 (Oct) by Cristian Cortez (CercoCampo_CristianCortes_Oct_2026.dxf)
+      if (state.showSurveyCortezOct2026 !== false) {
+        drawEntitiesGIS(trueCtx, state.surveyCortezOct2026Entities, vp, h, (state.styleSurveyCortezOct2026 && state.styleSurveyCortezOct2026.color) || "#00b0ff", state.surveyCortezOct2026Opacity, state.styleSurveyCortezOct2026);
       }
 
       // Layer 4b: Temporary Reference DXF Layers
@@ -8166,7 +8211,8 @@ EOF`;
       const fieldSurveySets = [
         (state.showTrueDxf !== false && (state.trueDxfOpacity == null || state.trueDxfOpacity > 0)) ? state.trueEntities : null,
         (state.showSurveyValoy2025 !== false && (state.surveyValoy2025Opacity == null || state.surveyValoy2025Opacity > 0)) ? state.surveyValoy2025Entities : null,
-        (state.showSurveyCortez2025 !== false && (state.surveyCortez2025Opacity == null || state.surveyCortez2025Opacity > 0)) ? state.surveyCortez2025Entities : null
+        (state.showSurveyCortez2025 !== false && (state.surveyCortez2025Opacity == null || state.surveyCortez2025Opacity > 0)) ? state.surveyCortez2025Entities : null,
+        (state.showSurveyCortezOct2026 !== false && (state.surveyCortezOct2026Opacity == null || state.surveyCortezOct2026Opacity > 0)) ? state.surveyCortezOct2026Entities : null
       ].filter(Boolean);
       fieldSurveySets.forEach(surveyEnts => {
         if (!surveyEnts || surveyEnts.length === 0) return;
@@ -8338,7 +8384,7 @@ EOF`;
         }
       }
 
-      // 3c. Cortez 2026
+      // 3c. Cortez 2026 (Sep)
       if (state.showSurveyCortez2025 !== false && (state.surveyCortez2025Opacity == null || state.surveyCortez2025Opacity > 0) && state.surveyCortez2025Entities && state.surveyCortez2025Entities.length > 0) {
         for (let entIdx = 0; entIdx < state.surveyCortez2025Entities.length; entIdx++) {
           const ent = state.surveyCortez2025Entities[entIdx];
@@ -8354,7 +8400,31 @@ EOF`;
               best = {
                 worldPt: { x: pt.x, y: pt.y },
                 screenPt: sp,
-                label: `Survey Cortez 2026 #${ptIdx + 1}`,
+                label: `Survey Cortez 2026 (Sep) #${ptIdx + 1}`,
+                sourceType: 'field'
+              };
+            }
+          }
+        }
+      }
+
+      // 3d. Cortez 2026 (Oct)
+      if (state.showSurveyCortezOct2026 !== false && (state.surveyCortezOct2026Opacity == null || state.surveyCortezOct2026Opacity > 0) && state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0) {
+        for (let entIdx = 0; entIdx < state.surveyCortezOct2026Entities.length; entIdx++) {
+          const ent = state.surveyCortezOct2026Entities[entIdx];
+          const pts = ent.points || ent.vertices;
+          if (!pts) continue;
+          for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+            const pt = pts[ptIdx];
+            if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+            const sp = worldToScreenGIS(pt, vp, canvasH);
+            const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+            if (d <= minDist) {
+              minDist = d;
+              best = {
+                worldPt: { x: pt.x, y: pt.y },
+                screenPt: sp,
+                label: `Survey Cortez 2026 (Oct) #${ptIdx + 1}`,
                 sourceType: 'field'
               };
             }
@@ -18488,6 +18558,7 @@ EOF`;
         document.getElementById("chk-show-true-dxf"),
         document.getElementById("chk-show-survey-valoy-2025"),
         document.getElementById("chk-show-survey-cortez-2025"),
+        document.getElementById("chk-show-survey-cortez-oct-2026"),
         document.getElementById("chk-show-user-polygon")
       ];
 
@@ -18629,6 +18700,15 @@ EOF`;
       });
     }
 
+    const chkShowCortezOct2026 = document.getElementById("chk-show-survey-cortez-oct-2026");
+    if (chkShowCortezOct2026) {
+      chkShowCortezOct2026.addEventListener("change", e => {
+        state.showSurveyCortezOct2026 = e.target.checked;
+        redrawTrueCanvas();
+        syncGlobalOverlaysCheckbox();
+      });
+    }
+
     const chkShowUserPolygon = document.getElementById("chk-show-user-polygon");
     const chkShowUserPolygonBottom = document.getElementById("chk-show-user-polygon-bottom");
 
@@ -18680,6 +18760,7 @@ EOF`;
         state.showTrueDxf = show;
         state.showSurveyValoy2025 = show;
         state.showSurveyCortez2025 = show;
+        state.showSurveyCortezOct2026 = show;
         if (state.userPolygon) state.userPolygon.show = show;
         (state.refDxfFiles || []).forEach(ref => { ref.visible = show; });
 
@@ -18688,6 +18769,7 @@ EOF`;
         if (chkShowTrueDxf) chkShowTrueDxf.checked = show;
         if (chkShowValoy2025) chkShowValoy2025.checked = show;
         if (chkShowCortez2025) chkShowCortez2025.checked = show;
+        if (chkShowCortezOct2026) chkShowCortezOct2026.checked = show;
         if (chkShowUserPolygon) chkShowUserPolygon.checked = show;
         if (chkShowUserPolygonBottom) chkShowUserPolygonBottom.checked = show;
 
@@ -18980,6 +19062,23 @@ EOF`;
     bindOpacity("true-dxf-opacity",   "true-dxf-opacity-val",   "trueDxfOpacity",   "chk-show-true-dxf",   "showTrueDxf");
     bindOpacity("survey-valoy-2025-opacity", "survey-valoy-2025-opacity-val", "surveyValoy2025Opacity", "chk-show-survey-valoy-2025", "showSurveyValoy2025");
     bindOpacity("survey-cortez-2025-opacity", "survey-cortez-2025-opacity-val", "surveyCortez2025Opacity", "chk-show-survey-cortez-2025", "showSurveyCortez2025");
+    bindOpacity("survey-cortez-oct-2026-opacity", "survey-cortez-oct-2026-opacity-val", "surveyCortezOct2026Opacity", "chk-show-survey-cortez-oct-2026", "showSurveyCortezOct2026");
+
+    function bindLayerStyle(prefix, styleObj) {
+      if (!styleObj) return;
+      const c = document.getElementById(`${prefix}-color`);
+      const d = document.getElementById(`${prefix}-dash`);
+      const w = document.getElementById(`${prefix}-width`);
+      const n = document.getElementById(`${prefix}-nodes`);
+      if (c) c.addEventListener("input", e => { styleObj.color = e.target.value; redrawTrueCanvas(); });
+      if (d) d.addEventListener("change", e => { styleObj.dash = e.target.value; redrawTrueCanvas(); });
+      if (w) w.addEventListener("change", e => { styleObj.width = parseFloat(e.target.value); redrawTrueCanvas(); });
+      if (n) n.addEventListener("change", e => { styleObj.showNodes = e.target.checked; redrawTrueCanvas(); });
+    }
+    bindLayerStyle("style-true-dxf", state.styleTrueDxf);
+    bindLayerStyle("style-survey-valoy-2025", state.styleSurveyValoy2025);
+    bindLayerStyle("style-survey-cortez-2025", state.styleSurveyCortez2025);
+    bindLayerStyle("style-survey-cortez-oct-2026", state.styleSurveyCortezOct2026);
 
     // ── Analytics / RMSE panel ────────────────────────────────────────
     const algoCompareList = document.getElementById("algo-compare-list");
@@ -22095,9 +22194,14 @@ EOF`;
         testEntityList(state.surveyValoy2025Entities, false, null, 'surveyValoy', 'Survey Valoy 2025');
       }
 
-      // 6. Survey Cortez 2026
+      // 6. Survey Cortez 2026 (Sep)
       if (state.showSurveyCortez2025 !== false && (state.surveyCortez2025Opacity == null || state.surveyCortez2025Opacity > 0) && state.surveyCortez2025Entities && state.surveyCortez2025Entities.length > 0) {
-        testEntityList(state.surveyCortez2025Entities, false, null, 'surveyCortez', 'Survey Cortez 2026');
+        testEntityList(state.surveyCortez2025Entities, false, null, 'surveyCortez', 'Survey Cortez 2026 (Sep)');
+      }
+
+      // 6b. Survey Cortez 2026 (Oct)
+      if (state.showSurveyCortezOct2026 !== false && (state.surveyCortezOct2026Opacity == null || state.surveyCortezOct2026Opacity > 0) && state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0) {
+        testEntityList(state.surveyCortezOct2026Entities, false, null, 'surveyCortezOct', 'Survey Cortez 2026 (Oct)');
       }
 
       // 7. Reference DXF Files
@@ -22572,7 +22676,8 @@ EOF`;
             deed: 'Deed DXF',
             field: 'Field DXF',
             surveyValoy: 'Valoy',
-            surveyCortez: 'Cortez',
+            surveyCortez: 'Cortez (Sep)',
+            surveyCortezOct: 'Cortez (Oct)',
             ref: 'Ref DXF'
           };
           const lbl = typeLabels[ax.linkedSegment.type] || 'Seg';
@@ -27187,13 +27292,22 @@ EOF`;
         console.warn("Auto Field DXF Valoy 2025:", e.message);
       }
 
-      // 2c. Field survey DXF 2025 Cortez (CercoCampo_CristianCortes_Sept_2026.dxf)
+      // 2c. Field survey DXF 2026 Sep Cortez (CercoCampo_CristianCortes_Sept_2026.dxf)
       try {
         const textCortez = await fetchText("CercoCampo_CristianCortes_Sept_2026.dxf");
         state.surveyCortez2025Entities = DXFParser.parse(textCortez);
-        console.log(`Cortez 2025 DXF: ${state.surveyCortez2025Entities.length} ents`);
+        console.log(`Cortez Sep 2026 DXF: ${state.surveyCortez2025Entities.length} ents`);
       } catch(e) {
-        console.warn("Auto Field DXF Cortez 2025:", e.message);
+        console.warn("Auto Field DXF Cortez Sep 2026:", e.message);
+      }
+
+      // 2d. Field survey DXF 2026 Oct Cortez (CercoCampo_CristianCortes_Oct_2026.dxf)
+      try {
+        const textCortezOct = await fetchText("CercoCampo_CristianCortes_Oct_2026.dxf");
+        state.surveyCortezOct2026Entities = DXFParser.parse(textCortezOct);
+        console.log(`Cortez Oct 2026 DXF: ${state.surveyCortezOct2026Entities.length} ents`);
+      } catch(e) {
+        console.warn("Auto Field DXF Cortez Oct 2026:", e.message);
       }
 
       // 3. Dedicated anchors for this app (anchors_georectifier.json)
