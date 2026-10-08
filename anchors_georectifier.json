@@ -4,7 +4,7 @@
     "algorithm": "TPS",
     "optBalance": 50,
     "optIgacFilter": true,
-    "savedAt": "2026-10-08T02:09:11.778Z"
+    "savedAt": "2026-10-08T04:34:31.688Z"
   },
   "anchors": [
     {
@@ -43,8 +43,8 @@
       },
       "active": true,
       "enabled": true,
-      "axisId": 9,
-      "axisT": 0.16666666666510568,
+      "axisId": null,
+      "axisT": null,
       "optimize": true
     },
     {
@@ -63,8 +63,8 @@
       },
       "active": false,
       "enabled": false,
-      "axisId": 10,
-      "axisT": 0.9323734598899748,
+      "axisId": null,
+      "axisT": null,
       "optimize": true
     },
     {
@@ -81,11 +81,11 @@
         "x": 4645088.875676518,
         "y": 1943399.754296956
       },
-      "active": false,
-      "enabled": false,
-      "axisId": 10,
-      "axisT": 0.1401454306945084,
-      "optimize": true
+      "active": true,
+      "enabled": true,
+      "axisId": null,
+      "axisT": null,
+      "optimize": false
     },
     {
       "id": 5,
@@ -103,8 +103,8 @@
       },
       "active": false,
       "enabled": false,
-      "axisId": 11,
-      "axisT": 0.2466207171336519,
+      "axisId": null,
+      "axisT": null,
       "optimize": true
     },
     {
@@ -123,104 +123,10 @@
       },
       "active": false,
       "enabled": false,
-      "axisId": 9,
-      "axisT": 0.6930510594606141,
+      "axisId": null,
+      "axisT": null,
       "optimize": false
     }
   ],
-  "testAxes": [
-    {
-      "id": 9,
-      "name": "Axis 9",
-      "p1": {
-        "x": 4645175.154,
-        "y": 1943603.7732499999
-      },
-      "p2": {
-        "x": 4645075.7556,
-        "y": 1943605.77395
-      },
-      "color": "#ffd600",
-      "visible": false,
-      "showRays": true,
-      "showTicks": true,
-      "tickLabelAbove": true,
-      "tickLabelBelow": false,
-      "linkedSegment": {
-        "type": "surveyCortezOct",
-        "polyId": null,
-        "entIdx": 0,
-        "layerName": "Survey Cortez 2026 (Oct)",
-        "segIdx": 2,
-        "v1Idx": 2,
-        "v2Idx": 3,
-        "refId": null,
-        "deedKey": null,
-        "extA": -16.56975551620277,
-        "extB": 16.56975551620277
-      }
-    },
-    {
-      "id": 10,
-      "name": "Axis 10",
-      "p1": {
-        "x": 4645100.214368216,
-        "y": 1943402.4938893612
-      },
-      "p2": {
-        "x": 4645019.307758264,
-        "y": 1943382.9456786788
-      },
-      "color": "#ff6d00",
-      "visible": false,
-      "showRays": true,
-      "showTicks": true,
-      "tickLabelAbove": true,
-      "tickLabelBelow": false,
-      "linkedSegment": {
-        "type": "field",
-        "polyId": null,
-        "entIdx": 0,
-        "layerName": "Field DXF Cortez 2019",
-        "segIdx": 21,
-        "v1Idx": 21,
-        "v2Idx": 22,
-        "refId": null,
-        "deedKey": null,
-        "extA": -15,
-        "extB": 15
-      }
-    },
-    {
-      "id": 11,
-      "name": "Axis 11",
-      "p1": {
-        "x": 4644826.023659533,
-        "y": 1943233.1679929325
-      },
-      "p2": {
-        "x": 4644714.157350177,
-        "y": 1943196.4808315174
-      },
-      "color": "#76ff03",
-      "visible": false,
-      "showRays": true,
-      "showTicks": true,
-      "tickLabelAbove": true,
-      "tickLabelBelow": false,
-      "linkedSegment": {
-        "type": "field",
-        "polyId": null,
-        "entIdx": 0,
-        "layerName": "Field DXF Cortez 2019",
-        "segIdx": 39,
-        "v1Idx": 39,
-        "v2Idx": 40,
-        "refId": null,
-        "deedKey": null,
-        "extA": -19.621430306349957,
-        "extB": 19.621430306349957
-      }
-    }
-  ]
+  "testAxes": []
 }
