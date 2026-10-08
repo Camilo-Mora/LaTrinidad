@@ -610,7 +610,7 @@
     false,
     false,
     false,
-    false,
+    true,
     true,
     true,
     true,
@@ -666,6 +666,6 @@
     "algorithm": "TPS",
     "optBalance": 50,
     "optIgacFilter": true,
-    "savedAt": "2026-10-08T04:45:28.008Z"
+    "savedAt": "2026-10-08T05:03:02.090Z"
   }
 }
