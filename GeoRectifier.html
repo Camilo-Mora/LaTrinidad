@@ -5239,7 +5239,12 @@ EOF`;
         if (!histCard || !histCard.classList.contains("hidden")) redrawHistoricalCanvas();
         if (!trueCard || !trueCard.classList.contains("hidden")) redrawTrueCanvas();
       };
-      img.src = anc.image;
+      // If it's a relative filename in the folder, append cache-buster so replacing the file on disk always updates
+      let src = anc.image;
+      if (!src.startsWith("data:") && !src.startsWith("blob:") && !src.includes("?")) {
+        src = src + "?t=" + Date.now();
+      }
+      img.src = src;
       anc._imgElement = img;
     }
 
@@ -18210,7 +18215,7 @@ EOF`;
             </div>
             <span style="font-size:0.68rem;font-weight:600;color:${isEnabled ? '#00e676' : '#ff5252'};">${isEnabled ? 'Active' : 'Disabled'}</span>
           </div>
-          ${hitAnchor.image ? `<div style="margin:8px 0;text-align:center;"><img src="${hitAnchor.image}" alt="Anchor Photo" style="max-width:100%;max-height:220px;border-radius:6px;border:1px solid rgba(0,229,255,0.55);object-fit:cover;display:block;margin:0 auto;box-shadow:0 3px 12px rgba(0,0,0,0.7);" /></div>` : ''}
+          ${hitAnchor.image ? `<div style="margin:8px 0;text-align:center;"><img src="${(hitAnchor._imgElement && hitAnchor._imgElement.src) ? hitAnchor._imgElement.src : hitAnchor.image}" alt="Anchor Photo" style="max-width:100%;max-height:220px;border-radius:6px;border:1px solid rgba(0,229,255,0.55);object-fit:cover;display:block;margin:0 auto;box-shadow:0 3px 12px rgba(0,0,0,0.7);" /></div>` : ''}
           <div style="display:flex;flex-direction:column;gap:3px;font-size:0.72rem;">
             <div><span style="color:#94a3b8;">Target UTM:</span> <strong style="color:#f8fafc;font-family:monospace;">(${hitAnchor.dst.x.toFixed(2)}, ${hitAnchor.dst.y.toFixed(2)})</strong></div>
             <div><span style="color:#94a3b8;">Deed CAD:</span> <strong style="color:#f8fafc;font-family:monospace;">(${hitAnchor.src.x.toFixed(2)}, ${hitAnchor.src.y.toFixed(2)})</strong></div>
@@ -27931,6 +27936,16 @@ EOF`;
             const cacheSavedAt = (cachedObj._simulation_metadata && cachedObj._simulation_metadata.savedAt) || cachedObj.savedAt;
             const isCacheNewer = cacheSavedAt && diskSavedAt ? (new Date(cacheSavedAt).getTime() > new Date(diskSavedAt).getTime()) : (!diskSavedAt && !!cacheSavedAt);
             if (!loadedAnchors || isCacheNewer) {
+              // Preserve clean local image filenames from disk file rather than stale localStorage base64 strings
+              if (loadedAnchors && state.anchors && state.anchors.length > 0) {
+                const diskMap = new Map(state.anchors.map(a => [a.id, a.image]));
+                cachedObj.anchors.forEach(ca => {
+                  const dImg = diskMap.get(ca.id);
+                  if (dImg && !dImg.startsWith("data:")) {
+                    ca.image = dImg;
+                  }
+                });
+              }
               applyAnchors(cachedObj.anchors);
               if (cachedObj._simulation_metadata && typeof restoreSimulationMetadata === "function") {
                 restoreSimulationMetadata(cachedObj._simulation_metadata);
