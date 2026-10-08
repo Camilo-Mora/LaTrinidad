@@ -16137,6 +16137,10 @@ EOF`;
         if (state.anchors && Array.isArray(state.anchors)) {
           payload.anchors = state.anchors.map(cloneAnchor).filter(Boolean);
         }
+        payload.savedAt = new Date().toISOString();
+        if (typeof getSimulationMetadata === "function") {
+          payload._simulation_metadata = getSimulationMetadata();
+        }
         localStorage.setItem("georectifier_axes_anchors", JSON.stringify(payload));
       } catch (e) {
         console.warn("Could not save axes to localStorage:", e);
@@ -17134,7 +17138,17 @@ EOF`;
       }
 
       if (draggingAnchor) {
-        updateStatus(`Updated Anchor #${draggingAnchor.anc.id} position.`);
+        const anc = draggingAnchor.anc;
+        const isHist = draggingAnchor.isHist;
+        if (isHist) {
+          anc.origSrc = { x: anc.src.x, y: anc.src.y };
+        } else {
+          anc.origDst = { x: anc.dst.x, y: anc.dst.y };
+        }
+        if (state.origAnchors1073) {
+          state.origAnchors1073 = (state.anchors || []).map(cloneAnchor).filter(Boolean);
+        }
+        updateStatus(`Updated Anchor #${anc.id} position.`);
         draggingAnchor = null;
         const trueCursor = (state.measureTool && state.measureTool.active) ? "crosshair" :
                            (state.markerToolActive ? "crosshair" :
@@ -17143,6 +17157,8 @@ EOF`;
                            (state.toolMode === "pan" ? "grab" : "crosshair"))));
         histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
         trueCanvas.style.cursor = trueCursor;
+        if (typeof saveCurrentDeedState === "function") saveCurrentDeedState();
+        if (typeof saveAxesToStorage === "function") saveAxesToStorage();
         redrawAll();
         return;
       }
@@ -17613,11 +17629,24 @@ EOF`;
         trueCanvas.style.cursor = trueCursor;
       }
       if (draggingAnchor) {
+        const anc = draggingAnchor.anc;
+        const isHist = draggingAnchor.isHist;
+        if (isHist) {
+          anc.origSrc = { x: anc.src.x, y: anc.src.y };
+        } else {
+          anc.origDst = { x: anc.dst.x, y: anc.dst.y };
+        }
+        if (state.origAnchors1073) {
+          state.origAnchors1073 = (state.anchors || []).map(cloneAnchor).filter(Boolean);
+        }
+        updateStatus(`Updated Anchor #${anc.id} position.`);
         draggingAnchor = null;
         const trueCursor = (state.customPolygon && state.customPolygon.drawMode) ? "crosshair" :
                            ((state.userPolygon && state.userPolygon.drawMode) ? "crosshair" : (state.toolMode === "pan" ? "grab" : "crosshair"));
         histCanvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
         trueCanvas.style.cursor = trueCursor;
+        if (typeof saveCurrentDeedState === "function") saveCurrentDeedState();
+        if (typeof saveAxesToStorage === "function") saveAxesToStorage();
         redrawAll();
       }
     });
@@ -19040,6 +19069,16 @@ EOF`;
           updateStatus("⚠️ No anchors to save. Place anchor pairs first using 🎯 Anchor Mode.");
           return;
         }
+        state.anchors.forEach(a => {
+          a.origSrc = { x: a.src.x, y: a.src.y };
+          a.origDst = { x: a.dst.x, y: a.dst.y };
+        });
+        if (state.activeDeed === "1073") {
+          state.origAnchors1073 = state.anchors.map(cloneAnchor).filter(Boolean);
+        }
+        if (typeof saveCurrentDeedState === "function") saveCurrentDeedState();
+        redrawAll();
+
         const toSave = {
           _simulation_metadata: getSimulationMetadata(),
           anchors: state.anchors.map(a => ({
@@ -19050,6 +19089,8 @@ EOF`;
             color: a.color,
             src: { x: a.src.x, y: a.src.y },
             dst: { x: a.dst.x, y: a.dst.y },
+            origSrc: { x: a.src.x, y: a.src.y },
+            origDst: { x: a.dst.x, y: a.dst.y },
             active: a.active !== false && a.enabled !== false,
             enabled: a.active !== false && a.enabled !== false,
             axisId: a.axisId !== undefined ? a.axisId : null,
@@ -27525,11 +27566,13 @@ EOF`;
 
       // 3. Dedicated anchors for this app (anchors_georectifier.json)
       let loadedAnchors = false;
+      let diskSavedAt = null;
       try {
         const text = await fetchText("anchors_georectifier.json");
         const data = JSON.parse(text);
         if (data._simulation_metadata && typeof restoreSimulationMetadata === "function") {
           restoreSimulationMetadata(data._simulation_metadata);
+          if (data._simulation_metadata.savedAt) diskSavedAt = data._simulation_metadata.savedAt;
         }
         if (data.testAxes && Array.isArray(data.testAxes) && data.testAxes.length > 0) {
           state.testAxes = data.testAxes.map(ax => ({ ...ax }));
@@ -27547,8 +27590,9 @@ EOF`;
       }
       if (!loadedAnchors && typeof EMBEDDED_ANCHORS !== "undefined" && EMBEDDED_ANCHORS.length > 0) {
         applyAnchors(EMBEDDED_ANCHORS);
+        loadedAnchors = true;
       }
-      // Also merge/restore axes from localStorage
+      // Also merge/restore axes and anchors from localStorage
       try {
         const cached = localStorage.getItem("georectifier_axes_anchors");
         if (cached) {
@@ -27568,6 +27612,20 @@ EOF`;
             if (typeof ensureUniqueTestAxisIds === "function") ensureUniqueTestAxisIds();
             else if (typeof syncTestAxisCounter === "function") syncTestAxisCounter();
             if (typeof renderTestAxesList === "function") renderTestAxesList();
+          }
+
+          // Restore anchors from localStorage if localStorage is newer than disk file or if disk file didn't load
+          if (cachedObj.anchors && Array.isArray(cachedObj.anchors) && cachedObj.anchors.length > 0) {
+            const cacheSavedAt = (cachedObj._simulation_metadata && cachedObj._simulation_metadata.savedAt) || cachedObj.savedAt;
+            const isCacheNewer = cacheSavedAt && diskSavedAt ? (new Date(cacheSavedAt).getTime() > new Date(diskSavedAt).getTime()) : (!diskSavedAt && !!cacheSavedAt);
+            if (!loadedAnchors || isCacheNewer) {
+              applyAnchors(cachedObj.anchors);
+              if (cachedObj._simulation_metadata && typeof restoreSimulationMetadata === "function") {
+                restoreSimulationMetadata(cachedObj._simulation_metadata);
+              }
+              loadedAnchors = true;
+              console.log(`Restored newer anchors from localStorage (${cacheSavedAt || 'cached'})`);
+            }
           }
         }
       } catch (_) {}
