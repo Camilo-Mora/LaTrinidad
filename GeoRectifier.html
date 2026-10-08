@@ -5913,6 +5913,7 @@ EOF`;
       optCasaDelSolOnly: false,
       radiiSweepHistory: [],       // [ { radius, areaErr, segErr, overallErr, pct104, isWinning } ]
       radiiChartHoverIdx: -1,
+      draggingNullModelLabel: null, // { type: 'mojon'|'best', startMouseX, startMouseY, origDx, origDy }
       // Null Model Monte Carlo Simulation along 1D Test Axis
       nullModel: {
         enabled: false,
@@ -5938,7 +5939,9 @@ EOF`;
         hoverRasterCell: null,
         currentPixel: null,
         rasterGrid: null, // { axisId, stepMeters, bufferRadius, sDistances, nOffsets, cells: [][], minError, maxError, bestCell, valleyLine: [] }
-        stations: [] // [ { dist, center: {x,y}, meanError, sdError, minError, maxError, freqPct, cdfBins: Float32Array(200) } ]
+        stations: [], // [ { dist, center: {x,y}, meanError, sdError, minError, maxError, freqPct, cdfBins: Float32Array(200) } ]
+        mojonLabelOffset: null, // { dx, dy } offset in screen pixels from default badge position
+        bestLabelOffset: null   // { dx, dy } offset in screen pixels from default badge position
       },
       // Layer & Polygon Visual Styles
       styleDeedDxf: {
@@ -15531,6 +15534,29 @@ EOF`;
         return;
       }
 
+      // Priority 0: Null Model Raster Label dragging (Field Mojón and Best Optimization badges)
+      if (e.button === 0 && !spacePressed && state.nullModel && state.nullModel.enabled && state.nullModel.showRaster !== false && typeof hitTestNullModelRasterLabel === "function") {
+        const rect = trueCanvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+        const nmLabelHit = hitTestNullModelRasterLabel(sx, sy);
+        if (nmLabelHit) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          state.draggingNullModelLabel = {
+            type: nmLabelHit.type,
+            startMouseX: e.clientX,
+            startMouseY: e.clientY,
+            origDx: nmLabelHit.offX,
+            origDy: nmLabelHit.offY
+          };
+          trueCanvas.style.cursor = "grabbing";
+          const labelName = nmLabelHit.type === "mojon" ? "True Mojón" : "Best Optimization";
+          updateStatus(`🖐️ Moving ${labelName} label — drag and release anywhere (Double-click to reset).`);
+          redrawTrueCanvas();
+          return;
+        }
+      }
+
       // 0. Squeeze Deed Handles (PowerPoint-style drag)
       if (e.button === 0 && !spacePressed && state.toolMode === "pan" && state.showOverlay && state.showDeedHandles !== false) {
         const rect = trueCanvas.getBoundingClientRect();
@@ -17137,6 +17163,15 @@ EOF`;
         return;
       }
 
+      if (state.draggingNullModelLabel) {
+        const lblName = state.draggingNullModelLabel.type === "mojon" ? "True Mojón" : "Best Optimization";
+        state.draggingNullModelLabel = null;
+        updateStatus(`📍 Null Model ${lblName} label repositioned.`);
+        trueCanvas.style.cursor = "grab";
+        redrawTrueCanvas();
+        return;
+      }
+
       if (draggingAnchor) {
         const anc = draggingAnchor.anc;
         const isHist = draggingAnchor.isHist;
@@ -17293,6 +17328,24 @@ EOF`;
           trueCanvas.style.cursor = "grabbing";
           redrawTrueCanvas();
         }
+        return;
+      }
+
+      // Null Model Raster Label dragging (Mojón and Best Optimization badges)
+      if (state.draggingNullModelLabel) {
+        const dx = e.clientX - state.draggingNullModelLabel.startMouseX;
+        const dy = e.clientY - state.draggingNullModelLabel.startMouseY;
+        const newOff = {
+          dx: state.draggingNullModelLabel.origDx + dx,
+          dy: state.draggingNullModelLabel.origDy + dy
+        };
+        if (state.draggingNullModelLabel.type === "mojon") {
+          state.nullModel.mojonLabelOffset = newOff;
+        } else {
+          state.nullModel.bestLabelOffset = newOff;
+        }
+        trueCanvas.style.cursor = "grabbing";
+        redrawTrueCanvas();
         return;
       }
 
@@ -17534,6 +17587,15 @@ EOF`;
     });
 
     window.addEventListener("mouseup", () => {
+      if (state.draggingNullModelLabel) {
+        const lblName = state.draggingNullModelLabel.type === "mojon" ? "True Mojón" : "Best Optimization";
+        state.draggingNullModelLabel = null;
+        updateStatus(`📍 Null Model ${lblName} label repositioned.`);
+        trueCanvas.style.cursor = "grab";
+        redrawTrueCanvas();
+        return;
+      }
+
       if (draggingAnchorLabel) {
         const ancId = draggingAnchorLabel.anc.id;
         const isHist = draggingAnchorLabel.isHist;
@@ -17848,6 +17910,19 @@ EOF`;
         if (axisHit) {
           trueCanvas.style.cursor = "move";
           coordsBar.textContent = `📐 ${axisHit.axis.name} Handle ${axisHit.handle.toUpperCase()}: Drag to rotate/move axis (attached anchors slide with it).`;
+          const tip = document.getElementById("segment-label-tooltip");
+          if (tip && tip.style.display !== "none") tip.style.display = "none";
+          return;
+        }
+      }
+
+      // 0d. Null Model 2D Raster Label Hover (Mojón & Best Optimization badges)
+      if (!isPanning && !draggingAnchor && !state.draggingNullModelLabel && typeof hitTestNullModelRasterLabel === "function") {
+        const nmLabelHit = hitTestNullModelRasterLabel(mouseX, mouseY);
+        if (nmLabelHit) {
+          trueCanvas.style.cursor = "grab";
+          const lblName = nmLabelHit.type === "mojon" ? "★ True Mojón" : "★ Best Optimization";
+          coordsBar.textContent = `🖐️ ${lblName} label: Click and drag to move anywhere on map (Double-click to reset).`;
           const tip = document.getElementById("segment-label-tooltip");
           if (tip && tip.style.display !== "none") tip.style.display = "none";
           return;
@@ -18633,6 +18708,23 @@ EOF`;
 
       const rect = trueCanvas.getBoundingClientRect();
       const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+
+      // Double-click on Null Model Raster Label -> reset to default position
+      if (typeof hitTestNullModelRasterLabel === "function") {
+        const nmLabelHit = hitTestNullModelRasterLabel(sx, sy);
+        if (nmLabelHit) {
+          e.preventDefault();
+          if (nmLabelHit.type === "mojon") {
+            state.nullModel.mojonLabelOffset = null;
+          } else {
+            state.nullModel.bestLabelOffset = null;
+          }
+          const lblName = nmLabelHit.type === "mojon" ? "True Mojón" : "Best Optimization";
+          updateStatus(`📍 Reset ${lblName} label to default position.`);
+          redrawTrueCanvas();
+          return;
+        }
+      }
 
       // Double-click on Anchor Label -> reset to default position
       const labelHit = hitTestAnchorLabel(sx, sy, false);
@@ -25617,6 +25709,184 @@ EOF`;
       ctx.restore();
     }
 
+    function getNullModelRasterLabelBounds(type, ctx, vp, canvasH) {
+      if (!state.nullModel || !state.nullModel.enabled) return null;
+      if (state.nullModel.showRaster === false) return null;
+      const grid = state.nullModel.rasterGrid;
+      if (!grid || !grid.cells || grid.cells.length === 0) return null;
+
+      const axes = state.testAxes || [];
+      const targetAxis = axes.find(a => a.id === state.nullModel.selectedAxisId) || axes[0];
+      if (!targetAxis || targetAxis.visible === false) return null;
+
+      const geom = computeAxisGeometry(targetAxis);
+      if (geom.len <= 0.1) return null;
+
+      const ux = geom.u.x, uy = geom.u.y;
+
+      let mojonDist = state.nullModel.mojonDist;
+      if (mojonDist == null) {
+        let testAnchor = (state.anchors || []).find(a => a.axisId === targetAxis.id && a.active !== false && a.enabled !== false);
+        if (!testAnchor && (state.anchors || []).length > 0) {
+          let bestD = Infinity, bestA = null;
+          state.anchors.forEach(a => {
+            if (a.active !== false && a.enabled !== false && a.dst) {
+              const p = projectPointOnAxis(a.dst, targetAxis);
+              if (p.d < bestD) { bestD = p.d; bestA = a; }
+            }
+          });
+          testAnchor = bestA;
+        }
+        if (testAnchor && testAnchor.dst) {
+          const pr = projectPointOnAxis(testAnchor.dst, targetAxis);
+          mojonDist = pr.t * geom.len;
+          state.nullModel.mojonDist = mojonDist;
+        }
+      }
+
+      let sMojon = null;
+      let pMojon = null;
+      if (mojonDist != null && mojonDist >= -5 && mojonDist <= geom.len + 5) {
+        pMojon = {
+          x: targetAxis.p1.x + mojonDist * ux,
+          y: targetAxis.p1.y + mojonDist * uy
+        };
+        sMojon = worldToScreenGIS(pMojon, vp, canvasH);
+      }
+
+      let sBest = null;
+      let bp = null;
+      if (grid.bestCell) {
+        bp = { x: grid.bestCell.bestX || grid.bestCell.x, y: grid.bestCell.bestY || grid.bestCell.y };
+        sBest = worldToScreenGIS(bp, vp, canvasH);
+      }
+
+      let offDist = null;
+      if (sMojon && sBest && bp && pMojon) {
+        offDist = Math.hypot(bp.x - pMojon.x, bp.y - pMojon.y);
+      }
+
+      if (type === "mojon") {
+        if (!sMojon) return null;
+        ctx.save();
+        ctx.font = "bold 8.5px monospace";
+        const mojonLbl = state.nullModel.zeroOrigin ? "★ True Mojón (0m)" : `★ Mojón (${mojonDist.toFixed(1)}m)`;
+        const mw = ctx.measureText(mojonLbl).width;
+        ctx.restore();
+
+        const cardW = mw + 10;
+        const cardH = 16;
+        const off = state.nullModel.mojonLabelOffset || { dx: 0, dy: 0 };
+        const cardX = sMojon.x - cardW / 2 + off.dx;
+        const cardY = sMojon.y - 25 + off.dy;
+
+        return {
+          type: "mojon",
+          text: mojonLbl,
+          marker: sMojon,
+          cardX,
+          cardY,
+          cardW,
+          cardH,
+          offX: off.dx,
+          offY: off.dy,
+          hasCustomOffset: Boolean(state.nullModel.mojonLabelOffset)
+        };
+      }
+
+      if (type === "best") {
+        if (!sBest || !grid.bestCell) return null;
+        ctx.save();
+        ctx.font = "bold 9px monospace";
+        let bestLbl;
+        if (offDist != null) {
+          bestLbl = (offDist < 0.05) ? "(Best: off by 0 m)" : `(Best: off by +${offDist.toFixed(1)} m)`;
+        } else {
+          bestLbl = `(Best: ${grid.bestCell.error.toFixed(2)}%)`;
+        }
+        const bw = ctx.measureText(bestLbl).width;
+        ctx.restore();
+
+        const cardW = bw + 10;
+        const cardH = 16;
+        const off = state.nullModel.bestLabelOffset;
+
+        let cardX, cardY;
+        if (off && (typeof off.dx === "number" || typeof off.dy === "number")) {
+          cardX = sBest.x + 11 + (off.dx || 0);
+          cardY = sBest.y - 8 + (off.dy || 0);
+        } else {
+          let defX = sBest.x + 11;
+          let defY = sBest.y - 8;
+          // Check collision with Mojón badge if Mojón is active
+          if (sMojon) {
+            const mojonOff = state.nullModel.mojonLabelOffset || { dx: 0, dy: 0 };
+            const mojonCardW = 90;
+            const mojonCardX = sMojon.x - mojonCardW / 2 + mojonOff.dx;
+            const mojonCardY = sMojon.y - 25 + mojonOff.dy;
+            const overlapsMojon = (defX < mojonCardX + mojonCardW + 4 && defX + cardW + 4 > mojonCardX &&
+                                   defY < mojonCardY + 16 + 4 && defY + 16 + 4 > mojonCardY);
+            const coversStar = (defX <= sMojon.x + 12 && defX + cardW >= sMojon.x - 12 &&
+                                defY <= sMojon.y + 12 && defY + 16 >= sMojon.y - 12);
+            if (overlapsMojon || coversStar) {
+              if (sBest.y >= sMojon.y) {
+                defY = Math.max(sBest.y + 12, mojonCardY + 20);
+              } else {
+                defY = Math.min(sBest.y - 26, mojonCardY - 20);
+              }
+            }
+          }
+          cardX = defX;
+          cardY = defY;
+        }
+
+        return {
+          type: "best",
+          text: bestLbl,
+          marker: sBest,
+          cardX,
+          cardY,
+          cardW,
+          cardH,
+          offX: off ? (off.dx || 0) : 0,
+          offY: off ? (off.dy || 0) : 0,
+          hasCustomOffset: Boolean(state.nullModel.bestLabelOffset)
+        };
+      }
+
+      return null;
+    }
+
+    function hitTestNullModelRasterLabel(sx, sy) {
+      if (!state.nullModel || !state.nullModel.enabled || state.nullModel.showRaster === false) return null;
+      const ctx = trueCtx;
+      const vp = state.trueViewport;
+      const h = trueCanvas.height;
+      if (!ctx || !vp || !h) return null;
+
+      // Test Best badge first (rendered on top)
+      const best = getNullModelRasterLabelBounds("best", ctx, vp, h);
+      if (best) {
+        const pad = 4;
+        if (sx >= best.cardX - pad && sx <= best.cardX + best.cardW + pad &&
+            sy >= best.cardY - pad && sy <= best.cardY + best.cardH + pad) {
+          return best;
+        }
+      }
+
+      // Test Mojón badge
+      const mojon = getNullModelRasterLabelBounds("mojon", ctx, vp, h);
+      if (mojon) {
+        const pad = 4;
+        if (sx >= mojon.cardX - pad && sx <= mojon.cardX + mojon.cardW + pad &&
+            sy >= mojon.cardY - pad && sy <= mojon.cardY + mojon.cardH + pad) {
+          return mojon;
+        }
+      }
+
+      return null;
+    }
+
     function drawNullModelRasterGIS(ctx, vp, canvasH, layer = "all") {
       if (!state.nullModel || !state.nullModel.enabled) return;
       if (state.nullModel.showRaster === false) return;
@@ -25791,35 +26061,76 @@ EOF`;
         offDist = Math.hypot(bp.x - pMojon.x, bp.y - pMojon.y);
       }
 
-      // True Mojón Original Location Star Marker (★) (Prominent in front of / above axis line)
-      if (sMojon) {
+      const mojonBounds = getNullModelRasterLabelBounds("mojon", ctx, vp, canvasH);
+      const bestBounds = getNullModelRasterLabelBounds("best", ctx, vp, canvasH);
+
+      // True Mojón Original Location Star Marker (★) & Movable Badge
+      if (sMojon && mojonBounds) {
+        // Leader line if label is displaced from star marker
+        const targetX = Math.max(mojonBounds.cardX, Math.min(mojonBounds.cardX + mojonBounds.cardW, sMojon.x));
+        const targetY = Math.max(mojonBounds.cardY, Math.min(mojonBounds.cardY + mojonBounds.cardH, sMojon.y));
+        if (Math.hypot(targetX - sMojon.x, targetY - sMojon.y) >= 8) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(sMojon.x, sMojon.y);
+          ctx.lineTo(targetX, targetY);
+          ctx.strokeStyle = "#e040fb";
+          ctx.lineWidth = 1.3;
+          ctx.setLineDash([3, 2]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+        }
+
+        // Prominent Star Marker at ground position
         drawStarPolygon(ctx, sMojon.x, sMojon.y, 5, 9.5, 4.8, "#ffd700", "#7c3aed", 2.0);
 
-        ctx.font = "bold 8.5px monospace";
-        const mojonLbl = state.nullModel.zeroOrigin ? "★ True Mojón (0m)" : `★ Mojón (${mojonDist.toFixed(1)}m)`;
-        const mw = ctx.measureText(mojonLbl).width;
-        const badgeY = sMojon.y - 25; // Positioned cleanly above the axis line
-
+        // Movable Badge Card
+        ctx.save();
+        const isDraggingMojon = (state.draggingNullModelLabel && state.draggingNullModelLabel.type === "mojon");
+        if (isDraggingMojon) {
+          ctx.shadowColor = "#e040fb";
+          ctx.shadowBlur = 8;
+        }
         ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
-        ctx.strokeStyle = "#e040fb";
-        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = isDraggingMojon ? "#ffffff" : "#e040fb";
+        ctx.lineWidth = isDraggingMojon ? 1.8 : 1.2;
         ctx.beginPath();
         if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(sMojon.x - mw / 2 - 4, badgeY, mw + 8, 15, 3);
+          ctx.roundRect(mojonBounds.cardX, mojonBounds.cardY, mojonBounds.cardW, mojonBounds.cardH, 3);
         } else {
-          ctx.rect(sMojon.x - mw / 2 - 4, badgeY, mw + 8, 15);
+          ctx.rect(mojonBounds.cardX, mojonBounds.cardY, mojonBounds.cardW, mojonBounds.cardH);
         }
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = "#e040fb";
+        ctx.font = "bold 8.5px monospace";
+        ctx.fillStyle = isDraggingMojon ? "#ffffff" : "#e040fb";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(mojonLbl, sMojon.x, badgeY + 7.5);
+        ctx.fillText(mojonBounds.text, mojonBounds.cardX + mojonBounds.cardW / 2, mojonBounds.cardY + mojonBounds.cardH / 2);
+        ctx.restore();
       }
 
-      // Best global pixel marker (Single clean label to the right of the marker)
-      if (sBest && grid.bestCell) {
+      // Best global pixel marker & Movable Badge
+      if (sBest && grid.bestCell && bestBounds) {
+        // Leader line if label is displaced from beacon
+        const targetX = Math.max(bestBounds.cardX, Math.min(bestBounds.cardX + bestBounds.cardW, sBest.x));
+        const targetY = Math.max(bestBounds.cardY, Math.min(bestBounds.cardY + bestBounds.cardH, sBest.y));
+        if (Math.hypot(targetX - sBest.x, targetY - sBest.y) >= 8) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(sBest.x, sBest.y);
+          ctx.lineTo(targetX, targetY);
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 1.3;
+          ctx.setLineDash([3, 2]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+        }
+
+        // Beacon Circle at ground position
         ctx.beginPath();
         ctx.arc(sBest.x, sBest.y, 6.5, 0, Math.PI * 2);
         ctx.fillStyle = "#00e676";
@@ -25828,35 +26139,31 @@ EOF`;
         ctx.lineWidth = 2.0;
         ctx.stroke();
 
-        // Best label positioned cleanly to the right of the marker
-        let bestLbl;
-        if (offDist != null) {
-          bestLbl = (offDist < 0.05) ? "(Best: off by 0 m)" : `(Best: off by +${offDist.toFixed(1)} m)`;
-        } else {
-          bestLbl = `(Best: ${grid.bestCell.error.toFixed(2)}%)`;
+        // Movable Badge Card
+        ctx.save();
+        const isDraggingBest = (state.draggingNullModelLabel && state.draggingNullModelLabel.type === "best");
+        if (isDraggingBest) {
+          ctx.shadowColor = "#ffd600";
+          ctx.shadowBlur = 8;
         }
-
-        ctx.font = "bold 9px monospace";
-        const bw = ctx.measureText(bestLbl).width;
-        const badgeX = sBest.x + 11;
-        const badgeY = sBest.y - 8;
-
         ctx.fillStyle = "rgba(10, 16, 26, 0.94)";
-        ctx.strokeStyle = "#ffd600";
-        ctx.lineWidth = 1.0;
+        ctx.strokeStyle = isDraggingBest ? "#ffffff" : "#ffd600";
+        ctx.lineWidth = isDraggingBest ? 1.8 : 1.0;
         ctx.beginPath();
         if (typeof ctx.roundRect === "function") {
-          ctx.roundRect(badgeX, badgeY, bw + 10, 16, 3);
+          ctx.roundRect(bestBounds.cardX, bestBounds.cardY, bestBounds.cardW, bestBounds.cardH, 3);
         } else {
-          ctx.rect(badgeX, badgeY, bw + 10, 16);
+          ctx.rect(bestBounds.cardX, bestBounds.cardY, bestBounds.cardW, bestBounds.cardH);
         }
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = "#ffd600";
+        ctx.font = "bold 9px monospace";
+        ctx.fillStyle = isDraggingBest ? "#ffffff" : "#ffd600";
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(bestLbl, badgeX + 5, sBest.y);
+        ctx.fillText(bestBounds.text, bestBounds.cardX + 5, bestBounds.cardY + bestBounds.cardH / 2);
+        ctx.restore();
       }
 
       // 5. Hovered Cell highlight
@@ -26446,7 +26753,9 @@ EOF`;
       }
 
       // Non-overlapping Floating Badges for Mojón and Best Fit Simulation (at same vertical level)
-      if (probeIdx !== bestPt?.s?.idx) {
+      // If 2D raster is currently displaying, its own ground-based badges are shown (avoid duplicates)
+      const isRasterActive = Boolean(state.nullModel.showRaster !== false && state.nullModel.rasterGrid && state.nullModel.rasterGrid.bestCell);
+      if (probeIdx !== bestPt?.s?.idx && !isRasterActive) {
         ctx.save();
         ctx.font = "bold 8.5px monospace";
 
@@ -26608,6 +26917,9 @@ EOF`;
       if (axisSelect) {
         axisSelect.addEventListener("change", e => {
           state.nullModel.selectedAxisId = e.target.value ? Number(e.target.value) : null;
+          state.nullModel.mojonDist = null;
+          state.nullModel.mojonLabelOffset = null;
+          state.nullModel.bestLabelOffset = null;
           updateNullModelGridAndETA();
           drawNullModelChart();
           redrawTrueCanvas();
