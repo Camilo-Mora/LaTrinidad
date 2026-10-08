@@ -5438,8 +5438,10 @@ EOF`;
             fixedSet.add(idx);
             break;
           }
-          if (anc.dst && v.origX != null && v.origY != null) {
-            if (Math.hypot(v.origX - anc.dst.x, v.origY - anc.dst.y) <= 0.5) {
+          if (anc.dst) {
+            const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
+            const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
+            if (Math.hypot(ox - anc.dst.x, oy - anc.dst.y) <= 2.5 || Math.hypot(v.x - anc.dst.x, v.y - anc.dst.y) <= 2.5) {
               fixedSet.add(idx);
               break;
             }
@@ -5465,8 +5467,10 @@ EOF`;
         if (v.deedPt && anc.src && Math.hypot(v.deedPt.x - anc.src.x, v.deedPt.y - anc.src.y) <= 1.5) {
           return true;
         }
-        if (anc.dst && v.origX != null && v.origY != null) {
-          if (Math.hypot(v.origX - anc.dst.x, v.origY - anc.dst.y) <= 0.5) {
+        if (anc.dst) {
+          const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
+          const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
+          if (Math.hypot(ox - anc.dst.x, oy - anc.dst.y) <= 2.5 || Math.hypot(v.x - anc.dst.x, v.y - anc.dst.y) <= 2.5) {
             return true;
           }
         }
@@ -9317,10 +9321,8 @@ EOF`;
 
           // If this vertex corresponds to a fixed anchor, lock vertex strictly to deed center (0 buffer)
           if (isVertexFixedAnchor(poly, idx)) {
-            if (state.constrainPolyToDeed && state.draggingUserPolyNode !== idx) {
-              v.x = deedCenter.x;
-              v.y = deedCenter.y;
-            }
+            v.x = deedCenter.x;
+            v.y = deedCenter.y;
             const sOrig = worldToScreenGIS(deedCenter, vp, canvasH);
             const key = `${Math.round(deedCenter.x * 100)}_${Math.round(deedCenter.y * 100)}`;
             if (!drawnDeedBuffers.has(key)) {
@@ -13839,7 +13841,7 @@ EOF`;
             if (isFixed) {
               const matchingAnc = activeFixed.find(a =>
                 (Math.hypot(v.deedPt.x - a.src.x, v.deedPt.y - a.src.y) <= 1.5) ||
-                (a.dst && v.origX != null && v.origY != null && Math.hypot(v.origX - a.dst.x, v.origY - a.dst.y) <= 0.5)
+                (a.dst && Math.hypot(v.x - a.dst.x, v.y - a.dst.y) <= 2.5)
               );
               const targetX = (matchingAnc && matchingAnc.dst) ? matchingAnc.dst.x : (v.origX ?? v.x);
               const targetY = (matchingAnc && matchingAnc.dst) ? matchingAnc.dst.y : (v.origY ?? v.y);
@@ -18137,9 +18139,7 @@ EOF`;
       // 1. Node dragging active
       if (state.draggingUserPolyNode !== null) {
         const curVertex = state.userPolygon.vertices[state.draggingUserPolyNode];
-        const is1073 = (!state.activeDeed || state.activeDeed === "1073");
-        const isConstrained = is1073 && state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(state.userPolygon, state.draggingUserPolyNode);
-        const isFixed = isConstrained && isVertexFixedAnchor(state.userPolygon, state.draggingUserPolyNode);
+        const isFixed = isVertexFixedAnchor(state.userPolygon, state.draggingUserPolyNode);
 
         if (isFixed) {
           let deedAnchor = state.dragDeedAnchor;
@@ -18170,6 +18170,9 @@ EOF`;
           redrawTrueCanvas();
           return;
         }
+
+        const is1073 = (!state.activeDeed || state.activeDeed === "1073");
+        const isConstrained = is1073 && state.constrainPolyToDeed && state.optBufferRadius > 0 && vertexIsDeedConstrained(state.userPolygon, state.draggingUserPolyNode);
         const snap = (!state.constrainPolyToDeed) ? getPolygonSnapTarget(mouseX, mouseY, vp, h, state.draggingUserPolyNode) : null;
         state.currentSnapTarget = snap;
         let targetPt = snap ? {
