@@ -5335,8 +5335,8 @@ EOF`;
           x: v.x,
           y: v.y,
           deedPt: v.deedPt || null,
-          origX: v.origX != null ? v.origX : null,
-          origY: v.origY != null ? v.origY : null
+          origX: v.deedPt ? (v.origX != null ? v.origX : v.x) : v.x,
+          origY: v.deedPt ? (v.origY != null ? v.origY : v.y) : v.y
         })),
         segmentLengths: obj.segmentLengths || [],
         segmentSections: obj.segmentSections || obj.segmentNames || [],
@@ -5421,20 +5421,30 @@ EOF`;
     function getFixedVertexIndices(polygonVertices, anchors = (typeof state !== "undefined" ? state.anchors : [])) {
       const fixedSet = new Set();
       if (!polygonVertices || !anchors) return fixedSet;
-      const activeFixed = (anchors || []).filter(a => a.active !== false && a.enabled !== false && a.optimize !== true && a.axisId == null);
-      if (activeFixed.length === 0) return fixedSet;
+      let ancList = anchors;
+      if (typeof state !== "undefined" && state.activeDeed && state.activeDeed !== "1073") {
+        ancList = (state.deeds && state.deeds["1073"] && state.deeds["1073"].anchors) ? state.deeds["1073"].anchors : anchors;
+      }
+      const activeFixed = (ancList || []).filter(a => a.active !== false && a.enabled !== false && a.optimize !== true);
 
       polygonVertices.forEach((v, idx) => {
+        if (v && v.isFixed === true) {
+          fixedSet.add(idx);
+          return;
+        }
+        if (activeFixed.length === 0) return;
         for (const anc of activeFixed) {
-          if (v.deedPt && Math.hypot(v.deedPt.x - anc.src.x, v.deedPt.y - anc.src.y) <= 1.5) {
+          if (v.deedPt && anc.src && Math.hypot(v.deedPt.x - anc.src.x, v.deedPt.y - anc.src.y) <= 1.5) {
             fixedSet.add(idx);
             break;
           }
-          const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
-          const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
-          if (Math.hypot(ox - anc.dst.x, oy - anc.dst.y) <= 2.0 || Math.hypot(v.x - anc.dst.x, v.y - anc.dst.y) <= 2.0) {
-            fixedSet.add(idx);
-            break;
+          if (anc.dst) {
+            const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
+            const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
+            if (Math.hypot(ox - anc.dst.x, oy - anc.dst.y) <= 2.5 || Math.hypot(v.x - anc.dst.x, v.y - anc.dst.y) <= 2.5) {
+              fixedSet.add(idx);
+              break;
+            }
           }
         }
       });
@@ -5445,21 +5455,24 @@ EOF`;
       if (!poly || !poly.vertices) return false;
       const v = poly.vertices[i];
       if (!v) return false;
+      if (v.isFixed === true) return true;
       let ancList = anchors;
       if (typeof state !== "undefined" && state.activeDeed && state.activeDeed !== "1073" && poly === state.userPolygon) {
         ancList = (state.deeds && state.deeds["1073"] && state.deeds["1073"].anchors) ? state.deeds["1073"].anchors : [];
       }
-      const activeFixed = (ancList || []).filter(a => a.active !== false && a.enabled !== false && a.optimize !== true && a.axisId == null);
+      const activeFixed = (ancList || []).filter(a => a.active !== false && a.enabled !== false && a.optimize !== true);
       if (activeFixed.length === 0) return false;
 
       for (const anc of activeFixed) {
-        if (v.deedPt && Math.hypot(v.deedPt.x - anc.src.x, v.deedPt.y - anc.src.y) <= 1.5) {
+        if (v.deedPt && anc.src && Math.hypot(v.deedPt.x - anc.src.x, v.deedPt.y - anc.src.y) <= 1.5) {
           return true;
         }
-        const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
-        const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
-        if (Math.hypot(ox - anc.dst.x, oy - anc.dst.y) <= 2.0 || Math.hypot(v.x - anc.dst.x, v.y - anc.dst.y) <= 2.0) {
-          return true;
+        if (anc.dst) {
+          const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
+          const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
+          if (Math.hypot(ox - anc.dst.x, oy - anc.dst.y) <= 2.5 || Math.hypot(v.x - anc.dst.x, v.y - anc.dst.y) <= 2.5) {
+            return true;
+          }
         }
       }
       return false;
@@ -11655,8 +11668,8 @@ EOF`;
           x: v.x,
           y: v.y,
           deedPt: v.deedPt || null,
-          origX: v.origX != null ? v.origX : null,
-          origY: v.origY != null ? v.origY : null
+          origX: v.deedPt ? (v.origX != null ? v.origX : v.x) : v.x,
+          origY: v.deedPt ? (v.origY != null ? v.origY : v.y) : v.y
         })),
         segmentLengths: obj.segmentLengths || [],
         segmentSections: obj.segmentSections || obj.segmentNames || [],
@@ -13820,14 +13833,30 @@ EOF`;
           try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
         }
 
-        const nominalVertices = poly.vertices.map(v => {
-          if (v.deedPt && warper) {
-            const w = warper(v.deedPt);
-            return { x: w.x, y: w.y, deedPt: v.deedPt, origX: w.x, origY: w.y };
+        const activeFixed = (state.anchors || []).filter(a => a.active !== false && a.enabled !== false && a.optimize !== true);
+
+        const nominalVertices = poly.vertices.map((v, idx) => {
+          if (v.deedPt) {
+            const isFixed = isVertexFixedAnchor(poly, idx, state.anchors);
+            if (isFixed) {
+              const matchingAnc = activeFixed.find(a =>
+                (Math.hypot(v.deedPt.x - a.src.x, v.deedPt.y - a.src.y) <= 1.5) ||
+                (a.dst && Math.hypot(v.x - a.dst.x, v.y - a.dst.y) <= 2.5)
+              );
+              const targetX = (matchingAnc && matchingAnc.dst) ? matchingAnc.dst.x : (v.origX ?? v.x);
+              const targetY = (matchingAnc && matchingAnc.dst) ? matchingAnc.dst.y : (v.origY ?? v.y);
+              return { x: targetX, y: targetY, deedPt: { ...v.deedPt }, origX: targetX, origY: targetY, isFixed: true };
+            }
+            if (warper) {
+              const w = warper(v.deedPt);
+              return { x: w.x, y: w.y, deedPt: { ...v.deedPt }, origX: w.x, origY: w.y, isFixed: false };
+            }
+            return { x: v.x, y: v.y, deedPt: { ...v.deedPt }, origX: v.origX ?? v.x, origY: v.origY ?? v.y, isFixed: false };
           }
-          const ox = (v.origX !== undefined && v.origX !== null) ? v.origX : v.x;
-          const oy = (v.origY !== undefined && v.origY !== null) ? v.origY : v.y;
-          return { x: ox, y: oy, deedPt: v.deedPt ? { ...v.deedPt } : null, origX: ox, origY: oy };
+          // Non-deed vertices (survey nodes, E296, quebrada) are strictly anchored to the field and must NEVER change or revert to stale origX/origY
+          v.origX = v.x;
+          v.origY = v.y;
+          return { x: v.x, y: v.y, deedPt: null, origX: v.x, origY: v.y, isFixed: true };
         });
 
         if (optStatusBadge) {
@@ -13836,9 +13865,7 @@ EOF`;
         }
 
         setTimeout(() => {
-          const optimizableAnchors = state.anchors.filter(anc => anc.active !== false && anc.enabled !== false && anc.optimize === true);
-          const isAllAnchorsFixed = optimizableAnchors.length === 0;
-          const fixedIndices = isAllAnchorsFixed ? new Set() : getFixedVertexIndices(nominalVertices, state.anchors);
+          const fixedIndices = getFixedVertexIndices(nominalVertices, state.anchors);
 
           const result = BoundaryOptimizer.optimize({
             vertices: nominalVertices,
@@ -14299,10 +14326,10 @@ EOF`;
                 const w = candWarper(v.deedPt);
                 return { x: w.x, y: w.y, deedPt: v.deedPt, origX: w.x, origY: w.y };
               }
-              return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
+              return { x: v.x, y: v.y, deedPt: null, origX: v.x, origY: v.y, isFixed: true };
             });
 
-            const fixedIndices = isAllAnchorsFixed ? new Set() : getFixedVertexIndices(candVertices, candAnchors);
+            const fixedIndices = getFixedVertexIndices(candVertices, candAnchors);
             const optRes = BoundaryOptimizer.optimize({
               vertices: candVertices,
               segmentLengths: poly.segmentLengths,
@@ -14742,10 +14769,10 @@ EOF`;
             const w = finalWarper(v.deedPt);
             return { x: w.x, y: w.y, deedPt: v.deedPt, origX: w.x, origY: w.y };
           }
-          return { x: v.x, y: v.y, deedPt: null, origX: v.origX ?? v.x, origY: v.origY ?? v.y };
+          return { x: v.x, y: v.y, deedPt: null, origX: v.x, origY: v.y, isFixed: true };
         });
 
-        const fixedIndices = isAllAnchorsFixed ? new Set() : getFixedVertexIndices(finalNominal, state.anchors);
+        const fixedIndices = getFixedVertexIndices(finalNominal, state.anchors);
         const finalOpt = BoundaryOptimizer.optimize({
           vertices: finalNominal,
           segmentLengths: poly.segmentLengths,
@@ -18151,15 +18178,15 @@ EOF`;
         let targetPt = snap ? {
           x: snap.worldPt.x,
           y: snap.worldPt.y,
-          deedPt: snap.deedPt ? { x: snap.deedPt.x, y: snap.deedPt.y } : (curVertex ? curVertex.deedPt : null),
-          origX: curVertex ? curVertex.origX : undefined,
-          origY: curVertex ? curVertex.origY : undefined
+          deedPt: (snap.sourceType === "deed" && snap.deedPt) ? { x: snap.deedPt.x, y: snap.deedPt.y } : null,
+          origX: snap.worldPt.x,
+          origY: snap.worldPt.y
         } : {
           x: p.x,
           y: p.y,
           deedPt: curVertex ? curVertex.deedPt : null,
-          origX: curVertex ? curVertex.origX : undefined,
-          origY: curVertex ? curVertex.origY : undefined
+          origX: p.x,
+          origY: p.y
         };
 
         // If Constrain to Deed Vertices is checked: clamp polygon node inside Pen Buffer of deed vertex ONLY if vertex is deed-constrained
