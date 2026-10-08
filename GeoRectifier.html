@@ -2559,7 +2559,7 @@ Do NOT modify dormant/parked sections unless specifically requested.
                         <div class="opt-hover-body">Relaxes polygon boundary vertices within their Deed buffers for the current slider radius and current anchor positions, keeping anchors fixed.</div>
                       </div>
                     </div>
-                    <button id="btn-reset-optimization" class="btn btn-secondary btn-sm" style="justify-content:center;" title="Reset all dynamic boundary vertices back to unadjusted deed positions.">
+                    <button id="btn-reset-optimization" class="btn btn-secondary btn-sm" style="justify-content:center;" title="Reset to original settings and anchor positions.">
                       ↺ Reset
                     </button>
                   </div>
@@ -14048,29 +14048,83 @@ EOF`;
         if (state.tuningAnchorsActive) return;
         const poly = state.userPolygon;
         if (!poly || !poly.vertices) return;
+
         let count = 0;
-        poly.vertices.forEach((v, idx) => {
-          if (v.deedPt && v.origX !== undefined && v.origX !== null && vertexIsDeedConstrained(poly, idx)) {
-            v.x = v.origX;
-            v.y = v.origY;
-            count++;
-          }
-        });
-        if (state.origAnchors1073) {
-          state.anchors = (state.origAnchors1073 || []).map(cloneAnchor).filter(Boolean);
+
+        // 1. Restore Original Anchors (including their baseline positions)
+        if (state.optStartingSettings && Array.isArray(state.optStartingSettings.anchors) && state.optStartingSettings.anchors.length > 0) {
+          const existingImgMap = new Map((state.anchors || []).map(a => [a.id, a.image]));
+          state.anchors = state.optStartingSettings.anchors.map(cloneAnchor).filter(Boolean);
+          state.anchors.forEach(a => {
+            if (!a.image && existingImgMap.get(a.id)) {
+              a.image = existingImgMap.get(a.id);
+            }
+            ensureAnchorImgElement(a);
+          });
+          state.origAnchors1073 = state.anchors.map(cloneAnchor).filter(Boolean);
+          renderAnchorTable();
+        } else if (state.origAnchors1073 && state.origAnchors1073.length > 0) {
+          state.anchors = state.origAnchors1073.map(cloneAnchor).filter(Boolean);
           state.anchors.forEach(ensureAnchorImgElement);
           renderAnchorTable();
         }
+
+        // 2. Restore Original Polygon Vertices
+        if (state.optStartingSettings && Array.isArray(state.optStartingSettings.vertices) && state.optStartingSettings.vertices.length === poly.vertices.length) {
+          poly.vertices.forEach((v, idx) => {
+            const sv = state.optStartingSettings.vertices[idx];
+            if (sv) {
+              v.x = sv.x;
+              v.y = sv.y;
+              v.origX = sv.origX != null ? sv.origX : sv.x;
+              v.origY = sv.origY != null ? sv.origY : sv.y;
+              if (sv.deedPt) v.deedPt = { ...sv.deedPt };
+              count++;
+            }
+          });
+        } else {
+          poly.vertices.forEach((v, idx) => {
+            if (v.deedPt && v.origX !== undefined && v.origX !== null && vertexIsDeedConstrained(poly, idx)) {
+              v.x = v.origX;
+              v.y = v.origY;
+              count++;
+            }
+          });
+        }
+
+        // 3. Restore Buffer Radius and Balance from original settings if available
+        if (state.optStartingSettings && typeof state.optStartingSettings.optBufferRadius === "number") {
+          syncBufferRadius(state.optStartingSettings.optBufferRadius);
+        }
+        if (state.optStartingSettings && typeof state.optStartingSettings.optBalance === "number") {
+          state.optBalance = state.optStartingSettings.optBalance;
+          if (optBalanceSlider) optBalanceSlider.value = state.optBalance;
+          if (optBalanceVal) {
+            const val = state.optBalance;
+            if (val === 50) optBalanceVal.textContent = "Balanced (50/50)";
+            else if (val < 50) optBalanceVal.textContent = `Dist Focus (${100 - val}% / ${val}%)`;
+            else optBalanceVal.textContent = `Area Focus (${100 - val}% / ${val}%)`;
+          }
+        }
+
+        // 4. Ensure mode selector is set to replicate
+        const radReplicate = document.getElementById("rad-opt-replicate");
+        if (radReplicate) {
+          radReplicate.checked = true;
+          state.optRunMode = "replicate";
+        }
+
+        if (typeof saveCurrentDeedState === "function") saveCurrentDeedState();
         recomputeUserPolygonMetrics();
         rebuildSegmentInputs();
         redrawAll();
 
         if (optStatusBadge) {
-          optStatusBadge.textContent = "Reset to deed";
+          optStatusBadge.textContent = "Original settings";
           optStatusBadge.style.background = "rgba(255, 255, 255, 0.08)";
           optStatusBadge.style.color = "var(--text-muted)";
         }
-        updateStatus(`↺ Reset ${count} dynamic vertices and restored original anchor centers.`);
+        updateStatus(`↺ Reset to original settings (${count} vertices and initial anchor positions restored).`);
       });
     }
 
@@ -19622,6 +19676,10 @@ EOF`;
       "linear-gradient(90deg,#ff9100,#ff6d00)",
       "linear-gradient(90deg,#ff1744,#d50000)",
     ];
+
+    function renderAnchorTable() {
+      if (typeof updateAnalyticsUI === "function") updateAnalyticsUI();
+    }
 
     function updateAnalyticsUI() {
       const isDeed196 = (state.activeDeed === "196");
@@ -28181,6 +28239,18 @@ EOF`;
       recomputeCustomPolygonMetrics();
       updateDeedScaleDisplay();
       redrawAll();
+
+      if (!state.optStartingSettings && state.userPolygon && state.anchors && state.anchors.length > 0) {
+        state.optStartingSettings = {
+          anchors: (state.anchors || []).map(cloneAnchor).filter(Boolean),
+          vertices: (state.userPolygon.vertices || []).map(v => ({ ...v, deedPt: v.deedPt ? { ...v.deedPt } : null })),
+          optBufferRadius: typeof state.optBufferRadius === "number" ? state.optBufferRadius : 3.0,
+          optBalance: typeof state.optBalance === "number" ? state.optBalance : 50
+        };
+      }
+      if (!state.origAnchors1073 && state.anchors && state.anchors.length > 0) {
+        state.origAnchors1073 = (state.anchors || []).map(cloneAnchor).filter(Boolean);
+      }
 
       const activeAnc = getActiveAnchors().length;
       if (typeof saveCurrentDeedState === "function") {
