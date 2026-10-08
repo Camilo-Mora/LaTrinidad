@@ -14180,15 +14180,19 @@ EOF`;
         setOptSeed(activeSeed);
         updateStatus(`↺ Replicate Best: Running deterministically with seed #${activeSeed} from starting settings.`);
       } else if (runMode === "new") {
-        if (state.optStartingSettings) {
-          state.anchors = (state.optStartingSettings.anchors || []).map(cloneAnchor).filter(Boolean);
-          state.anchors.forEach(ensureAnchorImgElement);
-          poly.vertices = (state.optStartingSettings.vertices || []).map(v => ({ ...v, deedPt: v.deedPt ? { ...v.deedPt } : null }));
-        }
+        // When running a New Exploration, the user's current anchor positions,
+        // polygon, buffer and balance become the NEW baseline starting settings!
+        state.optStartingSettings = {
+          anchors: (state.anchors || []).map(cloneAnchor).filter(Boolean),
+          vertices: (poly.vertices || []).map(v => ({ ...v, deedPt: v.deedPt ? { ...v.deedPt } : null })),
+          optBufferRadius: typeof state.optBufferRadius === "number" ? state.optBufferRadius : 3.0,
+          optBalance: typeof state.optBalance === "number" ? state.optBalance : 50
+        };
+        state.origAnchors1073 = state.anchors.map(cloneAnchor).filter(Boolean);
         activeSeed = Math.floor(Math.random() * 900000) + 100000;
         state.optSeed = activeSeed;
         setOptSeed(activeSeed);
-        updateStatus(`⚡ New Exploration: Starting fresh from starting settings with new seed #${activeSeed}.`);
+        updateStatus(`⚡ New Exploration: Established new starting settings with new seed #${activeSeed}.`);
       } else if (runMode === "continue") {
         activeSeed = Math.floor(Math.random() * 900000) + 100000;
         state.optSeed = activeSeed;
