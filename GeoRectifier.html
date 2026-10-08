@@ -8943,6 +8943,99 @@ EOF`;
       return { errPct, color, badgeColor };
     }
 
+    /**
+     * Compute angle/bearing error metadata between field geometry and deed records.
+     * Supports back-azimuth direction matching when traverse order is reversed.
+     */
+    function getSegmentAngleMeta(fieldAz, rawDeedBearing) {
+      if (fieldAz == null || isNaN(fieldAz)) {
+        return {
+          fieldBearingStr: "—",
+          deedBearingStr: "—",
+          errPct: null,
+          angleDiffDeg: null,
+          color: "#94a3b8"
+        };
+      }
+      const fieldQuadAngle = (az) => {
+        let a = (az % 360 + 360) % 360;
+        if (a >= 0 && a < 90) return a;
+        if (a >= 90 && a < 180) return 180 - a;
+        if (a >= 180 && a < 270) return a - 180;
+        return 360 - a;
+      };
+
+      const formatBearingWithDeg = (az) => {
+        if (az == null || isNaN(az)) return "—";
+        let a = (az % 360 + 360) % 360;
+        const fmt = (num) => (Math.abs(num - Math.round(num)) < 0.05) ? Math.round(num).toString() : num.toFixed(1);
+        if (a >= 0 && a < 90) return `${fmt(a)}° n-e`;
+        if (a >= 90 && a < 180) return `${fmt(180 - a)}° s-e`;
+        if (a >= 180 && a < 270) return `${fmt(a - 180)}° s-w`;
+        return `${fmt(360 - a)}° n-w`;
+      };
+
+      if (!rawDeedBearing || !String(rawDeedBearing).trim()) {
+        return {
+          fieldBearingStr: formatBearingWithDeg(fieldAz),
+          deedBearingStr: "—",
+          errPct: null,
+          angleDiffDeg: null,
+          color: "#94a3b8"
+        };
+      }
+
+      const deedAz = (typeof parseDeedBearing === "function") ? parseDeedBearing(rawDeedBearing) : null;
+      if (deedAz == null) {
+        return {
+          fieldBearingStr: formatBearingWithDeg(fieldAz),
+          deedBearingStr: String(rawDeedBearing).trim(),
+          errPct: null,
+          angleDiffDeg: null,
+          color: "#94a3b8"
+        };
+      }
+
+      // Check direct vs back-azimuth (180° flip if traverse was reversed)
+      let d1 = Math.abs(fieldAz - deedAz) % 360;
+      if (d1 > 180) d1 = 360 - d1;
+      let d2 = Math.abs((fieldAz + 180) % 360 - deedAz) % 360;
+      if (d2 > 180) d2 = 360 - d2;
+
+      const isRev = d2 < d1;
+      const alignedFieldAz = isRev ? (fieldAz + 180) % 360 : fieldAz;
+      const angleDiff = isRev ? d2 : d1;
+      const deedAngle = fieldQuadAngle(deedAz);
+
+      let errPct = null;
+      if (deedAngle != null && deedAngle > 0.001) {
+        errPct = (angleDiff / deedAngle) * 100;
+      } else {
+        errPct = (angleDiff / 90) * 100;
+      }
+
+      let color = "#00e5ff";
+      if (errPct < 2.0) color = "#00e676";
+      else if (errPct < 5.0) color = "#aeea00";
+      else if (errPct < 10.0) color = "#ffd600";
+      else if (errPct < 20.0) color = "#ff9100";
+      else color = "#ff1744";
+
+      let cleanDeedStr = String(rawDeedBearing).trim();
+      if (!cleanDeedStr.includes("°")) {
+        cleanDeedStr = cleanDeedStr.replace(/^(\d+(?:\.\d+)?)\s*([sn][-_\s]?[we])$/i, "$1° $2");
+      }
+
+      return {
+        fieldBearingStr: formatBearingWithDeg(alignedFieldAz),
+        deedBearingStr: cleanDeedStr,
+        errPct,
+        angleDiffDeg: angleDiff,
+        color,
+        isReversed: isRev
+      };
+    }
+
     const SEG_GROUP_PALETTE = [
       "#00e5ff", // Bright Cyan
       "#ffd600", // Vibrant Yellow
@@ -17897,6 +17990,13 @@ EOF`;
         const deedLen = (poly.segmentLengths && poly.segmentLengths[i] != null && poly.segmentLengths[i] > 0) ? Number(poly.segmentLengths[i]) : null;
         const meta = getSegmentErrorMeta(calcLen, deedLen);
 
+        // Angle & bearing calculation
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const fieldAz = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+        const rawBearing = (poly.segmentBearings && poly.segmentBearings[i]) ? String(poly.segmentBearings[i]).trim() : null;
+        const angleMeta = getSegmentAngleMeta(fieldAz, rawBearing);
+
         // Line 1: Origin from Sección (E296, E1073, La Quebrada, etc.)
         const rawSec = (poly.segmentSections && poly.segmentSections[i]) ? String(poly.segmentSections[i]).trim() : "";
         let originStr = "Lindero Reconstruido";
@@ -17914,37 +18014,59 @@ EOF`;
         const rawPart = (poly.segmentParts && poly.segmentParts[i]) ? String(poly.segmentParts[i]).trim() : "";
         const segIdStr = `Segment #: ${rawPart || (i + 1)}`;
 
-        // Line 3: Distancia reportada
-        const deedValStr = deedLen != null ? `${deedLen.toFixed(2)} m` : "Sin dato en escritura";
+        // Distance row values
+        const distFieldStr = `${calcLen.toFixed(2)} m`;
+        const distDeedStr = deedLen != null ? `${deedLen.toFixed(2)} m` : "—";
+        const distErrStr = meta.errPct != null ? `${meta.errPct.toFixed(2)}%` : "—";
+        const distErrColor = meta.color || "#00e5ff";
 
-        // Line 4: Distancia en campo
-        const fieldValStr = `${calcLen.toFixed(2)} m`;
-
-        // Line 5: Percent error
-        const errValStr = meta.errPct != null ? `${meta.errPct.toFixed(2)}%` : "—";
-        const errColor = meta.color || "#00e5ff";
+        // Angle row values
+        const angleFieldStr = angleMeta.fieldBearingStr;
+        const angleDeedStr = angleMeta.deedBearingStr;
+        const angleErrStr = angleMeta.errPct != null ? `${angleMeta.errPct.toFixed(2)}%` : "—";
+        const angleErrColor = angleMeta.color || "#00e5ff";
+        const angleDiffSub = (angleMeta.angleDiffDeg != null && angleMeta.errPct != null) ? ` <span style="font-size:0.62rem;opacity:0.8;font-weight:normal;" title="Diferencia angular: ${angleMeta.angleDiffDeg.toFixed(2)}°">(${angleMeta.angleDiffDeg.toFixed(1)}°)</span>` : "";
 
         labelTooltipEl.innerHTML = `
-          <div style="font-weight:700;color:var(--accent-cyan);font-size:0.75rem;margin-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="font-weight:700;color:var(--accent-cyan);font-size:0.75rem;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);padding-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <span>📐 ${originStr}</span>
+            <span style="color:#94a3b8;font-size:0.70rem;font-weight:600;">${segIdStr}</span>
           </div>
-          <div style="display:flex;flex-direction:column;gap:3px;font-size:0.72rem;line-height:1.5;">
-            <div><span style="color:#94a3b8;">${segIdStr}</span></div>
-            <div><span style="color:#94a3b8;">Distancia reportada:</span> <strong style="color:#f8fafc;font-family:monospace;">${deedValStr}</strong></div>
-            <div><span style="color:#94a3b8;">Distancia en campo:</span> <strong style="color:#00e5ff;font-family:monospace;">${fieldValStr}</strong></div>
-            <div><span style="color:#94a3b8;">Percent error:</span> <strong style="color:${errColor};font-family:monospace;font-size:0.76rem;">${errValStr}</strong></div>
-          </div>
+          <table style="border-collapse:collapse;width:100%;font-size:0.71rem;line-height:1.45;font-family:sans-serif;">
+            <thead>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.14);color:#94a3b8;font-size:0.67rem;text-transform:uppercase;letter-spacing:0.4px;">
+                <th style="text-align:left;padding:1px 8px 3px 0;font-weight:600;"></th>
+                <th style="text-align:right;padding:1px 8px 3px 8px;font-weight:600;">Field</th>
+                <th style="text-align:right;padding:1px 8px 3px 8px;font-weight:600;">Deed</th>
+                <th style="text-align:right;padding:1px 0 3px 8px;font-weight:600;">%err</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                <td style="padding:4px 8px 4px 0;color:#94a3b8;white-space:nowrap;font-weight:500;">Distance</td>
+                <td style="padding:4px 8px;text-align:right;color:#00e5ff;font-family:monospace;font-weight:600;white-space:nowrap;">${distFieldStr}</td>
+                <td style="padding:4px 8px;text-align:right;color:#f8fafc;font-family:monospace;white-space:nowrap;">${distDeedStr}</td>
+                <td style="padding:4px 0 4px 8px;text-align:right;color:${distErrColor};font-family:monospace;font-weight:700;white-space:nowrap;">${distErrStr}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 8px 4px 0;color:#94a3b8;white-space:nowrap;font-weight:500;">Angle</td>
+                <td style="padding:4px 8px;text-align:right;color:#00e5ff;font-family:monospace;font-weight:600;white-space:nowrap;">${angleFieldStr}</td>
+                <td style="padding:4px 8px;text-align:right;color:#f8fafc;font-family:monospace;white-space:nowrap;">${angleDeedStr}</td>
+                <td style="padding:4px 0 4px 8px;text-align:right;color:${angleErrColor};font-family:monospace;font-weight:700;white-space:nowrap;">${angleErrStr}${angleDiffSub}</td>
+              </tr>
+            </tbody>
+          </table>
         `;
         labelTooltipEl.style.display = "block";
         const cw = trueCanvas.width || trueCanvas.clientWidth;
         const ch = trueCanvas.height || trueCanvas.clientHeight;
         let leftPx = mouseX + 14;
         let topPx = mouseY + 14;
-        if (leftPx + 280 > cw) leftPx = mouseX - 290;
-        if (topPx + 120 > ch) topPx = mouseY - 125;
+        if (leftPx + 300 > cw) leftPx = mouseX - 310;
+        if (topPx + 120 > ch) topPx = mouseY - 130;
         labelTooltipEl.style.left = `${Math.max(10, leftPx)}px`;
         labelTooltipEl.style.top = `${Math.max(10, topPx)}px`;
-        coordsBar.textContent = `${originStr} | ${segIdStr} | Rep: ${deedValStr} | Campo: ${fieldValStr} | Error: ${errValStr}`;
+        coordsBar.textContent = `${originStr} | ${segIdStr} | Dist: Campo ${distFieldStr}, Doc ${distDeedStr}, Err ${distErrStr} | Ang: Campo ${angleFieldStr}, Doc ${angleDeedStr}, Err ${angleErrStr}`;
         return;
       } else if (labelTooltipEl && labelTooltipEl.style.display !== "none") {
         labelTooltipEl.style.display = "none";
