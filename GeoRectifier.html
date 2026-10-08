@@ -2563,6 +2563,24 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       ↺ Reset
                     </button>
                   </div>
+                  <!-- Optimizer Mode Selector (Replicate Best vs New Exploration vs Continue) -->
+                  <div id="opt-mode-group" style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.2);margin-top:2px;font-size:0.69rem;">
+                    <span style="color:var(--accent-cyan);font-weight:700;">Mode:</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <label style="display:flex;align-items:center;gap:3px;cursor:pointer;margin:0;" title="Replicate the exact simulation that produced the current best deed (uses saved seed and starting settings)">
+                        <input type="radio" name="opt-run-mode" id="rad-opt-replicate" value="replicate" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:12px;height:12px;">
+                        <span style="color:#00e676;font-weight:700;">Replicate Best</span>
+                      </label>
+                      <label style="display:flex;align-items:center;gap:3px;cursor:pointer;margin:0;" title="Run a fresh simulation from baseline settings with a new random seed">
+                        <input type="radio" name="opt-run-mode" id="rad-opt-new" value="new" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:12px;height:12px;">
+                        <span style="color:var(--text-main);">New Exploration</span>
+                      </label>
+                      <label style="display:flex;align-items:center;gap:3px;cursor:pointer;margin:0;" title="Continue optimizing from the current/last iteration state">
+                        <input type="radio" name="opt-run-mode" id="rad-opt-continue" value="continue" style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;width:12px;height:12px;">
+                        <span style="color:var(--text-main);">Continue</span>
+                      </label>
+                    </div>
+                  </div>
                   <div style="display:flex;gap:6px;align-items:center;">
                     <button id="btn-autotune-anchors" class="btn btn-sm" style="flex:1;justify-content:center;background:linear-gradient(135deg, #00b0ff, #7c4dff);color:#fff;border:none;font-weight:600;box-shadow:0 2px 8px rgba(0,176,255,0.25);">
                       ⚡ Search Across Radii
@@ -5738,6 +5756,22 @@ EOF`;
       }
     }
 
+    // Deterministic Seeded PRNG for reproducible optimizations (Mulberry32)
+    let _optSeed = 84920;
+    function setOptSeed(s) {
+      const num = Number(s);
+      _optSeed = (!isNaN(num) && num > 0) ? (num >>> 0) : 84920;
+    }
+    function getOptSeed() {
+      return _optSeed;
+    }
+    function optRandom() {
+      let t = _optSeed += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+
     // [/SECTION: JS_BOUNDARY_OPTIMIZER_ENGINE]
 
     // ============================================================================
@@ -5877,6 +5911,10 @@ EOF`;
       tuningAnchorsActive: false,
       tuningCancelRequested: false,
       tuningAnchorCenters: null,   // Active exploration centers during auto-tune simulation
+      optRunMode: "replicate",     // 'replicate' | 'new' | 'continue'
+      optSeed: 84920,              // Winning / reproducible simulation seed
+      optStartingSettings: null,   // Baseline clean setup { anchors, vertices, optBufferRadius, optBalance }
+      optBestSolution: null,       // Winning simulation manifest { seed, winningR, candAnchors, loss, overallErr, pct104 }
       // Anchor field vertex constraint
       constrainAnchorsToField: true,
       // Polygon deed vertex constraint
@@ -14056,6 +14094,54 @@ EOF`;
         return;
       }
 
+      // ── OPTIMIZER MODE & SEED SELECTION ──
+      const runMode = document.querySelector('input[name="opt-run-mode"]:checked')?.value || state.optRunMode || "replicate";
+      state.optRunMode = runMode;
+
+      // Always capture initial configuration as starting settings if not already present
+      if (!state.optStartingSettings) {
+        state.optStartingSettings = {
+          anchors: (state.anchors || []).map(cloneAnchor).filter(Boolean),
+          vertices: (poly.vertices || []).map(v => ({ ...v, deedPt: v.deedPt ? { ...v.deedPt } : null })),
+          optBufferRadius: typeof state.optBufferRadius === "number" ? state.optBufferRadius : 3.0,
+          optBalance: typeof state.optBalance === "number" ? state.optBalance : 50
+        };
+      }
+
+      // Configure anchors, polygon and seed according to selected mode
+      let activeSeed = state.optSeed || 84920;
+      if (runMode === "replicate") {
+        if (state.optStartingSettings) {
+          state.anchors = (state.optStartingSettings.anchors || []).map(cloneAnchor).filter(Boolean);
+          state.anchors.forEach(ensureAnchorImgElement);
+          poly.vertices = (state.optStartingSettings.vertices || []).map(v => ({ ...v, deedPt: v.deedPt ? { ...v.deedPt } : null }));
+          if (typeof state.optStartingSettings.optBufferRadius === "number") {
+            state.optBufferRadius = state.optStartingSettings.optBufferRadius;
+          }
+          if (typeof state.optStartingSettings.optBalance === "number") {
+            state.optBalance = state.optStartingSettings.optBalance;
+          }
+        }
+        activeSeed = state.optBestSolution?.seed || state.optSeed || 84920;
+        setOptSeed(activeSeed);
+        updateStatus(`↺ Replicate Best: Running deterministically with seed #${activeSeed} from starting settings.`);
+      } else if (runMode === "new") {
+        if (state.optStartingSettings) {
+          state.anchors = (state.optStartingSettings.anchors || []).map(cloneAnchor).filter(Boolean);
+          state.anchors.forEach(ensureAnchorImgElement);
+          poly.vertices = (state.optStartingSettings.vertices || []).map(v => ({ ...v, deedPt: v.deedPt ? { ...v.deedPt } : null }));
+        }
+        activeSeed = Math.floor(Math.random() * 900000) + 100000;
+        state.optSeed = activeSeed;
+        setOptSeed(activeSeed);
+        updateStatus(`⚡ New Exploration: Starting fresh from starting settings with new seed #${activeSeed}.`);
+      } else if (runMode === "continue") {
+        activeSeed = Math.floor(Math.random() * 900000) + 100000;
+        state.optSeed = activeSeed;
+        setOptSeed(activeSeed);
+        updateStatus(`⚡ Continue / Refine: Starting from current iteration state with new seed #${activeSeed}.`);
+      }
+
       const M = state.anchors.length;
       const chkAutoMin = document.getElementById("chk-auto-min-buffer");
       const isAutoMin = chkAutoMin ? chkAutoMin.checked : false;
@@ -14168,12 +14254,12 @@ EOF`;
         const axInfo = anchorAxisInfo[ancIdx];
         if (axInfo && useAxisOnly) {
           // Constrained to 1D along axis: displacement within [-1, +1] normalized to buffer currentR
-          const u = (Math.random() * 2 - 1);
+          const u = (optRandom() * 2 - 1);
           return { u, v: 0, isAxis1D: true };
         }
         // 2D disk buffer sampling around the point where the anchor is sitting
-        const theta = Math.random() * 2 * Math.PI;
-        const rad = Math.sqrt(Math.random());
+        const theta = optRandom() * 2 * Math.PI;
+        const rad = Math.sqrt(optRandom());
         return { u: rad * Math.cos(theta), v: rad * Math.sin(theta) };
       }
 
@@ -14707,9 +14793,9 @@ EOF`;
 
               let r1, r2, r3;
               let att1 = 0, att2 = 0, att3 = 0;
-              do { r1 = Math.floor(Math.random() * POP_SIZE); att1++; } while (r1 === i && att1 < 100);
-              do { r2 = Math.floor(Math.random() * POP_SIZE); att2++; } while ((r2 === i || r2 === r1) && att2 < 100);
-              do { r3 = Math.floor(Math.random() * POP_SIZE); att3++; } while ((r3 === i || r3 === r1 || r3 === r2) && att3 < 100);
+              do { r1 = Math.floor(optRandom() * POP_SIZE); att1++; } while (r1 === i && att1 < 100);
+              do { r2 = Math.floor(optRandom() * POP_SIZE); att2++; } while ((r2 === i || r2 === r1) && att2 < 100);
+              do { r3 = Math.floor(optRandom() * POP_SIZE); att3++; } while ((r3 === i || r3 === r1 || r3 === r2) && att3 < 100);
 
               const F = 0.65;
               const CR = 0.85;
@@ -14722,15 +14808,15 @@ EOF`;
                   trialOffsets.push(sampleCandidateOffset(k));
                 } else if (axInfo && useAxisOnly) {
                   let u;
-                  if (Math.random() < CR || k === 0) {
+                  if (optRandom() < CR || k === 0) {
                     const u1 = population[r1].offsets[k].u ?? 0;
                     const u2 = population[r2].offsets[k].u ?? 0;
                     const u3 = population[r3].offsets[k].u ?? 0;
                     const uBest = globalBest.offsets[k].u ?? 0;
                     const uCur = population[i].offsets[k].u ?? 0;
                     u = u1 + F * (u2 - u3) + 0.15 * (uBest - uCur);
-                    if (Math.random() < 0.15) {
-                      u += (Math.random() - 0.5) * 0.20;
+                    if (optRandom() < 0.15) {
+                      u += (optRandom() - 0.5) * 0.20;
                     }
                   } else {
                     u = population[i].offsets[k].u ?? 0;
@@ -14739,14 +14825,14 @@ EOF`;
                   trialOffsets.push({ u, v: 0, isAxis1D: true });
                 } else {
                   let u, v;
-                  if (Math.random() < CR || k === 0) {
+                  if (optRandom() < CR || k === 0) {
                     u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
                         + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
                     v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
                         + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
-                    if (Math.random() < 0.12) {
-                      u += (Math.random() - 0.5) * 0.18;
-                      v += (Math.random() - 0.5) * 0.18;
+                    if (optRandom() < 0.12) {
+                      u += (optRandom() - 0.5) * 0.18;
+                      v += (optRandom() - 0.5) * 0.18;
                     }
                   } else {
                     u = population[i].offsets[k].u;
@@ -14920,6 +15006,24 @@ EOF`;
           radiiWinBadge.style.display = "inline-block";
         }
         if (typeof drawRadiiSweepChart === "function") drawRadiiSweepChart();
+      }
+
+      // Record winning best solution manifest for auditability and reproducibility
+      if (globalOverallBest) {
+        state.optBestSolution = {
+          seed: getOptSeed(),
+          winningR: winningR,
+          candAnchors: (state.anchors || []).map(cloneAnchor).filter(Boolean),
+          loss: globalOverallBest.loss,
+          overallErr: typeof globalOverallBest.overallErr === "number" ? globalOverallBest.overallErr : 0,
+          pct104: typeof globalOverallBest.pct104 === "number" ? globalOverallBest.pct104 : 0
+        };
+        state.optSeed = state.optBestSolution.seed;
+        const radReplicate = document.getElementById("rad-opt-replicate");
+        if (radReplicate) {
+          radReplicate.checked = true;
+          state.optRunMode = "replicate";
+        }
       }
 
       // Cleanup state & UI
@@ -15308,6 +15412,23 @@ EOF`;
       });
     }
 
+    // Attach listeners to Optimizer Mode radio buttons
+    document.querySelectorAll('input[name="opt-run-mode"]').forEach(radio => {
+      radio.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          state.optRunMode = e.target.value;
+          if (e.target.value === "replicate") {
+            const seedVal = state.optBestSolution?.seed || state.optSeed || 84920;
+            updateStatus(`Mode set to 'Replicate Best' (Seed #${seedVal}).`);
+          } else if (e.target.value === "new") {
+            updateStatus("Mode set to 'New Exploration' (will run from baseline settings with a new random seed).");
+          } else if (e.target.value === "continue") {
+            updateStatus("Mode set to 'Continue / Refine' (will continue from current state).");
+          }
+        }
+      });
+    });
+
     // ── Legal Help Modal Event Handlers ──
     // [/SECTION: JS_BOUNDARY_OPTIMIZER_UI]
 
@@ -15338,12 +15459,46 @@ EOF`;
     // ── Simulation Metadata & Save Companion Reminder Modal ──
     function getSimulationMetadata() {
       const chkOptIgacFilter = document.getElementById("chk-opt-igac-filter");
+      const currentMode = document.querySelector('input[name="opt-run-mode"]:checked')?.value || state.optRunMode || "replicate";
       return {
         optBufferRadius: typeof state.optBufferRadius === "number" ? state.optBufferRadius : 3.0,
         algorithm: state.algorithm || "SIMILARITY",
         optBalance: typeof state.optBalance === "number" ? state.optBalance : 50,
         optIgacFilter: chkOptIgacFilter ? chkOptIgacFilter.checked : true,
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
+        // Provenance & Deterministic Reproducibility
+        seed: state.optBestSolution?.seed || state.optSeed || 84920,
+        mode: currentMode,
+        originalSettings: state.optStartingSettings ? {
+          anchors: (state.optStartingSettings.anchors || []).map(a => ({
+            id: a.id,
+            name: a.name,
+            src: { x: a.src.x, y: a.src.y },
+            dst: { x: a.dst.x, y: a.dst.y },
+            optimize: a.optimize,
+            anchorType: a.anchorType,
+            axisId: a.axisId,
+            axisT: a.axisT,
+            active: a.active,
+            enabled: a.enabled
+          })),
+          vertices: (state.optStartingSettings.vertices || []).map(v => ({
+            x: v.x,
+            y: v.y,
+            deedPt: v.deedPt ? { x: v.deedPt.x, y: v.deedPt.y } : null,
+            origX: v.origX,
+            origY: v.origY
+          })),
+          optBufferRadius: state.optStartingSettings.optBufferRadius,
+          optBalance: state.optStartingSettings.optBalance
+        } : null,
+        bestSolution: state.optBestSolution ? {
+          seed: state.optBestSolution.seed,
+          winningR: state.optBestSolution.winningR,
+          loss: state.optBestSolution.loss,
+          overallErr: state.optBestSolution.overallErr,
+          pct104: state.optBestSolution.pct104
+        } : null
       };
     }
 
@@ -15392,6 +15547,28 @@ EOF`;
         const chk = document.getElementById("chk-opt-igac-filter");
         if (chk) chk.checked = metadata.optIgacFilter;
         restored.push(`Filtro IGAC: ${metadata.optIgacFilter ? "ON" : "OFF"}`);
+      }
+      if (metadata.seed != null) {
+        state.optSeed = metadata.seed;
+        setOptSeed(metadata.seed);
+        restored.push(`Seed #${metadata.seed}`);
+      }
+      if (metadata.originalSettings && typeof metadata.originalSettings === "object") {
+        state.optStartingSettings = {
+          anchors: (metadata.originalSettings.anchors || []).map(cloneAnchor).filter(Boolean),
+          vertices: (metadata.originalSettings.vertices || []).map(v => ({ ...v, deedPt: v.deedPt ? { ...v.deedPt } : null })),
+          optBufferRadius: metadata.originalSettings.optBufferRadius,
+          optBalance: metadata.originalSettings.optBalance
+        };
+        restored.push("Configuración inicial (Starting settings) guardada");
+      }
+      if (metadata.bestSolution && typeof metadata.bestSolution === "object") {
+        state.optBestSolution = { ...metadata.bestSolution };
+      }
+      const radReplicate = document.getElementById("rad-opt-replicate");
+      if (radReplicate) {
+        radReplicate.checked = true;
+        state.optRunMode = "replicate";
       }
       return restored;
     }
