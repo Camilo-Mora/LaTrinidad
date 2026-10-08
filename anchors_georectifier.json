@@ -4,7 +4,7 @@
     "algorithm": "TPS",
     "optBalance": 50,
     "optIgacFilter": true,
-    "savedAt": "2026-10-07T22:31:00.157Z"
+    "savedAt": "2026-10-08T02:08:23.577Z"
   },
   "anchors": [
     {
@@ -43,8 +43,8 @@
       },
       "active": true,
       "enabled": true,
-      "axisId": null,
-      "axisT": null,
+      "axisId": 9,
+      "axisT": 0.16666666666510568,
       "optimize": true
     },
     {
