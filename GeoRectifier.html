@@ -3024,6 +3024,24 @@ Do NOT modify dormant/parked sections unless specifically requested.
                       <span>👁️ Simulación (Etiquetas Campo / Escritura)</span>
                     </label>
                   </div>
+                  <!-- 196 Optimizer Mode Selector -->
+                  <div id="opt-mode-group-196" style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border-radius:4px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,23,68,0.3);margin-bottom:4px;font-size:0.69rem;">
+                    <span style="color:#ff1744;font-weight:700;">Mode:</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <label style="display:flex;align-items:center;gap:3px;cursor:pointer;margin:0;" title="Replicar exactamente la simulación que produjo la mejor solución guardada (usa semilla y configuración inicial guardadas)">
+                        <input type="radio" name="opt-run-mode-196" id="rad-196-replicate" value="replicate" checked style="accent-color:#ff1744;cursor:pointer;margin:0;width:12px;height:12px;">
+                        <span style="color:#00e676;font-weight:700;">Replicate Best</span>
+                      </label>
+                      <label style="display:flex;align-items:center;gap:3px;cursor:pointer;margin:0;" title="Nueva exploración desde la configuración base con semilla aleatoria fresca">
+                        <input type="radio" name="opt-run-mode-196" id="rad-196-new" value="new" style="accent-color:#ff1744;cursor:pointer;margin:0;width:12px;height:12px;">
+                        <span style="color:var(--text-main);">New Exploration</span>
+                      </label>
+                      <label style="display:flex;align-items:center;gap:3px;cursor:pointer;margin:0;" title="Continuar optimizando desde el estado actual/última iteración">
+                        <input type="radio" name="opt-run-mode-196" id="rad-196-continue" value="continue" style="accent-color:#ff1744;cursor:pointer;margin:0;width:12px;height:12px;">
+                        <span style="color:var(--text-main);">Continue</span>
+                      </label>
+                    </div>
+                  </div>
                   <button id="btn-optimize-196" class="btn btn-primary" style="background:linear-gradient(135deg,#ff1744,#d500f9);border-color:#ff1744;color:#fff;font-weight:800;justify-content:center;padding:7px 12px;box-shadow:0 0 12px rgba(255,23,68,0.35);">
                     ⚡ Run Optimization
                   </button>
@@ -3034,6 +3052,14 @@ Do NOT modify dormant/parked sections unless specifically requested.
                     <button id="btn-reset-196" class="btn btn-secondary btn-sm" style="border-color:rgba(255,255,255,0.2);color:var(--text-muted);justify-content:center;">
                       ↺ Reset
                     </button>
+                  </div>
+                  <div style="display:flex;gap:6px;margin-top:2px;">
+                    <button id="btn-save-196-json" class="btn btn-secondary btn-sm" style="flex:1;background:rgba(255,23,68,0.12);border-color:rgba(255,23,68,0.4);color:#ff6d94;font-weight:700;justify-content:center;font-size:0.70rem;" title="Guardar la mejor solución optimizada como JSON para reutilizar en futuras sesiones">
+                      💾 Save Best JSON
+                    </button>
+                    <label for="input-196-json-file" style="flex:1;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0;padding:3px 8px;font-size:0.70rem;border-radius:4px;background:rgba(255,23,68,0.12);border:1px solid rgba(255,23,68,0.4);color:#ff6d94;font-weight:700;" title="Cargar una solución optimizada guardada previamente">
+                      📂 Load Best JSON<input type="file" id="input-196-json-file" accept=".json" style="display:none;">
+                    </label>
                   </div>
                 </div>
 
@@ -5858,6 +5884,11 @@ EOF`;
       pendingSource: null,
       algorithm: "SIMILARITY", // Default: Helmert = the PowerPoint method
       toolMode: "pan",
+      // Escritura 196 optimizer persistence
+      optBestSolution196: null,       // Best solution object from last successful 196 optimization run
+      optStartingSettings196: null,   // Baseline snapshot taken at start of 196 "New Exploration" run
+      opt196RunMode: "replicate",     // Current mode: "replicate" | "new" | "continue"
+      opt196Seed: 84920,              // Seed used for the best 196 solution (Mulberry32 PRNG)
       showOverlay: true,
       showGeoTiff: true,
       showWarpedPdf: true,
@@ -16505,6 +16536,24 @@ EOF`;
             } catch (e) {
               console.warn("Failed loading anchors_196.json:", e);
             }
+            // Auto-load best optimized solution if it was previously saved
+            try {
+              const solText = await fetchText("escritura_196_optimized.json");
+              const sol = JSON.parse(solText);
+              if (sol && sol.fieldJimmy && sol.fieldJimmy.length > 0) {
+                applyBestSolution196(sol);
+                state.optBestSolution196 = sol;
+                state.opt196Seed = sol.seed || 84920;
+                setOptSeed(state.opt196Seed);
+                // Keep starting settings in sync so Reset works correctly
+                state.optStartingSettings196 = {
+                  histEntities: JSON.parse(JSON.stringify(state.histEntities)),
+                  anchors: (state.anchors || []).map(cloneAnchor).filter(Boolean)
+                };
+              }
+            } catch (e) {
+              // No saved solution or fetch failed — show baseline (normal first load)
+            }
             try {
               const blob = await fetchBlob("Mapa196_ErrorCasaDelSol.pdf");
               await loadPdfFromBlob(blob);
@@ -20252,6 +20301,62 @@ EOF`;
       }
     }
 
+    /**
+     * applyBestSolution196(sol)
+     * Applies a saved best-solution object to state.histEntities and anchors,
+     * then refreshes metrics and canvas. Called on load (switchDeed) and when
+     * the user manually loads a JSON file.
+     */
+    function applyBestSolution196(sol) {
+      if (!sol) return;
+      // Apply relaxed fieldPoints to the three entity slots
+      const jimmyLayer = (sol.layerJimmy || "jimmy").toLowerCase();
+      const pedroLayer = (sol.layerPedro || "pedro").toLowerCase();
+      const nachoLayer = (sol.layerNacho || "nacho").toLowerCase();
+      (state.histEntities || []).forEach(ent => {
+        const lyr = (ent.layer || "").toLowerCase();
+        if (lyr.includes(jimmyLayer) && sol.fieldJimmy && sol.fieldJimmy.length > 0) {
+          ent.fieldPoints = sol.fieldJimmy.map(p => ({ x: p.x, y: p.y }));
+        } else if (lyr.includes(pedroLayer) && sol.fieldPedro && sol.fieldPedro.length > 0) {
+          ent.fieldPoints = sol.fieldPedro.map(p => ({ x: p.x, y: p.y }));
+        } else if (lyr.includes(nachoLayer) && sol.fieldNacho && sol.fieldNacho.length > 0) {
+          ent.fieldPoints = sol.fieldNacho.map(p => ({ x: p.x, y: p.y }));
+        }
+      });
+      // Restore anchor positions if present
+      if (sol.anchors && Array.isArray(sol.anchors) && sol.anchors.length > 0) {
+        sol.anchors.forEach((sa, idx) => {
+          if (state.anchors[idx]) {
+            if (sa.dst) { state.anchors[idx].dst = { x: sa.dst.x, y: sa.dst.y }; }
+            if (sa.src) { state.anchors[idx].src = { x: sa.src.x, y: sa.src.y }; }
+            if (sa.axisT !== undefined) { state.anchors[idx].axisT = sa.axisT; }
+          }
+        });
+      }
+      // Update UI
+      recompute196Metrics();
+      if (typeof renderAnchorTable === "function") renderAnchorTable();
+      redrawAll();
+      // Update status badge
+      const badgeOptStatus196 = document.getElementById("badge-opt-status-196");
+      if (badgeOptStatus196) {
+        const lossStr = (sol.loss !== undefined) ? `${(+sol.loss).toFixed(2)}%` : "—";
+        badgeOptStatus196.textContent = `✓ Best Loaded (${lossStr})`;
+        badgeOptStatus196.style.background = "rgba(0,230,118,0.22)";
+        badgeOptStatus196.style.color = "#00e676";
+      }
+      const statusOpt = document.getElementById("status-opt-196");
+      if (statusOpt) {
+        const aJ  = sol.aJ !== undefined ? (+sol.aJ).toFixed(2) : "?";
+        const aP  = sol.aP !== undefined ? (+sol.aP).toFixed(2) : "?";
+        const r   = sol.winningR !== undefined ? `±${(+sol.winningR).toFixed(1)}m` : "?";
+        statusOpt.innerHTML = `✅ <strong>Mejor solución cargada</strong> (${r}):<br>• Lote Jimmy: <strong>${aJ} m²</strong><br>• Lote Pedro: <strong>${aP} m²</strong>`;
+      }
+      // Switch mode radio to "replicate" so next run reproduces this exact result
+      const radReplicate = document.getElementById("rad-196-replicate");
+      if (radReplicate) radReplicate.checked = true;
+    }
+
     async function optimize196ParcelAreas() {
       if (state.tuning196Active) {
         state.tuning196CancelRequested = true;
@@ -20267,17 +20372,52 @@ EOF`;
         await switchDeed("196", null);
       }
 
+
       if (!state.histEntities || state.histEntities.length === 0) {
         alert("No se han cargado las entidades de la Escritura 196.");
         return;
       }
 
-      // Save initial baseline geometry and anchors if not already stored
-      if (!state.origHistEntities196) {
-        state.origHistEntities196 = JSON.parse(JSON.stringify(state.histEntities));
-      }
-      if (!state.origAnchors196) {
-        state.origAnchors196 = (state.anchors || []).map(cloneAnchor).filter(Boolean);
+      // ── Mode-aware baseline / seed setup ──────────────────────────────
+      const runMode196 = document.querySelector('input[name="opt-run-mode-196"]:checked')?.value || "new";
+      state.opt196RunMode = runMode196;
+
+      if (runMode196 === "replicate") {
+        // Restore the exact starting snapshot and seed used for the best result
+        if (state.optStartingSettings196) {
+          state.histEntities = JSON.parse(JSON.stringify(state.optStartingSettings196.histEntities));
+          state.anchors = (state.optStartingSettings196.anchors || []).map(cloneAnchor).filter(Boolean);
+          state.anchors.forEach(ensureAnchorImgElement);
+        } else if (state.origHistEntities196) {
+          state.histEntities = JSON.parse(JSON.stringify(state.origHistEntities196));
+          state.anchors = (state.origAnchors196 || []).map(cloneAnchor).filter(Boolean);
+          state.anchors.forEach(ensureAnchorImgElement);
+        }
+        setOptSeed(state.opt196Seed);
+      } else if (runMode196 === "new") {
+        // Snapshot current state as the new baseline and pick a fresh seed
+        const freshSeed = Math.floor(Math.random() * 900000) + 100000;
+        state.opt196Seed = freshSeed;
+        setOptSeed(freshSeed);
+        state.optStartingSettings196 = {
+          histEntities: JSON.parse(JSON.stringify(state.histEntities)),
+          anchors: (state.anchors || []).map(cloneAnchor).filter(Boolean)
+        };
+        // Also keep origHistEntities196 / origAnchors196 in sync if not yet set
+        if (!state.origHistEntities196) {
+          state.origHistEntities196 = JSON.parse(JSON.stringify(state.histEntities));
+        }
+        if (!state.origAnchors196) {
+          state.origAnchors196 = (state.anchors || []).map(cloneAnchor).filter(Boolean);
+        }
+      } else {
+        // "continue" — just preserve current state, keep current seed running
+        if (!state.origHistEntities196) {
+          state.origHistEntities196 = JSON.parse(JSON.stringify(state.histEntities));
+        }
+        if (!state.origAnchors196) {
+          state.origAnchors196 = (state.anchors || []).map(cloneAnchor).filter(Boolean);
+        }
       }
 
       const activeAnchors = getActiveAnchors();
@@ -20494,10 +20634,10 @@ EOF`;
           return { isFixed: true, u: 0, v: 0, t: 0.5 };
         }
         if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
-          return { t: Math.random(), u: 0, v: 0 };
+          return { t: optRandom(), u: 0, v: 0 };
         }
-        const theta = Math.random() * 2 * Math.PI;
-        const rad = Math.sqrt(Math.random());
+        const theta = optRandom() * 2 * Math.PI;
+        const rad = Math.sqrt(optRandom());
         return { u: rad * Math.cos(theta), v: rad * Math.sin(theta), t: 0.5 };
       }
 
@@ -20613,9 +20753,9 @@ EOF`;
 
               let r1, r2, r3;
               let att1 = 0, att2 = 0, att3 = 0;
-              do { r1 = Math.floor(Math.random() * POP_SIZE); att1++; } while (r1 === i && att1 < 100);
-              do { r2 = Math.floor(Math.random() * POP_SIZE); att2++; } while ((r2 === i || r2 === r1) && att2 < 100);
-              do { r3 = Math.floor(Math.random() * POP_SIZE); att3++; } while ((r3 === i || r3 === r1 || r3 === r2) && att3 < 100);
+              do { r1 = Math.floor(optRandom() * POP_SIZE); att1++; } while (r1 === i && att1 < 100);
+              do { r2 = Math.floor(optRandom() * POP_SIZE); att2++; } while ((r2 === i || r2 === r1) && att2 < 100);
+              do { r3 = Math.floor(optRandom() * POP_SIZE); att3++; } while ((r3 === i || r3 === r1 || r3 === r2) && att3 < 100);
 
               const F = 0.65;
               const CR = 0.85;
@@ -20627,15 +20767,15 @@ EOF`;
                   trialOffsets.push(sampleCandidateOffset(k));
                 } else if (anc.axisId != null && (state.testAxes || []).some(a => a.id === anc.axisId)) {
                   let t;
-                  if (Math.random() < CR || k === 0) {
+                  if (optRandom() < CR || k === 0) {
                     const t1 = population[r1].offsets[k].t ?? 0.5;
                     const t2 = population[r2].offsets[k].t ?? 0.5;
                     const t3 = population[r3].offsets[k].t ?? 0.5;
                     const tBest = globalBest.offsets[k].t ?? 0.5;
                     const tCur = population[i].offsets[k].t ?? 0.5;
                     t = t1 + F * (t2 - t3) + 0.15 * (tBest - tCur);
-                    if (Math.random() < 0.15) {
-                      t += (Math.random() - 0.5) * 0.12;
+                    if (optRandom() < 0.15) {
+                      t += (optRandom() - 0.5) * 0.12;
                     }
                   } else {
                     t = population[i].offsets[k].t ?? 0.5;
@@ -20644,14 +20784,14 @@ EOF`;
                   trialOffsets.push({ t, u: 0, v: 0 });
                 } else {
                   let u, v;
-                  if (Math.random() < CR || k === 0) {
+                  if (optRandom() < CR || k === 0) {
                     u = population[r1].offsets[k].u + F * (population[r2].offsets[k].u - population[r3].offsets[k].u)
                         + 0.15 * (globalBest.offsets[k].u - population[i].offsets[k].u);
                     v = population[r1].offsets[k].v + F * (population[r2].offsets[k].v - population[r3].offsets[k].v)
                         + 0.15 * (globalBest.offsets[k].v - population[i].offsets[k].v);
-                    if (Math.random() < 0.12) {
-                      u += (Math.random() - 0.5) * 0.18;
-                      v += (Math.random() - 0.5) * 0.18;
+                    if (optRandom() < 0.12) {
+                      u += (optRandom() - 0.5) * 0.18;
+                      v += (optRandom() - 0.5) * 0.18;
                     }
                   } else {
                     u = population[i].offsets[k].u;
@@ -20665,6 +20805,7 @@ EOF`;
                   trialOffsets.push({ u, v, t: 0.5 });
                 }
               }
+
 
               const trialEval = evaluateCandidate(trialOffsets, currentR);
               if (trialEval.loss < population[i].loss) {
@@ -20778,6 +20919,36 @@ EOF`;
           }
 
           updateStatus(`⚡ Escritura 196 optimizada vía ${modeBadge}: Jimmy = ${globalOverallBest.aJ.toFixed(2)} m², Pedro = ${globalOverallBest.aP.toFixed(2)} m² (Radio ±${winningR.toFixed(1)}m).`);
+
+          // ── Persist best solution for JSON export and session reload ──
+          const warpedForNacho = get196WarpedEntities();
+          const nachoWarped = warpedForNacho.find(e => (e.layer || "").toLowerCase().includes("nacho"));
+          state.optBestSolution196 = {
+            seed: state.opt196Seed,
+            winningR,
+            targetJimmy,
+            targetPedro,
+            aJ: globalOverallBest.aJ,
+            aP: globalOverallBest.aP,
+            loss: globalOverallBest.loss,
+            anchors: state.anchors.map(a => ({
+              id: a.id,
+              src: { x: a.src.x, y: a.src.y },
+              dst: { x: a.dst.x, y: a.dst.y },
+              axisT: a.axisT
+            })),
+            fieldJimmy: (jimmyEnt.fieldPoints || []).map(p => ({ x: p.x, y: p.y })),
+            fieldPedro: (pedroEnt.fieldPoints || []).map(p => ({ x: p.x, y: p.y })),
+            fieldNacho: nachoWarped ? nachoWarped.points.map(p => ({ x: p.x, y: p.y })) : [],
+            layerJimmy: jimmyEnt.layer || "Lote_Jimmy",
+            layerPedro: pedroEnt.layer || "Lote_Pedro",
+            layerNacho: nachoEnt ? (nachoEnt.layer || "Lote_Nacho") : "Lote_Nacho"
+          };
+
+          // Set mode back to Replicate so next click reproduces this exact run
+          const radReplicate196 = document.getElementById("rad-196-replicate");
+          if (radReplicate196) radReplicate196.checked = true;
+          state.opt196RunMode = "replicate";
         }
 
         // Reset running state & buttons
@@ -20874,6 +21045,59 @@ EOF`;
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         updateStatus("💾 Guardado DXF optimizado en 'Polygon_Escritura196_Optimized.dxf'.");
+      });
+    }
+
+    // ── Save Best 196 Solution as JSON ──
+    const btnSave196Json = document.getElementById("btn-save-196-json");
+    if (btnSave196Json) {
+      btnSave196Json.addEventListener("click", () => {
+        const sol = state.optBestSolution196;
+        if (!sol) {
+          alert("No hay solución optimizada para guardar. Ejecuta la optimización primero.");
+          return;
+        }
+        const jsonStr = JSON.stringify(sol, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "escritura_196_optimized.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateStatus("💾 Mejor solución 196 guardada en 'escritura_196_optimized.json'. Colócala junto al archivo HTML para que cargue automáticamente.");
+      });
+    }
+
+    // ── Load Best 196 Solution from JSON file ──
+    const input196JsonFile = document.getElementById("input-196-json-file");
+    if (input196JsonFile) {
+      input196JsonFile.addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const sol = JSON.parse(ev.target.result);
+            if (!sol || !sol.fieldJimmy) {
+              alert("Archivo JSON inválido: no contiene datos de solución 196 (falta fieldJimmy).");
+              return;
+            }
+            applyBestSolution196(sol);
+            state.optBestSolution196 = sol;
+            if (sol.seed) {
+              state.opt196Seed = sol.seed;
+              setOptSeed(sol.seed);
+            }
+            updateStatus("📂 Solución optimizada 196 cargada desde archivo JSON.");
+          } catch (err) {
+            alert("Error al leer el archivo JSON: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = ""; // Allow re-loading the same file
       });
     }
 
