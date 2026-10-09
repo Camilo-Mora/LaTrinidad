@@ -247,83 +247,142 @@
     "polyStyles": {
       "1": {
         "color": "#ffd600",
+        "fillColor": "#ffd600",
         "fillOpacity": 0.36,
         "lineWidth": 1.5,
         "lineType": "dashed",
+        "lineOpacity": 1,
         "showArea": false
       },
       "2": {
         "color": "#00e676",
+        "fillColor": "#00e676",
         "fillOpacity": 0.35,
         "lineWidth": 1.5,
         "lineType": "dashed",
+        "lineOpacity": 1,
         "showArea": false
       },
       "3": {
         "color": "#ff1744",
+        "fillColor": "#ff1744",
         "fillOpacity": 0.3,
         "lineWidth": 1.5,
         "lineType": "dashed",
+        "lineOpacity": 1,
         "showArea": false
       },
       "4": {
         "color": "#2979ff",
+        "fillColor": "#2979ff",
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
+        "lineOpacity": 1,
         "showArea": false
       },
       "5": {
         "color": "#00e5ff",
+        "fillColor": "#00e5ff",
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
+        "lineOpacity": 1,
         "showArea": false
       },
       "6": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
+        "lineOpacity": 1,
         "showArea": false
       },
       "7": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
+        "lineOpacity": 1,
         "showArea": false
       },
       "8": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
+        "lineOpacity": 1,
         "showArea": false
       },
       "9": {
         "color": "#ff6d00",
+        "fillColor": "#ff6d00",
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "10": {
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "11": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "12": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "13": {
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.06,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1,
         "showArea": false
       }
     },
     "camera": {
       "scale": 1.170030505587996,
-      "offsetX": -5434315.1901550405,
-      "offsetY": -2273544.4819438756
+      "offsetX": -5434367.1901550405,
+      "offsetY": -2273559.4819438756
     },
     "layers": {
+      "reconstructed": true,
       "dxf296": true,
-      "dxf1073": true,
+      "dxf1073": false,
       "dxf196": false,
       "dxfTrue": false,
+      "surveyValoy2025": false,
+      "surveyCortez2025": false,
+      "surveyCortezOct2026": false,
+      "dxfOverlay": false,
       "geotiff": true
     },
     "dxfOpacity": {
-      "dxf_296": 0.25,
-      "dxf_1073": 0.25,
+      "dxf_296": 1,
+      "dxf_1073": 1,
       "dxf_196": 1,
       "dxf_true": 1
     },
@@ -331,7 +390,7 @@
     "labels": [
       {
         "id": "lbl_-892263637",
-        "text": "Lote A\n[size=14]8,105 m²[/size]\n[size=10](1.27 plazas)[/size]",
+        "text": "Lote A\n[size=14]$LoteA$m2[/size]\n[size=10](1.27 plazas)[/size]",
         "worldX": 4644754.6711,
         "worldY": 1943405.54,
         "fontSize": 20,
@@ -344,9 +403,9 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 168.4869100190699,
-          "y": 427.8414051774889,
-          "w": 72.26666641235352,
+          "x": 132.4660042989999,
+          "y": 75.71541516296566,
+          "w": 85.40908813476562,
           "h": 85
         },
         "showBorder": false
@@ -366,9 +425,9 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 470.4320842307061,
-          "y": 298.7503976644948,
-          "w": 70.26666641235352,
+          "x": 282.7154466006905,
+          "y": 12.19864605134353,
+          "w": 70.04545593261719,
           "h": 83
         },
         "showBorder": false
@@ -388,9 +447,9 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 114.57814726606011,
-          "y": 760.3395807901397,
-          "w": 113.53333282470703,
+          "x": 106.7388553833589,
+          "y": 241.62124459305778,
+          "w": 113.13636016845703,
           "h": 31
         },
         "showBg": true,
@@ -411,9 +470,9 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 133.97155980207026,
-          "y": 939.9149086251855,
-          "w": 125.03333282470703,
+          "x": 116.35674014594406,
+          "y": 330.67905255034566,
+          "w": 124.63636016845703,
           "h": 31
         },
         "showBg": true,
@@ -469,6 +528,349 @@
         "lineWidth": 8,
         "headSize": 18
       }
+    ],
+    "polygons": [
+      {
+        "id": 4,
+        "name": "LinderoHistorico_1073_296",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.15,
+        "lineWidth": 6,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 1,
+        "name": "LoteA",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.36,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 2,
+        "name": "LoteB",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0.35,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.3,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 5,
+        "name": "Restitucion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.25,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 6,
+        "name": "Jimmy Ruiz",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 7,
+        "name": "Pedro Ruiz",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 8,
+        "name": "Nacho196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 9,
+        "name": "196InTrinidad",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 10,
+        "name": "Carretera",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 11,
+        "name": "PedroInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 12,
+        "name": "NachoInvasion196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 13,
+        "name": "Lote#6",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.06,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1
+      }
+    ],
+    "layerDisplay": {
+      "dxf_296": {
+        "show": true,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_1073": {
+        "show": false,
+        "area": false,
+        "nodes": false,
+        "showPdf": false,
+        "pdfOpacity": 0.5
+      },
+      "dxf_196": {
+        "show": false,
+        "area": false,
+        "nodes": false,
+        "showPdf": false,
+        "pdfOpacity": 0.5
+      },
+      "dxf_survey_cortez_2019": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_valoy_2025": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "mojones": {
+        "show": false,
+        "items": {
+          "1": false,
+          "2": false,
+          "4": false
+        }
+      }
+    },
+    "layerStyles": {
+      "dxf_296": {
+        "name": "Lindero La Trinidad (E. 296)",
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.08,
+        "lineWidth": 3.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": true,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_1073": {
+        "name": "Escritura 1073",
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.9,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_196": {
+        "name": "Escritura 196",
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.85,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_2019": {
+        "name": "In 2019 by Cristian Cortez",
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_valoy_2025": {
+        "name": "In 2025 by Wilmar Valoy",
+        "color": "#ffb300",
+        "fillColor": "#ffb300",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "name": "2026 (Sep) by Cristian Cortez",
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "name": "2026 (Oct) by Cristian Cortez",
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      }
+    },
+    "trinidadSectionStyles": {
+      "1073": {
+        "color": "#ff0000",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e296": {
+        "color": "#80ffff",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "quebrada": {
+        "color": "#00ff40",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e1073": {
+        "color": "#0000ff",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      }
+    },
+    "layerOrder": [
+      "dxf_296",
+      "dxf_1073",
+      "dxf_196",
+      "dxf_survey_cortez_2019",
+      "dxf_survey_valoy_2025",
+      "dxf_survey_cortez_sep_2026",
+      "dxf_survey_cortez_oct_2026",
+      "dxf_anchors",
+      "measure_polygons"
     ]
   },
   {
