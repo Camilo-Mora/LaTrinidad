@@ -2997,7 +2997,8 @@ function drawViewport296() {
   drawGeoTiff(ctx296, state.geoTiff, vp, h);
   drawBackgroundPdf(ctx296, state.pdf296Canvas, vp, h, "296");
 
-  drawEntities(ctx296, state.entities296, vp, h, "#d500f9");
+  const ls = (state.layerStyles && state.layerStyles["dxf_296"]) ? state.layerStyles["dxf_296"] : (DEFAULT_LAYER_STYLES["dxf_296"] || {});
+  drawEntitiesWithStyle(ctx296, state.entities296, vp, h, ls, "#d500f9");
   if (state.showAnchors296) {
     drawAnchors(ctx296, state.anchors296, vp, h);
     if (state.pendingSource && state.pendingSource.origin === "296") drawPendingAnchor(ctx296, state.pendingSource, vp, h);
@@ -3015,7 +3016,8 @@ function drawViewport1073() {
   drawGeoTiff(ctx1073, state.geoTiff, vp, h);
   drawBackgroundPdf(ctx1073, state.pdf1073Canvas, vp, h, "1073");
 
-  drawEntities(ctx1073, state.entities1073, vp, h, "#ff1744");
+  const ls = (state.layerStyles && state.layerStyles["dxf_1073"]) ? state.layerStyles["dxf_1073"] : (DEFAULT_LAYER_STYLES["dxf_1073"] || {});
+  drawEntitiesWithStyle(ctx1073, state.entities1073, vp, h, ls, "#ff1744");
   if (state.showAnchors1073) {
     drawAnchors(ctx1073, state.anchors1073, vp, h);
     if (state.pendingSource && state.pendingSource.origin === "1073") drawPendingAnchor(ctx1073, state.pendingSource, vp, h);
@@ -3033,7 +3035,8 @@ function drawViewport196() {
   drawGeoTiff(ctx196, state.geoTiff, vp, h);
   drawBackgroundPdf(ctx196, state.pdf196Canvas, vp, h, "196");
 
-  drawEntities(ctx196, state.entities196, vp, h, "#ff9100");
+  const ls = (state.layerStyles && state.layerStyles["dxf_196"]) ? state.layerStyles["dxf_196"] : (DEFAULT_LAYER_STYLES["dxf_196"] || {});
+  drawEntitiesWithStyle(ctx196, state.entities196, vp, h, ls, "#ff9100");
   if (state.showAnchors196) {
     drawAnchors(ctx196, state.anchors196, vp, h);
     if (state.pendingSource && state.pendingSource.origin === "196") drawPendingAnchor(ctx196, state.pendingSource, vp, h);
@@ -3494,6 +3497,51 @@ function drawEntities(ctx, entities, vp, h, color) {
     }
     if (ent.closed) ctx.closePath();
     ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.stroke();
+  });
+}
+
+function drawEntitiesWithStyle(ctx, entities, vp, h, styleObj, defaultColor = "#00e5ff") {
+  if (!entities || entities.length === 0) return;
+  const color = styleObj.color || defaultColor;
+  const fillColor = styleObj.fillColor || color;
+  const fillOpacity = styleObj.fillOpacity !== undefined ? styleObj.fillOpacity : 0.0;
+  const lineW = styleObj.lineWidth !== undefined ? styleObj.lineWidth : 2.2;
+  const lineType = styleObj.lineType || "solid";
+  const dash = getPolyLineDash(lineType);
+  const lineOp = styleObj.lineOpacity !== undefined ? styleObj.lineOpacity : 1.0;
+
+  entities.forEach((ent) => {
+    if (!ent.points || ent.points.length < 2) return;
+    const start = worldToScreen(ent.points[0], vp, h);
+
+    if (fillOpacity > 0 && ent.closed && ent.points.length >= 3) {
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      for (let i = 1; i < ent.points.length; i++) {
+        const p = worldToScreen(ent.points[i], vp, h);
+        ctx.lineTo(p.x, p.y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = colorToRgba(fillColor, fillOpacity);
+      ctx.fill();
+    }
+
+    ctx.save();
+    ctx.globalAlpha = lineOp;
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i < ent.points.length; i++) {
+      const p = worldToScreen(ent.points[i], vp, h);
+      ctx.lineTo(p.x, p.y);
+    }
+    if (ent.closed) ctx.closePath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineW;
+    ctx.lineCap = "round";
+    if (dash && dash.length > 0) ctx.setLineDash(dash);
+    else ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.restore();
   });
 }
 
@@ -4422,8 +4470,8 @@ function drawReconstructedPolygon(ctx, vp, canvasH) {
     }
 
     const strokeCol = secStyle.color || color;
-    const lineW = secStyle.width || lineWidth;
-    const dash = (secStyle.dash && secStyle.dash !== "solid") ? getPolyLineDash(secStyle.dash) : dashPattern;
+    const lineW = (secStyle && secStyle.width && secStyle.width !== 3.5) ? secStyle.width : lineWidth;
+    const dash = (secStyle && secStyle.dash && secStyle.dash !== "solid") ? getPolyLineDash(secStyle.dash) : dashPattern;
 
     const sa = worldToScreenGIS(a, vp, canvasH);
     const sb = worldToScreenGIS(b, vp, canvasH);
