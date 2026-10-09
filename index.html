@@ -2541,13 +2541,16 @@ function applyOptimized196Solution(sol) {
   if (!sol) return;
   const entities = [];
   if (sol.fieldJimmy && sol.fieldJimmy.length >= 2) {
-    entities.push({ points: sol.fieldJimmy.map(p => ({ x: p.x, y: p.y })), closed: true, layer: sol.layerJimmy || "Lote_Jimmy" });
+    const isClosedJ = sol.closedJimmy !== undefined ? !!sol.closedJimmy : true;
+    entities.push({ points: sol.fieldJimmy.map(p => ({ x: p.x, y: p.y })), closed: isClosedJ, layer: sol.layerJimmy || "Lote_Jimmy" });
   }
   if (sol.fieldPedro && sol.fieldPedro.length >= 2) {
-    entities.push({ points: sol.fieldPedro.map(p => ({ x: p.x, y: p.y })), closed: true, layer: sol.layerPedro || "Lote_Pedro" });
+    const isClosedP = sol.closedPedro !== undefined ? !!sol.closedPedro : true;
+    entities.push({ points: sol.fieldPedro.map(p => ({ x: p.x, y: p.y })), closed: isClosedP, layer: sol.layerPedro || "Lote_Pedro" });
   }
   if (sol.fieldNacho && sol.fieldNacho.length >= 2) {
-    entities.push({ points: sol.fieldNacho.map(p => ({ x: p.x, y: p.y })), closed: true, layer: sol.layerNacho || "Lote_Nacho" });
+    const isClosedN = sol.closedNacho !== undefined ? !!sol.closedNacho : false;
+    entities.push({ points: sol.fieldNacho.map(p => ({ x: p.x, y: p.y })), closed: isClosedN, layer: sol.layerNacho || "Lote_Nacho" });
   }
   if (entities.length > 0) {
     state.entities196Optimized = entities;
@@ -3074,7 +3077,7 @@ function drawGISLayerWithNodesAndArea(ctx, entities, vp, h, color, showNodes, sh
       const pts = ent.points;
       const start = worldToScreenGIS(pts[0], vp, h);
 
-      if (fillColor && fillOpacity > 0 && (ent.closed || pts.length >= 3)) {
+      if (fillColor && fillOpacity > 0 && ent.closed && pts.length >= 3) {
         offCtx.beginPath();
         offCtx.moveTo(start.x, start.y);
         for (let i = 1; i < pts.length; i++) {
@@ -3112,7 +3115,7 @@ function drawGISLayerWithNodesAndArea(ctx, entities, vp, h, color, showNodes, sh
         });
       }
 
-      if (showArea && (ent.closed || pts.length >= 3)) {
+      if (showArea && ent.closed && pts.length >= 3) {
         const areaM2 = calculatePolygonArea(pts);
         if (areaM2 > 0) {
           let cx = 0, cy = 0;
@@ -3150,7 +3153,7 @@ function drawWarpedGISLayerWithNodesAndArea(ctx, entities, warper, vp, h, color,
       const warpedPts = ent.points.map(p => warper(p));
       const start = worldToScreenGIS(warpedPts[0], vp, h);
 
-      if (fillColor && fillOpacity > 0 && (ent.closed || warpedPts.length >= 3)) {
+      if (fillColor && fillOpacity > 0 && ent.closed && warpedPts.length >= 3) {
         offCtx.beginPath();
         offCtx.moveTo(start.x, start.y);
         for (let i = 1; i < warpedPts.length; i++) {
@@ -3188,7 +3191,7 @@ function drawWarpedGISLayerWithNodesAndArea(ctx, entities, warper, vp, h, color,
         });
       }
 
-      if (showArea && (ent.closed || warpedPts.length >= 3)) {
+      if (showArea && ent.closed && warpedPts.length >= 3) {
         const areaM2 = calculatePolygonArea(warpedPts);
         if (areaM2 > 0) {
           let cx = 0, cy = 0;

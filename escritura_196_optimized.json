@@ -212,5 +212,8 @@
   ],
   "layerJimmy": "LoteJimmy",
   "layerPedro": "LotePedro",
-  "layerNacho": "LoteNacho"
+  "layerNacho": "LoteNacho",
+  "closedJimmy": true,
+  "closedPedro": true,
+  "closedNacho": false
 }

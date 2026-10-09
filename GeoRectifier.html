@@ -21000,7 +21000,10 @@ EOF`;
               : (globalOverallBest.fieldNacho ? globalOverallBest.fieldNacho.map(p => ({ x: p.x, y: p.y })) : []),
             layerJimmy: jimmyEnt.layer || "Lote_Jimmy",
             layerPedro: pedroEnt.layer || "Lote_Pedro",
-            layerNacho: nachoEnt ? (nachoEnt.layer || "Lote_Nacho") : "Lote_Nacho"
+            layerNacho: nachoEnt ? (nachoEnt.layer || "Lote_Nacho") : "Lote_Nacho",
+            closedJimmy: jimmyEnt ? (jimmyEnt.closed !== false) : true,
+            closedPedro: pedroEnt ? (pedroEnt.closed !== false) : true,
+            closedNacho: nachoEnt ? (nachoEnt.closed === true) : false
           };
 
           // Set mode back to Replicate so next click reproduces this exact run
