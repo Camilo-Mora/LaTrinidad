@@ -969,6 +969,49 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td><input type="checkbox" id="sum-area-dxf-296" title="Display area badge for Lindero La Trinidad" style="accent-color:var(--accent-yellow);"></td>
                   <td><input type="checkbox" id="sum-nodes-dxf-296" title="Display vertex nodes for Lindero La Trinidad" style="accent-color:#00e5ff;"></td>
                 </tr>
+                <!-- Sub-tramos Lindero La Trinidad -->
+                <tr class="trinidad-sec-subrow" style="background:rgba(128,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <td style="text-align:center;padding:2px 0;">
+                    <button type="button" class="poly-dot-btn trinidad-sec-dot" data-sec-key="e296" title="Tramo Escritura 296: Clic para editar color" style="width:11px;height:11px;border-radius:50%;background:#80ffff;box-shadow:0 0 4px #80ffff;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;"></button>
+                  </td>
+                  <td class="col-name trinidad-sec-name-btn" data-sec-key="e296" style="padding-left:6px;color:#80ffff;font-size:0.69rem;font-weight:600;cursor:pointer;" title="Tramo Escritura 296: Clic para editar color">
+                    ↳ Tramo E. 296
+                  </td>
+                  <td colspan="4" style="padding:2px 4px;text-align:right;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+                      <span style="font-size:0.63rem;color:var(--text-muted);font-family:monospace;">Línea:</span>
+                      <input type="color" class="trinidad-quick-color" data-sec-key="e296" value="#80ffff" style="width:20px;height:18px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;" title="Color de línea: Tramo Escritura 296">
+                    </div>
+                  </td>
+                </tr>
+                <tr class="trinidad-sec-subrow" style="background:rgba(0,255,64,0.04);border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <td style="text-align:center;padding:2px 0;">
+                    <button type="button" class="poly-dot-btn trinidad-sec-dot" data-sec-key="quebrada" title="Tramo Quebrada: Clic para editar color" style="width:11px;height:11px;border-radius:50%;background:#00ff40;box-shadow:0 0 4px #00ff40;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;"></button>
+                  </td>
+                  <td class="col-name trinidad-sec-name-btn" data-sec-key="quebrada" style="padding-left:6px;color:#00ff40;font-size:0.69rem;font-weight:600;cursor:pointer;" title="Tramo Quebrada: Clic para editar color">
+                    ↳ Tramo Quebrada
+                  </td>
+                  <td colspan="4" style="padding:2px 4px;text-align:right;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+                      <span style="font-size:0.63rem;color:var(--text-muted);font-family:monospace;">Línea:</span>
+                      <input type="color" class="trinidad-quick-color" data-sec-key="quebrada" value="#00ff40" style="width:20px;height:18px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;" title="Color de línea: Tramo Quebrada">
+                    </div>
+                  </td>
+                </tr>
+                <tr class="trinidad-sec-subrow" style="background:rgba(0,0,255,0.04);border-bottom:1px solid rgba(255,255,255,0.06);">
+                  <td style="text-align:center;padding:2px 0;">
+                    <button type="button" class="poly-dot-btn trinidad-sec-dot" data-sec-key="e1073" title="Tramo Escritura 1073: Clic para editar color" style="width:11px;height:11px;border-radius:50%;background:#0000ff;box-shadow:0 0 4px #0000ff;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;"></button>
+                  </td>
+                  <td class="col-name trinidad-sec-name-btn" data-sec-key="e1073" style="padding-left:6px;color:#3d8bfd;font-size:0.69rem;font-weight:600;cursor:pointer;" title="Tramo Escritura 1073: Clic para editar color">
+                    ↳ Tramo E. 1073
+                  </td>
+                  <td colspan="4" style="padding:2px 4px;text-align:right;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+                      <span style="font-size:0.63rem;color:var(--text-muted);font-family:monospace;">Línea:</span>
+                      <input type="color" class="trinidad-quick-color" data-sec-key="e1073" value="#0000ff" style="width:20px;height:18px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;" title="Color de línea: Tramo Escritura 1073">
+                    </div>
+                  </td>
+                </tr>
                 <tr>
                   <td><button type="button" class="poly-dot-btn layer-dot-btn" data-layer-key="dxf_1073" title="Click to edit specs (Color, Line, Transparency, Nodes)" style="width:13px;height:13px;border-radius:50%;background:#ff1744;box-shadow:0 0 5px #ff1744;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;transition:transform 0.1s;"></button></td>
                   <td class="col-name layer-name-btn" data-layer-key="dxf_1073" style="color:#ff1744;cursor:pointer;" title="Click to edit specs: Escritura 1073">Escritura 1073</td>
@@ -1104,9 +1147,54 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
               <!-- Palette -->
               <div id="poly-specs-palette" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;"></div>
 
+              <!-- Dedicated Segment Line Controls for Lindero La Trinidad -->
+              <div id="poly-specs-trinidad-segments" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px;margin-bottom:8px;">
+                <div style="font-size:0.72rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+                  <span>📏 Colores de Línea por Tramo:</span>
+                  <span style="font-size:0.62rem;color:var(--text-muted);font-weight:normal;">3 grupos de líneas</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                  <!-- Tramo E. 296 -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(128,255,255,0.06);border:1px solid rgba(128,255,255,0.22);border-radius:4px;padding:3px 6px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span id="trinidad-dot-e296-spec" style="width:11px;height:11px;border-radius:50%;background:#80ffff;box-shadow:0 0 4px #80ffff;display:inline-block;"></span>
+                      <span style="font-size:0.72rem;color:#80ffff;font-weight:600;">Tramo E. 296</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                      <input type="color" id="trinidad-color-e296" value="#80ffff" style="width:24px;height:22px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;" title="Color Tramo Escritura 296">
+                      <input type="text" id="trinidad-color-e296-hex" value="#80FFFF" style="width:62px;background:rgba(0,0,0,0.3);border:1px solid var(--border-color);border-radius:3px;color:#fff;font-family:monospace;font-size:0.68rem;padding:2px 4px;text-align:center;" readonly>
+                    </div>
+                  </div>
+
+                  <!-- Tramo Quebrada -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,255,64,0.06);border:1px solid rgba(0,255,64,0.22);border-radius:4px;padding:3px 6px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span id="trinidad-dot-quebrada-spec" style="width:11px;height:11px;border-radius:50%;background:#00ff40;box-shadow:0 0 4px #00ff40;display:inline-block;"></span>
+                      <span style="font-size:0.72rem;color:#00ff40;font-weight:600;">Tramo Quebrada</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                      <input type="color" id="trinidad-color-quebrada" value="#00ff40" style="width:24px;height:22px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;" title="Color Tramo Quebrada">
+                      <input type="text" id="trinidad-color-quebrada-hex" value="#00FF40" style="width:62px;background:rgba(0,0,0,0.3);border:1px solid var(--border-color);border-radius:3px;color:#fff;font-family:monospace;font-size:0.68rem;padding:2px 4px;text-align:center;" readonly>
+                    </div>
+                  </div>
+
+                  <!-- Tramo E. 1073 -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,255,0.06);border:1px solid rgba(0,120,255,0.25);border-radius:4px;padding:3px 6px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span id="trinidad-dot-e1073-spec" style="width:11px;height:11px;border-radius:50%;background:#0000ff;box-shadow:0 0 4px #0000ff;display:inline-block;"></span>
+                      <span style="font-size:0.72rem;color:#3d8bfd;font-weight:600;">Tramo E. 1073</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                      <input type="color" id="trinidad-color-e1073" value="#0000ff" style="width:24px;height:22px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;" title="Color Tramo Escritura 1073">
+                      <input type="text" id="trinidad-color-e1073-hex" value="#0000FF" style="width:62px;background:rgba(0,0,0,0.3);border:1px solid var(--border-color);border-radius:3px;color:#fff;font-family:monospace;font-size:0.68rem;padding:2px 4px;text-align:center;" readonly>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.72rem;color:var(--text-muted);">
                 <!-- Line Color -->
-                <label style="display:flex;flex-direction:column;gap:2px;">
+                <label id="poly-specs-linecolor-label" style="display:flex;flex-direction:column;gap:2px;">
                   <span>Line Color</span>
                   <div style="display:flex;align-items:center;gap:4px;">
                     <input type="color" id="poly-specs-color" style="width:26px;height:24px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;">
@@ -3934,6 +4022,88 @@ function updateReconstructedPolygonWarp() {
   }
 }
 
+function getTrinidadSectionStyle(secKey) {
+  const poly = state.reconstructedPolygon;
+  if (!poly || !poly.sectionStyles) {
+    if (secKey === "e296") return { color: "#80ffff" };
+    if (secKey === "quebrada") return { color: "#00ff40" };
+    if (secKey === "e1073" || secKey === "1073") return { color: "#0000ff" };
+    return { color: "#00e5ff" };
+  }
+  const key = secKey.toLowerCase();
+  if (poly.sectionStyles[key]) return poly.sectionStyles[key];
+  if (key === "1073" && poly.sectionStyles["e1073"]) return poly.sectionStyles["e1073"];
+  if (key === "e1073" && poly.sectionStyles["1073"]) return poly.sectionStyles["1073"];
+  return { color: "#00e5ff" };
+}
+
+function setTrinidadSectionColor(secKey, color) {
+  if (!state.reconstructedPolygon) return;
+  if (!state.reconstructedPolygon.sectionStyles) {
+    state.reconstructedPolygon.sectionStyles = {};
+  }
+  const key = secKey.toLowerCase();
+  if (!state.reconstructedPolygon.sectionStyles[key]) {
+    state.reconstructedPolygon.sectionStyles[key] = { color: color, dash: "solid", width: 3.5, showNodes: false };
+  } else {
+    state.reconstructedPolygon.sectionStyles[key].color = color;
+  }
+  if (key === "e1073" && state.reconstructedPolygon.sectionStyles["1073"]) {
+    state.reconstructedPolygon.sectionStyles["1073"].color = color;
+  } else if (key === "1073" && state.reconstructedPolygon.sectionStyles["e1073"]) {
+    state.reconstructedPolygon.sectionStyles["e1073"].color = color;
+  }
+}
+
+function syncTrinidadSectionUI() {
+  const cE296 = getTrinidadSectionStyle("e296").color || "#80ffff";
+  const cQuebrada = getTrinidadSectionStyle("quebrada").color || "#00ff40";
+  const cE1073 = (getTrinidadSectionStyle("e1073").color || getTrinidadSectionStyle("1073").color) || "#0000ff";
+
+  // Inspector controls
+  const inE296 = document.getElementById("trinidad-color-e296");
+  const hexE296 = document.getElementById("trinidad-color-e296-hex");
+  const dotE296 = document.getElementById("trinidad-dot-e296-spec");
+  if (inE296) inE296.value = cE296;
+  if (hexE296) hexE296.value = cE296.toUpperCase();
+  if (dotE296) dotE296.style.background = cE296;
+
+  const inQueb = document.getElementById("trinidad-color-quebrada");
+  const hexQueb = document.getElementById("trinidad-color-quebrada-hex");
+  const dotQueb = document.getElementById("trinidad-dot-quebrada-spec");
+  if (inQueb) inQueb.value = cQuebrada;
+  if (hexQueb) hexQueb.value = cQuebrada.toUpperCase();
+  if (dotQueb) dotQueb.style.background = cQuebrada;
+
+  const inE1073 = document.getElementById("trinidad-color-e1073");
+  const hexE1073 = document.getElementById("trinidad-color-e1073-hex");
+  const dotE1073 = document.getElementById("trinidad-dot-e1073-spec");
+  if (inE1073) inE1073.value = cE1073;
+  if (hexE1073) hexE1073.value = cE1073.toUpperCase();
+  if (dotE1073) dotE1073.style.background = cE1073;
+
+  // Table controls
+  document.querySelectorAll(".trinidad-quick-color").forEach(input => {
+    const k = input.dataset.secKey;
+    if (k === "e296") input.value = cE296;
+    else if (k === "quebrada") input.value = cQuebrada;
+    else if (k === "e1073") input.value = cE1073;
+  });
+
+  document.querySelectorAll(".trinidad-sec-dot").forEach(btn => {
+    const k = btn.dataset.secKey;
+    const col = (k === "e296") ? cE296 : (k === "quebrada" ? cQuebrada : cE1073);
+    btn.style.background = col;
+    btn.style.boxShadow = `0 0 5px ${col}`;
+  });
+
+  document.querySelectorAll(".trinidad-sec-name-btn").forEach(lbl => {
+    const k = lbl.dataset.secKey;
+    const col = (k === "e296") ? cE296 : (k === "quebrada" ? cQuebrada : ((cE1073 === "#0000ff" || cE1073 === "#00f") ? "#3d8bfd" : cE1073));
+    lbl.style.color = col;
+  });
+}
+
 async function autoLoadReconstructedPolygon() {
   let loaded = false;
   try {
@@ -3951,6 +4121,7 @@ async function autoLoadReconstructedPolygon() {
   if (!loaded && typeof EMBEDDED_USER_POLYGON !== "undefined") {
     applyReconstructedPolygon(EMBEDDED_USER_POLYGON);
   }
+  syncTrinidadSectionUI();
   redrawAll();
 }
 
@@ -4000,10 +4171,14 @@ function drawReconstructedPolygon(ctx, vp, canvasH) {
     const a = verts[i], b = verts[(i + 1) % verts.length];
     const secName = poly.segmentSections ? poly.segmentSections[i] : null;
     let secStyle = { color, width: lineWidth, dash: lineType };
-    if (secName && typeof secName === "string" && !style296._overrideSections) {
+    if (secName && typeof secName === "string") {
       const key = secName.trim().toLowerCase();
       if (poly.sectionStyles && poly.sectionStyles[key]) {
         secStyle = poly.sectionStyles[key];
+      } else if (key === "1073" && poly.sectionStyles && poly.sectionStyles["e1073"]) {
+        secStyle = poly.sectionStyles["e1073"];
+      } else if (key === "e1073" && poly.sectionStyles && poly.sectionStyles["1073"]) {
+        secStyle = poly.sectionStyles["1073"];
       }
     }
 
@@ -4609,6 +4784,12 @@ function openPolySpecs(polyIdx) {
     });
   }
 
+  const trinidadSegs = document.getElementById("poly-specs-trinidad-segments");
+  const lineColLabel = document.getElementById("poly-specs-linecolor-label");
+  if (trinidadSegs) trinidadSegs.style.display = "none";
+  if (lineColLabel) lineColLabel.style.display = "flex";
+  if (paletteContainer) paletteContainer.style.display = "flex";
+
   updatePolySpecsPreview(poly);
   updatePolySpecsArea();
   if (inspector) inspector.style.display = "block";
@@ -4721,7 +4902,6 @@ function openLayerSpecs(layerKey) {
       dot.addEventListener("click", () => {
         ls.color = c;
         if (!ls.fillColor) ls.fillColor = c;
-        if (layerKey === "dxf_296") ls._overrideSections = true;
         if (colorInput) colorInput.value = c;
         if (colorHex) colorHex.value = c.toUpperCase();
         if (fillColorInput) fillColorInput.value = ls.fillColor;
@@ -4734,6 +4914,19 @@ function openLayerSpecs(layerKey) {
       });
       paletteContainer.appendChild(dot);
     });
+  }
+
+  const trinidadSegs = document.getElementById("poly-specs-trinidad-segments");
+  const lineColLabel = document.getElementById("poly-specs-linecolor-label");
+  if (layerKey === "dxf_296") {
+    if (trinidadSegs) trinidadSegs.style.display = "block";
+    if (lineColLabel) lineColLabel.style.display = "none";
+    if (paletteContainer) paletteContainer.style.display = "none";
+    if (typeof syncTrinidadSectionUI === "function") syncTrinidadSectionUI();
+  } else {
+    if (trinidadSegs) trinidadSegs.style.display = "none";
+    if (lineColLabel) lineColLabel.style.display = "flex";
+    if (paletteContainer) paletteContainer.style.display = "flex";
   }
 
   updatePolySpecsPreview(ls);
@@ -4802,6 +4995,16 @@ function updatePolySpecsPreview(poly) {
   }
 
   preview.style.background = `rgba(${isNaN(fr)?0:fr},${isNaN(fg)?229:fg},${isNaN(fb)?255:fb},${fillOp})`;
+
+  if (currentEditingLayerKey === "dxf_296" && typeof getTrinidadSectionStyle === "function") {
+    const c1 = getTrinidadSectionStyle("e296").color || "#80ffff";
+    const c2 = getTrinidadSectionStyle("quebrada").color || "#00ff40";
+    const c3 = (getTrinidadSectionStyle("e1073").color || getTrinidadSectionStyle("1073").color) || "#0000ff";
+    preview.style.borderTopColor = c1;
+    preview.style.borderRightColor = c2;
+    preview.style.borderBottomColor = c3;
+    preview.style.borderLeftColor = c1;
+  }
 }
 
 function updatePolySpecsArea() {
@@ -5773,16 +5976,10 @@ function updatePolygonSummaryUI() {
     const isFirst = idx === 0;
     const isLast = idx === state.measurePolygons.length - 1;
 
-    const pts = poly.points || [];
-    const areaM2 = (pts.length >= 3) ? calculatePolygonArea(pts) : 0;
-    const plazas = areaM2 / 6400;
-    const areaStr = areaM2 > 0 ? `${areaM2.toLocaleString('en-US', {maximumFractionDigits:1})} m² (${plazas.toFixed(2)} pl)` : '0.0 m²';
-
     tr.innerHTML = `
       <td>${dot}</td>
-      <td class="col-name" style="color:${poly.color};cursor:pointer;line-height:1.2;padding-top:2px;padding-bottom:2px;" title="Click to edit specs: ${name} (${areaStr})">
-        <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
-        <div style="font-size:0.62rem;color:var(--accent-yellow);font-family:monospace;font-weight:600;">${areaStr}</div>
+      <td class="col-name" style="color:${poly.color};cursor:pointer;" title="Click to edit specs: ${name}">
+        ${name}
       </td>
       <td style="white-space:nowrap;padding:1px 2px;">
         <button type="button" class="btn-order-btn btn-poly-down" data-idx="${idx}" style="padding:0 3px;font-size:0.6rem;line-height:1.2;" title="Send Backward (draw behind)" ${isFirst ? "disabled" : ""}>▼</button>
@@ -5890,6 +6087,9 @@ function updatePolygonSummaryUI() {
       const nodesChk = document.getElementById(cfg.nodesId);
       if (nodesChk) nodesChk.style.accentColor = ls.color;
     });
+    if (typeof syncTrinidadSectionUI === "function") {
+      syncTrinidadSectionUI();
+    }
   }
 
   updateMasterCheckboxes();
@@ -6521,7 +6721,6 @@ function setupEventListeners() {
         const ls = state.layerStyles && state.layerStyles[currentEditingLayerKey];
         if (ls) {
           ls.color = e.target.value;
-          if (currentEditingLayerKey === "dxf_296") ls._overrideSections = true;
           if (specsColorHex) specsColorHex.value = ls.color.toUpperCase();
           updatePolySpecsPreview(ls);
           updatePolygonSummaryUI();
@@ -6539,6 +6738,65 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Trinidad section color controls in inspector
+  const trinColorE296 = document.getElementById("trinidad-color-e296");
+  if (trinColorE296) {
+    trinColorE296.addEventListener("input", (e) => {
+      setTrinidadSectionColor("e296", e.target.value);
+      syncTrinidadSectionUI();
+      if (currentEditingLayerKey === "dxf_296") {
+        const ls = state.layerStyles && state.layerStyles["dxf_296"];
+        if (ls) updatePolySpecsPreview(ls);
+      }
+      redrawAll();
+    });
+  }
+  const trinColorQuebrada = document.getElementById("trinidad-color-quebrada");
+  if (trinColorQuebrada) {
+    trinColorQuebrada.addEventListener("input", (e) => {
+      setTrinidadSectionColor("quebrada", e.target.value);
+      syncTrinidadSectionUI();
+      if (currentEditingLayerKey === "dxf_296") {
+        const ls = state.layerStyles && state.layerStyles["dxf_296"];
+        if (ls) updatePolySpecsPreview(ls);
+      }
+      redrawAll();
+    });
+  }
+  const trinColorE1073 = document.getElementById("trinidad-color-e1073");
+  if (trinColorE1073) {
+    trinColorE1073.addEventListener("input", (e) => {
+      setTrinidadSectionColor("e1073", e.target.value);
+      syncTrinidadSectionUI();
+      if (currentEditingLayerKey === "dxf_296") {
+        const ls = state.layerStyles && state.layerStyles["dxf_296"];
+        if (ls) updatePolySpecsPreview(ls);
+      }
+      redrawAll();
+    });
+  }
+
+  // Trinidad table quick-controls and dot buttons
+  document.querySelectorAll(".trinidad-quick-color").forEach(input => {
+    input.addEventListener("input", (e) => {
+      const secKey = input.dataset.secKey;
+      setTrinidadSectionColor(secKey, e.target.value);
+      syncTrinidadSectionUI();
+      if (currentEditingLayerKey === "dxf_296") {
+        const ls = state.layerStyles && state.layerStyles["dxf_296"];
+        if (ls) updatePolySpecsPreview(ls);
+      }
+      redrawAll();
+    });
+  });
+
+  document.querySelectorAll(".trinidad-sec-dot, .trinidad-sec-name-btn").forEach(el => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openLayerSpecs("dxf_296");
+    });
+  });
 
   if (specsFillColor) {
     specsFillColor.addEventListener("input", (e) => {
@@ -7095,6 +7353,7 @@ function setupEventListeners() {
 
   // Polygon Summary Panel: toggle buttons, two-way sync, master checkboxes
   setupPolygonSummaryListeners();
+  if (typeof syncTrinidadSectionUI === "function") syncTrinidadSectionUI();
 }
 
 function handlePdfFileSelect(file, targetKey) {
