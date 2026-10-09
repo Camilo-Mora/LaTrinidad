@@ -1304,10 +1304,8 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
               <label for="case-load-input" class="btn btn-secondary btn-sm" style="cursor:pointer;flex:1;justify-content:center;" title="Load cases from file">📂 Load</label>
               <input type="file" id="case-load-input" accept=".json" style="display:none;">
             </div>
-            <!-- Polygon checklist -->
-            <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:4px;">📌 Color inside selected polygons (rest → B&W)</div>
-            <div id="case-poly-checklist" class="cases-poly-checklist">
-              <div style="font-size:0.68rem;color:var(--text-muted);padding:2px;">Select or create a case first.</div>
+            <div style="font-size:0.68rem;color:var(--text-muted);background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.18);border-radius:4px;padding:5px 7px;margin-bottom:6px;line-height:1.4;">
+              💡 <b>Tip:</b> Choose visible polygons, DXFs, surveys, colors, lines, and order directly in <b>🗺️ Polygon Overview</b>. Click <b>💾 Update</b> to save them to this case.
             </div>
             <!-- Label management -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:4px;">
@@ -1406,54 +1404,13 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
               </div>
               <button id="btn-arrow-delete" class="btn btn-sm btn-danger-sm" style="width:100%;margin-top:6px;">🗑️ Delete Arrow</button>
             </div>
-            <!-- DXF Layer Opacity -->
-            <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:6px;">
-              <div style="font-size:0.7rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;">🗺️ Case DXF Layers &amp; Opacity</div>
-              <div style="display:flex;flex-direction:column;gap:5px;">
-                <!-- Lindero La Trinidad -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <input type="checkbox" id="case-dxf-vis-reconstructed" checked title="Show/hide Lindero La Trinidad in this case" style="cursor:pointer;accent-color:var(--accent-cyan);">
-                  <span style="width:8px;height:8px;border-radius:50%;background:var(--accent-cyan);flex-shrink:0;box-shadow:0 0 4px var(--accent-cyan);display:inline-block;"></span>
-                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Lindero La Trinidad</span>
-                  <input type="range" id="dxf-opacity-reconstructed" min="0" max="100" value="100" style="flex:2;accent-color:var(--accent-cyan);">
-                  <span id="dxf-opacity-reconstructed-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
-                </div>
-                <!-- Escritura 1073 -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <input type="checkbox" id="case-dxf-vis-1073" checked title="Show/hide Escritura 1073 in this case" style="cursor:pointer;accent-color:#ff1744;">
-                  <span style="width:8px;height:8px;border-radius:50%;background:#ff1744;flex-shrink:0;box-shadow:0 0 4px #ff1744;display:inline-block;"></span>
-                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Escritura 1073</span>
-                  <input type="range" id="dxf-opacity-1073" min="0" max="100" value="100" style="flex:2;accent-color:#ff1744;">
-                  <span id="dxf-opacity-1073-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
-                </div>
-                <!-- Escritura 196 -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <input type="checkbox" id="case-dxf-vis-196" checked title="Show/hide Escritura 196 in this case" style="cursor:pointer;accent-color:#ff9100;">
-                  <span style="width:8px;height:8px;border-radius:50%;background:#ff9100;flex-shrink:0;box-shadow:0 0 4px #ff9100;display:inline-block;"></span>
-                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Escritura 196</span>
-                  <input type="range" id="dxf-opacity-196" min="0" max="100" value="100" style="flex:2;accent-color:#ff9100;">
-                  <span id="dxf-opacity-196-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
-                </div>
-                <!-- Alambrado (True DXF) -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <input type="checkbox" id="case-dxf-vis-true" checked title="Show/hide Alambrado in this case" style="cursor:pointer;accent-color:#00e676;">
-                  <span style="width:8px;height:8px;border-radius:50%;background:#00e676;flex-shrink:0;box-shadow:0 0 4px #00e676;display:inline-block;"></span>
-                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">Alambrado</span>
-                  <input type="range" id="dxf-opacity-true" min="0" max="100" value="100" style="flex:2;accent-color:#00e676;">
-                  <span id="dxf-opacity-true-val" style="font-size:0.68rem;font-family:monospace;color:#fff;width:30px;text-align:right;">100%</span>
-                </div>
-                <!-- GeoTIFF (Foto/Dron) -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <input type="checkbox" id="case-dxf-vis-geotiff" checked title="Show/hide GeoTIFF in this case" style="cursor:pointer;accent-color:var(--accent-cyan);">
-                  <span style="width:8px;height:8px;border-radius:50%;background:#00e5ff;flex-shrink:0;box-shadow:0 0 4px #00e5ff;display:inline-block;"></span>
-                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;white-space:nowrap;">GeoTIFF (Dron/Foto)</span>
-                </div>
-                <!-- B&W toggle -->
-                <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
-                  <input type="checkbox" id="case-geotiff-bw" checked title="Show drone image in black &amp; white (spotlight effect) or full color" style="cursor:pointer;accent-color:var(--accent-cyan);">
-                  <span style="font-size:0.7rem;color:var(--text-muted);flex:1;">🎨 B&amp;W background (spotlight)</span>
-                </div>
-              </div>
+            <!-- Case Display Options -->
+            <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border-color);border-radius:6px;padding:7px 8px;margin-bottom:6px;">
+              <div style="font-size:0.7rem;font-weight:700;color:var(--accent-cyan);margin-bottom:4px;">⚙️ Case Display Options</div>
+              <label class="window-checkbox" style="font-size:0.72rem;margin:0;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                <input type="checkbox" id="case-geotiff-bw" checked title="Show drone image in black &amp; white (spotlight on selected polygons) or full color" style="cursor:pointer;accent-color:var(--accent-cyan);">
+                <span style="color:var(--text-muted);">🎨 B&amp;W background (Spotlight effect)</span>
+              </label>
             </div>
             <!-- HD Export -->
             <button id="btn-case-export-hd" class="btn btn-success" style="width:100%;" title="Export this case as a 4K HD PNG image">📸 Download HD Image</button>
@@ -3129,11 +3086,11 @@ function drawLayerByKey(key, ctx, vp, h) {
       if (state.showReconstructedPolygon !== false) {
         drawReconstructedPolygon(ctx, vp, h);
       }
-      const isVisible = ac ? (ac.layers?.dxf296 !== false) : (state.showWarped296OnField !== false);
+      const isVisible = (state.showWarped296OnField !== false);
       if (isVisible && getActiveAnchors(state.anchors296).length >= 2 && state.entities296 && state.entities296.length > 0) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
-          const op = (ac ? (ac.dxfOpacity?.dxf_296 ?? 1) : (state.dxfOpacity?.dxf_296 ?? 0.85)) * lineOp;
+          const op = (state.dxfOpacity?.dxf_296 ?? 0.85) * lineOp;
           drawWarpedGISLayerWithNodesAndArea(
             ctx,
             state.entities296,
@@ -3154,7 +3111,7 @@ function drawLayerByKey(key, ctx, vp, h) {
       break;
     }
     case "dxf_1073": {
-      const isDxfVisible = ac ? (ac.layers?.dxf1073 !== false) : (state.showWarped1073OnField !== false);
+      const isDxfVisible = (state.showWarped1073OnField !== false);
       const isPdfVisible = (state.showWarpedPdf1073 !== false);
       if ((isDxfVisible || isPdfVisible) && getActiveAnchors(state.anchors1073).length >= 2) {
         try {
@@ -3163,7 +3120,7 @@ function drawLayerByKey(key, ctx, vp, h) {
             drawWarpedPdfImage1073(ctx, warper, vp, canvasTrue.width, h);
           }
           if (isDxfVisible) {
-            const op = (ac ? (ac.dxfOpacity?.dxf_1073 ?? 1) : (state.dxfOpacity?.dxf_1073 ?? 0.9)) * lineOp;
+            const op = (state.dxfOpacity?.dxf_1073 ?? 0.9) * lineOp;
             drawWarpedGISLayerWithNodesAndArea(
               ctx,
               state.entities1073,
@@ -3185,7 +3142,7 @@ function drawLayerByKey(key, ctx, vp, h) {
       break;
     }
     case "dxf_196": {
-      const isVisible = ac ? (ac.layers?.dxf196 !== false) : (state.showWarped196OnField !== false);
+      const isVisible = (state.showWarped196OnField !== false);
       const isPdfVisible = (state.showWarpedPdf196 !== false);
       if ((isVisible || isPdfVisible) && getActiveAnchors(state.anchors196).length >= 2) {
         try {
@@ -3194,7 +3151,7 @@ function drawLayerByKey(key, ctx, vp, h) {
             drawWarpedPdfImage196(ctx, warper, vp, canvasTrue.width, h);
           }
           if (isVisible) {
-            const op = (ac ? (ac.dxfOpacity?.dxf_196 ?? 1) : (state.dxfOpacity?.dxf_196 ?? 0.85)) * lineOp;
+            const op = (state.dxfOpacity?.dxf_196 ?? 0.85) * lineOp;
             drawWarpedGISLayerWithNodesAndArea(
               ctx,
               state.entities196,
@@ -3219,9 +3176,9 @@ function drawLayerByKey(key, ctx, vp, h) {
     // ── Group 2: Muestreos de campo ──
     case "dxf_survey_cortez_2019":
     case "dxf_true": {
-      const isVisible = ac ? (ac.layers?.dxfTrue !== false) : (state.showFieldDXFOnField !== false);
+      const isVisible = (state.showFieldDXFOnField !== false);
       if (isVisible) {
-        const op = (ac ? (ac.dxfOpacity?.dxf_true ?? 1) : (state.dxfOpacity?.dxf_true ?? 1)) * lineOp;
+        const op = (state.dxfOpacity?.dxf_true ?? 1) * lineOp;
         drawGISLayerWithNodesAndArea(
           ctx,
           state.entitiesTrue,
@@ -4214,8 +4171,7 @@ async function autoLoadReconstructedPolygon() {
 }
 
 function drawReconstructedPolygon(ctx, vp, canvasH) {
-  const ac = state.caseMode ? getActiveCase() : null;
-  const isVis = ac ? (ac.layers?.reconstructed !== false && ac.layers?.dxf296 !== false) : (state.showReconstructedPolygon !== false);
+  const isVis = (state.showReconstructedPolygon !== false);
   if (!isVis) return;
   const poly = state.reconstructedPolygon;
   if (!poly || !poly.show) return;
@@ -4231,7 +4187,7 @@ function drawReconstructedPolygon(ctx, vp, canvasH) {
   const lineType = style296.lineType || "solid";
   const dashPattern = getPolyLineDash(lineType);
 
-  const opacity = (ac ? (ac.dxfOpacity?.reconstructed ?? 1.0) : (state.reconstructedPolyOpacity !== undefined ? state.reconstructedPolyOpacity : 1.0)) * lineOpacity;
+  const opacity = (state.reconstructedPolyOpacity !== undefined ? state.reconstructedPolyOpacity : 1.0) * lineOpacity;
   if (opacity <= 0) return;
 
   updateReconstructedPolygonWarp();
@@ -5309,11 +5265,7 @@ function drawMeasurements(ctx, vp, h) {
 function drawMeasurementsGIS(ctx, vp, h) {
   const ac = state.caseMode ? getActiveCase() : null;
   state.measurePolygons.forEach((poly, polyIdx) => {
-    if (ac) {
-      if (!ac.selectedPolyIds || !ac.selectedPolyIds.includes(poly.id)) return;
-    } else {
-      if (poly.visible === false) return;
-    }
+    if (poly.visible === false) return;
     const pts = poly.points;
     if (pts.length === 0) return;
     const isActive = !ac && (polyIdx === state.activeMeasureIdx);
@@ -5324,16 +5276,6 @@ function drawMeasurementsGIS(ctx, vp, h) {
     let lineOp = poly.lineOpacity !== undefined ? poly.lineOpacity : 1.0;
     let lineW = poly.lineWidth !== undefined ? poly.lineWidth : (isActive ? 2.5 : 1.8);
     let lineType = poly.lineType || "solid";
-    
-    if (ac && ac.polyStyles && ac.polyStyles[poly.id]) {
-      const ps = ac.polyStyles[poly.id];
-      if (ps.color) color = ps.color;
-      if (ps.fillColor) fillColor = ps.fillColor;
-      if (ps.fillOpacity !== undefined) fillOp = ps.fillOpacity;
-      if (ps.lineOpacity !== undefined) lineOp = ps.lineOpacity;
-      if (ps.lineWidth !== undefined) lineW = ps.lineWidth;
-      if (ps.lineType) lineType = ps.lineType;
-    }
 
     ctx.beginPath();
     const start = worldToScreenGIS(pts[0], vp, h);
@@ -5357,76 +5299,74 @@ function drawMeasurementsGIS(ctx, vp, h) {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    if (!ac) {
-      const isEditingThisPoly = isNodeEditingActive() && state.nodeEditingPolyIdx === polyIdx;
-      const showNodes = poly.showNodes !== false || isEditingThisPoly;
-      const dotR = isEditingThisPoly ? 7.5 : (isActive ? Math.max(4, lineW + 2) : Math.max(3, lineW + 1));
-      for (let i = 0; i < pts.length; i++) {
-        const sp = worldToScreenGIS(pts[i], vp, h);
-        if (showNodes) {
-          ctx.beginPath();
-          const isNodeActive = isEditingThisPoly && (state.hoverPolyNodeIdx === i || state.draggingPolyNodeIdx === i);
-          const r = isNodeActive ? dotR + 3 : dotR;
-          ctx.arc(sp.x, sp.y, r, 0, Math.PI * 2);
-          if (isEditingThisPoly) {
-            ctx.fillStyle = isNodeActive ? "#ffff00" : "#ffffff";
-            ctx.fill();
-            ctx.strokeStyle = isNodeActive ? "#00e5ff" : color;
-            ctx.lineWidth = isNodeActive ? 3 : 2;
-            ctx.stroke();
+    const isEditingThisPoly = !ac && isNodeEditingActive() && state.nodeEditingPolyIdx === polyIdx;
+    const showNodes = poly.showNodes !== false || isEditingThisPoly;
+    const dotR = isEditingThisPoly ? 7.5 : (isActive ? Math.max(4, lineW + 2) : Math.max(3, lineW + 1));
+    for (let i = 0; i < pts.length; i++) {
+      const sp = worldToScreenGIS(pts[i], vp, h);
+      if (showNodes) {
+        ctx.beginPath();
+        const isNodeActive = isEditingThisPoly && (state.hoverPolyNodeIdx === i || state.draggingPolyNodeIdx === i);
+        const r = isNodeActive ? dotR + 3 : dotR;
+        ctx.arc(sp.x, sp.y, r, 0, Math.PI * 2);
+        if (isEditingThisPoly) {
+          ctx.fillStyle = isNodeActive ? "#ffff00" : "#ffffff";
+          ctx.fill();
+          ctx.strokeStyle = isNodeActive ? "#00e5ff" : color;
+          ctx.lineWidth = isNodeActive ? 3 : 2;
+          ctx.stroke();
 
-            ctx.font = "bold 9px monospace";
-            ctx.fillStyle = "#000000";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(`${i + 1}`, sp.x, sp.y);
-            ctx.textAlign = "left";
-          } else {
-            ctx.fillStyle = color; ctx.fill();
-            ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
-          }
-        }
-
-        if (i > 0 && state.measureLabels !== false) {
-          const pPrev = pts[i - 1];
-          const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
-          const spPrev = worldToScreenGIS(pPrev, vp, h);
-          const midX = (sp.x + spPrev.x) / 2;
-          const midY = (sp.y + spPrev.y) / 2;
-
-          ctx.fillStyle = "rgba(0,0,0,0.75)";
-          ctx.fillRect(midX - 24, midY - 10, 48, 18);
-          ctx.strokeStyle = color;
-          ctx.strokeRect(midX - 24, midY - 10, 48, 18);
-
-          ctx.fillStyle = color;
-          ctx.font = "bold 10px monospace";
+          ctx.font = "bold 9px monospace";
+          ctx.fillStyle = "#000000";
           ctx.textAlign = "center";
-          ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
+          ctx.textBaseline = "middle";
+          ctx.fillText(`${i + 1}`, sp.x, sp.y);
           ctx.textAlign = "left";
+        } else {
+          ctx.fillStyle = color; ctx.fill();
+          ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
         }
       }
 
-      if (isEditingThisPoly && state.hoverPolySegment && state.draggingPolyNodeIdx === null) {
-        const spGhost = state.hoverPolySegment.screenPt;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(spGhost.x, spGhost.y, 5.5, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(0, 229, 255, 0.9)";
-        ctx.fill();
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        ctx.font = "bold 9px sans-serif";
-        ctx.fillStyle = "#ffffff";
+      if (i > 0 && state.measureLabels !== false) {
+        const pPrev = pts[i - 1];
+        const dist = Math.hypot(pts[i].x - pPrev.x, pts[i].y - pPrev.y);
+        const spPrev = worldToScreenGIS(pPrev, vp, h);
+        const midX = (sp.x + spPrev.x) / 2;
+        const midY = (sp.y + spPrev.y) / 2;
+
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.fillRect(midX - 24, midY - 10, 48, 18);
+        ctx.strokeStyle = color;
+        ctx.strokeRect(midX - 24, midY - 10, 48, 18);
+
+        ctx.fillStyle = color;
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
         ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        ctx.fillText("+ dbl-click", spGhost.x + 8, spGhost.y);
-        ctx.restore();
       }
     }
 
-    if (!ac && poly.showArea && pts.length >= 3 && state.measureLabels !== false) {
+    if (isEditingThisPoly && state.hoverPolySegment && state.draggingPolyNodeIdx === null) {
+      const spGhost = state.hoverPolySegment.screenPt;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(spGhost.x, spGhost.y, 5.5, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 229, 255, 0.9)";
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.font = "bold 9px sans-serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText("+ dbl-click", spGhost.x + 8, spGhost.y);
+      ctx.restore();
+    }
+
+    if (poly.showArea && pts.length >= 3 && state.measureLabels !== false) {
       const pLast = pts[pts.length - 1];
       const pFirst = pts[0];
       const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
@@ -8395,134 +8335,67 @@ function getActiveCase() {
   return state.activeCaseId !== null ? getCaseById(state.activeCaseId) : null;
 }
 
-function buildCasePolyChecklist() {
-  const container = document.getElementById("case-poly-checklist");
-  if (!container) return;
-  container.innerHTML = "";
-  const ac = getActiveCase();
-  if (!ac) {
-    container.innerHTML = '<div style="font-size:0.68rem;color:var(--text-muted);padding:2px;">Select or create a case first.</div>';
-    return;
+function syncPolygonOverviewUI() {
+  // 1. Sync static summary layers checkboxes (Show, Area, Nodes)
+  if (typeof STATIC_SUMMARY_LAYERS !== "undefined") {
+    STATIC_SUMMARY_LAYERS.forEach(cfg => {
+      const sChk = document.getElementById(cfg.showId);
+      if (sChk && state[cfg.showProp] !== undefined) {
+        sChk.checked = state[cfg.showProp] !== false;
+      }
+      const aChk = document.getElementById(cfg.areaId);
+      if (aChk && state[cfg.areaProp] !== undefined) {
+        aChk.checked = !!state[cfg.areaProp];
+      }
+      const nChk = document.getElementById(cfg.nodesId);
+      if (nChk && state[cfg.nodesProp] !== undefined) {
+        nChk.checked = state[cfg.nodesProp] !== false;
+      }
+    });
   }
-  if (!ac.selectedPolyIds) ac.selectedPolyIds = [];
-  if (!ac.polyStyles) ac.polyStyles = {};
 
-  if (!state.measurePolygons || state.measurePolygons.length === 0) {
-    container.innerHTML = '<div style="font-size:0.68rem;color:var(--text-muted);padding:2px;">No polygons created yet.</div>';
-    return;
+  // 2. Sync PDF overlays & opacities
+  const chkPdf1073 = document.getElementById("chk-show-warped-pdf");
+  if (chkPdf1073) chkPdf1073.checked = state.showWarpedPdf1073 !== false;
+  const slPdf1073 = document.getElementById("warped-pdf-opacity");
+  if (slPdf1073 && state.warpedPdf1073Opacity !== undefined) {
+    const val = Math.round(state.warpedPdf1073Opacity * 100);
+    slPdf1073.value = val;
+    const txt = document.getElementById("warped-pdf-opacity-val");
+    if (txt) txt.textContent = val + "%";
   }
 
-  state.measurePolygons.forEach(poly => {
-    const isChecked = ac.selectedPolyIds.includes(poly.id);
-    const polyStyle = ac.polyStyles[poly.id] || {
-      color: poly.color,
-      fillOpacity: poly.fillOpacity !== undefined ? poly.fillOpacity : 0.25
-    };
+  const chkPdf196 = document.getElementById("chk-show-warped-pdf-196");
+  if (chkPdf196) chkPdf196.checked = state.showWarpedPdf196 !== false;
+  const slPdf196 = document.getElementById("warped-pdf-opacity-196");
+  if (slPdf196 && state.warpedPdf196Opacity !== undefined) {
+    const val = Math.round(state.warpedPdf196Opacity * 100);
+    slPdf196.value = val;
+    const txt = document.getElementById("warped-pdf-opacity-val-196");
+    if (txt) txt.textContent = val + "%";
+  }
 
-    const row = document.createElement("div");
-    row.style.cssText = `display:flex;align-items:center;gap:5px;padding:3px 4px;border-radius:4px;background:${isChecked ? "rgba(255,255,255,0.06)" : "transparent"};margin-bottom:2px;`;
-
-    // Checkbox
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.dataset.polyId = poly.id;
-    cb.checked = isChecked;
-    cb.style.cssText = "cursor:pointer;flex-shrink:0;";
-    cb.title = `Include '${poly.name || "Polygon " + poly.id}' in this case`;
-
-    // Color picker
-    const colInput = document.createElement("input");
-    colInput.type = "color";
-    colInput.value = polyStyle.color || poly.color || "#00e5ff";
-    colInput.style.cssText = "width:18px;height:18px;border:none;background:none;cursor:pointer;padding:0;flex-shrink:0;";
-    colInput.title = "Polygon color for this case";
-
-    // Name
-    const nameSpan = document.createElement("span");
-    nameSpan.style.cssText = `font-size:0.72rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${isChecked ? "#fff" : "var(--text-muted)"};cursor:pointer;`;
-    nameSpan.textContent = poly.name || `Poly ${poly.id}`;
-    nameSpan.title = poly.name || `Poly ${poly.id}`;
-
-    // Opacity slider
-    const opSlider = document.createElement("input");
-    opSlider.type = "range";
-    opSlider.min = "0";
-    opSlider.max = "100";
-    const initOp = Math.round((polyStyle.fillOpacity !== undefined ? polyStyle.fillOpacity : 0.25) * 100);
-    opSlider.value = initOp;
-    opSlider.style.cssText = "width:42px;cursor:pointer;flex-shrink:0;";
-    opSlider.title = "Fill opacity for this case";
-
-    const opVal = document.createElement("span");
-    opVal.style.cssText = "font-size:0.65rem;font-family:monospace;color:var(--text-muted);width:26px;text-align:right;flex-shrink:0;";
-    opVal.textContent = initOp + "%";
-
-    cb.addEventListener("change", () => {
-      const curAc = getActiveCase();
-      if (!curAc) return;
-      if (!curAc.selectedPolyIds) curAc.selectedPolyIds = [];
-      if (cb.checked) {
-        if (!curAc.selectedPolyIds.includes(poly.id)) curAc.selectedPolyIds.push(poly.id);
-        if (!curAc.polyStyles[poly.id]) {
-          curAc.polyStyles[poly.id] = {
-            color: colInput.value,
-            fillOpacity: parseInt(opSlider.value, 10) / 100
-          };
-        }
-        row.style.background = "rgba(255,255,255,0.06)";
-        nameSpan.style.color = "#fff";
-      } else {
-        curAc.selectedPolyIds = curAc.selectedPolyIds.filter(id => id !== poly.id);
-        row.style.background = "transparent";
-        nameSpan.style.color = "var(--text-muted)";
-      }
-      drawViewportTrue();
-    });
-
-    colInput.addEventListener("input", (e) => {
-      const curAc = getActiveCase();
-      if (!curAc) return;
-      if (!curAc.polyStyles) curAc.polyStyles = {};
-      if (!curAc.polyStyles[poly.id]) curAc.polyStyles[poly.id] = {};
-      curAc.polyStyles[poly.id].color = e.target.value;
-      if (!curAc.selectedPolyIds.includes(poly.id)) {
-        curAc.selectedPolyIds.push(poly.id);
-        cb.checked = true;
-        row.style.background = "rgba(255,255,255,0.06)";
-        nameSpan.style.color = "#fff";
-      }
-      drawViewportTrue();
-    });
-
-    opSlider.addEventListener("input", (e) => {
-      const curAc = getActiveCase();
-      if (!curAc) return;
-      const val = parseInt(e.target.value, 10);
-      opVal.textContent = val + "%";
-      if (!curAc.polyStyles) curAc.polyStyles = {};
-      if (!curAc.polyStyles[poly.id]) curAc.polyStyles[poly.id] = {};
-      curAc.polyStyles[poly.id].fillOpacity = val / 100;
-      if (!curAc.selectedPolyIds.includes(poly.id)) {
-        curAc.selectedPolyIds.push(poly.id);
-        cb.checked = true;
-        row.style.background = "rgba(255,255,255,0.06)";
-        nameSpan.style.color = "#fff";
-      }
-      drawViewportTrue();
-    });
-
-    nameSpan.addEventListener("click", () => {
-      cb.checked = !cb.checked;
-      cb.dispatchEvent(new Event("change"));
-    });
-
-    row.appendChild(cb);
-    row.appendChild(colInput);
-    row.appendChild(nameSpan);
-    row.appendChild(opSlider);
-    row.appendChild(opVal);
-    container.appendChild(row);
+  // 3. Sync Mojones
+  const chkMojones = document.getElementById("chk-show-mojones-1073");
+  if (chkMojones) chkMojones.checked = state.showMojones1073 !== false;
+  document.querySelectorAll(".chk-mojon-single").forEach(chk => {
+    const anc = (state.anchors1073 || []).find(a => String(a.id) === String(chk.dataset.mojonId));
+    if (anc) chk.checked = anc.showMojon !== false;
   });
+
+  // 4. Sync Trinidad sub-tramos quick colors
+  if (typeof syncTrinidadSectionUI === "function") {
+    syncTrinidadSectionUI();
+  }
+
+  // 5. Refresh dynamic measurement polygon rows & master checkboxes
+  if (typeof updatePolygonSummaryUI === "function") {
+    updatePolygonSummaryUI();
+  }
+}
+
+function buildCasePolyChecklist() {
+  syncPolygonOverviewUI();
 }
 
 function buildCaseLabelsList() {
@@ -8666,6 +8539,93 @@ function updateSelectedLabelProp(key, value) {
   drawViewportTrue();
 }
 
+function captureCaseSnapshot(name, id = Date.now()) {
+  const selectedPolyIds = (state.measurePolygons || []).filter(p => p.visible !== false).map(p => p.id);
+
+  // Snapshot polygon specs & visibility
+  const polygons = (state.measurePolygons || []).map(p => ({
+    id: p.id,
+    name: p.name,
+    visible: p.visible !== false,
+    showArea: !!p.showArea,
+    showNodes: p.showNodes !== false,
+    color: p.color,
+    fillColor: p.fillColor || p.color,
+    fillOpacity: p.fillOpacity !== undefined ? p.fillOpacity : 0.25,
+    lineWidth: p.lineWidth !== undefined ? p.lineWidth : 2.5,
+    lineType: p.lineType || "solid",
+    lineOpacity: p.lineOpacity !== undefined ? p.lineOpacity : 1.0
+  }));
+
+  const polyStyles = {};
+  polygons.forEach(p => {
+    polyStyles[p.id] = {
+      color: p.color,
+      fillColor: p.fillColor,
+      fillOpacity: p.fillOpacity,
+      lineWidth: p.lineWidth,
+      lineType: p.lineType,
+      lineOpacity: p.lineOpacity,
+      showArea: p.showArea
+    };
+  });
+
+  // Layer visibility & display options from Polygon Overview
+  const layerDisplay = {
+    dxf_296: { show: state.showReconstructedPolygon !== false, area: !!state.showArea296, nodes: state.showNodes296 !== false },
+    dxf_1073: { show: state.showWarped1073OnField !== false, area: !!state.showArea1073, nodes: state.showNodes1073 !== false, showPdf: state.showWarpedPdf1073 !== false, pdfOpacity: state.warpedPdf1073Opacity ?? 0.5 },
+    dxf_196: { show: state.showWarped196OnField !== false, area: !!state.showArea196, nodes: state.showNodes196 !== false, showPdf: state.showWarpedPdf196 !== false, pdfOpacity: state.warpedPdf196Opacity ?? 0.5 },
+    dxf_survey_cortez_2019: { show: state.showFieldDXFOnField !== false, area: !!state.showAreaSurveyCortez2019, nodes: state.showNodesSurveyCortez2019 !== false },
+    dxf_survey_valoy_2025: { show: state.showSurveyValoy2025 !== false, area: !!state.showAreaSurveyValoy2025, nodes: state.showNodesSurveyValoy2025 !== false },
+    dxf_survey_cortez_sep_2026: { show: state.showSurveyCortez2025 !== false, area: !!state.showAreaSurveyCortez2025, nodes: state.showNodesSurveyCortez2025 !== false },
+    dxf_survey_cortez_oct_2026: { show: state.showSurveyCortezOct2026 !== false, area: !!state.showAreaSurveyCortezOct2026, nodes: state.showNodesSurveyCortezOct2026 !== false },
+    mojones: {
+      show: state.showMojones1073 !== false,
+      items: Object.fromEntries((state.anchors1073 || []).map(a => [String(a.id), a.showMojon !== false]))
+    }
+  };
+
+  // Backwards compatibility layers object
+  const layers = {
+    reconstructed: state.showReconstructedPolygon !== false,
+    dxf296: state.showWarped296OnField !== false,
+    dxf1073: state.showWarped1073OnField !== false,
+    dxf196: state.showWarped196OnField !== false,
+    dxfTrue: state.showFieldDXFOnField !== false,
+    surveyValoy2025: state.showSurveyValoy2025 !== false,
+    surveyCortez2025: state.showSurveyCortez2025 !== false,
+    surveyCortezOct2026: state.showSurveyCortezOct2026 !== false,
+    dxfOverlay: state.showSurveyCortezOct2026 !== false,
+    geotiff: true
+  };
+
+  const caseObj = {
+    id,
+    name: name.trim(),
+    selectedPolyIds,
+    polygons,
+    polyStyles,
+    layerDisplay,
+    layerStyles: JSON.parse(JSON.stringify(state.layerStyles || DEFAULT_LAYER_STYLES)),
+    trinidadSectionStyles: (state.reconstructedPolygon && state.reconstructedPolygon.sectionStyles)
+      ? JSON.parse(JSON.stringify(state.reconstructedPolygon.sectionStyles))
+      : null,
+    layerOrder: [...(state.layerOrder || DEFAULT_LAYER_ORDER)],
+    camera: {
+      scale: state.vpTrue.scale,
+      offsetX: state.vpTrue.offsetX,
+      offsetY: state.vpTrue.offsetY
+    },
+    layers,
+    dxfOpacity: Object.assign({}, state.dxfOpacity),
+    geotiffBW: document.getElementById("case-geotiff-bw") ? document.getElementById("case-geotiff-bw").checked : true,
+    labels: [],
+    arrows: []
+  };
+
+  return caseObj;
+}
+
 function applyActiveCase(caseObj) {
   if (!caseObj) {
     state.caseMode = false;
@@ -8677,33 +8637,7 @@ function applyActiveCase(caseObj) {
     const arrInsp = document.getElementById("case-arrow-inspector");
     if (arrInsp) arrInsp.style.display = "none";
 
-    // Reset DXF visibility toggles to match normal workspace
-    const chkRecon = document.getElementById("case-dxf-vis-reconstructed");
-    if (chkRecon) chkRecon.checked = state.showReconstructedPolygon !== false;
-    const chk1073 = document.getElementById("case-dxf-vis-1073");
-    if (chk1073) chk1073.checked = state.showWarped1073OnField !== false;
-    const chk196 = document.getElementById("case-dxf-vis-196");
-    if (chk196) chk196.checked = state.showWarped196OnField !== false;
-    const chkTrue = document.getElementById("case-dxf-vis-true");
-    if (chkTrue) chkTrue.checked = state.showFieldDXFOnField !== false;
-    const chkGeo = document.getElementById("case-dxf-vis-geotiff");
-    if (chkGeo) chkGeo.checked = true;
-
-    // Reset opacity sliders to match general state
-    [
-      { id: "dxf-opacity-reconstructed", key: "reconstructed" },
-      { id: "dxf-opacity-1073", key: "dxf_1073" },
-      { id: "dxf-opacity-196",  key: "dxf_196" },
-      { id: "dxf-opacity-true", key: "dxf_true" }
-    ].forEach(({ id, key }) => {
-      const sl = document.getElementById(id);
-      const vl = document.getElementById(id + "-val");
-      const v = Math.round((state.dxfOpacity[key] ?? 1) * 100);
-      if (sl) sl.value = v;
-      if (vl) vl.textContent = v + "%";
-    });
-
-    buildCasePolyChecklist();
+    syncPolygonOverviewUI();
     buildCaseLabelsList();
     buildCaseArrowsList();
     drawViewportTrue();
@@ -8714,52 +8648,117 @@ function applyActiveCase(caseObj) {
   state.activeCaseId = caseObj.id;
   if (!caseObj.arrows) caseObj.arrows = [];
   if (!caseObj.labels) caseObj.labels = [];
-  if (!caseObj.selectedPolyIds) caseObj.selectedPolyIds = [];
-  if (!caseObj.polyStyles) caseObj.polyStyles = {};
-  if (!caseObj.layers) {
-    caseObj.layers = { geotiff: true, reconstructed: true, dxf1073: true, dxf196: true, dxfTrue: true };
-  }
-  if (!caseObj.dxfOpacity) {
-    caseObj.dxfOpacity = { reconstructed: 1, dxf_1073: 1, dxf_196: 1, dxf_true: 1 };
-  }
 
+  // 1. Camera View
   if (caseObj.camera) {
     state.vpTrue.scale = caseObj.camera.scale;
     state.vpTrue.offsetX = caseObj.camera.offsetX;
     state.vpTrue.offsetY = caseObj.camera.offsetY;
   }
 
-  // Restore DXF visibility checkboxes in Cases panel
-  const chkRecon = document.getElementById("case-dxf-vis-reconstructed");
-  if (chkRecon) chkRecon.checked = (caseObj.layers.reconstructed !== false && caseObj.layers.dxf296 !== false);
-  const chk1073 = document.getElementById("case-dxf-vis-1073");
-  if (chk1073) chk1073.checked = caseObj.layers.dxf1073 !== false;
-  const chk196 = document.getElementById("case-dxf-vis-196");
-  if (chk196) chk196.checked = caseObj.layers.dxf196 !== false;
-  const chkTrue = document.getElementById("case-dxf-vis-true");
-  if (chkTrue) chkTrue.checked = caseObj.layers.dxfTrue !== false;
-  const chkGeo = document.getElementById("case-dxf-vis-geotiff");
-  if (chkGeo) chkGeo.checked = caseObj.layers.geotiff !== false;
+  // 2. Spotlight B&W mode
   const chkBW = document.getElementById("case-geotiff-bw");
   if (chkBW) chkBW.checked = caseObj.geotiffBW !== false;
 
-  // Restore DXF opacities and sliders
-  [
-    { id: "dxf-opacity-reconstructed", key: "reconstructed" },
-    { id: "dxf-opacity-1073", key: "dxf_1073" },
-    { id: "dxf-opacity-196",  key: "dxf_196" },
-    { id: "dxf-opacity-true", key: "dxf_true" }
-  ].forEach(({ id, key }) => {
-    const sl = document.getElementById(id);
-    const vl = document.getElementById(id + "-val");
-    const op = caseObj.dxfOpacity[key] !== undefined ? caseObj.dxfOpacity[key] : 1;
-    state.dxfOpacity[key] = op;
-    const v = Math.round(op * 100);
-    if (sl) sl.value = v;
-    if (vl) vl.textContent = v + "%";
-  });
+  // 3. Layer Styles & Sub-tramos
+  if (caseObj.layerStyles) {
+    state.layerStyles = JSON.parse(JSON.stringify(caseObj.layerStyles));
+  }
+  if (caseObj.trinidadSectionStyles && state.reconstructedPolygon) {
+    state.reconstructedPolygon.sectionStyles = JSON.parse(JSON.stringify(caseObj.trinidadSectionStyles));
+  }
 
-  buildCasePolyChecklist();
+  // 4. Layer Stack Order
+  if (caseObj.layerOrder && Array.isArray(caseObj.layerOrder) && caseObj.layerOrder.length > 0) {
+    state.layerOrder = [...caseObj.layerOrder];
+  }
+
+  // 5. Static Layers & Overlays (from layerDisplay or backwards-compatible layers)
+  if (caseObj.layerDisplay) {
+    const ld = caseObj.layerDisplay;
+    STATIC_SUMMARY_LAYERS.forEach(cfg => {
+      const item = ld[cfg.layerKey];
+      if (item) {
+        state[cfg.showProp] = item.show !== false;
+        state[cfg.areaProp] = !!item.area;
+        state[cfg.nodesProp] = item.nodes !== false;
+        if (cfg.showProp === "showReconstructedPolygon") {
+          state.showWarped296OnField = item.show !== false;
+        }
+      } else {
+        // Layer not saved in case: hide it
+        state[cfg.showProp] = false;
+        if (cfg.showProp === "showReconstructedPolygon") state.showWarped296OnField = false;
+      }
+    });
+
+    if (ld.dxf_1073) {
+      if (ld.dxf_1073.showPdf !== undefined) state.showWarpedPdf1073 = ld.dxf_1073.showPdf;
+      if (ld.dxf_1073.pdfOpacity !== undefined) state.warpedPdf1073Opacity = ld.dxf_1073.pdfOpacity;
+    }
+    if (ld.dxf_196) {
+      if (ld.dxf_196.showPdf !== undefined) state.showWarpedPdf196 = ld.dxf_196.showPdf;
+      if (ld.dxf_196.pdfOpacity !== undefined) state.warpedPdf196Opacity = ld.dxf_196.pdfOpacity;
+    }
+    if (ld.mojones) {
+      if (ld.mojones.show !== undefined) state.showMojones1073 = ld.mojones.show;
+      if (ld.mojones.items) {
+        (state.anchors1073 || []).forEach(a => {
+          const v = ld.mojones.items[String(a.id)];
+          if (v !== undefined) a.showMojon = v !== false;
+        });
+      }
+    }
+  } else if (caseObj.layers) {
+    // Backwards compatibility for older case JSON files:
+    state.showReconstructedPolygon = (caseObj.layers.reconstructed !== false && caseObj.layers.dxf296 !== false);
+    state.showWarped296OnField = state.showReconstructedPolygon;
+    state.showWarped1073OnField = caseObj.layers.dxf1073 !== false;
+    state.showWarped196OnField = caseObj.layers.dxf196 !== false;
+    state.showFieldDXFOnField = caseObj.layers.dxfTrue !== false;
+  }
+
+  // 6. Measurement Polygons
+  if (Array.isArray(caseObj.polygons) && caseObj.polygons.length > 0) {
+    state.measurePolygons.forEach(p => {
+      const cp = caseObj.polygons.find(item => item.id === p.id);
+      if (cp) {
+        p.visible = cp.visible !== false;
+        p.showArea = !!cp.showArea;
+        p.showNodes = cp.showNodes !== false;
+        if (cp.color) p.color = cp.color;
+        if (cp.fillColor) p.fillColor = cp.fillColor;
+        if (cp.fillOpacity !== undefined) p.fillOpacity = cp.fillOpacity;
+        if (cp.lineWidth !== undefined) p.lineWidth = cp.lineWidth;
+        if (cp.lineType) p.lineType = cp.lineType;
+        if (cp.lineOpacity !== undefined) p.lineOpacity = cp.lineOpacity;
+      } else {
+        p.visible = false;
+      }
+    });
+  } else if (Array.isArray(caseObj.selectedPolyIds)) {
+    // Backwards compatibility
+    const selIds = caseObj.selectedPolyIds;
+    state.measurePolygons.forEach(p => {
+      const isSel = selIds.includes(p.id);
+      p.visible = isSel;
+      if (caseObj.polyStyles && caseObj.polyStyles[p.id]) {
+        const ps = caseObj.polyStyles[p.id];
+        if (ps.color) p.color = ps.color;
+        if (ps.fillOpacity !== undefined) p.fillOpacity = ps.fillOpacity;
+        if (ps.lineWidth !== undefined) p.lineWidth = ps.lineWidth;
+        if (ps.lineType) p.lineType = ps.lineType;
+        if (ps.showArea !== undefined) p.showArea = ps.showArea;
+      }
+    });
+  }
+
+  caseObj.selectedPolyIds = state.measurePolygons.filter(p => p.visible !== false).map(p => p.id);
+
+  // 7. Synchronize the entire Polygon Overview table
+  syncPolygonOverviewUI();
+
+  // 8. Labels and Arrows
   buildCaseLabelsList();
   buildCaseArrowsList();
   state.caseSelectedLabelId = null;
@@ -8768,6 +8767,7 @@ function applyActiveCase(caseObj) {
   if (inspector) inspector.style.display = "none";
   const arrInsp = document.getElementById("case-arrow-inspector");
   if (arrInsp) arrInsp.style.display = "none";
+
   drawViewportTrue();
   statusBar.textContent = `📂 Case loaded: ${caseObj.name}`;
 }
@@ -8777,52 +8777,7 @@ function createNewCase() {
   if (!name || !name.trim()) return;
   const id = Date.now();
 
-  const layers = {
-    reconstructed: document.getElementById("case-dxf-vis-reconstructed") ? document.getElementById("case-dxf-vis-reconstructed").checked : (state.showReconstructedPolygon !== false),
-    dxf1073: document.getElementById("case-dxf-vis-1073") ? document.getElementById("case-dxf-vis-1073").checked : (state.showWarped1073OnField !== false),
-    dxf196: document.getElementById("case-dxf-vis-196") ? document.getElementById("case-dxf-vis-196").checked : (state.showWarped196OnField !== false),
-    dxfTrue: document.getElementById("case-dxf-vis-true") ? document.getElementById("case-dxf-vis-true").checked : (state.showFieldDXFOnField !== false),
-    geotiff: document.getElementById("case-dxf-vis-geotiff") ? document.getElementById("case-dxf-vis-geotiff").checked : true
-  };
-
-  const dxfOpacity = {
-    reconstructed: (parseFloat(document.getElementById("dxf-opacity-reconstructed")?.value) || 100) / 100,
-    dxf_1073: (parseFloat(document.getElementById("dxf-opacity-1073")?.value) || 100) / 100,
-    dxf_196: (parseFloat(document.getElementById("dxf-opacity-196")?.value) || 100) / 100,
-    dxf_true: (parseFloat(document.getElementById("dxf-opacity-true")?.value) || 100) / 100
-  };
-
-  const selectedPolyIds = state.measurePolygons.filter(p => p.visible !== false).map(p => p.id);
-  const polyStyles = {};
-  selectedPolyIds.forEach(polyId => {
-    const poly = state.measurePolygons.find(p => p.id === polyId);
-    if (poly) {
-      polyStyles[polyId] = {
-        color: poly.color,
-        fillOpacity: poly.fillOpacity !== undefined ? poly.fillOpacity : 0.25,
-        lineWidth: poly.lineWidth !== undefined ? poly.lineWidth : 2.5,
-        lineType: poly.lineType || "solid",
-        showArea: poly.showArea || false
-      };
-    }
-  });
-
-  const newCase = {
-    id,
-    name: name.trim(),
-    selectedPolyIds,
-    polyStyles,
-    camera: {
-      scale: state.vpTrue.scale,
-      offsetX: state.vpTrue.offsetX,
-      offsetY: state.vpTrue.offsetY
-    },
-    layers,
-    dxfOpacity,
-    geotiffBW: document.getElementById("case-geotiff-bw") ? document.getElementById("case-geotiff-bw").checked : true,
-    labels: [],
-    arrows: []
-  };
+  const newCase = captureCaseSnapshot(name, id);
   state.cases.push(newCase);
   rebuildCaseSelector();
   document.getElementById("case-selector").value = id;
@@ -8837,14 +8792,10 @@ function duplicateActiveCase() {
   const name = prompt("Enter name for the duplicated case:", defaultName);
   if (!name || !name.trim()) return;
 
-  // Deep-clone the entire case object so edits to the clone never affect the original
   const clone = JSON.parse(JSON.stringify(ac));
-
-  // Assign a fresh id and name
   clone.id   = Date.now();
   clone.name = name.trim();
 
-  // Give every label and arrow a fresh id so they are independent from the source
   if (Array.isArray(clone.labels)) {
     clone.labels = clone.labels.map(lbl => ({ ...lbl, id: "lbl_" + (Date.now() + Math.random() * 1e6 | 0) }));
   }
@@ -8859,51 +8810,15 @@ function duplicateActiveCase() {
   statusBar.textContent = `🔁 Duplicated case "${ac.name}" → "${clone.name}"`;
 }
 
-
 function updateActiveCase() {
   const ac = getActiveCase();
   if (!ac) { statusBar.textContent = "⚠️ No active case to update."; return; }
 
-  // 1. Camera
-  ac.camera = {
-    scale: state.vpTrue.scale,
-    offsetX: state.vpTrue.offsetX,
-    offsetY: state.vpTrue.offsetY
-  };
+  const snapshot = captureCaseSnapshot(ac.name, ac.id);
+  snapshot.labels = ac.labels || [];
+  snapshot.arrows = ac.arrows || [];
 
-  // 2. DXF Layers Visibility
-  if (!ac.layers) ac.layers = {};
-  ac.layers.reconstructed = document.getElementById("case-dxf-vis-reconstructed") ? document.getElementById("case-dxf-vis-reconstructed").checked : true;
-  ac.layers.dxf1073 = document.getElementById("case-dxf-vis-1073") ? document.getElementById("case-dxf-vis-1073").checked : true;
-  ac.layers.dxf196 = document.getElementById("case-dxf-vis-196") ? document.getElementById("case-dxf-vis-196").checked : true;
-  ac.layers.dxfTrue = document.getElementById("case-dxf-vis-true") ? document.getElementById("case-dxf-vis-true").checked : true;
-  ac.layers.geotiff = document.getElementById("case-dxf-vis-geotiff") ? document.getElementById("case-dxf-vis-geotiff").checked : true;
-  ac.geotiffBW = document.getElementById("case-geotiff-bw") ? document.getElementById("case-geotiff-bw").checked : true;
-
-  // 3. DXF Opacities
-  ac.dxfOpacity = {
-    reconstructed: (parseFloat(document.getElementById("dxf-opacity-reconstructed")?.value) || 100) / 100,
-    dxf_1073: (parseFloat(document.getElementById("dxf-opacity-1073")?.value) || 100) / 100,
-    dxf_196: (parseFloat(document.getElementById("dxf-opacity-196")?.value) || 100) / 100,
-    dxf_true: (parseFloat(document.getElementById("dxf-opacity-true")?.value) || 100) / 100
-  };
-
-  // 4. Ensure polyStyles exists for selected polygons
-  if (!ac.polyStyles) ac.polyStyles = {};
-  if (ac.selectedPolyIds) {
-    ac.selectedPolyIds.forEach(polyId => {
-      const poly = state.measurePolygons.find(p => p.id === polyId);
-      if (poly && !ac.polyStyles[polyId]) {
-        ac.polyStyles[polyId] = {
-          color: poly.color,
-          fillOpacity: poly.fillOpacity !== undefined ? poly.fillOpacity : 0.25,
-          lineWidth: poly.lineWidth !== undefined ? poly.lineWidth : 2.5,
-          lineType: poly.lineType || "solid",
-          showArea: poly.showArea || false
-        };
-      }
-    });
-  }
+  Object.assign(ac, snapshot);
 
   statusBar.textContent = `✅ Case '${ac.name}' updated with all current view, layer, polygon & style settings.`;
   drawViewportTrue();
@@ -9320,9 +9235,8 @@ function drawGeoTiffWithCaseSpotlight(ctx, tiff, vp, canvasH, selectedPolyIds, b
   ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh);
   ctx.restore();
 
-  if (!selectedPolyIds || selectedPolyIds.length === 0) return;
-
-  const polys = state.measurePolygons.filter(p => selectedPolyIds.includes(p.id));
+  // Spotlight = every measurement polygon currently ticked "Show" in Polygon Overview
+  const polys = state.measurePolygons.filter(p => p.visible !== false);
   if (polys.length === 0) return;
 
   ctx.save();
@@ -9345,105 +9259,78 @@ function drawGeoTiffWithCaseSpotlight(ctx, tiff, vp, canvasH, selectedPolyIds, b
 }
 
 function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
-  if (!ac) return;
-  const selectedPolyIds = ac.selectedPolyIds || [];
+  // Visibility & styling come straight from the live state that the
+  // Polygon Overview controls (applyActiveCase has already restored it).
+  const ls = (state.layerStyles && state.layerStyles[key]) ? state.layerStyles[key] : (DEFAULT_LAYER_STYLES[key] || {});
+  const color = ls.color || "#00e5ff";
+  const lineOp = ls.lineOpacity !== undefined ? ls.lineOpacity : 1.0;
+  const lineW = (ls.lineWidth !== undefined ? ls.lineWidth : 2.5) * scaleRatio;
+  const dash = getPolyLineDash(ls.lineType || "solid").map(v => v * scaleRatio);
+
+  const strokePlain = (ents, op) => {
+    if (!ents || ents.length === 0) return;
+    drawWithOffscreen(ctx, op, offCtx => {
+      offCtx.setLineDash(dash);
+      drawEntitiesGISExport(offCtx, ents, vpExp, EXP_H, color, lineW);
+      offCtx.setLineDash([]);
+    });
+  };
+  const strokeWarped = (ents, anchors, op) => {
+    if (!ents || ents.length === 0 || getActiveAnchors(anchors).length < 2) return;
+    try {
+      const w = TransformMath.createWarper(state.algorithm, anchors);
+      drawWithOffscreen(ctx, op, offCtx => {
+        offCtx.setLineDash(dash);
+        drawWarpedEntitiesGISExport(offCtx, ents, w, vpExp, EXP_H, color, lineW);
+        offCtx.setLineDash([]);
+      });
+    } catch (_) {}
+  };
+
   switch (key) {
     case "dxf_survey_cortez_2019":
-    case "dxf_true": {
-      const isVisible = ac.layers ? (ac.layers.dxfTrue !== false) : true;
-      if (isVisible && state.entitiesTrue && state.entitiesTrue.length > 0) {
-        const op = ac.dxfOpacity?.dxf_true ?? 1.0;
-        drawWithOffscreen(ctx, op, offCtx =>
-          drawEntitiesGISExport(offCtx, state.entitiesTrue, vpExp, EXP_H, "#00e676", 5 * scaleRatio)
-        );
-      }
+    case "dxf_true":
+      if (state.showFieldDXFOnField !== false) strokePlain(state.entitiesTrue, (state.dxfOpacity?.dxf_true ?? 1) * lineOp);
       break;
-    }
-    case "dxf_survey_valoy_2025": {
-      const isVisible = ac.layers ? (ac.layers.surveyValoy2025 !== false) : (state.showSurveyValoy2025 !== false);
-      if (isVisible && state.surveyValoy2025Entities && state.surveyValoy2025Entities.length > 0) {
-        drawEntitiesGISExport(ctx, state.surveyValoy2025Entities, vpExp, EXP_H, "#ffb300", 3.5 * scaleRatio);
-      }
+    case "dxf_survey_valoy_2025":
+      if (state.showSurveyValoy2025 !== false) strokePlain(state.surveyValoy2025Entities, lineOp);
       break;
-    }
-    case "dxf_survey_cortez_sep_2026": {
-      const isVisible = ac.layers ? (ac.layers.surveyCortez2025 !== false) : (state.showSurveyCortez2025 !== false);
-      if (isVisible && state.surveyCortez2025Entities && state.surveyCortez2025Entities.length > 0) {
-        drawEntitiesGISExport(ctx, state.surveyCortez2025Entities, vpExp, EXP_H, "#00e5ff", 3.5 * scaleRatio);
-      }
+    case "dxf_survey_cortez_sep_2026":
+      if (state.showSurveyCortez2025 !== false) strokePlain(state.surveyCortez2025Entities, lineOp);
       break;
-    }
     case "dxf_survey_cortez_oct_2026":
     case "dxf_overlay": {
       const ents = (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0)
         ? state.surveyCortezOct2026Entities
         : (state.overlayLayer && state.overlayLayer.entities ? state.overlayLayer.entities : []);
-      const isVisible = ac.layers ? (ac.layers.dxfOverlay !== false) : (state.showSurveyCortezOct2026 !== false);
-      if (isVisible && ents.length > 0) {
-        drawEntitiesGISExport(ctx, ents, vpExp, EXP_H, "#00b0ff", 3.5 * scaleRatio);
-      }
+      if (state.showSurveyCortezOct2026 !== false) strokePlain(ents, lineOp);
       break;
     }
-    case "dxf_296": {
-      const isVisible = ac.layers ? (ac.layers.dxf296 !== false) : true;
-      if (isVisible && state.anchors296.length >= 2 && state.entities296.length > 0) {
-        try {
-          const w = TransformMath.createWarper(state.algorithm, state.anchors296);
-          const op = ac.dxfOpacity?.dxf_296 ?? 1.0;
-          drawWithOffscreen(ctx, op, offCtx =>
-            drawWarpedEntitiesGISExport(offCtx, state.entities296, w, vpExp, EXP_H, "rgba(213, 0, 249, 0.95)", 5 * scaleRatio)
-          );
-        } catch (_) {}
-      }
+    case "dxf_296":
+      if (state.showReconstructedPolygon !== false) drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio);
+      if (state.showWarped296OnField !== false) strokeWarped(state.entities296, state.anchors296, (state.dxfOpacity?.dxf_296 ?? 0.85) * lineOp);
       break;
-    }
-    case "dxf_1073": {
-      const isVisible = ac.layers ? (ac.layers.dxf1073 !== false) : true;
-      if (isVisible && state.anchors1073.length >= 2 && state.entities1073.length > 0) {
-        try {
-          const w = TransformMath.createWarper(state.algorithm, state.anchors1073);
-          const op = ac.dxfOpacity?.dxf_1073 ?? 1.0;
-          drawWithOffscreen(ctx, op, offCtx =>
-            drawWarpedEntitiesGISExport(offCtx, state.entities1073, w, vpExp, EXP_H, "rgba(255, 23, 68, 0.95)", 5 * scaleRatio)
-          );
-        } catch (_) {}
-      }
+    case "dxf_1073":
+      if (state.showWarped1073OnField !== false) strokeWarped(state.entities1073, state.anchors1073, (state.dxfOpacity?.dxf_1073 ?? 0.9) * lineOp);
       break;
-    }
-    case "dxf_196": {
-      const isVisible = ac.layers ? (ac.layers.dxf196 !== false) : true;
-      if (isVisible && state.anchors196.length >= 2 && state.entities196.length > 0) {
-        try {
-          const w = TransformMath.createWarper(state.algorithm, state.anchors196);
-          const op = ac.dxfOpacity?.dxf_196 ?? 1.0;
-          drawWithOffscreen(ctx, op, offCtx =>
-            drawWarpedEntitiesGISExport(offCtx, state.entities196, w, vpExp, EXP_H, "rgba(255, 145, 0, 0.95)", 5 * scaleRatio)
-          );
-        } catch (_) {}
-      }
+    case "dxf_196":
+      if (state.showWarped196OnField !== false) strokeWarped(state.entities196, state.anchors196, (state.dxfOpacity?.dxf_196 ?? 0.85) * lineOp);
       break;
-    }
     case "dxf_anchors":
       // In Case HD image export, suppress anchors from other panels
       break;
     case "measure_polygons":
       state.measurePolygons.forEach(poly => {
-        // Only render polygons selected in this case!
-        if (!selectedPolyIds || !selectedPolyIds.includes(poly.id)) return;
+        // Only polygons ticked "Show" in Polygon Overview
+        if (poly.visible === false) return;
         if (!poly.points || poly.points.length < 2) return;
-        
-        let color = poly.color;
-        let fillOp = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
-        let lineW = (poly.lineWidth || 2.5) * scaleRatio;
-        let lineType = poly.lineType || "solid";
-        
-        if (ac.polyStyles && ac.polyStyles[poly.id]) {
-          const ps = ac.polyStyles[poly.id];
-          if (ps.color) color = ps.color;
-          if (ps.fillOpacity !== undefined) fillOp = ps.fillOpacity;
-          if (ps.lineWidth !== undefined) lineW = ps.lineWidth * scaleRatio;
-          if (ps.lineType) lineType = ps.lineType;
-        }
+
+        const pColor = poly.color || "#00e5ff";
+        const fillColor = poly.fillColor || pColor;
+        const fillOp = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
+        const pLineOp = poly.lineOpacity !== undefined ? poly.lineOpacity : 1.0;
+        const pLineW = (poly.lineWidth !== undefined ? poly.lineWidth : 2.5) * scaleRatio;
+        const lineType = poly.lineType || "solid";
 
         ctx.save();
         ctx.beginPath();
@@ -9454,13 +9341,10 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
           ctx.lineTo(p.x, p.y);
         }
         ctx.closePath();
-        const hex = color || "#00e5ff";
-        const nr = parseInt(hex.slice(1,3), 16), ng = parseInt(hex.slice(3,5), 16), nb = parseInt(hex.slice(5,7), 16);
-        const r = isNaN(nr) ? 0 : nr, g = isNaN(ng) ? 229 : ng, b = isNaN(nb) ? 255 : nb;
-        ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(1, fillOp)})`;
+        ctx.fillStyle = colorToRgba(fillColor, Math.min(1, fillOp));
         ctx.fill();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lineW;
+        ctx.strokeStyle = colorToRgba(pColor, pLineOp);
+        ctx.lineWidth = pLineW;
         ctx.setLineDash(getPolyLineDash(lineType).map(v => v * scaleRatio));
         ctx.stroke();
         ctx.setLineDash([]);
@@ -9746,25 +9630,6 @@ function setupCasesPanel() {
   if (btnExpHd) btnExpHd.addEventListener("click", exportCaseImageHD);
   const btnDelLbl = document.getElementById("btn-lbl-delete");
   if (btnDelLbl) btnDelLbl.addEventListener("click", deleteSelectedLabel);
-
-  // Case DXF Layer visibility checkboxes
-  const wireCaseVis = (id, key) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener("change", () => {
-      const ac = getActiveCase();
-      if (ac) {
-        if (!ac.layers) ac.layers = {};
-        ac.layers[key] = el.checked;
-      }
-      drawViewportTrue();
-    });
-  };
-  wireCaseVis("case-dxf-vis-reconstructed", "reconstructed");
-  wireCaseVis("case-dxf-vis-1073", "dxf1073");
-  wireCaseVis("case-dxf-vis-196", "dxf196");
-  wireCaseVis("case-dxf-vis-true", "dxfTrue");
-  wireCaseVis("case-dxf-vis-geotiff", "geotiff");
 
   // B&W toggle — live sync to active case
   const chkBWEl = document.getElementById("case-geotiff-bw");
