@@ -1701,12 +1701,12 @@ Do NOT modify dormant/parked sections unless specifically requested.
                   <strong id="seg-adjust-tol-val" style="color:var(--accent-cyan);font-family:monospace;font-size:0.74rem;">± 1.04 m (IGAC)</strong>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;margin:2px 0;">
-                  <input type="range" id="seg-adjust-tol-slider" min="0.00" max="10.00" step="0.05" value="1.04" class="opacity-slider" style="flex:1;height:4px;accent-color:var(--accent-cyan);cursor:pointer;">
+                  <input type="range" id="seg-adjust-tol-slider" min="0.00" max="25.00" step="0.05" value="1.04" class="opacity-slider" style="flex:1;height:4px;accent-color:var(--accent-cyan);cursor:pointer;">
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:0.60rem;color:var(--text-muted);">
                   <span>0.00m (Raw)</span>
                   <span style="color:var(--accent-cyan);" title="IGAC Graphical Tolerance standard for 1:2000 plan">1.04m (IGAC)</span>
-                  <span>10.00m</span>
+                  <span>25.00m</span>
                 </div>
               </div>
 
@@ -13293,13 +13293,13 @@ EOF`;
           if (qBtn) {
             qBtn.addEventListener("click", () => toggleReverseProcessingMode(true));
           }
-        } else if (!sol.feasible && sol.maxDisplacement != null && sol.maxDisplacement > 0 && sol.maxDisplacement <= 10.00) {
+        } else if (!sol.feasible && sol.maxDisplacement != null && sol.maxDisplacement > 0 && sol.maxDisplacement <= 25.00) {
           const needed = (Math.ceil(sol.maxDisplacement * 20) / 20).toFixed(2);
           statusTextEl.innerHTML = `<span style="color:#ffb300;font-size:0.66rem;">Tol ±${curTolDist.toFixed(2)}m tight (needs ±${sol.maxDisplacement.toFixed(2)}m):</span> <button id="btn-quick-fit-tol" type="button" style="background:var(--accent-cyan);color:#0f172a;font-weight:700;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.65rem;margin-left:4px;" title="Set tolerance to ±${needed}m">Auto-Fit (±${needed}m)</button>`;
           const qTol = document.getElementById("btn-quick-fit-tol");
           if (qTol) {
             qTol.addEventListener("click", () => {
-              const newTol = Math.min(10.00, Math.ceil(sol.maxDisplacement * 20) / 20);
+              const newTol = Math.min(25.00, Math.ceil(sol.maxDisplacement * 20) / 20);
               sa.toleranceDist = newTol;
               const tolSlider = document.getElementById("seg-adjust-tol-slider");
               const tolVal = document.getElementById("seg-adjust-tol-val");
