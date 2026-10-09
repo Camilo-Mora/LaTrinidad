@@ -895,16 +895,6 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
               </span>
             </div>
 
-            <!-- Plano PDF overlay control (50% default) -->
-            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
-              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en Campo (Warped Deed PDF Map Image)">
-                <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                <span>Plano PDF</span>
-              </label>
-              <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50" style="width:42px;">
-              <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">50%</span>
-            </div>
-
             <!-- Polígono DXF boundary control & styling -->
             <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
               <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
@@ -990,6 +980,21 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td><input type="checkbox" id="sum-area-dxf-1073" title="Display area badge for Escritura 1073" style="accent-color:var(--accent-yellow);"></td>
                   <td><input type="checkbox" id="sum-nodes-dxf-1073" title="Display vertex nodes for Escritura 1073" style="accent-color:#ff1744;"></td>
                 </tr>
+                <tr class="plano-subrow-1073" style="background:rgba(255,23,68,0.05);border-bottom:1px solid rgba(255,255,255,0.06);">
+                  <td style="text-align:center;padding:2px 0;">
+                    <span style="font-size:0.75rem;opacity:0.85;">📄</span>
+                  </td>
+                  <td class="col-name" style="padding-left:4px;color:rgba(255,138,128,0.95);font-size:0.69rem;font-weight:600;" title="Plano PDF Escritura 1073">
+                    Plano PDF
+                  </td>
+                  <td colspan="4" style="padding:2px 4px;text-align:right;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+                      <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;width:13px;height:13px;margin:0;" title="Mostrar u ocultar Plano PDF Escritura 1073 en el mapa">
+                      <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50" style="width:40px;accent-color:#ff1744;cursor:pointer;" title="Transparencia Plano PDF 1073">
+                      <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.66rem;color:var(--text-muted);">50%</span>
+                    </div>
+                  </td>
+                </tr>
                 <tr>
                   <td><button type="button" class="poly-dot-btn layer-dot-btn" data-layer-key="dxf_196" title="Click to edit specs (Color, Line, Transparency, Nodes)" style="width:13px;height:13px;border-radius:50%;background:#ff9100;box-shadow:0 0 5px #ff9100;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;transition:transform 0.1s;"></button></td>
                   <td class="col-name layer-name-btn" data-layer-key="dxf_196" style="color:#ff9100;cursor:pointer;" title="Click to edit specs: Escritura 196">Escritura 196</td>
@@ -1000,6 +1005,21 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td><input type="checkbox" id="sum-show-dxf-196" checked title="Show/hide Escritura 196 on field map" style="accent-color:#ff9100;"></td>
                   <td><input type="checkbox" id="sum-area-dxf-196" title="Display area badge for Escritura 196" style="accent-color:var(--accent-yellow);"></td>
                   <td><input type="checkbox" id="sum-nodes-dxf-196" title="Display vertex nodes for Escritura 196" style="accent-color:#ff9100;"></td>
+                </tr>
+                <tr class="plano-subrow-196" style="background:rgba(255,145,0,0.05);border-bottom:1px solid rgba(255,255,255,0.06);">
+                  <td style="text-align:center;padding:2px 0;">
+                    <span style="font-size:0.75rem;opacity:0.85;">📄</span>
+                  </td>
+                  <td class="col-name" style="padding-left:4px;color:rgba(255,183,77,0.95);font-size:0.69rem;font-weight:600;" title="Plano PDF Escritura 196">
+                    Plano PDF
+                  </td>
+                  <td colspan="4" style="padding:2px 4px;text-align:right;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+                      <input type="checkbox" id="chk-show-warped-pdf-196" checked style="accent-color:#ff9100;cursor:pointer;width:13px;height:13px;margin:0;" title="Mostrar u ocultar Plano PDF Escritura 196 en el mapa">
+                      <input type="range" class="opacity-slider" id="warped-pdf-opacity-196" min="0" max="100" value="50" style="width:40px;accent-color:#ff9100;cursor:pointer;" title="Transparencia Plano PDF 196">
+                      <span class="opacity-val" id="warped-pdf-opacity-val-196" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.66rem;color:var(--text-muted);">50%</span>
+                    </div>
+                  </td>
                 </tr>
 
                 <!-- ── GROUP 2: MUESTREOS DE CAMPO ── -->
@@ -1680,6 +1700,8 @@ const state = {
   showWarped196OnField: true,
   showArea196: false,
   showNodes196: false,
+  showWarpedPdf196: true,
+  warpedPdf196Opacity: 0.50, // 50% default transparency
 
   // Group 2: Muestreos de campo
   showFieldDXFOnField: true, // In 2019 by Cristian Cortez
@@ -3067,25 +3089,31 @@ function drawLayerByKey(key, ctx, vp, h) {
     }
     case "dxf_196": {
       const isVisible = ac ? (ac.layers?.dxf196 !== false) : (state.showWarped196OnField !== false);
-      if (isVisible && getActiveAnchors(state.anchors196).length >= 2) {
+      const isPdfVisible = (state.showWarpedPdf196 !== false);
+      if ((isVisible || isPdfVisible) && getActiveAnchors(state.anchors196).length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-          const op = (ac ? (ac.dxfOpacity?.dxf_196 ?? 1) : (state.dxfOpacity?.dxf_196 ?? 0.85)) * lineOp;
-          drawWarpedGISLayerWithNodesAndArea(
-            ctx,
-            state.entities196,
-            warper,
-            vp,
-            h,
-            color,
-            state.showNodes196,
-            state.showArea196,
-            op,
-            lineW,
-            lineDash,
-            fillColor,
-            fillOpacity
-          );
+          if (isPdfVisible && state.pdf196Canvas && state.pdf196Width > 0) {
+            drawWarpedPdfImage196(ctx, warper, vp, canvasTrue.width, h);
+          }
+          if (isVisible) {
+            const op = (ac ? (ac.dxfOpacity?.dxf_196 ?? 1) : (state.dxfOpacity?.dxf_196 ?? 0.85)) * lineOp;
+            drawWarpedGISLayerWithNodesAndArea(
+              ctx,
+              state.entities196,
+              warper,
+              vp,
+              h,
+              color,
+              state.showNodes196,
+              state.showArea196,
+              op,
+              lineW,
+              lineDash,
+              fillColor,
+              fillOpacity
+            );
+          }
         } catch (_) {}
       }
       break;
@@ -3353,17 +3381,15 @@ function drawDestinationAnchorsGIS(ctx, anchors, vp, h) {
 }
 
 /* -----------------------------------------------------------------------
-   Draw warped deed PDF image (Escritura 1073) on True Field Canvas.
+   Draw warped deed PDF image on True Field Canvas.
    Uses Piecewise Triangle Mesh Warper with offscreen 1.0 alpha buffer
    to eliminate all white seam lines, preserving 1:1 square grid cells.
 ----------------------------------------------------------------------- */
-function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
-  if (!state.pdf1073Canvas || !state.pdf1073Width) return;
-  const pdfW = state.pdf1073Width, pdfH = state.pdf1073Height;
-  const opacity = state.warpedPdf1073Opacity !== undefined ? state.warpedPdf1073Opacity : 0.50;
+function drawWarpedPdfImageGeneric(ctx, pdfCanvas, pdfW, pdfH, opacity, warper, vp, canvasW, canvasH, meshRes) {
+  if (!pdfCanvas || !pdfW || !pdfH) return;
   if (opacity <= 0) return;
 
-  const baseRes = state.deedMeshRes1073 || 64;
+  const baseRes = meshRes || 64;
   const maxDim = Math.max(pdfW, pdfH);
   const cellSize = maxDim / baseRes;
   const gridCols = Math.max(2, Math.round(pdfW / cellSize));
@@ -3388,7 +3414,7 @@ function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
     ctx.save();
     ctx.globalAlpha = opacity;
     ctx.setTransform(a, b, c_, d_, e, f);
-    ctx.drawImage(state.pdf1073Canvas, 0, 0, pdfW, pdfH);
+    ctx.drawImage(pdfCanvas, 0, 0, pdfW, pdfH);
     ctx.restore();
     return;
   }
@@ -3408,10 +3434,10 @@ function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
   }
 
   // Offscreen buffer at full 1.0 alpha to eliminate seam artifacts
-  if (!drawWarpedPdfImage1073._offCanvas) {
-    drawWarpedPdfImage1073._offCanvas = document.createElement("canvas");
+  if (!drawWarpedPdfImageGeneric._offCanvas) {
+    drawWarpedPdfImageGeneric._offCanvas = document.createElement("canvas");
   }
-  const offCanvas = drawWarpedPdfImage1073._offCanvas;
+  const offCanvas = drawWarpedPdfImageGeneric._offCanvas;
   if (offCanvas.width !== canvasW || offCanvas.height !== canvasH) {
     offCanvas.width = canvasW;
     offCanvas.height = canvasH;
@@ -3455,7 +3481,7 @@ function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
     targetCtx.clip();
 
     targetCtx.setTransform(a, b, c_, d_, e, f);
-    targetCtx.drawImage(state.pdf1073Canvas, 0, 0, pdfW, pdfH);
+    targetCtx.drawImage(pdfCanvas, 0, 0, pdfW, pdfH);
     targetCtx.restore();
   }
 
@@ -3481,7 +3507,16 @@ function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
   ctx.globalAlpha = opacity;
   ctx.drawImage(offCanvas, 0, 0);
   ctx.restore();
+}
 
+function drawWarpedPdfImage1073(ctx, warper, vp, canvasW, canvasH) {
+  const opacity = state.warpedPdf1073Opacity !== undefined ? state.warpedPdf1073Opacity : 0.50;
+  drawWarpedPdfImageGeneric(ctx, state.pdf1073Canvas, state.pdf1073Width, state.pdf1073Height, opacity, warper, vp, canvasW, canvasH, state.deedMeshRes1073 || 64);
+}
+
+function drawWarpedPdfImage196(ctx, warper, vp, canvasW, canvasH) {
+  const opacity = state.warpedPdf196Opacity !== undefined ? state.warpedPdf196Opacity : 0.50;
+  drawWarpedPdfImageGeneric(ctx, state.pdf196Canvas, state.pdf196Width, state.pdf196Height, opacity, warper, vp, canvasW, canvasH, 64);
 }
 
 // ── Helpers: Anchor Label Card and Connecting Arrows (Mojones) ───────
@@ -6117,6 +6152,29 @@ function setupEventListeners() {
       if (chkWarpedPdf && !chkWarpedPdf.checked && val > 0) {
         chkWarpedPdf.checked = true;
         state.showWarpedPdf1073 = true;
+      }
+      redrawAll();
+    });
+  }
+
+  // ── Escritura 196 Plano PDF Controls ───────────────────────────────
+  const chkWarpedPdf196 = document.getElementById("chk-show-warped-pdf-196");
+  const rngWarpedPdfOp196 = document.getElementById("warped-pdf-opacity-196");
+  const valWarpedPdfOp196 = document.getElementById("warped-pdf-opacity-val-196");
+  if (chkWarpedPdf196) {
+    chkWarpedPdf196.addEventListener("change", e => {
+      state.showWarpedPdf196 = e.target.checked;
+      redrawAll();
+    });
+  }
+  if (rngWarpedPdfOp196) {
+    rngWarpedPdfOp196.addEventListener("input", e => {
+      const val = parseInt(e.target.value, 10);
+      state.warpedPdf196Opacity = val / 100;
+      if (valWarpedPdfOp196) valWarpedPdfOp196.textContent = val + "%";
+      if (chkWarpedPdf196 && !chkWarpedPdf196.checked && val > 0) {
+        chkWarpedPdf196.checked = true;
+        state.showWarpedPdf196 = true;
       }
       redrawAll();
     });
