@@ -35,10 +35,9 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Trinidad</title>
   <meta name="description" content="Single-file interactive application to warp, rubber-sheet, and georectify historical DXF farm vectors onto ground-truth surveys, with embedded PDF vectorizer, subwindow selectors, and measurement tools.">
-  <!-- External Libraries: GeoTIFF, PDF.js & jsPDF -->
+  <!-- External Libraries: GeoTIFF & PDF.js -->
   <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- [SECTION: CSS_STYLES] -->
   <style>
     /* Core Design System & Styling Tokens */
@@ -886,13 +885,36 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
           </div>
           <div class="canvas-container" id="container-true">
             <canvas id="canvas-true"></canvas>
+
+            <!-- Floating Measurement HUD Overlay -->
+            <div id="measure-hud" style="display:none;position:absolute;top:10px;right:10px;background:rgba(18,24,38,0.92);border:1px solid rgba(255,179,0,0.5);border-radius:6px;padding:7px 11px;font-size:0.75rem;color:var(--text-main);box-shadow:0 4px 16px rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:35;min-width:190px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:3px;gap:6px;">
+                <span style="font-weight:700;color:#ffb300;display:flex;align-items:center;gap:4px;">📏 Measurement</span>
+                <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+                  <label title="Toggle vertex snapping" style="display:inline-flex;align-items:center;gap:2px;font-size:0.67rem;cursor:pointer;color:#ffb300;margin:0;user-select:none;">
+                    <input type="checkbox" id="chk-measure-hud-snap" checked style="accent-color:#ffb300;width:11px;height:11px;cursor:pointer;margin:0;">
+                    <span>🧲 Snap</span>
+                  </label>
+                  <button id="btn-clear-measure" style="background:none;border:none;color:#ff5252;cursor:pointer;font-size:0.78rem;font-weight:bold;padding:0 2px;" title="Clear measurement (Esc)">✕</button>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px;font-family:monospace;font-size:0.72rem;">
+                <div>Points: <strong id="measure-pts-count" style="color:#00e5ff;">0</strong></div>
+                <div>Total Dist: <strong id="measure-total-dist" style="color:#00e676;">0.00 m</strong></div>
+                <div id="measure-area-row" style="display:none;">Area: <strong id="measure-area-m2" style="color:#ffb300;">0.00 m²</strong> (<span id="measure-area-plazas" style="color:#ffd54f;">0.00 pl</span>)</div>
+              </div>
+              <button id="btn-measure-save-poly" style="display:none;margin-top:5px;width:100%;background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.4);color:var(--accent-cyan);border-radius:4px;padding:2px 6px;font-size:0.68rem;cursor:pointer;font-weight:600;" title="Save points as a permanent polygon in the sidebar overview">＋ Save to Polygons</button>
+              <div style="font-size:0.64rem;color:var(--text-muted);margin-top:4px;line-height:1.2;">
+                Click to place • Drag point to move • Right-click point to delete • Esc to clear
+              </div>
+            </div>
           </div>
           <!-- Toolbar under True Field Canvas: Controles Lindero La Trinidad & Escritura 1073 (Single Line) -->
           <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:3px 10px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(0,229,255,0.25);font-size:0.71rem;color:var(--text-main);flex-wrap:nowrap;white-space:nowrap;overflow-x:auto;z-index:10;">
             <!-- 1. Map Action Tools (Left Side: Center, Measure, Edit Polygons) -->
             <div style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
               <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View (Centrar mapa en límites)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">⛶</button>
-              <button class="vp-tool-btn" data-map="true" data-mode="measure" title="Measure Distances [M] (Medir distancias en el mapa)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">📏</button>
+              <button class="vp-tool-btn" id="btn-measure-tool" data-map="true" data-mode="measure" title="Measure Distances [M] (Medir distancias en el mapa)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">📏</button>
               <button class="vp-tool-btn" id="btn-edit-polygons-toggle" title="Editar Polígonos (Modificar vértices de linderos - Próxima función)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(0,229,255,0.25);cursor:pointer;color:var(--accent-cyan);line-height:1.2;">✏️</button>
             </div>
 
@@ -1850,6 +1872,15 @@ const state = {
   measureArea: false,
   measureLabels: false,
   draggingMeasurePt: null, // { polyIdx, ptIdx } for the point being dragged
+  measureTool: {
+    active: false,
+    points: [],
+    cursorPt: null,
+    closed: false,
+    snapEnabled: true
+  },
+  hoverMeasureMarker: null,
+  draggingMeasureMarker: null,
 
   
   // Viewports
@@ -2456,19 +2487,49 @@ function drawBackgroundPdf(ctx, offCanvas, vp, canvasH, target) {
   ctx.restore();
 }
 
-function drawSnapTargetOnCanvas(ctx, screenPt) {
+function drawSnapTargetOnCanvas(ctx, screenPt, label, sourceType) {
   if (!screenPt) return;
   const { x: sx, y: sy } = screenPt;
   ctx.save();
-  ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2);
-  ctx.strokeStyle = "#ffd600"; ctx.lineWidth = 2.5; ctx.stroke();
-  ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2);
-  ctx.fillStyle = "#00e5ff"; ctx.fill();
+  const ringColor = (sourceType === 'deed') ? "#ff1744" :
+                    (sourceType === 'boundary' || sourceType === 'polygon') ? "#00e5ff" :
+                    (sourceType === 'field') ? "#00e676" :
+                    (sourceType === 'anchor') ? "#d500f9" :
+                    (sourceType === 'marker') ? "#ff5252" :
+                    (sourceType === 'custom') ? "#ffb300" :
+                    (sourceType === 'ref') ? "#38bdf8" :
+                    (sourceType === 'measure') ? "#ffd600" : "#ffd600";
+
+  ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI * 2);
+  ctx.strokeStyle = ringColor; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI * 2);
+  ctx.fillStyle = ringColor; ctx.fill();
   ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(sx - 16, sy); ctx.lineTo(sx + 16, sy);
   ctx.moveTo(sx, sy - 16); ctx.lineTo(sx, sy + 16);
-  ctx.strokeStyle = "rgba(255, 214, 0, 0.85)"; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = ringColor; ctx.lineWidth = 1.2; ctx.stroke();
+
+  if (label) {
+    ctx.font = "bold 11px sans-serif";
+    const tm = ctx.measureText(label);
+    const pw = tm.width + 12;
+    const ph = 18;
+    const px = sx + 14;
+    const py = sy - 22;
+    ctx.fillStyle = "rgba(18, 24, 38, 0.92)";
+    ctx.strokeStyle = ringColor;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(px, py, pw, ph, 4);
+    else ctx.rect(px, py, pw, ph);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = ringColor;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, px + 6, py + ph / 2);
+  }
   ctx.restore();
 }
 
@@ -2779,8 +2840,13 @@ function drawViewportTrue() {
     drawCaseLabels(ctxTrue, vp, h);
     drawCaseArrows(ctxTrue, vp, h);
   }
-  if (!state.caseMode && state.currentSnapTarget && state.currentSnapTarget.mapName === "true") {
-    drawSnapTargetOnCanvas(ctxTrue, state.currentSnapTarget.screenPt);
+  // Layer: Measuring Tool overlay (Live rubber-band, pins, segment badges, centroid area)
+  if (typeof drawMeasuringToolGIS === "function") {
+    drawMeasuringToolGIS(ctxTrue, vp, h);
+  }
+
+  if (!state.caseMode && state.currentSnapTarget && (state.currentSnapTarget.mapName === "true" || !state.currentSnapTarget.mapName)) {
+    drawSnapTargetOnCanvas(ctxTrue, state.currentSnapTarget.screenPt, state.currentSnapTarget.label, state.currentSnapTarget.sourceType);
   }
 }
 
@@ -4247,6 +4313,516 @@ function drawMeasurementsGIS(ctx, vp, h) {
   });
 }
 
+// ============================================================================
+// [SECTION: JS_MEASURING_TOOL]
+// ============================================================================
+/* ======================================================
+   MEASURING TOOL (DISTANCES & AREAS ON TRUE FIELD CANVAS)
+   Modeled after GeoRectifier.html with live rubber-band,
+   smart snapping, interactive vertex handles & HUD.
+   ====================================================== */
+
+function redrawTrueCanvas() {
+  drawViewportTrue();
+}
+
+function drawMeasureLabel(ctx, text, x, y, isDraft) {
+  ctx.save();
+  ctx.font = "bold 11px monospace";
+  const tm = ctx.measureText(text);
+  const pw = tm.width + 10;
+  const ph = 18;
+  ctx.fillStyle = isDraft ? "rgba(35, 28, 5, 0.90)" : "rgba(18, 24, 38, 0.90)";
+  ctx.strokeStyle = isDraft ? "#ffea00" : "#ffb300";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(x - pw / 2, y - ph / 2, pw, ph, 4);
+  } else {
+    ctx.rect(x - pw / 2, y - ph / 2, pw, ph);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = isDraft ? "#ffea00" : "#ffffff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function drawMeasureAreaBadge(ctx, text, x, y) {
+  ctx.save();
+  ctx.font = "bold 12px sans-serif";
+  const tm = ctx.measureText(text);
+  const pw = tm.width + 14;
+  const ph = 22;
+  ctx.fillStyle = "rgba(18, 24, 38, 0.94)";
+  ctx.strokeStyle = "#ffb300";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(x - pw / 2, y - ph / 2, pw, ph, 5);
+  } else {
+    ctx.rect(x - pw / 2, y - ph / 2, pw, ph);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffb300";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function drawMeasuringToolGIS(ctx, vp, canvasH) {
+  const mt = state.measureTool;
+  if (!mt || (!mt.active && mt.points.length === 0)) return;
+
+  const pts = mt.points;
+  const cur = (mt.active && !mt.closed && mt.cursorPt) ? mt.cursorPt : null;
+  const activePts = cur ? [...pts, cur] : [...pts];
+  if (activePts.length === 0) return;
+
+  ctx.save();
+
+  // 1. Polygon Fill for >= 3 points (or 2 points + live cursor)
+  if (activePts.length >= 3) {
+    ctx.beginPath();
+    const s0 = worldToScreenGIS(activePts[0], vp, canvasH);
+    ctx.moveTo(s0.x, s0.y);
+    for (let i = 1; i < activePts.length; i++) {
+      const s = worldToScreenGIS(activePts[i], vp, canvasH);
+      ctx.lineTo(s.x, s.y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "rgba(255, 179, 0, 0.15)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255, 179, 0, 0.45)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // 2. Confirmed solid segments
+  if (pts.length >= 2) {
+    ctx.beginPath();
+    const s0 = worldToScreenGIS(pts[0], vp, canvasH);
+    ctx.moveTo(s0.x, s0.y);
+    for (let i = 1; i < pts.length; i++) {
+      const s = worldToScreenGIS(pts[i], vp, canvasH);
+      ctx.lineTo(s.x, s.y);
+    }
+    if (mt.closed) {
+      ctx.closePath();
+    }
+    ctx.strokeStyle = "#ffb300";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  // 3. Dynamic rubber-band segment to cursor
+  if (cur && pts.length >= 1) {
+    const lastPt = pts[pts.length - 1];
+    const sLast = worldToScreenGIS(lastPt, vp, canvasH);
+    const sCur = worldToScreenGIS(cur, vp, canvasH);
+    ctx.beginPath();
+    ctx.moveTo(sLast.x, sLast.y);
+    ctx.lineTo(sCur.x, sCur.y);
+    ctx.strokeStyle = "#ffea00";
+    ctx.lineWidth = 2.0;
+    ctx.setLineDash([5, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const segDist = Math.hypot(cur.x - lastPt.x, cur.y - lastPt.y);
+    if (segDist > 0.05) {
+      const midX = (sLast.x + sCur.x) / 2;
+      const midY = (sLast.y + sCur.y) / 2;
+      drawMeasureLabel(ctx, `${segDist.toFixed(2)} m`, midX, midY, true);
+    }
+  }
+
+  // 4. Badges for confirmed segments
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const s1 = worldToScreenGIS(p1, vp, canvasH);
+    const s2 = worldToScreenGIS(p2, vp, canvasH);
+    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    const midX = (s1.x + s2.x) / 2;
+    const midY = (s1.y + s2.y) / 2;
+    drawMeasureLabel(ctx, `${dist.toFixed(2)} m`, midX, midY, false);
+  }
+  if (mt.closed && pts.length >= 3) {
+    const p1 = pts[pts.length - 1];
+    const p2 = pts[0];
+    const s1 = worldToScreenGIS(p1, vp, canvasH);
+    const s2 = worldToScreenGIS(p2, vp, canvasH);
+    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    const midX = (s1.x + s2.x) / 2;
+    const midY = (s1.y + s2.y) / 2;
+    drawMeasureLabel(ctx, `${dist.toFixed(2)} m`, midX, midY, false);
+  }
+
+  // 5. Point dots and index numbers
+  pts.forEach((pt, idx) => {
+    const s = worldToScreenGIS(pt, vp, canvasH);
+    const isHovered = (state.hoverMeasureMarker === idx);
+    const isDragged = (state.draggingMeasureMarker === idx);
+
+    if (isHovered || isDragged) {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 11, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 214, 0, 0.25)";
+      ctx.fill();
+      ctx.strokeStyle = "#ffd600";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, (isHovered || isDragged) ? 6 : 5, 0, Math.PI * 2);
+    ctx.fillStyle = idx === 0 ? "#00e676" : "#ffb300";
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.font = "bold 10px monospace";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(`#${idx + 1}`, s.x + 8, s.y - 4);
+  });
+
+  // 6. Centroid Area Badge
+  if ((mt.closed || pts.length >= 3) && pts.length >= 3) {
+    let signedArea = 0;
+    let cx = 0, cy = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const j = (i + 1) % pts.length;
+      const cross = pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+      signedArea += cross;
+      cx += pts[i].x;
+      cy += pts[i].y;
+    }
+    const areaM2 = Math.abs(signedArea) / 2;
+    cx /= pts.length;
+    cy /= pts.length;
+    const sCentroid = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
+    const plazas = areaM2 / 6400;
+    const ha = areaM2 / 10000;
+    const areaStr = areaM2 >= 10000 
+      ? `Area: ${areaM2.toLocaleString('en-US', {maximumFractionDigits:1})} m² (${ha.toFixed(2)} ha / ${plazas.toFixed(2)} pl)`
+      : `Area: ${areaM2.toFixed(1)} m² (${plazas.toFixed(2)} pl)`;
+    drawMeasureAreaBadge(ctx, areaStr, sCentroid.x, sCentroid.y);
+  }
+
+  ctx.restore();
+}
+
+/** Hit test existing live measurement markers on true canvas (for dragging or deleting) */
+function findLiveMeasureMarkerAt(mouseX, mouseY, vp, canvasH, hitRadiusPx = 14) {
+  if (!state.measureTool || !state.measureTool.points || state.measureTool.points.length === 0) return null;
+  const pts = state.measureTool.points;
+  for (let i = 0; i < pts.length; i++) {
+    const s = worldToScreenGIS(pts[i], vp, canvasH);
+    const dist = Math.hypot(s.x - mouseX, s.y - mouseY);
+    if (dist <= hitRadiusPx) {
+      return { idx: i, pt: pts[i], screenPt: s, dist };
+    }
+  }
+  return null;
+}
+
+/** Find nearest visible vertex across all active layers for Measuring Tool snapping */
+function findMeasureSnapTarget(mouseX, mouseY, vp, canvasH) {
+  if (state.measureTool && state.measureTool.snapEnabled === false) return null;
+  const SNAP_RADIUS = 18; // screen pixels
+  let best = null;
+  let minDist = SNAP_RADIUS;
+
+  // 0. If measuring and have >= 2 points, check point 0 to allow closing the polygon
+  const mt = state.measureTool;
+  if (mt && mt.active && !mt.closed && mt.points && mt.points.length >= 2) {
+    const p0 = mt.points[0];
+    const s0 = worldToScreenGIS(p0, vp, canvasH);
+    const d0 = Math.hypot(s0.x - mouseX, s0.y - mouseY);
+    if (d0 <= minDist) {
+      minDist = d0;
+      best = {
+        worldPt: { x: p0.x, y: p0.y },
+        screenPt: s0,
+        label: '✓ Close Polygon (Pt #1)',
+        sourceType: 'measure',
+        isFirstMeasurePt: true
+      };
+    }
+  }
+
+  // 1. Reconstructed Lindero La Trinidad Polygon (state.reconstructedPolygon)
+  if (state.showReconstructedPolygon !== false && state.reconstructedPolygon && state.reconstructedPolygon.vertices && state.reconstructedPolygon.vertices.length > 0) {
+    const verts = state.reconstructedPolygon.vertices;
+    for (let i = 0; i < verts.length; i++) {
+      const v = verts[i];
+      if (!v || typeof v.x !== "number" || typeof v.y !== "number") continue;
+      const sp = worldToScreenGIS(v, vp, canvasH);
+      const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+      if (d <= minDist) {
+        minDist = d;
+        best = {
+          worldPt: { x: v.x, y: v.y },
+          screenPt: sp,
+          label: `⚓ Lindero Reconstruido #${i + 1}`,
+          sourceType: 'boundary'
+        };
+      }
+    }
+  }
+
+  // 2. Saved Case / Measurement Polygons (state.measurePolygons)
+  const polys = state.measurePolygons || [];
+  for (let pIdx = 0; pIdx < polys.length; pIdx++) {
+    const poly = polys[pIdx];
+    if (!poly || poly.visible === false || !poly.points || poly.points.length === 0) continue;
+    for (let i = 0; i < poly.points.length; i++) {
+      const pt = poly.points[i];
+      if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+      const sp = worldToScreenGIS(pt, vp, canvasH);
+      const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+      if (d <= minDist) {
+        minDist = d;
+        best = {
+          worldPt: { x: pt.x, y: pt.y },
+          screenPt: sp,
+          label: `${poly.name || 'Polígono'} #${i + 1}`,
+          sourceType: 'custom'
+        };
+      }
+    }
+  }
+
+  // 3. Ground Truth Field Survey (state.entitiesTrue)
+  if (state.showFieldDXFOnField !== false && state.entitiesTrue && state.entitiesTrue.length > 0) {
+    for (let entIdx = 0; entIdx < state.entitiesTrue.length; entIdx++) {
+      const ent = state.entitiesTrue[entIdx];
+      const pts = ent.points || ent.vertices;
+      if (!pts) continue;
+      for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+        const pt = pts[ptIdx];
+        if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+        const sp = worldToScreenGIS(pt, vp, canvasH);
+        const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+        if (d <= minDist) {
+          minDist = d;
+          best = {
+            worldPt: { x: pt.x, y: pt.y },
+            screenPt: sp,
+            label: `Field Survey #${ptIdx + 1}`,
+            sourceType: 'field'
+          };
+        }
+      }
+    }
+  }
+
+  // 4. Warped Deed 1073 entities (Escritura 1073)
+  if (state.showWarped1073OnField !== false && state.entities1073 && state.entities1073.length > 0) {
+    let warper = null;
+    const activeAnchors = getActiveAnchors(state.anchors1073);
+    if (activeAnchors.length >= 2) {
+      try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
+    }
+    if (warper) {
+      for (let entIdx = 0; entIdx < state.entities1073.length; entIdx++) {
+        const ent = state.entities1073[entIdx];
+        const pts = ent.points || ent.vertices;
+        if (!pts) continue;
+        for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+          const rawPt = pts[ptIdx];
+          if (!rawPt || typeof rawPt.x !== "number" || typeof rawPt.y !== "number") continue;
+          const wPt = warper(rawPt);
+          const sp = worldToScreenGIS(wPt, vp, canvasH);
+          const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+          if (d <= minDist) {
+            minDist = d;
+            best = {
+              worldPt: { x: wPt.x, y: wPt.y },
+              screenPt: sp,
+              label: `📜 Escritura 1073 #${ptIdx + 1}`,
+              sourceType: 'deed'
+            };
+          }
+        }
+      }
+    }
+  }
+
+  // 5. Warped Deed 196 entities (Escritura 196)
+  if (state.showWarped196OnField !== false && state.entities196 && state.entities196.length > 0) {
+    let warper = null;
+    const activeAnchors = getActiveAnchors(state.anchors196);
+    if (activeAnchors.length >= 2) {
+      try { warper = TransformMath.createWarper(state.algorithm, activeAnchors); } catch (_) {}
+    }
+    if (warper) {
+      for (let entIdx = 0; entIdx < state.entities196.length; entIdx++) {
+        const ent = state.entities196[entIdx];
+        const pts = ent.points || ent.vertices;
+        if (!pts) continue;
+        for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+          const rawPt = pts[ptIdx];
+          if (!rawPt || typeof rawPt.x !== "number" || typeof rawPt.y !== "number") continue;
+          const wPt = warper(rawPt);
+          const sp = worldToScreenGIS(wPt, vp, canvasH);
+          const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+          if (d <= minDist) {
+            minDist = d;
+            best = {
+              worldPt: { x: wPt.x, y: wPt.y },
+              screenPt: sp,
+              label: `📜 Escritura 196 #${ptIdx + 1}`,
+              sourceType: 'deed'
+            };
+          }
+        }
+      }
+    }
+  }
+
+  // 6. Overlay Layer
+  if (state.overlayLayer && state.overlayLayer.visible && (state.overlayLayer.entities || []).length > 0) {
+    for (let entIdx = 0; entIdx < state.overlayLayer.entities.length; entIdx++) {
+      const ent = state.overlayLayer.entities[entIdx];
+      const pts = ent.points || ent.vertices;
+      if (!pts) continue;
+      for (let ptIdx = 0; ptIdx < pts.length; ptIdx++) {
+        const pt = pts[ptIdx];
+        if (!pt || typeof pt.x !== "number" || typeof pt.y !== "number") continue;
+        const sp = worldToScreenGIS(pt, vp, canvasH);
+        const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+        if (d <= minDist) {
+          minDist = d;
+          best = {
+            worldPt: { x: pt.x, y: pt.y },
+            screenPt: sp,
+            label: `${state.overlayLayer.name || 'Overlay'} #${ptIdx + 1}`,
+            sourceType: 'ref'
+          };
+        }
+      }
+    }
+  }
+
+  return best;
+}
+
+function toggleMeasureTool(force, syncMode = true) {
+  const hud = document.getElementById("measure-hud");
+  const next = typeof force === "boolean" ? force : !state.measureTool.active;
+
+  state.measureTool.active = next;
+  if (hud) hud.style.display = next ? "block" : "none";
+
+  if (syncMode) {
+    if (next) {
+      if (state.toolMode !== "measure") setToolMode("measure");
+    } else {
+      if (state.toolMode === "measure") setToolMode("pan");
+    }
+  }
+
+  if (next) {
+    statusBar.textContent = "📏 Measuring Tool active — click sequentially on field canvas to measure segments and areas. Esc to clear.";
+    canvasTrue.style.cursor = "crosshair";
+  } else {
+    state.measureTool.points = [];
+    state.measureTool.cursorPt = null;
+    state.measureTool.closed = false;
+    state.hoverMeasureMarker = null;
+    state.draggingMeasureMarker = null;
+    state.currentSnapTarget = null;
+    canvasTrue.style.cursor = "grab";
+    statusBar.textContent = "Measuring Tool closed.";
+  }
+  updateMeasureHUD();
+  redrawTrueCanvas();
+}
+
+function clearMeasureTool() {
+  state.measureTool.points = [];
+  state.measureTool.cursorPt = null;
+  state.measureTool.closed = false;
+  state.hoverMeasureMarker = null;
+  state.draggingMeasureMarker = null;
+  state.currentSnapTarget = null;
+  updateMeasureHUD();
+  redrawTrueCanvas();
+  statusBar.textContent = "Measurement cleared. Click to start a new measurement.";
+}
+
+function updateMeasureHUD() {
+  const ptsCountEl = document.getElementById("measure-pts-count");
+  const totalDistEl = document.getElementById("measure-total-dist");
+  const areaRowEl = document.getElementById("measure-area-row");
+  const areaM2El = document.getElementById("measure-area-m2");
+  const areaPlazasEl = document.getElementById("measure-area-plazas");
+  const btnSavePoly = document.getElementById("btn-measure-save-poly");
+  if (!ptsCountEl) return;
+
+  const pts = state.measureTool.points;
+  const n = pts.length;
+  ptsCountEl.textContent = n;
+
+  if (btnSavePoly) {
+    btnSavePoly.style.display = (n >= 3) ? "block" : "none";
+  }
+
+  if (n < 2) {
+    totalDistEl.textContent = "0.00 m";
+    if (areaRowEl) areaRowEl.style.display = "none";
+    return;
+  }
+
+  // Calculate total trajectory distance
+  let totalDist = 0;
+  for (let i = 0; i < n - 1; i++) {
+    totalDist += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+  }
+  if (state.measureTool.closed && n >= 3) {
+    totalDist += Math.hypot(pts[0].x - pts[n - 1].x, pts[0].y - pts[n - 1].y);
+  }
+  totalDistEl.textContent = `${totalDist.toFixed(2)} m`;
+
+  // Calculate area if >= 3 points
+  if (n >= 3) {
+    let signedArea = 0;
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      signedArea += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+    }
+    const areaM2 = Math.abs(signedArea) / 2;
+    const plazas = areaM2 / 6400;
+    const ha = areaM2 / 10000;
+    if (areaM2El) areaM2El.textContent = areaM2 >= 10000 ? `${areaM2.toLocaleString('en-US', {maximumFractionDigits:1})} m²` : `${areaM2.toFixed(1)} m²`;
+    if (areaPlazasEl) areaPlazasEl.textContent = `${plazas.toFixed(2)} pl (${ha.toFixed(2)} ha)`;
+    if (areaRowEl) areaRowEl.style.display = "block";
+  } else {
+    if (areaRowEl) areaRowEl.style.display = "none";
+  }
+}
+
+function syncMeasureSnap(val) {
+  state.measureTool.snapEnabled = !!val;
+  const chkHud = document.getElementById("chk-measure-hud-snap");
+  if (chkHud) chkHud.checked = !!val;
+  if (!state.measureTool.snapEnabled) state.currentSnapTarget = null;
+  statusBar.textContent = state.measureTool.snapEnabled ? "🧲 Measuring vertex snapping enabled." : "🧲 Measuring vertex snapping disabled.";
+  redrawTrueCanvas();
+}
+// [/SECTION: JS_MEASURING_TOOL]
+
 function movePolygonOrder(fromIdx, toIdx) {
   if (toIdx < 0 || toIdx >= state.measurePolygons.length) return;
   const poly = state.measurePolygons[fromIdx];
@@ -4780,6 +5356,12 @@ function setupEventListeners() {
           else if (state.geoTiff) state.vpTrue = fitViewport(canvasTrue, state.geoTiff.bbox);
         }
         redrawAll();
+      } else if (mode === "measure") {
+        if (state.toolMode === "measure" || (state.measureTool && state.measureTool.active)) {
+          setToolMode("pan");
+        } else {
+          setToolMode("measure");
+        }
       } else {
         setToolMode(mode);
       }
@@ -5196,6 +5778,62 @@ function setupEventListeners() {
     });
   }
 
+  // Measuring Tool HUD Listeners
+  const btnClearMeasure = document.getElementById("btn-clear-measure");
+  const chkMeasureHudSnap = document.getElementById("chk-measure-hud-snap");
+  const btnMeasureSavePoly = document.getElementById("btn-measure-save-poly");
+
+  if (btnClearMeasure) {
+    btnClearMeasure.addEventListener("click", () => clearMeasureTool());
+  }
+  if (chkMeasureHudSnap) {
+    chkMeasureHudSnap.addEventListener("change", (e) => syncMeasureSnap(e.target.checked));
+  }
+  if (btnMeasureSavePoly) {
+    btnMeasureSavePoly.addEventListener("click", () => {
+      if (!state.measureTool || state.measureTool.points.length < 3) return;
+      const newId = (state.measurePolygons.length ? Math.max(...state.measurePolygons.map(p => p.id)) : 0) + 1;
+      const color = MEASURE_PALETTE[(newId - 1) % MEASURE_PALETTE.length] || "#ffb300";
+      state.measurePolygons.push({
+        id: newId,
+        name: `Measure_${newId}`,
+        color: color,
+        fillOpacity: 0.15,
+        lineWidth: 2.5,
+        lineType: "solid",
+        showArea: true,
+        showNodes: true,
+        visible: true,
+        points: state.measureTool.points.map(p => ({ x: p.x, y: p.y }))
+      });
+      state.activeMeasureIdx = state.measurePolygons.length - 1;
+      updatePolygonSummaryUI();
+      updateMeasurementUI();
+      redrawAll();
+      statusBar.textContent = `✅ Saved measurement as 'Measure_${newId}' in Polygons list.`;
+    });
+  }
+
+  // Global Keyboard Shortcuts (Esc to clear, M to toggle measure, P for pan)
+  window.addEventListener("keydown", (e) => {
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) {
+      return;
+    }
+    if (e.key === "Escape") {
+      if (state.measureTool && state.measureTool.active) {
+        if (state.measureTool.points.length > 0) {
+          clearMeasureTool();
+        } else {
+          toggleMeasureTool(false);
+        }
+      }
+    } else if (e.key === "m" || e.key === "M") {
+      toggleMeasureTool();
+    } else if (e.key === "p" || e.key === "P") {
+      setToolMode("pan");
+    }
+  });
+
   // Polygon Summary Panel: toggle buttons, two-way sync, master checkboxes
   setupPolygonSummaryListeners();
 }
@@ -5243,9 +5881,14 @@ function setToolMode(mode) {
   canvas1073.style.cursor = cur;
   canvas196.style.cursor = cur;
   canvasTrue.style.cursor = cur;
-  statusBar.textContent = mode === "measure"
-    ? "📏 Measure Mode: Click points on any map to calculate distances in meters."
-    : "🖐️ Pan Mode: Drag to move map. Scroll to zoom.";
+
+  if (typeof toggleMeasureTool === "function") {
+    toggleMeasureTool(mode === "measure", false);
+  } else {
+    statusBar.textContent = mode === "measure"
+      ? "📏 Measure Mode: Click points on any map to calculate distances in meters."
+      : "🖐️ Pan Mode: Drag to move map. Scroll to zoom.";
+  }
 }
 
 function hitTestAnchor(mouseX, mouseY, vp, canvas, mapName) {
@@ -5306,7 +5949,38 @@ function attachCanvasInteractions(canvas, mapName) {
   }
 
   canvas.addEventListener("contextmenu", (e) => {
+    if (mapName === "true" && state.measureTool && state.measureTool.active) {
+      e.preventDefault();
+      const { x: mouseX, y: mouseY } = getCanvasXY(e);
+      const vp = getVP();
+      const hitMeasure = findLiveMeasureMarkerAt(mouseX, mouseY, vp, canvas.height, 14);
+      if (hitMeasure) {
+        const removedIdx = hitMeasure.idx;
+        state.measureTool.points.splice(removedIdx, 1);
+        if (state.measureTool.points.length < 3) {
+          state.measureTool.closed = false;
+        }
+        state.hoverMeasureMarker = null;
+        state.draggingMeasureMarker = null;
+        statusBar.textContent = `📏 Removed Measuring Point #${removedIdx + 1}.`;
+        updateMeasureHUD();
+        redrawTrueCanvas();
+      }
+      return;
+    }
     if (state.toolMode === "measure") e.preventDefault();
+  });
+
+  canvas.addEventListener("dblclick", (e) => {
+    if (mapName === "true" && state.measureTool && state.measureTool.active) {
+      if (state.measureTool.points.length >= 3) {
+        e.preventDefault();
+        state.measureTool.closed = true;
+        updateMeasureHUD();
+        redrawTrueCanvas();
+      }
+      return;
+    }
   });
 
   canvas.addEventListener("mousedown", (e) => {
@@ -5315,6 +5989,16 @@ function attachCanvasInteractions(canvas, mapName) {
     const vp = getVP();
 
     if (e.button === 2) {
+      if (mapName === "true" && state.measureTool && state.measureTool.active) {
+        const hitMeasure = findLiveMeasureMarkerAt(mouseX, mouseY, vp, canvas.height, 14);
+        if (hitMeasure) {
+          return; // Handled by contextmenu listener
+        }
+        isPanning = true;
+        lastX = e.clientX; lastY = e.clientY;
+        canvas.style.cursor = "grabbing";
+        return;
+      }
       if (state.toolMode === "measure") {
         const hit = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
         const activePoly = state.measurePolygons[state.activeMeasureIdx];
@@ -5400,6 +6084,46 @@ function attachCanvasInteractions(canvas, mapName) {
         statusBar.textContent = "✅ Anchor pair recorded!";
       }
       redrawAll();
+    } else if (mapName === "true" && state.measureTool && state.measureTool.active && e.button === 0) {
+      const hitMeasure = findLiveMeasureMarkerAt(mouseX, mouseY, vp, canvas.height, 14);
+      const isCloseClick = (!state.measureTool.closed && state.measureTool.points.length >= 2 && hitMeasure && hitMeasure.idx === 0);
+      if (hitMeasure && !isCloseClick) {
+        state.draggingMeasureMarker = hitMeasure.idx;
+        canvas.style.cursor = "move";
+        statusBar.textContent = `📏 Dragging Point #${hitMeasure.idx + 1} — release to reposition.`;
+        redrawTrueCanvas();
+        return;
+      }
+
+      const snap = (state.measureTool.snapEnabled !== false) ? (state.currentSnapTarget || findMeasureSnapTarget(mouseX, mouseY, vp, canvas.height)) : null;
+      const pt = snap ? { x: snap.worldPt.x, y: snap.worldPt.y } : toWorld(mouseX, mouseY, vp, canvas.height);
+      const mt = state.measureTool;
+      if (mt.closed) {
+        mt.points = [pt];
+        mt.closed = false;
+      } else if (mt.points.length >= 2) {
+        const s0 = worldToScreenGIS(mt.points[0], vp, canvas.height);
+        if (Math.hypot(s0.x - mouseX, s0.y - mouseY) <= 18 || (snap && snap.isFirstMeasurePt)) {
+          mt.closed = true;
+        } else {
+          const last = mt.points[mt.points.length - 1];
+          if (Math.hypot(last.x - pt.x, last.y - pt.y) > 0.05) {
+            mt.points.push(pt);
+          }
+        }
+      } else {
+        if (mt.points.length === 1) {
+          const last = mt.points[0];
+          if (Math.hypot(last.x - pt.x, last.y - pt.y) > 0.05) {
+            mt.points.push(pt);
+          }
+        } else {
+          mt.points.push(pt);
+        }
+      }
+      updateMeasureHUD();
+      redrawTrueCanvas();
+      return;
     } else if (state.toolMode === "measure" && e.button === 0) {
       const hit = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
       if (hit) {
@@ -5497,6 +6221,54 @@ function attachCanvasInteractions(canvas, mapName) {
       }
     }
 
+    if (mapName === "true" && state.measureTool && state.measureTool.active) {
+      if (state.draggingMeasureMarker !== null) {
+        canvas.style.cursor = "move";
+        state.hoverMeasureMarker = state.draggingMeasureMarker;
+        const snap = (state.measureTool.snapEnabled !== false) ? findMeasureSnapTarget(mouseX, mouseY, vp, canvas.height) : null;
+        state.currentSnapTarget = snap;
+        const targetPt = snap ? { x: snap.worldPt.x, y: snap.worldPt.y } : { x: worldPt.x, y: worldPt.y };
+        if (state.measureTool.points && state.measureTool.points[state.draggingMeasureMarker]) {
+          state.measureTool.points[state.draggingMeasureMarker] = targetPt;
+          state.measureTool.cursorPt = targetPt;
+          updateMeasureHUD();
+          const snapBadge = snap ? ` [🧲 ${snap.label}]` : "";
+          coordsBar.textContent = `📏 Moving Point #${state.draggingMeasureMarker + 1}${snapBadge} | UTM: (${targetPt.x.toFixed(2)}, ${targetPt.y.toFixed(2)})`;
+          redrawTrueCanvas();
+        }
+        return;
+      }
+
+      const hitMarker = findLiveMeasureMarkerAt(mouseX, mouseY, vp, canvas.height, 14);
+      state.hoverMeasureMarker = hitMarker ? hitMarker.idx : null;
+      canvas.style.cursor = hitMarker ? "move" : "crosshair";
+
+      const snap = (state.measureTool.snapEnabled !== false) ? findMeasureSnapTarget(mouseX, mouseY, vp, canvas.height) : null;
+      if (snap) {
+        state.currentSnapTarget = snap;
+        state.measureTool.cursorPt = { x: snap.worldPt.x, y: snap.worldPt.y };
+      } else {
+        state.currentSnapTarget = null;
+        state.measureTool.cursorPt = worldPt;
+      }
+
+      const pts = state.measureTool.points;
+      const snapBadge = snap ? ` [🧲 ${snap.label}]` : "";
+      if (hitMarker) {
+        coordsBar.textContent = `📏 Point #${hitMarker.idx + 1} | Drag to reposition • Right-click to delete | UTM: (${hitMarker.pt.x.toFixed(2)}, ${hitMarker.pt.y.toFixed(2)})`;
+      } else if (pts.length > 0 && !state.measureTool.closed) {
+        const lastPt = pts[pts.length - 1];
+        const curDist = Math.hypot(state.measureTool.cursorPt.x - lastPt.x, state.measureTool.cursorPt.y - lastPt.y);
+        coordsBar.textContent = `📏 Measure: ${curDist.toFixed(2)}m from Point #${pts.length}${snapBadge} | UTM: (${state.measureTool.cursorPt.x.toFixed(2)}, ${state.measureTool.cursorPt.y.toFixed(2)})`;
+      } else if (snap) {
+        coordsBar.textContent = `📏 Measure: ${snapBadge} | UTM: (${snap.worldPt.x.toFixed(2)}, ${snap.worldPt.y.toFixed(2)})`;
+      } else {
+        coordsBar.textContent = `Field UTM: (${worldPt.x.toFixed(2)}, ${worldPt.y.toFixed(2)})`;
+      }
+      redrawTrueCanvas();
+      return;
+    }
+
     if (state.toolMode === "anchor") {
       const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, e.shiftKey);
       if (state.currentSnapTarget !== snap) {
@@ -5521,6 +6293,14 @@ function attachCanvasInteractions(canvas, mapName) {
   canvas.addEventListener("mouseup", (e) => {
     const vp = getVP();
     const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
+    if (mapName === "true" && state.draggingMeasureMarker !== null) {
+      const idx = state.draggingMeasureMarker;
+      state.draggingMeasureMarker = null;
+      statusBar.textContent = `📏 Measuring Point #${idx + 1} repositioned.`;
+      updateMeasureHUD();
+      redrawTrueCanvas();
+      return;
+    }
     if (draggingCaseArrow) {
       draggingCaseArrow = null;
       canvas.style.cursor = "grab";
@@ -5550,6 +6330,9 @@ function attachCanvasInteractions(canvas, mapName) {
 
   canvas.addEventListener("mouseleave", () => {
     isPanning = false;
+    if (mapName === "true" && state.draggingMeasureMarker !== null) {
+      state.draggingMeasureMarker = null;
+    }
     if (draggingCaseArrow) { draggingCaseArrow = null; }
     if (draggingCaseLabel) { draggingCaseLabel = null; }
     if (draggingAnchor) { draggingAnchor = null; }
