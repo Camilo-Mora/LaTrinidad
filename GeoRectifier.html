@@ -711,6 +711,13 @@ Do NOT modify dormant/parked sections unless specifically requested.
       font-size: 0.65rem;
       color: #000;
       flex-shrink: 0;
+      cursor: pointer;
+    }
+    .anchor-badge.pin-hidden {
+      opacity: 0.35 !important;
+      filter: grayscale(30%) !important;
+      outline: 1.5px dashed rgba(255,255,255,0.5);
+      outline-offset: 1px;
     }
 
     .btn-del-anchor {
@@ -7703,29 +7710,31 @@ EOF`;
         if (!isEnabled) {
           trueCtx.globalAlpha = 0.35;
         }
-        // Distinct visual aura/indicator based on anchor mode
-        if (isEnabled) {
-          if (anc.axisId != null && anc.optimize !== true) {
-            // Floating Guide (Rubber band on axis): cyan dotted rail ring
-            trueCtx.beginPath();
-            trueCtx.arc(tp.x, tp.y, 14, 0, Math.PI * 2);
-            trueCtx.strokeStyle = "#00e5ff";
-            trueCtx.lineWidth = 1.6;
-            trueCtx.setLineDash([3, 3]);
-            trueCtx.stroke();
-            trueCtx.setLineDash([]);
-          } else if (anc.optimize === true) {
-            // Actively optimized: glowing target ring
-            trueCtx.beginPath();
-            trueCtx.arc(tp.x, tp.y, 14, 0, Math.PI * 2);
-            trueCtx.strokeStyle = (anc.axisId != null) ? "#e040fb" : "#76ff03";
-            trueCtx.lineWidth = 1.6;
-            trueCtx.stroke();
+        // Distinct visual aura/indicator and pin — hidden if anc.showPin === false
+        if (anc.showPin !== false) {
+          if (isEnabled) {
+            if (anc.axisId != null && anc.optimize !== true) {
+              // Floating Guide (Rubber band on axis): cyan dotted rail ring
+              trueCtx.beginPath();
+              trueCtx.arc(tp.x, tp.y, 14, 0, Math.PI * 2);
+              trueCtx.strokeStyle = "#00e5ff";
+              trueCtx.lineWidth = 1.6;
+              trueCtx.setLineDash([3, 3]);
+              trueCtx.stroke();
+              trueCtx.setLineDash([]);
+            } else if (anc.optimize === true) {
+              // Actively optimized: glowing target ring
+              trueCtx.beginPath();
+              trueCtx.arc(tp.x, tp.y, 14, 0, Math.PI * 2);
+              trueCtx.strokeStyle = (anc.axisId != null) ? "#e040fb" : "#76ff03";
+              trueCtx.lineWidth = 1.6;
+              trueCtx.stroke();
+            }
           }
-        }
 
-        // Draw badge pin with number inside
-        drawAnchorPin(trueCtx, anc, tp);
+          // Draw badge pin with number inside
+          drawAnchorPin(trueCtx, anc, tp);
+        }
 
         // Anchor labels are controlled by the eye toggle (state.showMojones1073 and anc.showLabel)
         const showMojones = (state.showMojones1073 !== false);
@@ -19921,7 +19930,7 @@ EOF`;
             </td>
             <td style="overflow:hidden;">
               <div style="display:flex;align-items:center;gap:3px;min-width:0;">
-                <span class="anchor-badge" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;"><span style="font-size:0.52em;opacity:0.85;vertical-align:0.12em;margin-right:0.5px;">#</span>${anc.id}</span>
+                <span class="anchor-badge${anc.showPin === false ? ' pin-hidden' : ''}" data-id="${anc.id}" style="background:${anc.color};${isEnabled ? '' : 'filter:grayscale(70%);opacity:0.5;'};flex-shrink:0;" title="${anc.showPin === false ? 'Click to show anchor pin on field canvas' : 'Click to hide anchor pin on field canvas'}"><span style="font-size:0.52em;opacity:0.85;vertical-align:0.12em;margin-right:0.5px;">#</span>${anc.id}</span>
                 <input type="text" class="anchor-name-input" data-id="${anc.id}" value="${safeName}" placeholder="#${anc.id}" title="Anchor name (click to edit, defaults to #${anc.id})" style="min-width:40px;flex:1;">
                 ${axisBadgeHtml}
               </div>
@@ -21056,6 +21065,20 @@ EOF`;
     });
 
     anchorTableBody.addEventListener("click", e => {
+      // Toggle anchor pin visibility on field canvas (click on colored badge circle)
+      const badgeEl = e.target.closest(".anchor-badge[data-id]");
+      if (badgeEl) {
+        const id = parseInt(badgeEl.dataset.id, 10);
+        const anc = (state.anchors || []).find(a => a.id === id);
+        if (anc) {
+          anc.showPin = (anc.showPin === false) ? true : false;
+          updateAnalyticsUI();
+          redrawTrueCanvas();
+          updateStatus(`Anchor #${id} pin ${anc.showPin !== false ? 'shown' : 'hidden'} on field canvas.`);
+        }
+        return;
+      }
+
       const uploadBtn = e.target.closest(".btn-upload-anchor-photo");
       if (uploadBtn) {
         const id = parseInt(uploadBtn.dataset.id, 10);
