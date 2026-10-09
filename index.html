@@ -2345,8 +2345,23 @@ async function autoLoadAnchors() {
     console.warn("anchors_georectifier.json auto-load skipped:", err);
   }
 
+  // Load dedicated calibrated anchors for Escritura 196 (anchors_196.json)
+  try {
+    const r196 = await fetch("anchors_196.json?_t=" + Date.now(), { cache: "no-store" });
+    if (r196.ok) {
+      const d196 = await r196.json();
+      const list196 = Array.isArray(d196) ? d196 : (d196.anchors || d196.anchors196 || []);
+      if (list196.length > 0) {
+        state.anchors196 = list196;
+        console.log(`Loaded ${list196.length} anchors for Escritura 196 from anchors_196.json`);
+      }
+    }
+  } catch (err) {
+    console.warn("anchors_196.json auto-load skipped:", err);
+  }
+
   redrawAll();
-  statusBar.textContent = "✅ Anchors & Escritura 1073 loaded";
+  statusBar.textContent = "✅ Anchors & Escrituras loaded";
 }
 
 async function autoLoadPolygons() {
