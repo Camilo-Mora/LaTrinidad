@@ -976,14 +976,19 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td style="text-align:center;padding:2px 0;">
                     <span style="font-size:0.75rem;opacity:0.85;">📄</span>
                   </td>
-                  <td class="col-name" style="padding-left:4px;color:rgba(255,138,128,0.95);font-size:0.69rem;font-weight:600;" title="Plano PDF Escritura 1073">
-                    Plano PDF
+                  <td class="col-name" style="padding-left:4px;color:rgba(255,138,128,0.65);font-size:0.69rem;text-align:right;padding-right:6px;">
+                    ↳
                   </td>
-                  <td colspan="4" style="padding:2px 4px;text-align:right;">
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
-                      <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;width:13px;height:13px;margin:0;" title="Mostrar u ocultar Plano PDF Escritura 1073 en el mapa">
-                      <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50" style="width:40px;accent-color:#ff1744;cursor:pointer;" title="Transparencia Plano PDF 1073">
-                      <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.66rem;color:var(--text-muted);">50%</span>
+                  <td style="white-space:nowrap;padding:1px 2px;font-size:0.69rem;font-weight:600;color:rgba(255,138,128,0.95);text-align:center;" title="Plano Escritura 1073">
+                    Plano
+                  </td>
+                  <td>
+                    <input type="checkbox" id="chk-show-warped-pdf" checked style="accent-color:#ff1744;cursor:pointer;width:13px;height:13px;margin:0;" title="Mostrar u ocultar Plano Escritura 1073 en el mapa">
+                  </td>
+                  <td colspan="2" style="padding:2px 4px;text-align:right;white-space:nowrap;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:3px;max-width:68px;margin-left:auto;">
+                      <input type="range" class="opacity-slider" id="warped-pdf-opacity" min="0" max="100" value="50" style="width:36px;accent-color:#ff1744;cursor:pointer;flex-shrink:0;" title="Transparencia Plano Escritura 1073">
+                      <span class="opacity-val" id="warped-pdf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.65rem;color:var(--text-muted);flex-shrink:0;">50%</span>
                     </div>
                   </td>
                 </tr>
@@ -1002,14 +1007,19 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td style="text-align:center;padding:2px 0;">
                     <span style="font-size:0.75rem;opacity:0.85;">📄</span>
                   </td>
-                  <td class="col-name" style="padding-left:4px;color:rgba(255,183,77,0.95);font-size:0.69rem;font-weight:600;" title="Plano PDF Escritura 196">
-                    Plano PDF
+                  <td class="col-name" style="padding-left:4px;color:rgba(255,183,77,0.65);font-size:0.69rem;text-align:right;padding-right:6px;">
+                    ↳
                   </td>
-                  <td colspan="4" style="padding:2px 4px;text-align:right;">
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
-                      <input type="checkbox" id="chk-show-warped-pdf-196" checked style="accent-color:#ff9100;cursor:pointer;width:13px;height:13px;margin:0;" title="Mostrar u ocultar Plano PDF Escritura 196 en el mapa">
-                      <input type="range" class="opacity-slider" id="warped-pdf-opacity-196" min="0" max="100" value="50" style="width:40px;accent-color:#ff9100;cursor:pointer;" title="Transparencia Plano PDF 196">
-                      <span class="opacity-val" id="warped-pdf-opacity-val-196" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.66rem;color:var(--text-muted);">50%</span>
+                  <td style="white-space:nowrap;padding:1px 2px;font-size:0.69rem;font-weight:600;color:rgba(255,183,77,0.95);text-align:center;" title="Plano Escritura 196">
+                    Plano
+                  </td>
+                  <td>
+                    <input type="checkbox" id="chk-show-warped-pdf-196" checked style="accent-color:#ff9100;cursor:pointer;width:13px;height:13px;margin:0;" title="Mostrar u ocultar Plano Escritura 196 en el mapa">
+                  </td>
+                  <td colspan="2" style="padding:2px 4px;text-align:right;white-space:nowrap;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:3px;max-width:68px;margin-left:auto;">
+                      <input type="range" class="opacity-slider" id="warped-pdf-opacity-196" min="0" max="100" value="50" style="width:36px;accent-color:#ff9100;cursor:pointer;flex-shrink:0;" title="Transparencia Plano Escritura 196">
+                      <span class="opacity-val" id="warped-pdf-opacity-val-196" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.65rem;color:var(--text-muted);flex-shrink:0;">50%</span>
                     </div>
                   </td>
                 </tr>
@@ -6216,10 +6226,11 @@ function updateMasterCheckboxes() {
   const masterNodes = document.getElementById("sum-master-nodes");
   if (!masterShow || !masterArea || !masterNodes) return;
 
-  // For Show: consider static rows AND measurement polygons
+  // For Show: consider static rows, Planos (1073 & 196), AND measurement polygons
   const staticShow = STATIC_SUMMARY_LAYERS.map(l => document.getElementById(l.showId)).filter(Boolean);
+  const pdfShow = [document.getElementById("chk-show-warped-pdf"), document.getElementById("chk-show-warped-pdf-196")].filter(Boolean);
   const measShow = Array.from(document.querySelectorAll(".sum-poly-show"));
-  const allShow = [...staticShow, ...measShow];
+  const allShow = [...staticShow, ...pdfShow, ...measShow];
   masterShow.checked = allShow.length > 0 && allShow.every(c => c.checked);
   masterShow.indeterminate = !masterShow.checked && allShow.some(c => c.checked);
 
@@ -6352,6 +6363,15 @@ function setupPolygonSummaryListeners() {
       const barChk1073 = document.getElementById("chk-show-warped-dxf");
       if (barChk1073) barChk1073.checked = v;
 
+      // Planos (Escritura 1073 & Escritura 196)
+      const chkPdf1073 = document.getElementById("chk-show-warped-pdf");
+      if (chkPdf1073) chkPdf1073.checked = v;
+      state.showWarpedPdf1073 = v;
+
+      const chkPdf196 = document.getElementById("chk-show-warped-pdf-196");
+      if (chkPdf196) chkPdf196.checked = v;
+      state.showWarpedPdf196 = v;
+
       document.querySelectorAll(".sum-poly-show").forEach(chk => {
         const i = parseInt(chk.dataset.idx, 10);
         chk.checked = v;
@@ -6462,6 +6482,7 @@ function setupEventListeners() {
   if (chkWarpedPdf) {
     chkWarpedPdf.addEventListener("change", e => {
       state.showWarpedPdf1073 = e.target.checked;
+      updateMasterCheckboxes();
       redrawAll();
     });
   }
@@ -6473,6 +6494,7 @@ function setupEventListeners() {
       if (chkWarpedPdf && !chkWarpedPdf.checked && val > 0) {
         chkWarpedPdf.checked = true;
         state.showWarpedPdf1073 = true;
+        updateMasterCheckboxes();
       }
       redrawAll();
     });
@@ -6485,6 +6507,7 @@ function setupEventListeners() {
   if (chkWarpedPdf196) {
     chkWarpedPdf196.addEventListener("change", e => {
       state.showWarpedPdf196 = e.target.checked;
+      updateMasterCheckboxes();
       redrawAll();
     });
   }
@@ -6496,6 +6519,7 @@ function setupEventListeners() {
       if (chkWarpedPdf196 && !chkWarpedPdf196.checked && val > 0) {
         chkWarpedPdf196.checked = true;
         state.showWarpedPdf196 = true;
+        updateMasterCheckboxes();
       }
       redrawAll();
     });
