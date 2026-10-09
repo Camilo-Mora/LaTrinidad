@@ -969,15 +969,15 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td colspan="6" style="padding-left:6px;">📜 Escrituras</td>
                 </tr>
                 <tr>
-                  <td><span class="poly-color-dot" style="background:#d500f9;box-shadow:0 0 4px #d500f9;"></span></td>
-                  <td class="col-name" style="color:#d500f9;">Escritura 296</td>
+                  <td><span class="poly-color-dot" style="background:#00e5ff;box-shadow:0 0 4px #00e5ff;"></span></td>
+                  <td class="col-name" style="color:#00e5ff;" title="Lindero La Trinidad (Polígono Reconstruido a partir de Escritura 296)">Lindero La Trinidad (E. 296)</td>
                   <td style="white-space:nowrap;padding:1px 2px;">
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="-1" title="Send Backward (draw behind)">▼</button>
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="1" title="Bring Forward (draw on top)">▲</button>
                   </td>
-                  <td><input type="checkbox" id="sum-show-dxf-296" checked title="Show/hide Escritura 296 on field map" style="accent-color:#d500f9;"></td>
-                  <td><input type="checkbox" id="sum-area-dxf-296" title="Display area badge for Escritura 296" style="accent-color:var(--accent-yellow);"></td>
-                  <td><input type="checkbox" id="sum-nodes-dxf-296" title="Display vertex nodes for Escritura 296" style="accent-color:#d500f9;"></td>
+                  <td><input type="checkbox" id="sum-show-dxf-296" checked title="Mostrar u ocultar Lindero La Trinidad (Escritura 296) en el mapa" style="accent-color:#00e5ff;"></td>
+                  <td><input type="checkbox" id="sum-area-dxf-296" title="Display area badge for Lindero La Trinidad" style="accent-color:var(--accent-yellow);"></td>
+                  <td><input type="checkbox" id="sum-nodes-dxf-296" title="Display vertex nodes for Lindero La Trinidad" style="accent-color:#00e5ff;"></td>
                 </tr>
                 <tr>
                   <td><span class="poly-color-dot" style="background:#ff1744;box-shadow:0 0 4px #ff1744;"></span></td>
@@ -2584,6 +2584,11 @@ function getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, isShiftPressed 
       } catch (_) {}
     }
 
+    // 3b-1. Reconstructed Lindero La Trinidad Polygon (Escritura 296)
+    if (state.showReconstructedPolygon !== false && state.reconstructedPolygon && state.reconstructedPolygon.vertices) {
+      (state.reconstructedPolygon.vertices || []).forEach((pt) => checkPoint(pt));
+    }
+
     // 3c. Warped 1073 overlay
     if (state.showWarped1073OnField !== false && getActiveAnchors(state.anchors1073).length >= 2) {
       try {
@@ -2856,8 +2861,12 @@ function drawLayerByKey(key, ctx, vp, h) {
   switch (key) {
     // ── Group 1: Escrituras ──
     case "dxf_296": {
+      // Reconstructed Lindero La Trinidad (Escritura 296)
+      if (state.showReconstructedPolygon !== false) {
+        drawReconstructedPolygon(ctx, vp, h);
+      }
       const isVisible = ac ? (ac.layers?.dxf296 !== false) : (state.showWarped296OnField !== false);
-      if (isVisible && getActiveAnchors(state.anchors296).length >= 2) {
+      if (isVisible && getActiveAnchors(state.anchors296).length >= 2 && state.entities296 && state.entities296.length > 0) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
           const op = ac ? (ac.dxfOpacity?.dxf_296 ?? 1) : (state.dxfOpacity?.dxf_296 ?? 0.85);
@@ -3030,8 +3039,8 @@ function drawViewportTrue() {
   const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
   order.forEach(key => drawLayerByKey(key, ctxTrue, vp, h));
 
-  // Draw Reconstructed Polygon (Lindero La Trinidad Reconstruido) if enabled
-  if (state.showReconstructedPolygon !== false) {
+  // Draw Reconstructed Polygon (Lindero La Trinidad Reconstruido) fallback if not in layerOrder
+  if (!order.includes("dxf_296") && state.showReconstructedPolygon !== false) {
     drawReconstructedPolygon(ctxTrue, vp, h);
   }
 
@@ -3793,6 +3802,48 @@ function drawReconstructedPolygon(ctx, vp, canvasH) {
     else ctx.setLineDash([]);
     ctx.stroke();
     ctx.restore();
+  }
+
+  // 3. Draw vertex nodes if enabled
+  if (state.showNodes296 && verts.length > 0) {
+    verts.forEach(pt => {
+      const sp = worldToScreenGIS(pt, vp, canvasH);
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "#00e5ff";
+      ctx.fill();
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    });
+  }
+
+  // 4. Draw area badge if enabled
+  if (state.showArea296 && (poly.closed || verts.length >= 3)) {
+    const areaM2 = (typeof calcReconstructedPolygonArea === "function" ? calcReconstructedPolygonArea() : 0) || calculatePolygonArea(verts);
+    if (areaM2 > 0) {
+      let cx = 0, cy = 0;
+      verts.forEach(p => { cx += p.x; cy += p.y; });
+      cx /= verts.length; cy /= verts.length;
+      const sc = worldToScreenGIS({ x: cx, y: cy }, vp, canvasH);
+      const ha = areaM2 / 10000;
+      const plazas = areaM2 / 6400;
+      const label = `${ha.toFixed(2)} ha (${plazas.toFixed(1)} pz)`;
+
+      ctx.save();
+      ctx.font = "bold 10px monospace";
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = "rgba(0,0,0,0.85)";
+      ctx.fillRect(sc.x - tw / 2 - 4, sc.y - 8, tw + 8, 16);
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(sc.x - tw / 2 - 4, sc.y - 8, tw + 8, 16);
+      ctx.fillStyle = "#00e5ff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, sc.x, sc.y);
+      ctx.restore();
+    }
   }
 
   ctx.restore();
@@ -5386,7 +5437,7 @@ const STATIC_SUMMARY_LAYERS = [
     showId: "sum-show-dxf-296",
     areaId: "sum-area-dxf-296",
     nodesId: "sum-nodes-dxf-296",
-    showProp: "showWarped296OnField",
+    showProp: "showReconstructedPolygon",
     areaProp: "showArea296",
     nodesProp: "showNodes296"
   },
@@ -5495,7 +5546,11 @@ function setupPolygonSummaryListeners() {
       }
       sChk.addEventListener("change", function() {
         state[cfg.showProp] = this.checked;
-        if (cfg.showProp === "showWarped1073OnField") {
+        if (cfg.showProp === "showReconstructedPolygon") {
+          state.showWarped296OnField = this.checked;
+          const barReconChk = document.getElementById("chk-show-reconstructed-poly");
+          if (barReconChk) barReconChk.checked = this.checked;
+        } else if (cfg.showProp === "showWarped1073OnField") {
           const barChk = document.getElementById("chk-show-warped-dxf");
           if (barChk) barChk.checked = this.checked;
         }
@@ -5537,6 +5592,9 @@ function setupPolygonSummaryListeners() {
         if (el) el.checked = v;
         state[cfg.showProp] = v;
       });
+      state.showWarped296OnField = v;
+      const barReconChk = document.getElementById("chk-show-reconstructed-poly");
+      if (barReconChk) barReconChk.checked = v;
       const barChk1073 = document.getElementById("chk-show-warped-dxf");
       if (barChk1073) barChk1073.checked = v;
 
@@ -5620,6 +5678,10 @@ function setupEventListeners() {
   if (chkReconstructedPoly) {
     chkReconstructedPoly.addEventListener("change", e => {
       state.showReconstructedPolygon = e.target.checked;
+      state.showWarped296OnField = e.target.checked;
+      const sum296Chk = document.getElementById("sum-show-dxf-296");
+      if (sum296Chk) sum296Chk.checked = e.target.checked;
+      updateMasterCheckboxes();
       redrawAll();
     });
   }
@@ -5631,6 +5693,10 @@ function setupEventListeners() {
       if (chkReconstructedPoly && !chkReconstructedPoly.checked && val > 0) {
         chkReconstructedPoly.checked = true;
         state.showReconstructedPolygon = true;
+        state.showWarped296OnField = true;
+        const sum296Chk = document.getElementById("sum-show-dxf-296");
+        if (sum296Chk) sum296Chk.checked = true;
+        updateMasterCheckboxes();
       }
       redrawAll();
     });
