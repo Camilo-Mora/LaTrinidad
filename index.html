@@ -2207,6 +2207,69 @@ function fitViewport(canvas, bbox) {
   return { scale, offsetX, offsetY, bbox };
 }
 
+function centerMapView(map) {
+  if (map === "296") {
+    if (canvas296.width <= 10) {
+      const c1 = document.getElementById("container-296");
+      if (c1 && c1.clientWidth > 10) { canvas296.width = c1.clientWidth; canvas296.height = c1.clientHeight; }
+    }
+    if (state.entities296 && state.entities296.length > 0) {
+      state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
+    } else if (state.pdf296Width > 0 && state.pdf296Height > 0) {
+      state.vp296 = fitViewport(canvas296, { minX: 0, minY: 0, maxX: state.pdf296Width, maxY: state.pdf296Height, width: state.pdf296Width, height: state.pdf296Height });
+    } else if (state.reconstructedPolygon && state.reconstructedPolygon.vertices && state.reconstructedPolygon.vertices.length > 0) {
+      const pts = state.reconstructedPolygon.vertices;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      pts.forEach(p => { if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; });
+      state.vp296 = fitViewport(canvas296, { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
+    }
+  } else if (map === "1073") {
+    if (canvas1073.width <= 10) {
+      const c2 = document.getElementById("container-1073");
+      if (c2 && c2.clientWidth > 10) { canvas1073.width = c2.clientWidth; canvas1073.height = c2.clientHeight; }
+    }
+    if (state.entities1073 && state.entities1073.length > 0) {
+      state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
+    } else if (state.pdf1073Width > 0 && state.pdf1073Height > 0) {
+      state.vp1073 = fitViewport(canvas1073, { minX: 0, minY: 0, maxX: state.pdf1073Width, maxY: state.pdf1073Height, width: state.pdf1073Width, height: state.pdf1073Height });
+    } else if (state.anchors1073 && state.anchors1073.length > 0) {
+      const pts = state.anchors1073.map(a => a.src).filter(Boolean);
+      if (pts.length > 0) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        pts.forEach(p => { if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; });
+        state.vp1073 = fitViewport(canvas1073, { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
+      }
+    }
+  } else if (map === "196") {
+    if (canvas196.width <= 10) {
+      const c3 = document.getElementById("container-196");
+      if (c3 && c3.clientWidth > 10) { canvas196.width = c3.clientWidth; canvas196.height = c3.clientHeight; }
+    }
+    if (state.entities196 && state.entities196.length > 0) {
+      state.vp196 = fitViewport(canvas196, computeBoundingBox(state.entities196));
+    } else if (state.pdf196Width > 0 && state.pdf196Height > 0) {
+      state.vp196 = fitViewport(canvas196, { minX: 0, minY: 0, maxX: state.pdf196Width, maxY: state.pdf196Height, width: state.pdf196Width, height: state.pdf196Height });
+    } else if (state.anchors196 && state.anchors196.length > 0) {
+      const pts = state.anchors196.map(a => a.src).filter(Boolean);
+      if (pts.length > 0) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        pts.forEach(p => { if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; });
+        state.vp196 = fitViewport(canvas196, { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
+      }
+    }
+  } else if (map === "true") {
+    if (canvasTrue.width <= 10) {
+      const c4 = document.getElementById("container-true");
+      if (c4 && c4.clientWidth > 10) { canvasTrue.width = c4.clientWidth; canvasTrue.height = c4.clientHeight; }
+    }
+    if (state.entitiesTrue && state.entitiesTrue.length > 0) {
+      state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue));
+    } else if (state.geoTiff && state.geoTiff.bbox) {
+      state.vpTrue = fitViewport(canvasTrue, state.geoTiff.bbox);
+    }
+  }
+}
+
 function worldToScreen(pt, viewport, canvasH) {
   return { x: pt.x * viewport.scale + viewport.offsetX, y: pt.y * viewport.scale + viewport.offsetY };
 }
