@@ -20122,17 +20122,20 @@ EOF`;
 
     /**
      * Relaxes polygon nodes of Lote Jimmy & Lote Pedro within buffer radius bufferR.
-     * Shared boundary corners are kept strictly coincident.
+     * Shared boundary corners are kept strictly coincident between polygons and polylines (e.g. Lote Nacho).
      * Introduces the minimal angular/positional deflection necessary to meet target parcel areas.
      */
-    function relax196Nodes(ptsJ, ptsP, targetJ, targetP, bufferR = 3.0, iterations = 80) {
+    function relax196Nodes(ptsJ, ptsP, targetJ, targetP, bufferR = 3.0, iterations = 80, polylines = []) {
       if (!ptsJ || !ptsP || ptsJ.length < 3 || ptsP.length < 3) {
-        return { curJ: ptsJ, curP: ptsP, aJ: 0, aP: 0, maxShift: 0 };
+        return { curJ: ptsJ, curP: ptsP, polylines: polylines || [], aJ: 0, aP: 0, maxShift: 0 };
       }
       const curJ = ptsJ.map(p => ({ x: p.x, y: p.y, origX: p.origX ?? p.x, origY: p.origY ?? p.y }));
       const curP = ptsP.map(p => ({ x: p.x, y: p.y, origX: p.origX ?? p.x, origY: p.origY ?? p.y }));
+      const curLines = (polylines || []).map(line =>
+        (line || []).map(p => ({ x: p.x, y: p.y, origX: p.origX ?? p.x, origY: p.origY ?? p.y }))
+      );
 
-      // Find shared vertices (distance <= 0.25m in field space)
+      // Find shared vertices between Jimmy and Pedro (distance <= 0.25m in field space)
       const shared = [];
       for (let i = 0; i < curJ.length; i++) {
         for (let j = 0; j < curP.length; j++) {
@@ -20141,6 +20144,41 @@ EOF`;
           }
         }
       }
+
+      // Find shared vertices between polylines and Jimmy / Pedro
+      const polyShared = [];
+      curLines.forEach((line, lIdx) => {
+        for (let k = 0; k < line.length; k++) {
+          let matched = false;
+          // Check Jimmy
+          for (let i = 0; i < curJ.length; i++) {
+            if (Math.hypot(line[k].origX - curJ[i].origX, line[k].origY - curJ[i].origY) <= 0.25) {
+              polyShared.push({ lineIdx: lIdx, ptIdx: k, targetType: 'J', targetIdx: i });
+              matched = true;
+              break;
+            }
+          }
+          if (!matched) {
+            // Check Pedro
+            for (let j = 0; j < curP.length; j++) {
+              if (Math.hypot(line[k].origX - curP[j].origX, line[k].origY - curP[j].origY) <= 0.25) {
+                polyShared.push({ lineIdx: lIdx, ptIdx: k, targetType: 'P', targetIdx: j });
+                break;
+              }
+            }
+          }
+        }
+      });
+
+      const syncPolylines = () => {
+        for (const ps of polyShared) {
+          const targetPt = ps.targetType === 'J' ? curJ[ps.targetIdx] : curP[ps.targetIdx];
+          if (targetPt && curLines[ps.lineIdx] && curLines[ps.lineIdx][ps.ptIdx]) {
+            curLines[ps.lineIdx][ps.ptIdx].x = targetPt.x;
+            curLines[ps.lineIdx][ps.ptIdx].y = targetPt.y;
+          }
+        }
+      };
 
       const nJ = curJ.length;
       const nP = curP.length;
@@ -20232,7 +20270,13 @@ EOF`;
             }
           }
         }
+
+        // Keep polylines snapped to relaxed polygon nodes
+        syncPolylines();
       }
+
+      // Final synchronization pass
+      syncPolylines();
 
       const finalAJ = Math.abs(computeShoelaceSigned(curJ));
       const finalAP = Math.abs(computeShoelaceSigned(curP));
@@ -20240,7 +20284,7 @@ EOF`;
       for (let i = 0; i < nJ; i++) maxShift = Math.max(maxShift, Math.hypot(curJ[i].x - curJ[i].origX, curJ[i].y - curJ[i].origY));
       for (let j = 0; j < nP; j++) maxShift = Math.max(maxShift, Math.hypot(curP[j].x - curP[j].origX, curP[j].y - curP[j].origY));
 
-      return { curJ, curP, aJ: finalAJ, aP: finalAP, maxShift };
+      return { curJ, curP, polylines: curLines, curN: curLines[0] || null, aJ: finalAJ, aP: finalAP, maxShift };
     }
 
     function recompute196Metrics() {
@@ -20581,9 +20625,12 @@ EOF`;
           const warper = TransformMath.createWarper(state.algorithm || "TPS", activeCand);
           const wJ = jimmyEnt.points.map(p => warper(p));
           const wP = pedroEnt.points.map(p => warper(p));
+          const polylinesToRelax = (nachoEnt && nachoEnt.points && nachoEnt.points.length > 0)
+            ? [nachoEnt.points.map(p => warper(p))]
+            : [];
 
-          // Run node relaxation on wJ and wP within buffer currentR
-          const relaxed = relax196Nodes(wJ, wP, targetJimmy, targetPedro, currentR, 80);
+          // Run node relaxation on wJ and wP within buffer currentR, keeping polylines snapped
+          const relaxed = relax196Nodes(wJ, wP, targetJimmy, targetPedro, currentR, 80, polylinesToRelax);
           const aJ = relaxed.aJ;
           const aP = relaxed.aP;
           const deltaJ = aJ - targetJimmy;
@@ -20603,6 +20650,7 @@ EOF`;
             candAnchors,
             fieldJimmy: relaxed.curJ,
             fieldPedro: relaxed.curP,
+            fieldNacho: relaxed.curN || (polylinesToRelax[0] ?? null),
             maxShift: relaxed.maxShift,
             offsets: offsets.map(o => ({ ...o })),
             radius: currentR
@@ -20619,6 +20667,7 @@ EOF`;
             candAnchors: null,
             fieldJimmy: null,
             fieldPedro: null,
+            fieldNacho: null,
             maxShift: 0,
             offsets,
             radius: currentR
@@ -20700,6 +20749,9 @@ EOF`;
             if (evalRes.fieldJimmy && evalRes.fieldPedro) {
               jimmyEnt.fieldPoints = evalRes.fieldJimmy;
               pedroEnt.fieldPoints = evalRes.fieldPedro;
+              if (nachoEnt && evalRes.fieldNacho) {
+                nachoEnt.fieldPoints = evalRes.fieldNacho;
+              }
             }
             recompute196Metrics();
             redrawTrueCanvas();
@@ -20832,6 +20884,9 @@ EOF`;
               if (globalBest.fieldJimmy && globalBest.fieldPedro) {
                 jimmyEnt.fieldPoints = globalBest.fieldJimmy;
                 pedroEnt.fieldPoints = globalBest.fieldPedro;
+                if (nachoEnt && globalBest.fieldNacho) {
+                  nachoEnt.fieldPoints = globalBest.fieldNacho;
+                }
               }
               recompute196Metrics();
               redrawTrueCanvas();
@@ -20896,6 +20951,9 @@ EOF`;
           if (globalOverallBest.fieldJimmy && globalOverallBest.fieldPedro) {
             jimmyEnt.fieldPoints = globalOverallBest.fieldJimmy;
             pedroEnt.fieldPoints = globalOverallBest.fieldPedro;
+            if (nachoEnt && globalOverallBest.fieldNacho) {
+              nachoEnt.fieldPoints = globalOverallBest.fieldNacho;
+            }
           }
 
           recompute196Metrics();
@@ -20921,8 +20979,6 @@ EOF`;
           updateStatus(`⚡ Escritura 196 optimizada vía ${modeBadge}: Jimmy = ${globalOverallBest.aJ.toFixed(2)} m², Pedro = ${globalOverallBest.aP.toFixed(2)} m² (Radio ±${winningR.toFixed(1)}m).`);
 
           // ── Persist best solution for JSON export and session reload ──
-          const warpedForNacho = get196WarpedEntities();
-          const nachoWarped = warpedForNacho.find(e => (e.layer || "").toLowerCase().includes("nacho"));
           state.optBestSolution196 = {
             seed: state.opt196Seed,
             winningR,
@@ -20939,7 +20995,9 @@ EOF`;
             })),
             fieldJimmy: (jimmyEnt.fieldPoints || []).map(p => ({ x: p.x, y: p.y })),
             fieldPedro: (pedroEnt.fieldPoints || []).map(p => ({ x: p.x, y: p.y })),
-            fieldNacho: nachoWarped ? nachoWarped.points.map(p => ({ x: p.x, y: p.y })) : [],
+            fieldNacho: (nachoEnt && nachoEnt.fieldPoints && nachoEnt.fieldPoints.length > 0)
+              ? nachoEnt.fieldPoints.map(p => ({ x: p.x, y: p.y }))
+              : (globalOverallBest.fieldNacho ? globalOverallBest.fieldNacho.map(p => ({ x: p.x, y: p.y })) : []),
             layerJimmy: jimmyEnt.layer || "Lote_Jimmy",
             layerPedro: pedroEnt.layer || "Lote_Pedro",
             layerNacho: nachoEnt ? (nachoEnt.layer || "Lote_Nacho") : "Lote_Nacho"
