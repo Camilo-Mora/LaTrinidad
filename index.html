@@ -1350,7 +1350,23 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
             <!-- Label style inspector -->
             <div id="case-label-inspector" style="display:none;background:rgba(0,0,0,0.35);border:1px solid var(--border-color);border-radius:6px;padding:8px;margin-bottom:6px;">
               <div style="font-size:0.7rem;font-weight:700;color:var(--accent-cyan);margin-bottom:6px;">✏️ Label Style</div>
-              <textarea id="lbl-text" rows="3" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:4px;font-size:0.78rem;resize:vertical;margin-bottom:5px;"></textarea>
+              <textarea id="lbl-text" rows="3" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:4px;font-size:0.78rem;resize:vertical;margin-bottom:4px;" placeholder="Texto de etiqueta (ej: Lote: $Polygon 1$m2)"></textarea>
+              <div id="lbl-template-preview" style="display:none;font-size:0.68rem;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.3);border-radius:4px;padding:4px 6px;margin-bottom:6px;line-height:1.35;"></div>
+              <!-- Dynamic Area Token Inserter -->
+              <div style="margin-bottom:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:5px 6px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.66rem;color:var(--text-muted);margin-bottom:3px;">
+                  <span>📐 Insertar Área Dinámica:</span>
+                  <span style="font-size:0.60rem;color:var(--accent-cyan);font-family:monospace;">$Nombre$m2</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:3px;">
+                  <select id="lbl-token-poly-select" style="flex:1;min-width:0;background:rgba(0,0,0,0.45);border:1px solid var(--border-color);color:#fff;border-radius:3px;padding:2px 4px;font-size:0.68rem;">
+                    <!-- Populated dynamically -->
+                  </select>
+                  <button type="button" id="lbl-btn-insert-m2" class="btn btn-secondary btn-sm" style="padding:1px 5px;font-size:0.66rem;font-weight:600;" title="Insertar token en m² (redondeado a enteros)">$m²</button>
+                  <button type="button" id="lbl-btn-insert-ha" class="btn btn-secondary btn-sm" style="padding:1px 5px;font-size:0.66rem;font-weight:600;" title="Insertar token en hectáreas (2 decimales)">$ha</button>
+                  <button type="button" id="lbl-btn-insert-plazas" class="btn btn-secondary btn-sm" style="padding:1px 5px;font-size:0.66rem;font-weight:600;" title="Insertar token en plazas (2 decimales)">$plazas</button>
+                </div>
+              </div>
               <!-- Word / Selection Font Size toolbar -->
               <div style="margin-bottom:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:5px 6px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.68rem;color:var(--text-muted);margin-bottom:4px;">
@@ -6441,6 +6457,9 @@ function updatePolygonSummaryUI() {
   if (isPolySpecsOpen()) {
     updatePolySpecsArea();
   }
+  if (typeof populateLabelTokenPolySelect === "function") {
+    populateLabelTokenPolySelect();
+  }
 }
 
 // Sync a per-card checkbox from summary (find in the rendered card list)
@@ -8626,6 +8645,224 @@ function calcReconstructedPolygonArea() {
   return Math.abs(area) / 2;
 }
 
+/* -----------------------------------------------------------------------
+   Dynamic Case Label Area Template System ($PolygonName$unit)
+   Units supported:
+     $PolygonName$m2     -> full integer digits without decimals, e.g. "14,353 m²"
+     $PolygonName$ha     -> 2 decimals, e.g. "1.44 ha"
+     $PolygonName$plazas -> 2 decimals, e.g. "2.24 plazas"
+   Default (no unit): $PolygonName$ -> "14,353 m²"
+----------------------------------------------------------------------- */
+function getPolygonAreaByName(nameStr) {
+  if (!nameStr) return null;
+  const target = String(nameStr).trim().toLowerCase();
+  if (!target) return null;
+
+  // 1. Check user measurement polygons (state.measurePolygons)
+  const measurePolys = state.measurePolygons || [];
+  for (const p of measurePolys) {
+    const pName = (p.name || "").trim().toLowerCase();
+    if (pName === target || String(p.id).toLowerCase() === target || `#${p.id}`.toLowerCase() === target) {
+      if (p.points && p.points.length >= 3) {
+        return calculatePolygonArea(p.points);
+      }
+      return 0;
+    }
+  }
+
+  // 2. Check Reconstructed Lindero La Trinidad (E. 296)
+  if (target === "dxf_296" || target === "296" || target === "e296" || target === "e. 296" ||
+      target.includes("trinidad") || target.includes("lindero")) {
+    return calcReconstructedPolygonArea();
+  }
+
+  // 3. Check Escritura 1073 (warped on field)
+  if (target === "dxf_1073" || target === "1073" || target === "e1073" || target === "e. 1073" ||
+      target.includes("1073") || target.includes("fermin")) {
+    let warper = null;
+    if (getActiveAnchors(state.anchors1073).length >= 2) {
+      try { warper = TransformMath.createWarper(state.algorithm, state.anchors1073); } catch(_) {}
+    }
+    let area = 0;
+    (state.entities1073 || []).forEach(ent => {
+      const pts = ent.points || ent.vertices;
+      if (pts && pts.length >= 3) {
+        const warpedPts = warper ? pts.map(p => warper(p)) : pts;
+        area += calculatePolygonArea(warpedPts);
+      }
+    });
+    return area;
+  }
+
+  // 4. Check Escritura 196 (warped on field)
+  if (target === "dxf_196" || target === "196" || target === "e196" || target === "e. 196" ||
+      target.includes("196") || target.includes("sol")) {
+    let warper = null;
+    if (getActiveAnchors(state.anchors196).length >= 2) {
+      try { warper = TransformMath.createWarper(state.algorithm, state.anchors196); } catch(_) {}
+    }
+    let area = 0;
+    (state.entities196 || []).forEach(ent => {
+      const pts = ent.points || ent.vertices;
+      if (pts && pts.length >= 3) {
+        const warpedPts = warper ? pts.map(p => warper(p)) : pts;
+        area += calculatePolygonArea(warpedPts);
+      }
+    });
+    return area;
+  }
+
+  // 5. Check Field Surveys
+  if (target.includes("valoy")) {
+    let area = 0;
+    (state.surveyValoy2025Entities || []).forEach(ent => {
+      const pts = ent.points || ent.vertices;
+      if (pts && pts.length >= 3) area += calculatePolygonArea(pts);
+    });
+    return area;
+  }
+  if (target.includes("cortez sep") || target.includes("sept") || target.includes("sep 2026")) {
+    let area = 0;
+    (state.surveyCortez2025Entities || []).forEach(ent => {
+      const pts = ent.points || ent.vertices;
+      if (pts && pts.length >= 3) area += calculatePolygonArea(pts);
+    });
+    return area;
+  }
+  if (target.includes("cortez oct") || target.includes("oct 2026") || target.includes("overlay")) {
+    let area = 0;
+    const ents = (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0)
+      ? state.surveyCortezOct2026Entities
+      : (state.overlayLayer && state.overlayLayer.entities ? state.overlayLayer.entities : []);
+    ents.forEach(ent => {
+      const pts = ent.points || ent.vertices;
+      if (pts && pts.length >= 3) area += calculatePolygonArea(pts);
+    });
+    return area;
+  }
+  if (target.includes("cortez 2019") || target.includes("cortes") || target.includes("campo") || target === "true" || target === "dxf_true") {
+    let area = 0;
+    (state.entitiesTrue || []).forEach(ent => {
+      const pts = ent.points || ent.vertices;
+      if (pts && pts.length >= 3) area += calculatePolygonArea(pts);
+    });
+    return area;
+  }
+
+  // 6. Generic search across state.layerStyles names
+  if (state.layerStyles) {
+    for (const [key, ls] of Object.entries(state.layerStyles)) {
+      if (ls && ls.name && ls.name.trim().toLowerCase() === target) {
+        return getPolygonAreaByName(key);
+      }
+    }
+  }
+
+  return null;
+}
+
+function formatPolygonAreaValue(areaM2, unit) {
+  const u = (unit || "m2").toLowerCase();
+  if (u === "m2" || u === "m²" || u === "sqm") {
+    const rounded = Math.round(areaM2);
+    return `${rounded.toLocaleString('en-US')} m²`;
+  }
+  if (u === "ha" || u === "hectare" || u === "hectares" || u === "hectareas") {
+    const ha = areaM2 / 10000;
+    return `${ha.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ha`;
+  }
+  if (u === "pl" || u === "plaza" || u === "plazas") {
+    const pl = areaM2 / 6400;
+    return `${pl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} plazas`;
+  }
+  // Default to m² rounded
+  const rounded = Math.round(areaM2);
+  return `${rounded.toLocaleString('en-US')} m²`;
+}
+
+function resolveCaseLabelTemplate(text) {
+  if (!text || typeof text !== "string") return text || "";
+  if (!text.includes("$")) return text;
+
+  // Regex matches: $PolygonName$unit or $PolygonName$
+  return text.replace(/\$([^\$\n\r]+?)\$(m2|m²|ha|plazas|plaza|pl)?/gi, (match, polyName, unit) => {
+    const trimmed = polyName.trim();
+    const areaM2 = getPolygonAreaByName(trimmed);
+    if (areaM2 === null || isNaN(areaM2)) {
+      return match; // Keep original token so user notices typo
+    }
+    return formatPolygonAreaValue(areaM2, unit || "m2");
+  });
+}
+
+function updateLabelTemplatePreview(rawText) {
+  const previewEl = document.getElementById("lbl-template-preview");
+  if (!previewEl) return;
+  if (!rawText || !rawText.includes("$")) {
+    previewEl.style.display = "none";
+    previewEl.innerHTML = "";
+    return;
+  }
+  const resolved = resolveCaseLabelTemplate(rawText);
+  const unresolvedMatches = [];
+  rawText.replace(/\$([^\$\n\r]+?)\$(m2|m²|ha|plazas|plaza|pl)?/gi, (match, polyName) => {
+    if (getPolygonAreaByName(polyName.trim()) === null) {
+      unresolvedMatches.push(polyName.trim());
+    }
+  });
+
+  previewEl.style.display = "block";
+  if (unresolvedMatches.length > 0) {
+    previewEl.style.borderColor = "var(--accent-red)";
+    previewEl.style.color = "#ff8a80";
+    previewEl.innerHTML = `⚠️ Polígono(s) no encontrado(s): <b>${unresolvedMatches.join(", ")}</b><br><span style="color:var(--text-muted);">Vista previa:</span> ${resolved.replace(/\n/g, " ↵ ")}`;
+  } else {
+    previewEl.style.borderColor = "rgba(0,229,255,0.35)";
+    previewEl.style.color = "var(--accent-cyan)";
+    previewEl.innerHTML = `👁️ <b>Vista previa:</b> ${resolved.replace(/\n/g, " ↵ ")}`;
+  }
+}
+
+function populateLabelTokenPolySelect() {
+  const sel = document.getElementById("lbl-token-poly-select");
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = "";
+
+  // 1. Measurement Polygons
+  const groupMeas = document.createElement("optgroup");
+  groupMeas.label = "Polígonos de Medición";
+  (state.measurePolygons || []).forEach((p, idx) => {
+    const opt = document.createElement("option");
+    opt.value = p.name || `Polygon ${idx + 1}`;
+    opt.textContent = `${p.name || `Polygon ${idx + 1}`} (ID #${p.id || idx + 1})`;
+    groupMeas.appendChild(opt);
+  });
+  if (groupMeas.children.length > 0) sel.appendChild(groupMeas);
+
+  // 2. Base Deeds & Surveys
+  const groupBase = document.createElement("optgroup");
+  groupBase.label = "Escrituras y Levantamientos";
+  const baseLayers = [
+    { name: "Lindero La Trinidad (E. 296)", token: "Lindero La Trinidad" },
+    { name: "Escritura 1073", token: "Escritura 1073" },
+    { name: "Escritura 196", token: "Escritura 196" },
+    { name: "Wilmar Valoy 2025", token: "Valoy" },
+    { name: "Cristian Cortez 2019", token: "Cortez 2019" },
+    { name: "Cristian Cortez Sep 2026", token: "Cortez Sep 2026" },
+    { name: "Cristian Cortez Oct 2026", token: "Cortez Oct 2026" }
+  ];
+  baseLayers.forEach(l => {
+    const opt = document.createElement("option");
+    opt.value = l.token;
+    opt.textContent = l.name;
+    groupBase.appendChild(opt);
+  });
+  sel.appendChild(groupBase);
+
+  if (currentVal) sel.value = currentVal;
+}
+
 function updateAreaStats() {
   const calcLayerArea = (entities, warper) => {
     let totalArea = 0;
@@ -8893,8 +9130,9 @@ function buildCaseLabelsList() {
   labels.forEach(lbl => {
     const row = document.createElement("div");
     row.className = "case-label-item" + (lbl.id === state.caseSelectedLabelId ? " selected" : "");
-    row.textContent = (lbl.text || "(empty)").replace(/\n/g, " ");
-    row.title = lbl.text;
+    const resolved = resolveCaseLabelTemplate(lbl.text || "(empty)").replace(/\n/g, " ");
+    row.textContent = resolved;
+    row.title = resolved;
     row.addEventListener("click", () => selectCaseLabel(lbl.id));
     listEl.appendChild(row);
   });
@@ -8992,6 +9230,8 @@ function selectCaseLabel(id) {
   if (!lbl) { inspector.style.display = "none"; return; }
   inspector.style.display = "block";
   document.getElementById("lbl-text").value = lbl.text || "";
+  updateLabelTemplatePreview(lbl.text || "");
+  populateLabelTokenPolySelect();
   document.getElementById("lbl-fontsize").value = lbl.fontSize || 14;
   document.getElementById("lbl-textcolor").value = lbl.textColor || "#000000";
   document.getElementById("lbl-bgcolor").value = lbl.bgColor || "#ffffff";
@@ -9018,6 +9258,9 @@ function updateSelectedLabelProp(key, value) {
   const lbl = (ac.labels || []).find(l => l.id === state.caseSelectedLabelId);
   if (!lbl) return;
   lbl[key] = value;
+  if (key === "text") {
+    updateLabelTemplatePreview(value);
+  }
   drawViewportTrue();
 }
 
@@ -9617,7 +9860,8 @@ function drawCaseLabels(ctx, vp, h) {
   if (!ac || !ac.labels) return;
   ac.labels.forEach(lbl => {
     const sp = worldToScreenGIS({ x: lbl.worldX, y: lbl.worldY }, vp, h);
-    const rawLines = (lbl.text || "").split("\n");
+    const resolvedText = resolveCaseLabelTemplate(lbl.text || "");
+    const rawLines = resolvedText.split("\n");
     const defaultFs = lbl.fontSize || 14;
     const pad = lbl.padding || 7;
     const bold = lbl.bold ? "bold " : "";
@@ -9950,7 +10194,8 @@ async function exportCaseImageHD() {
 function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
   labels.forEach(lbl => {
     const sp = worldToScreenGISExport({ x: lbl.worldX, y: lbl.worldY }, vp, h);
-    const rawLines = (lbl.text || "").split("\n");
+    const resolvedText = resolveCaseLabelTemplate(lbl.text || "");
+    const rawLines = resolvedText.split("\n");
     const defaultFs = (lbl.fontSize || 14) * scaleRatio;
     const pad = (lbl.padding || 7) * scaleRatio;
     const bold = lbl.bold ? "bold " : "";
@@ -10297,6 +10542,31 @@ function setupCasesPanel() {
   if (btnSub) btnSub.addEventListener("click", () => applySuperOrSub(false));
   const btnM2 = document.getElementById("lbl-btn-m2");
   if (btnM2) btnM2.addEventListener("click", () => insertTextAtCursor("m²"));
+
+  const btnInsertM2 = document.getElementById("lbl-btn-insert-m2");
+  if (btnInsertM2) {
+    btnInsertM2.addEventListener("click", () => {
+      const sel = document.getElementById("lbl-token-poly-select");
+      const name = sel ? sel.value : "";
+      if (name) insertTextAtCursor(`$${name}$m2`);
+    });
+  }
+  const btnInsertHa = document.getElementById("lbl-btn-insert-ha");
+  if (btnInsertHa) {
+    btnInsertHa.addEventListener("click", () => {
+      const sel = document.getElementById("lbl-token-poly-select");
+      const name = sel ? sel.value : "";
+      if (name) insertTextAtCursor(`$${name}$ha`);
+    });
+  }
+  const btnInsertPlazas = document.getElementById("lbl-btn-insert-plazas");
+  if (btnInsertPlazas) {
+    btnInsertPlazas.addEventListener("click", () => {
+      const sel = document.getElementById("lbl-token-poly-select");
+      const name = sel ? sel.value : "";
+      if (name) insertTextAtCursor(`$${name}$plazas`);
+    });
+  }
 }
   </script>
 </body>
