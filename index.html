@@ -2037,6 +2037,10 @@ function worldToScreenGIS(pt, viewport, canvasH) {
   return { x: pt.x * viewport.scale + viewport.offsetX, y: canvasH - (pt.y * viewport.scale + viewport.offsetY) };
 }
 
+function worldToScreenGISExport(pt, viewport, canvasH) {
+  return { x: pt.x * viewport.scale + viewport.offsetX, y: canvasH - (pt.y * viewport.scale + viewport.offsetY) };
+}
+
 function screenToWorldGIS(sx, sy, viewport, canvasH) {
   return { x: (sx - viewport.offsetX) / viewport.scale, y: (canvasH - sy - viewport.offsetY) / viewport.scale };
 }
@@ -8216,7 +8220,7 @@ function drawCaseLabels(ctx, vp, h) {
 }
 
 function drawGeoTiffWithCaseSpotlight(ctx, tiff, vp, canvasH, selectedPolyIds, bw) {
-  if (!tiff || !tiff.offscreen || !vp || !vp.bbox) return;
+  if (!tiff || !tiff.offscreen || !vp || !tiff.bbox) return;
   const tl = worldToScreenGIS({ x: tiff.bbox.minX, y: tiff.bbox.maxY }, vp, canvasH);
   const br = worldToScreenGIS({ x: tiff.bbox.maxX, y: tiff.bbox.minY }, vp, canvasH);
   const sw = br.x - tl.x, sh = br.y - tl.y;
@@ -8389,58 +8393,114 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
 }
 
 async function exportCaseImageHD() {
-  const ac = getActiveCase();
-  if (!ac) { statusBar.textContent = "⚠️ No active case selected."; return; }
-  statusBar.textContent = "⏳ Rendering HD case image...";
-  await new Promise(r => requestAnimationFrame(r));
+  try {
+    let ac = getActiveCase();
+    if (!ac) {
+      const sel = document.getElementById("case-selector");
+      if (sel && sel.value) {
+        ac = getCaseById(sel.value);
+        if (ac) applyActiveCase(ac);
+      }
+    }
+    if (!ac && state.cases && state.cases.length > 0) {
+      ac = state.cases[0];
+      applyActiveCase(ac);
+    }
+    if (!ac) {
+      // Synthesize case from current view
+      ac = {
+        name: "Vista_Actual",
+        selectedPolyIds: (state.measurePolygons || []).map(p => p.id),
+        layers: {
+          geotiff: true,
+          reconstructed: state.showReconstructedPolygon !== false,
+          dxf1073: state.showWarped1073OnField !== false,
+          dxf196: state.showWarped196OnField !== false,
+          dxfTrue: state.showFieldDXFOnField !== false
+        },
+        dxfOpacity: state.dxfOpacity || { reconstructed: 1, dxf_1073: 1, dxf_196: 1, dxf_true: 1 },
+        geotiffBW: false,
+        labels: [],
+        arrows: []
+      };
+    }
 
-  const EXP_W = 3840;
-  const aspect = canvasTrue.height / Math.max(1, canvasTrue.width);
-  const EXP_H = Math.round(EXP_W * aspect);
+    statusBar.textContent = "⏳ Rendering HD case image (" + (ac.name || "Caso") + ")...";
+    await new Promise(r => requestAnimationFrame(r));
 
-  const offCanvas = document.createElement("canvas");
-  offCanvas.width = EXP_W;
-  offCanvas.height = EXP_H;
-  const ctx = offCanvas.getContext("2d");
+    const EXP_W = 3840;
+    const aspect = canvasTrue.height / Math.max(1, canvasTrue.width);
+    const EXP_H = Math.round(EXP_W * aspect);
 
-  ctx.fillStyle = "#06080e";
-  ctx.fillRect(0, 0, EXP_W, EXP_H);
+    const offCanvas = document.createElement("canvas");
+    offCanvas.width = EXP_W;
+    offCanvas.height = EXP_H;
+    const ctx = offCanvas.getContext("2d");
 
-  const scaleRatio = EXP_W / canvasTrue.width;
-  const vpExp = {
-    scale: state.vpTrue.scale * scaleRatio,
-    offsetX: state.vpTrue.offsetX * scaleRatio,
-    offsetY: state.vpTrue.offsetY * scaleRatio,
-    bbox: state.vpTrue.bbox
-  };
+    ctx.fillStyle = "#06080e";
+    ctx.fillRect(0, 0, EXP_W, EXP_H);
 
-  const showGeo = ac.layers ? (ac.layers.geotiff !== false) : true;
-  if (showGeo) {
-    drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds, ac.geotiffBW !== false);
-  }
+    const scaleRatio = EXP_W / canvasTrue.width;
+    const vpExp = {
+      scale: state.vpTrue.scale * scaleRatio,
+      offsetX: state.vpTrue.offsetX * scaleRatio,
+      offsetY: state.vpTrue.offsetY * scaleRatio,
+      bbox: state.vpTrue.bbox
+    };
 
-  const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
-  order.forEach(key => drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac));
-  if (state.showReconstructedPolygon !== false) {
-    drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio);
-  }
+    const showGeo = ac.layers ? (ac.layers.geotiff !== false) : true;
+    if (showGeo && state.geoTiff) {
+      drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds, ac.geotiffBW !== false);
+    }
 
-  if (ac.labels && ac.labels.length > 0) {
-    drawCaseLabelsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.labels);
-  }
-  if (ac.arrows && ac.arrows.length > 0) {
-    drawCaseArrowsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.arrows);
-  }
+    const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
+    order.forEach(key => drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac));
+    if (!order.includes("dxf_296") && state.showReconstructedPolygon !== false) {
+      drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio);
+    }
 
-  offCanvas.toBlob(blob => {
-    if (!blob) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+    if (ac.labels && ac.labels.length > 0) {
+      drawCaseLabelsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.labels);
+    }
+    if (ac.arrows && ac.arrows.length > 0) {
+      drawCaseArrowsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.arrows);
+    }
+
     const safeName = (ac.name || "Caso").replace(/[^a-z0-9_\-]/gi, "_");
-    a.download = `Caso_${safeName}.png`;
-    a.click();
-    statusBar.textContent = `✅ HD image exported: Caso_${safeName}.png`;
-  }, "image/png");
+
+    const triggerDownload = (url) => {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Caso_${safeName}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      statusBar.textContent = `✅ HD image exported: Caso_${safeName}.png`;
+    };
+
+    if (offCanvas.toBlob) {
+      offCanvas.toBlob(blob => {
+        if (!blob) {
+          try {
+            const dataUrl = offCanvas.toDataURL("image/png");
+            triggerDownload(dataUrl);
+          } catch (e) {
+            statusBar.textContent = "❌ Export error: " + e.message;
+          }
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        triggerDownload(url);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      }, "image/png");
+    } else {
+      const dataUrl = offCanvas.toDataURL("image/png");
+      triggerDownload(dataUrl);
+    }
+  } catch (err) {
+    console.error("HD Export Error:", err);
+    statusBar.textContent = "❌ HD export error: " + (err.message || err);
+  }
 }
 
 function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
@@ -8537,6 +8597,26 @@ function drawWarpedEntitiesGISExport(ctx, entities, warper, vp, canvasH, color, 
       ctx.moveTo(start.x, start.y);
       for (let i = 1; i < warped.length; i++) {
         const p = worldToScreenGISExport(warped[i], vp, canvasH);
+        ctx.lineTo(p.x, p.y);
+      }
+      if (ent.closed) ctx.closePath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    } catch (_) {}
+  });
+}
+
+function drawEntitiesGISExport(ctx, entities, vp, canvasH, color, lineWidth = 4) {
+  if (!entities || entities.length === 0) return;
+  entities.forEach(ent => {
+    if (!ent.points || ent.points.length < 2) return;
+    try {
+      ctx.beginPath();
+      const start = worldToScreenGISExport(ent.points[0], vp, canvasH);
+      ctx.moveTo(start.x, start.y);
+      for (let i = 1; i < ent.points.length; i++) {
+        const p = worldToScreenGISExport(ent.points[i], vp, canvasH);
         ctx.lineTo(p.x, p.y);
       }
       if (ent.closed) ctx.closePath();
