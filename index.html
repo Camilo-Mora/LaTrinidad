@@ -1771,6 +1771,7 @@ const state = {
   entities296: [],
   entities1073: [],
   entities196: [],
+  entities196Optimized: null, // Pre-warped MAGNA-SIRGAS field coords from escritura_196_optimized.json
   entitiesTrue: [],
   anchors296: [],
   anchors1073: JSON.parse(JSON.stringify(DEFAULT_ANCHORS_1073)),
@@ -2178,6 +2179,7 @@ window.addEventListener("DOMContentLoaded", () => {
   loadDefaultPdf("Mapa196_ErrorCasaDelSol.pdf", "196");
   autoLoadDXF1073();
   autoLoadDXF196();
+  autoLoadReconstructedPolygon196(); // Load optimized field coords (overrides raw DXF warp)
   autoLoadGeoTiff();
   autoLoadTrueDXF();
   autoLoadOverlayDXF();
@@ -2522,6 +2524,39 @@ async function autoLoadDXF196() {
     console.log("autoLoadDXF196 skipped (CORS or missing file):", err);
   }
 }
+
+async function autoLoadReconstructedPolygon196() {
+  try {
+    const response = await fetch("escritura_196_optimized.json?_t=" + Date.now(), { cache: "no-store" });
+    if (response.ok) {
+      const sol = await response.json();
+      applyOptimized196Solution(sol);
+    }
+  } catch (err) {
+    console.log("escritura_196_optimized.json auto-load skipped (CORS or missing file).");
+  }
+}
+
+function applyOptimized196Solution(sol) {
+  if (!sol) return;
+  const entities = [];
+  if (sol.fieldJimmy && sol.fieldJimmy.length >= 2) {
+    entities.push({ points: sol.fieldJimmy.map(p => ({ x: p.x, y: p.y })), closed: true, layer: sol.layerJimmy || "Lote_Jimmy" });
+  }
+  if (sol.fieldPedro && sol.fieldPedro.length >= 2) {
+    entities.push({ points: sol.fieldPedro.map(p => ({ x: p.x, y: p.y })), closed: true, layer: sol.layerPedro || "Lote_Pedro" });
+  }
+  if (sol.fieldNacho && sol.fieldNacho.length >= 2) {
+    entities.push({ points: sol.fieldNacho.map(p => ({ x: p.x, y: p.y })), closed: true, layer: sol.layerNacho || "Lote_Nacho" });
+  }
+  if (entities.length > 0) {
+    state.entities196Optimized = entities;
+    redrawAll();
+    console.log(`✅ Loaded optimized 196 solution: ${entities.length} parcel(s) from escritura_196_optimized.json`);
+  }
+}
+
+
 
 async function autoLoadSurveyDXFs() {
   try {
@@ -3258,31 +3293,43 @@ function drawLayerByKey(key, ctx, vp, h) {
     case "dxf_196": {
       const isVisible = (state.showWarped196OnField !== false);
       const isPdfVisible = (state.showWarpedPdf196 !== false);
-      if ((isVisible || isPdfVisible) && getActiveAnchors(state.anchors196).length >= 2) {
+      const hasOptimized = state.entities196Optimized && state.entities196Optimized.length > 0;
+      const op = (state.dxfOpacity?.dxf_196 ?? 0.85) * lineOp;
+
+      // PDF overlay always uses anchor warper (visual reference only)
+      if (isPdfVisible && getActiveAnchors(state.anchors196).length >= 2) {
         try {
           const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-          if (isPdfVisible && state.pdf196Canvas && state.pdf196Width > 0) {
+          if (state.pdf196Canvas && state.pdf196Width > 0) {
             drawWarpedPdfImage196(ctx, warper, vp, canvasTrue.width, h);
           }
-          if (isVisible) {
-            const op = (state.dxfOpacity?.dxf_196 ?? 0.85) * lineOp;
+        } catch (_) {}
+      }
+
+      // DXF outline: prefer optimized field coords; fall back to anchor-warped raw DXF
+      if (isVisible) {
+        if (hasOptimized) {
+          // Pre-warped MAGNA-SIRGAS coords — draw directly, no warper needed
+          drawGISLayerWithNodesAndArea(
+            ctx,
+            state.entities196Optimized,
+            vp, h, color,
+            state.showNodes196, state.showArea196,
+            op, lineW, lineDash, fillColor, fillOpacity
+          );
+        } else if (getActiveAnchors(state.anchors196).length >= 2) {
+          // Fallback: coarse TPS warp on raw deed DXF
+          try {
+            const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
             drawWarpedGISLayerWithNodesAndArea(
               ctx,
               state.entities196,
-              warper,
-              vp,
-              h,
-              color,
-              state.showNodes196,
-              state.showArea196,
-              op,
-              lineW,
-              lineDash,
-              fillColor,
-              fillOpacity
+              warper, vp, h, color,
+              state.showNodes196, state.showArea196,
+              op, lineW, lineDash, fillColor, fillOpacity
             );
-          }
-        } catch (_) {}
+          } catch (_) {}
+        }
       }
       break;
     }
@@ -8697,6 +8744,16 @@ function getPolygonAreaByName(nameStr) {
   // 4. Check Escritura 196 (warped on field)
   if (target === "dxf_196" || target === "196" || target === "e196" || target === "e. 196" ||
       target.includes("196") || target.includes("sol")) {
+    // Prefer optimized field coords when available (no warper needed)
+    if (state.entities196Optimized && state.entities196Optimized.length > 0) {
+      let area = 0;
+      state.entities196Optimized.forEach(ent => {
+        const pts = ent.points || ent.vertices;
+        if (pts && pts.length >= 3) area += calculatePolygonArea(pts);
+      });
+      return area;
+    }
+    // Fallback: warp raw deed DXF via anchors
     let warper = null;
     if (getActiveAnchors(state.anchors196).length >= 2) {
       try { warper = TransformMath.createWarper(state.algorithm, state.anchors196); } catch(_) {}
@@ -8902,7 +8959,16 @@ function updateAreaStats() {
   if (getActiveAnchors(state.anchors196).length >= 2) {
     try { warper196 = TransformMath.createWarper(state.algorithm, state.anchors196); } catch(_) {}
   }
-  if (el196) el196.textContent = "Area 196: " + formatArea(calcLayerArea(state.entities196, warper196));
+  if (el196) {
+    // Prefer optimized field coords (pre-warped MAGNA-SIRGAS) for accurate area
+    const ents196 = (state.entities196Optimized && state.entities196Optimized.length > 0)
+      ? state.entities196Optimized
+      : state.entities196;
+    const warper196Used = (state.entities196Optimized && state.entities196Optimized.length > 0)
+      ? null  // optimized coords are already in field space — no warper needed
+      : warper196;
+    el196.textContent = "Area 196: " + formatArea(calcLayerArea(ents196, warper196Used));
+  }
 
   const elOverlay = document.getElementById("area-stats-overlay");
   if (elOverlay) {
@@ -10040,7 +10106,13 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
       if (state.showWarped1073OnField !== false) strokeWarped(state.entities1073, state.anchors1073, (state.dxfOpacity?.dxf_1073 ?? 0.9) * lineOp);
       break;
     case "dxf_196":
-      if (state.showWarped196OnField !== false) strokeWarped(state.entities196, state.anchors196, (state.dxfOpacity?.dxf_196 ?? 0.85) * lineOp);
+      if (state.showWarped196OnField !== false) {
+        if (state.entities196Optimized && state.entities196Optimized.length > 0) {
+          strokePlain(state.entities196Optimized, (state.dxfOpacity?.dxf_196 ?? 0.85) * lineOp);
+        } else {
+          strokeWarped(state.entities196, state.anchors196, (state.dxfOpacity?.dxf_196 ?? 0.85) * lineOp);
+        }
+      }
       break;
     case "dxf_anchors":
       // In Case HD image export, suppress anchors from other panels
