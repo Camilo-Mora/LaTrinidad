@@ -3,7 +3,7 @@
     {
       "id": 1,
       "name": "#1",
-      "showLabel": true,
+      "showLabel": false,
       "image": null,
       "color": "#ff1744",
       "src": {
@@ -11,8 +11,8 @@
         "y": 322.34439559311085
       },
       "dst": {
-        "x": 4644954.4564,
-        "y": 1943374.2428
+        "x": 1097931.99,
+        "y": 876844.08
       },
       "active": true,
       "enabled": true
@@ -20,7 +20,7 @@
     {
       "id": 3,
       "name": "#3",
-      "showLabel": true,
+      "showLabel": false,
       "image": null,
       "color": "#00e5ff",
       "src": {
@@ -28,8 +28,8 @@
         "y": 498.3083978076609
       },
       "dst": {
-        "x": 4644868.2416,
-        "y": 1943330.617
+        "x": 1097846.02,
+        "y": 876800.11
       },
       "active": true,
       "enabled": true
@@ -37,7 +37,7 @@
     {
       "id": 6,
       "name": "#6",
-      "showLabel": true,
+      "showLabel": false,
       "image": null,
       "color": "#ffff00",
       "src": {
@@ -45,8 +45,8 @@
         "y": 648.0958369438254
       },
       "dst": {
-        "x": 4644904.6938,
-        "y": 1943256.2209
+        "x": 1097882.77,
+        "y": 876725.92
       },
       "active": true,
       "enabled": true

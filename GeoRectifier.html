@@ -50,9 +50,14 @@ Do NOT modify dormant/parked sections unless specifically requested.
   <title>DXF Georectifier & Rubber-Sheeting App</title>
   <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
   <script>
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    if (typeof proj4 !== "undefined") {
+      proj4.defs("EPSG:3115", "+proj=tmerc +lat_0=4.59620041666667 +lon_0=-77.0775079166667 +k=1 +x_0=1000000 +y_0=1000000 +ellps=GRS80 +units=m +no_defs +type=crs");
+      proj4.defs("EPSG:9377", "+proj=tmerc +lat_0=4 +lon_0=-73 +k=0.9992 +x_0=5000000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs +type=crs");
     }
   </script>
   <!-- [SECTION: CSS_STYLES] -->
@@ -5299,6 +5304,17 @@ EOF`;
       return copy;
     }
 
+    function transform3115to9377(x, y) {
+      if (typeof x !== "number" || typeof y !== "number" || isNaN(x) || isNaN(y)) return { x, y };
+      if (typeof proj4 !== "undefined") {
+        try {
+          const res = proj4("EPSG:3115", "EPSG:9377", [x, y]);
+          return { x: Math.round(res[0] * 10000) / 10000, y: Math.round(res[1] * 10000) / 10000 };
+        } catch (_) {}
+      }
+      return { x: Math.round((x + 3547022.4664) * 10000) / 10000, y: Math.round((y + 1066530.1628) * 10000) / 10000 };
+    }
+
     function applyAnchors(list) {
       if (!Array.isArray(list) || list.length === 0) return;
       const seenIds = new Set();
@@ -5313,6 +5329,14 @@ EOF`;
         }
         seenIds.add(id);
         const name = (a.name && a.name !== `#${a.id}`) ? a.name : (`#${id}`);
+        let dstPt = { x: a.dst.x, y: a.dst.y };
+        if (dstPt.x > 500000 && dstPt.x < 2500000) {
+          dstPt = transform3115to9377(dstPt.x, dstPt.y);
+        }
+        let origDstPt = a.origDst ? { x: a.origDst.x, y: a.origDst.y } : { ...dstPt };
+        if (origDstPt.x > 500000 && origDstPt.x < 2500000) {
+          origDstPt = transform3115to9377(origDstPt.x, origDstPt.y);
+        }
         const anc = {
           id: id,
           name: name,
@@ -5320,9 +5344,9 @@ EOF`;
           image: a.image || null,
           color: a.color || (typeof anchorColors !== "undefined" ? anchorColors[i % anchorColors.length] : "#00e5ff"),
           src: { x: a.src.x, y: a.src.y },
-          dst: { x: a.dst.x, y: a.dst.y },
+          dst: dstPt,
           origSrc: a.origSrc ? { x: a.origSrc.x, y: a.origSrc.y } : { x: a.src.x, y: a.src.y },
-          origDst: a.origDst ? { x: a.origDst.x, y: a.origDst.y } : { x: a.dst.x, y: a.dst.y },
+          origDst: origDstPt,
           active: a.active !== false && a.enabled !== false,
           enabled: a.active !== false && a.enabled !== false,
           axisId: a.axisId !== undefined ? a.axisId : null,
@@ -7564,8 +7588,8 @@ EOF`;
       // Live update any polygon vertices anchored to deed DXF space
       updateUserPolygonWarp();
 
-      // Layer 2: Warped deed PDF image (the PowerPoint transparent overlay)
-      if (state.showWarpedPdf && warper && state.histPdfCanvas && state.histPdfW > 0) {
+      // Layer 2: Warped deed PDF image & deformation wireframe (the PowerPoint transparent overlay)
+      if ((state.showWarpedPdf || state.showDeedMeshWireframe) && warper && state.histPdfCanvas && state.histPdfW > 0) {
         drawWarpedPdfImage(trueCtx, warper, vp, w, h);
       }
 
@@ -7703,8 +7727,8 @@ EOF`;
         // Draw badge pin with number inside
         drawAnchorPin(trueCtx, anc, tp);
 
-        // Anchor labels are controlled by the eye toggle (state.showMojones1073 and anc.showLabel, hidden for Deed 196)
-        const showMojones = (state.activeDeed === "196") ? false : (state.showMojones1073 !== false);
+        // Anchor labels are controlled by the eye toggle (state.showMojones1073 and anc.showLabel)
+        const showMojones = (state.showMojones1073 !== false);
         if (showMojones && anc.showLabel !== false) {
           drawAnchorLabelCard(trueCtx, anc, tp, false);
         }
@@ -8056,7 +8080,9 @@ EOF`;
       if (!state.histPdfCanvas || state.histPdfW <= 0) return;
       const pdfW = state.histPdfW, pdfH = state.histPdfH;
       const opacity = state.warpedPdfOpacity;
-      if (opacity <= 0) return;
+      const showWireframe = !!state.showDeedMeshWireframe;
+      const shouldDrawImage = (state.showWarpedPdf !== false) && opacity > 0;
+      if (!shouldDrawImage && !showWireframe) return;
 
       // Aspect-ratio-preserving square grid cells:
       // When the deed image is non-square (e.g. landscape or portrait), compute cols and rows
@@ -8066,14 +8092,13 @@ EOF`;
       const cellSize = maxDim / baseRes;
       const gridCols = Math.max(2, Math.round(pdfW / cellSize));
       const gridRows = Math.max(2, Math.round(pdfH / cellSize));
-      const showWireframe = !!state.showDeedMeshWireframe;
 
       // Fast-path: for purely linear models (Helmert Similarity with no aspect squeeze)
       // and when wireframe is not requested, a single affine transform is mathematically exact:
       const hasScale = state.deedScale && Math.abs((state.deedScale.ratio !== undefined ? state.deedScale.ratio : (state.deedScale.x || 1.0)) - 1.0) > 1e-5;
       const isPureHelmert = (state.algorithm === "SIMILARITY" && !hasScale);
 
-      if (isPureHelmert && !showWireframe) {
+      if (isPureHelmert && !showWireframe && shouldDrawImage) {
         const corners = [
           { px: 0,    py: 0 },
           { px: pdfW, py: 0 },
@@ -8167,28 +8192,32 @@ EOF`;
         targetCtx.restore();
       }
 
-      for (let r = 0; r < gridRows; r++) {
-        for (let c = 0; c < gridCols; c++) {
-          const u0 = c * cellW,       v0 = r * cellH;
-          const u1 = (c + 1) * cellW, v1 = (r + 1) * cellH;
+      if (shouldDrawImage) {
+        for (let r = 0; r < gridRows; r++) {
+          for (let c = 0; c < gridCols; c++) {
+            const u0 = c * cellW,       v0 = r * cellH;
+            const u1 = (c + 1) * cellW, v1 = (r + 1) * cellH;
 
-          const p00 = pts[r][c];
-          const p10 = pts[r][c + 1];
-          const p01 = pts[r + 1][c];
-          const p11 = pts[r + 1][c + 1];
+            const p00 = pts[r][c];
+            const p10 = pts[r][c + 1];
+            const p01 = pts[r + 1][c];
+            const p11 = pts[r + 1][c + 1];
 
-          drawTriangle(u0, v0, u1, v0, u0, v1, p00, p10, p01);
-          drawTriangle(u1, v0, u1, v1, u0, v1, p10, p11, p01);
+            drawTriangle(u0, v0, u1, v0, u0, v1, p00, p10, p01);
+            drawTriangle(u1, v0, u1, v1, u0, v1, p10, p11, p01);
+          }
         }
+
+        targetCtx.restore();
+
+        // Composite the seamless warped deed to the main canvas with user opacity
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.drawImage(offCanvas, 0, 0);
+        ctx.restore();
+      } else {
+        targetCtx.restore();
       }
-
-      targetCtx.restore();
-
-      // Composite the seamless warped deed to the main canvas with user opacity
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.drawImage(offCanvas, 0, 0);
-      ctx.restore();
 
       // Optional Wireframe overlay
       if (showWireframe) {
@@ -16463,7 +16492,7 @@ EOF`;
               const ancText = await fetchText("anchors_196.json");
               const ancList = JSON.parse(ancText);
               const rawList = Array.isArray(ancList) ? ancList : (ancList.anchors || []);
-              applyAnchors(rawList.map(a => ({ ...a, showLabel: a.showLabel === true })));
+              applyAnchors(rawList);
             } catch (e) {
               console.warn("Failed loading anchors_196.json:", e);
             }
@@ -16533,6 +16562,10 @@ EOF`;
       if (chkShowWarpedPdf) chkShowWarpedPdf.checked = true;
       const chkShowWarpedDxf = document.getElementById("chk-show-warped-dxf");
       if (chkShowWarpedDxf) chkShowWarpedDxf.checked = true;
+      const chkMojones = document.getElementById("chk-show-mojones-1073");
+      if (chkMojones) chkMojones.checked = (state.showMojones1073 !== false);
+      const chkWireframe = document.getElementById("chk-show-deed-mesh-wireframe");
+      if (chkWireframe) chkWireframe.checked = !!state.showDeedMeshWireframe;
 
       // The historical deed window (histCard) should be opened ONLY with the checkbox at the top of the app.
       // - openWindow === true: explicitly open deed window (user clicked top toolbar checkbox)
@@ -16740,20 +16773,30 @@ EOF`;
     }
 
     if (btnToggleCluster1073) {
-      btnToggleCluster1073.addEventListener("click", () => {
+      btnToggleCluster1073.addEventListener("click", async () => {
         if (!clusterBody1073) return;
         const isHidden = clusterBody1073.style.display === "none";
         clusterBody1073.style.display = isHidden ? "flex" : "none";
         btnToggleCluster1073.textContent = isHidden ? "▼" : "▶";
+        if (isHidden) {
+          if (chkCluster1073) chkCluster1073.checked = true;
+          if (chkCluster196) chkCluster196.checked = false;
+          await switchDeed("1073", null);
+        }
       });
     }
 
     if (btnToggleCluster196) {
-      btnToggleCluster196.addEventListener("click", () => {
+      btnToggleCluster196.addEventListener("click", async () => {
         if (!clusterBody196) return;
         const isHidden = clusterBody196.style.display === "none";
         clusterBody196.style.display = isHidden ? "flex" : "none";
         btnToggleCluster196.textContent = isHidden ? "▼" : "▶";
+        if (isHidden) {
+          if (chkCluster196) chkCluster196.checked = true;
+          if (chkCluster1073) chkCluster1073.checked = false;
+          await switchDeed("196", null);
+        }
       });
     }
 
@@ -17135,7 +17178,7 @@ EOF`;
     let draggingAnchorLabel = null; // { anc, isHist, startMouseX, startMouseY, origDx, origDy }
 
     function hitTestAnchorLabel(sx, sy, isHist) {
-      if (isHist || (!isHist && (state.showMojones1073 === false || state.activeDeed === "196"))) return null;
+      if (isHist || (!isHist && state.showMojones1073 === false)) return null;
       const vp = isHist ? state.histViewport : state.trueViewport;
       const h = isHist ? histCanvas.height : trueCanvas.height;
       const ctx = isHist ? histCtx : trueCtx;
@@ -20207,6 +20250,12 @@ EOF`;
         if (statusOpt) statusOpt.textContent = "⏹ Deteniendo optimización... aplicando mejor solución encontrada.";
         updateStatus("Deteniendo optimización 196… aplicando mejor solución encontrada.");
         return;
+      }
+
+      if (state.activeDeed !== "196") {
+        if (chkCluster196) chkCluster196.checked = true;
+        if (chkCluster1073) chkCluster1073.checked = false;
+        await switchDeed("196", null);
       }
 
       if (!state.histEntities || state.histEntities.length === 0) {

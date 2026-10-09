@@ -438,6 +438,12 @@
       // 2. anchors_georectifier.json
       await processJsonFile("anchors_georectifier.json", transformAnchorsGeo, "item-anchors-geo");
 
+      // 2b. anchors_196.json
+      await processJsonFile("anchors_196.json", transformAnchorsGeo, "item-anchors-196");
+
+      // 2c. anchors_296.json
+      await processJsonFile("anchors_296.json", transformAnchorsGeo, "item-anchors-296");
+
       // 3. polygons.json
       await processJsonFile("polygons.json", transformPolygons, "item-polygons");
 
