@@ -1088,6 +1088,12 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                 <button type="button" id="btn-poly-specs-close" class="btn-sm btn-secondary" style="padding:1px 6px;font-size:0.72rem;" title="Close Specs">✕</button>
               </div>
 
+              <!-- Area Display at Top of Window -->
+              <div id="poly-specs-area-banner" style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,179,0,0.12);border:1px solid rgba(255,179,0,0.35);border-radius:4px;padding:4px 8px;margin-bottom:7px;">
+                <span style="font-size:0.70rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">📐 Área:</span>
+                <span id="poly-specs-area-val" style="font-size:0.75rem;color:var(--accent-yellow);font-weight:800;font-family:monospace;letter-spacing:0.3px;">0.00 m² (0.00 plazas)</span>
+              </div>
+
               <!-- Name & Actions (Edit Nodes & Delete) -->
               <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
                 <input type="text" id="poly-specs-name" placeholder="Polygon Name" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);border-radius:4px;color:#fff;font-size:0.76rem;padding:3px 6px;outline:none;">
@@ -4604,6 +4610,7 @@ function openPolySpecs(polyIdx) {
   }
 
   updatePolySpecsPreview(poly);
+  updatePolySpecsArea();
   if (inspector) inspector.style.display = "block";
   updateEditNodesBtnUI();
   updatePolygonSummaryUI();
@@ -4730,6 +4737,7 @@ function openLayerSpecs(layerKey) {
   }
 
   updatePolySpecsPreview(ls);
+  updatePolySpecsArea();
   if (inspector) inspector.style.display = "block";
   updatePolygonSummaryUI();
 }
@@ -4794,6 +4802,80 @@ function updatePolySpecsPreview(poly) {
   }
 
   preview.style.background = `rgba(${isNaN(fr)?0:fr},${isNaN(fg)?229:fg},${isNaN(fb)?255:fb},${fillOp})`;
+}
+
+function updatePolySpecsArea() {
+  const areaValEl = document.getElementById("poly-specs-area-val");
+  if (!areaValEl) return;
+
+  if (currentEditingPolyIdx !== null) {
+    const poly = state.measurePolygons[currentEditingPolyIdx];
+    if (poly && poly.points && poly.points.length >= 3) {
+      const areaM2 = calculatePolygonArea(poly.points);
+      const plazas = areaM2 / 6400;
+      areaValEl.textContent = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m² (${plazas.toFixed(2)} plazas)`;
+    } else {
+      areaValEl.textContent = "0.00 m² (0.00 plazas)";
+    }
+    return;
+  }
+
+  if (currentEditingLayerKey) {
+    let areaM2 = 0;
+    if (currentEditingLayerKey === "dxf_296") {
+      areaM2 = calcReconstructedPolygonArea();
+    } else if (currentEditingLayerKey === "dxf_1073") {
+      let warper = null;
+      if (getActiveAnchors(state.anchors1073).length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, state.anchors1073); } catch(_) {}
+      }
+      (state.entities1073 || []).forEach(ent => {
+        const pts = ent.points || ent.vertices;
+        if (pts && pts.length >= 3) {
+          const warpedPts = warper ? pts.map(p => warper(p)) : pts;
+          areaM2 += calculatePolygonArea(warpedPts);
+        }
+      });
+    } else if (currentEditingLayerKey === "dxf_196") {
+      let warper = null;
+      if (getActiveAnchors(state.anchors196).length >= 2) {
+        try { warper = TransformMath.createWarper(state.algorithm, state.anchors196); } catch(_) {}
+      }
+      (state.entities196 || []).forEach(ent => {
+        const pts = ent.points || ent.vertices;
+        if (pts && pts.length >= 3) {
+          const warpedPts = warper ? pts.map(p => warper(p)) : pts;
+          areaM2 += calculatePolygonArea(warpedPts);
+        }
+      });
+    } else {
+      const entities = (currentEditingLayerKey === "dxf_survey_cortez_2019" || currentEditingLayerKey === "dxf_true") 
+        ? state.entitiesTrue 
+        : (currentEditingLayerKey === "dxf_survey_valoy_2025")
+          ? state.surveyValoy2025Entities
+          : (currentEditingLayerKey === "dxf_survey_cortez_sep_2026")
+            ? state.surveyCortez2025Entities
+            : (currentEditingLayerKey === "dxf_survey_cortez_oct_2026")
+              ? state.surveyCortez2026Entities
+              : [];
+      (entities || []).forEach(ent => {
+        const pts = ent.points || ent.vertices;
+        if (pts && pts.length >= 3) {
+          areaM2 += calculatePolygonArea(pts);
+        }
+      });
+    }
+
+    if (areaM2 > 0) {
+      const plazas = areaM2 / 6400;
+      areaValEl.textContent = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m² (${plazas.toFixed(2)} plazas)`;
+    } else {
+      areaValEl.textContent = "--";
+    }
+    return;
+  }
+
+  areaValEl.textContent = "--";
 }
 
 function findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName) {
@@ -5691,9 +5773,17 @@ function updatePolygonSummaryUI() {
     const isFirst = idx === 0;
     const isLast = idx === state.measurePolygons.length - 1;
 
+    const pts = poly.points || [];
+    const areaM2 = (pts.length >= 3) ? calculatePolygonArea(pts) : 0;
+    const plazas = areaM2 / 6400;
+    const areaStr = areaM2 > 0 ? `${areaM2.toLocaleString('en-US', {maximumFractionDigits:1})} m² (${plazas.toFixed(2)} pl)` : '0.0 m²';
+
     tr.innerHTML = `
       <td>${dot}</td>
-      <td class="col-name" style="color:${poly.color};cursor:pointer;" title="Click to edit specs: ${name}">${name}</td>
+      <td class="col-name" style="color:${poly.color};cursor:pointer;line-height:1.2;padding-top:2px;padding-bottom:2px;" title="Click to edit specs: ${name} (${areaStr})">
+        <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+        <div style="font-size:0.62rem;color:var(--accent-yellow);font-family:monospace;font-weight:600;">${areaStr}</div>
+      </td>
       <td style="white-space:nowrap;padding:1px 2px;">
         <button type="button" class="btn-order-btn btn-poly-down" data-idx="${idx}" style="padding:0 3px;font-size:0.6rem;line-height:1.2;" title="Send Backward (draw behind)" ${isFirst ? "disabled" : ""}>▼</button>
         <button type="button" class="btn-order-btn btn-poly-up" data-idx="${idx}" style="padding:0 3px;font-size:0.6rem;line-height:1.2;" title="Bring Forward (draw on top)" ${isLast ? "disabled" : ""}>▲</button>
@@ -5803,6 +5893,9 @@ function updatePolygonSummaryUI() {
   }
 
   updateMasterCheckboxes();
+  if (isPolySpecsOpen()) {
+    updatePolySpecsArea();
+  }
 }
 
 // Sync a per-card checkbox from summary (find in the rendered card list)
