@@ -824,6 +824,8 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
           <div class="viewport-header">
             <span class="view-title title-true">📍 Field data</span>
             <div class="view-controls">
+              <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View (Centrar mapa en límites)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">⛶</button>
+              <button class="vp-tool-btn" id="btn-measure-tool" data-map="true" data-mode="measure" title="Measure Distances [M] (Medir distancias en el mapa)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">📏</button>
               <label for="geotiff-input" class="btn btn-secondary btn-sm" title="Load Shared GeoTIFF Background">🗺️ GeoTIFF</label>
               <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff" style="display:none;">
               <label class="window-checkbox" style="font-size:0.72rem; margin-right:4px;" title="Check to load full native original resolution without downsampling. Uncheck for fast 4K display.">
@@ -864,49 +866,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
               </div>
             </div>
           </div>
-          <!-- Toolbar under True Field Canvas: Controles Lindero La Trinidad & Escritura 1073 (Single Line) -->
-          <div id="canvas-toolbar-escritura1073" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:3px 10px;background:rgba(15,20,32,0.95);border-top:1px solid rgba(0,229,255,0.25);font-size:0.71rem;color:var(--text-main);flex-wrap:nowrap;white-space:nowrap;overflow-x:auto;z-index:10;">
-            <!-- 1. Map Action Tools (Left Side: Center, Measure, Edit Polygons) -->
-            <div style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
-              <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View (Centrar mapa en límites)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">⛶</button>
-              <button class="vp-tool-btn" id="btn-measure-tool" data-map="true" data-mode="measure" title="Measure Distances [M] (Medir distancias en el mapa)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">📏</button>
-            </div>
-
-            <!-- Divider -->
-            <div style="height:16px;width:1px;background:rgba(255,255,255,0.15);margin:0 1px;flex-shrink:0;"></div>
-
-            <!-- 2. Lindero La Trinidad Control -->
-            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,229,255,0.08);padding:2px 7px;border-radius:4px;border:1px solid rgba(0,229,255,0.3);flex-shrink:0;">
-              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Lindero La Trinidad (user_polygon.json)">
-                <input type="checkbox" id="chk-show-reconstructed-poly" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
-                <span style="color:var(--accent-cyan);font-weight:700;">🔷 Lindero La Trinidad</span>
-              </label>
-              <input type="range" class="opacity-slider" id="reconstructed-poly-opacity" min="0" max="100" value="100" style="width:42px;">
-              <span class="opacity-val" id="reconstructed-poly-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">100%</span>
-            </div>
-
-            <!-- Divider -->
-            <div style="height:16px;width:1px;background:rgba(255,255,255,0.15);margin:0 1px;flex-shrink:0;"></div>
-
-            <!-- 3. Escritura 1073 Title Group -->
-            <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-              <span style="font-weight:800;color:#ff1744;text-transform:uppercase;letter-spacing:0.5px;">
-                📜 Escritura 1073
-              </span>
-            </div>
-
-            <!-- Polígono DXF boundary control & styling -->
-            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
-              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar Polígono Escritura 1073 en Campo (Warped Deed DXF Boundary Polygon)">
-                <input type="checkbox" id="chk-show-warped-dxf" checked style="accent-color:#ff1744;cursor:pointer;margin:0;">
-                <span>Polígono DXF</span>
-              </label>
-              <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:42px;">
-              <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">90%</span>
-            </div>
-          </div>
         </div>
-      </div>
 
       <!-- [SECTION: HTML_SIDEBAR_PANELS] -->
       <!-- Sidebar -->
@@ -6761,19 +6721,42 @@ function setupEventListeners() {
   }
 
   // Subwindow Toggle Selector
-  chkShow296.addEventListener("change", updateWindowLayout);
-  chkShow1073.addEventListener("change", updateWindowLayout);
-  chkShow196.addEventListener("change", updateWindowLayout);
-  chkShowTrue.addEventListener("change", updateWindowLayout);
-  if (chkShowSidebar) chkShowSidebar.addEventListener("change", updateWindowLayout);
+  chkShow296.addEventListener("change", () => {
+    updateWindowLayout(chkShow296.checked ? ["296"] : []);
+  });
+  chkShow1073.addEventListener("change", () => {
+    updateWindowLayout(chkShow1073.checked ? ["1073"] : []);
+  });
+  chkShow196.addEventListener("change", () => {
+    updateWindowLayout(chkShow196.checked ? ["196"] : []);
+  });
+  chkShowTrue.addEventListener("change", () => {
+    updateWindowLayout(chkShowTrue.checked ? ["true"] : []);
+  });
+  if (chkShowSidebar) chkShowSidebar.addEventListener("change", () => updateWindowLayout([]));
   updateWindowLayout();
 
   const bAll = document.getElementById("btn-view-all");
-  if (bAll) bAll.addEventListener("click", () => { chkShow296.checked = true; chkShow1073.checked = true; chkShowTrue.checked = true; updateWindowLayout(); });
+  if (bAll) bAll.addEventListener("click", () => {
+    chkShow296.checked = true;
+    chkShow1073.checked = true;
+    chkShowTrue.checked = true;
+    updateWindowLayout(["296", "1073", "true"]);
+  });
   const b296T = document.getElementById("btn-view-296-true");
-  if (b296T) b296T.addEventListener("click", () => { chkShow296.checked = true; chkShow1073.checked = false; chkShowTrue.checked = true; updateWindowLayout(); });
+  if (b296T) b296T.addEventListener("click", () => {
+    chkShow296.checked = true;
+    chkShow1073.checked = false;
+    chkShowTrue.checked = true;
+    updateWindowLayout(["296", "true"]);
+  });
   const b1073T = document.getElementById("btn-view-1073-true");
-  if (b1073T) b1073T.addEventListener("click", () => { chkShow296.checked = false; chkShow1073.checked = true; chkShowTrue.checked = true; updateWindowLayout(); });
+  if (b1073T) b1073T.addEventListener("click", () => {
+    chkShow296.checked = false;
+    chkShow1073.checked = true;
+    chkShowTrue.checked = true;
+    updateWindowLayout(["1073", "true"]);
+  });
 
   // DXF Layers Area - Field Map Overlay Toggles
   const chkField296 = document.getElementById("chk-show-field-296");
@@ -6817,16 +6800,7 @@ function setupEventListeners() {
       const map  = btn.dataset.map;
       if (mode === "fit") {
         // Center the specific map
-        if (map === "296") {
-          if (state.entities296 && state.entities296.length) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
-          else if (state.pdf296Width > 0 && state.pdf296Height > 0) state.vp296 = fitViewport(canvas296, { minX: 0, minY: 0, maxX: state.pdf296Width, maxY: state.pdf296Height, width: state.pdf296Width, height: state.pdf296Height });
-        }
-        if (map === "1073" && state.entities1073.length) state.vp1073 = fitViewport(canvas1073, computeBoundingBox(state.entities1073));
-        if (map === "196"  && state.entities196.length)  state.vp196  = fitViewport(canvas196,  computeBoundingBox(state.entities196));
-        if (map === "true") {
-          if (state.entitiesTrue.length) state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(state.entitiesTrue));
-          else if (state.geoTiff) state.vpTrue = fitViewport(canvasTrue, state.geoTiff.bbox);
-        }
+        centerMapView(map);
         redrawAll();
       } else if (mode === "measure") {
         if (state.toolMode === "measure" || (state.measureTool && state.measureTool.active)) {
@@ -7603,15 +7577,56 @@ function handlePdfFileSelect(file, targetKey) {
   reader.readAsArrayBuffer(file);
 }
 
-function updateWindowLayout() {
-  card296.classList.toggle("hidden", !chkShow296.checked);
-  card1073.classList.toggle("hidden", !chkShow1073.checked);
-  card196.classList.toggle("hidden", !chkShow196.checked);
-  cardTrue.classList.toggle("hidden", !chkShowTrue.checked);
+let lastOpenWindowState = {
+  "296": false,
+  "1073": false,
+  "196": false,
+  "true": false
+};
+
+function updateWindowLayout(forceCenterMaps = null) {
+  const is296 = !!(chkShow296 && chkShow296.checked);
+  const is1073 = !!(chkShow1073 && chkShow1073.checked);
+  const is196 = !!(chkShow196 && chkShow196.checked);
+  const isTrue = !!(chkShowTrue && chkShowTrue.checked);
+
+  if (card296) card296.classList.toggle("hidden", !is296);
+  if (card1073) card1073.classList.toggle("hidden", !is1073);
+  if (card196) card196.classList.toggle("hidden", !is196);
+  if (cardTrue) cardTrue.classList.toggle("hidden", !isTrue);
   if (chkShowSidebar && sidebar) {
     sidebar.classList.toggle("collapsed", !chkShowSidebar.checked);
   }
-  setTimeout(resizeCanvases, 50);
+
+  // Detect which deed windows were newly opened
+  const newlyOpened = [];
+  if (is296 && !lastOpenWindowState["296"]) newlyOpened.push("296");
+  if (is1073 && !lastOpenWindowState["1073"]) newlyOpened.push("1073");
+  if (is196 && !lastOpenWindowState["196"]) newlyOpened.push("196");
+  if (isTrue && !lastOpenWindowState["true"]) newlyOpened.push("true");
+
+  lastOpenWindowState["296"] = is296;
+  lastOpenWindowState["1073"] = is1073;
+  lastOpenWindowState["196"] = is196;
+  lastOpenWindowState["true"] = isTrue;
+
+  const toCenter = Array.isArray(forceCenterMaps) ? forceCenterMaps : newlyOpened;
+
+  setTimeout(() => {
+    resizeCanvases();
+    if (toCenter.length > 0) {
+      toCenter.forEach(m => centerMapView(m));
+      redrawAll();
+    }
+  }, 50);
+
+  setTimeout(() => {
+    resizeCanvases();
+    if (toCenter.length > 0) {
+      toCenter.forEach(m => centerMapView(m));
+      redrawAll();
+    }
+  }, 180);
 }
 
 // [SECTION: JS_INTERACTION_HANDLERS]
