@@ -904,14 +904,6 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
               <input type="range" class="opacity-slider" id="warped-dxf-opacity" min="0" max="100" value="90" style="width:42px;">
               <span class="opacity-val" id="warped-dxf-opacity-val" style="min-width:24px;text-align:right;font-family:monospace;font-size:0.67rem;">90%</span>
             </div>
-
-            <!-- 4. Mojones Toggle -->
-            <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.25);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
-              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--text-main);font-weight:600;margin:0;" title="Mostrar u ocultar los dos mojones de referencia (GCP Anchors) y sus flechas indicadoras">
-                <input type="checkbox" id="chk-show-mojones-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;margin:0;">
-                <span>👁️ Mojones</span>
-              </label>
-            </div>
           </div>
         </div>
       </div>
@@ -969,49 +961,6 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td><input type="checkbox" id="sum-area-dxf-296" title="Display area badge for Lindero La Trinidad" style="accent-color:var(--accent-yellow);"></td>
                   <td><input type="checkbox" id="sum-nodes-dxf-296" title="Display vertex nodes for Lindero La Trinidad" style="accent-color:#00e5ff;"></td>
                 </tr>
-                <!-- Sub-tramos Lindero La Trinidad -->
-                <tr class="trinidad-sec-subrow" style="background:rgba(128,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);">
-                  <td style="text-align:center;padding:2px 0;">
-                    <button type="button" class="poly-dot-btn trinidad-sec-dot" data-sec-key="e296" title="Tramo Escritura 296: Clic para editar color" style="width:11px;height:11px;border-radius:50%;background:#80ffff;box-shadow:0 0 4px #80ffff;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;"></button>
-                  </td>
-                  <td class="col-name trinidad-sec-name-btn" data-sec-key="e296" style="padding-left:6px;color:#80ffff;font-size:0.69rem;font-weight:600;cursor:pointer;" title="Tramo Escritura 296: Clic para editar color">
-                    ↳ Tramo E. 296
-                  </td>
-                  <td colspan="4" style="padding:2px 4px;text-align:right;">
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
-                      <span style="font-size:0.63rem;color:var(--text-muted);font-family:monospace;">Línea:</span>
-                      <input type="color" class="trinidad-quick-color" data-sec-key="e296" value="#80ffff" style="width:20px;height:18px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;" title="Color de línea: Tramo Escritura 296">
-                    </div>
-                  </td>
-                </tr>
-                <tr class="trinidad-sec-subrow" style="background:rgba(0,255,64,0.04);border-bottom:1px solid rgba(255,255,255,0.04);">
-                  <td style="text-align:center;padding:2px 0;">
-                    <button type="button" class="poly-dot-btn trinidad-sec-dot" data-sec-key="quebrada" title="Tramo Quebrada: Clic para editar color" style="width:11px;height:11px;border-radius:50%;background:#00ff40;box-shadow:0 0 4px #00ff40;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;"></button>
-                  </td>
-                  <td class="col-name trinidad-sec-name-btn" data-sec-key="quebrada" style="padding-left:6px;color:#00ff40;font-size:0.69rem;font-weight:600;cursor:pointer;" title="Tramo Quebrada: Clic para editar color">
-                    ↳ Tramo Quebrada
-                  </td>
-                  <td colspan="4" style="padding:2px 4px;text-align:right;">
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
-                      <span style="font-size:0.63rem;color:var(--text-muted);font-family:monospace;">Línea:</span>
-                      <input type="color" class="trinidad-quick-color" data-sec-key="quebrada" value="#00ff40" style="width:20px;height:18px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;" title="Color de línea: Tramo Quebrada">
-                    </div>
-                  </td>
-                </tr>
-                <tr class="trinidad-sec-subrow" style="background:rgba(0,0,255,0.04);border-bottom:1px solid rgba(255,255,255,0.06);">
-                  <td style="text-align:center;padding:2px 0;">
-                    <button type="button" class="poly-dot-btn trinidad-sec-dot" data-sec-key="e1073" title="Tramo Escritura 1073: Clic para editar color" style="width:11px;height:11px;border-radius:50%;background:#0000ff;box-shadow:0 0 4px #0000ff;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;"></button>
-                  </td>
-                  <td class="col-name trinidad-sec-name-btn" data-sec-key="e1073" style="padding-left:6px;color:#3d8bfd;font-size:0.69rem;font-weight:600;cursor:pointer;" title="Tramo Escritura 1073: Clic para editar color">
-                    ↳ Tramo E. 1073
-                  </td>
-                  <td colspan="4" style="padding:2px 4px;text-align:right;">
-                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
-                      <span style="font-size:0.63rem;color:var(--text-muted);font-family:monospace;">Línea:</span>
-                      <input type="color" class="trinidad-quick-color" data-sec-key="e1073" value="#0000ff" style="width:20px;height:18px;border:none;background:none;cursor:pointer;border-radius:3px;padding:0;" title="Color de línea: Tramo Escritura 1073">
-                    </div>
-                  </td>
-                </tr>
                 <tr>
                   <td><button type="button" class="poly-dot-btn layer-dot-btn" data-layer-key="dxf_1073" title="Click to edit specs (Color, Line, Transparency, Nodes)" style="width:13px;height:13px;border-radius:50%;background:#ff1744;box-shadow:0 0 5px #ff1744;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;transition:transform 0.1s;"></button></td>
                   <td class="col-name layer-name-btn" data-layer-key="dxf_1073" style="color:#ff1744;cursor:pointer;" title="Click to edit specs: Escritura 1073">Escritura 1073</td>
@@ -1068,6 +1017,58 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                 <!-- ── GROUP 2: MUESTREOS DE CAMPO ── -->
                 <tr class="section-divider">
                   <td colspan="6" style="padding-left:6px;">📁 Muestreos de campo</td>
+                </tr>
+
+                <!-- 📍 Mojones de Referencia en Campo -->
+                <tr id="row-mojones-main" style="background:rgba(0,229,255,0.05);border-bottom:1px solid rgba(255,255,255,0.06);">
+                  <td style="text-align:center;padding:2px 0;">
+                    <span style="font-size:0.8rem;display:inline-block;" title="Mojones de Campo">📍</span>
+                  </td>
+                  <td class="col-name" style="color:var(--accent-cyan);font-weight:600;font-size:0.73rem;" title="Mojones de Referencia (Puntos de Control GCP en Campo)">
+                    Mojones de Campo
+                  </td>
+                  <td colspan="4" style="padding:2px 4px;text-align:right;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+                      <span style="font-size:0.63rem;color:var(--text-muted);font-family:monospace;" title="Tamaño de los pines y etiquetas de los mojones">Tam:</span>
+                      <input type="range" id="mojones-size-slider" min="50" max="250" value="100" step="5" style="width:40px;accent-color:var(--accent-cyan);cursor:pointer;" title="Tamaño de pines y etiquetas (50% a 250%)">
+                      <span id="mojones-size-val" style="min-width:25px;text-align:right;font-family:monospace;font-size:0.64rem;color:var(--accent-cyan);">100%</span>
+                      <input type="checkbox" id="chk-show-mojones-1073" checked style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;margin:0 0 0 4px;" title="Mostrar u ocultar todos los mojones">
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Sub-filas de Mojones Individuales -->
+                <tr class="mojon-subrow" data-mojon-id="1" style="background:rgba(255,23,68,0.04);border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <td style="text-align:center;padding:1px 0;">
+                    <span class="mojon-dot" style="width:9px;height:9px;border-radius:50%;background:#ff1744;box-shadow:0 0 4px #ff1744;display:inline-block;"></span>
+                  </td>
+                  <td class="col-name" style="padding-left:6px;color:#ff8a80;font-size:0.69rem;font-weight:600;" title="Mojón #1: Entrada">
+                    ↳ Mojón #1 (Entrada)
+                  </td>
+                  <td colspan="4" style="padding:1px 4px;text-align:right;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+                      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.65rem;color:var(--text-muted);margin:0;">
+                        <span>Ver:</span>
+                        <input type="checkbox" class="chk-mojon-single" data-mojon-id="1" checked style="accent-color:#ff1744;cursor:pointer;width:12px;height:12px;margin:0;" title="Mostrar u ocultar Mojón #1 (Entrada)">
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+                <tr class="mojon-subrow" data-mojon-id="2" style="background:rgba(0,230,118,0.04);border-bottom:1px solid rgba(255,255,255,0.06);">
+                  <td style="text-align:center;padding:1px 0;">
+                    <span class="mojon-dot" style="width:9px;height:9px;border-radius:50%;background:#00e676;box-shadow:0 0 4px #00e676;display:inline-block;"></span>
+                  </td>
+                  <td class="col-name" style="padding-left:6px;color:#69f0ae;font-size:0.69rem;font-weight:600;" title="Mojón #2: Tres cercos">
+                    ↳ Mojón #2 (Tres cercos)
+                  </td>
+                  <td colspan="4" style="padding:1px 4px;text-align:right;">
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+                      <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.65rem;color:var(--text-muted);margin:0;">
+                        <span>Ver:</span>
+                        <input type="checkbox" class="chk-mojon-single" data-mojon-id="2" checked style="accent-color:#00e676;cursor:pointer;width:12px;height:12px;margin:0;" title="Mostrar u ocultar Mojón #2 (Tres cercos)">
+                      </label>
+                    </div>
+                  </td>
                 </tr>
                 <tr>
                   <td><button type="button" class="poly-dot-btn layer-dot-btn" data-layer-key="dxf_survey_cortez_2019" title="Click to edit specs (Color, Line, Transparency, Nodes)" style="width:13px;height:13px;border-radius:50%;background:#00e676;box-shadow:0 0 5px #00e676;border:1px solid rgba(255,255,255,0.4);cursor:pointer;padding:0;outline:none;display:inline-block;transition:transform 0.1s;"></button></td>
@@ -1785,6 +1786,7 @@ const state = {
   showWarpedPdf1073: true,
   warpedPdf1073Opacity: 0.50, // 50% default transparency as requested
   showMojones1073: true,      // true by default to show the two anchor labels and arrows
+  mojonesSize: 1.0,           // 100% default scale for mojones pins & labels
   deedMeshRes1073: 64,        // 64 finest resolution default
   showDeedMeshWireframe1073: false,
   showReconstructedPolygon: true,
@@ -2360,6 +2362,7 @@ async function autoLoadAnchors() {
     console.warn("anchors_196.json auto-load skipped:", err);
   }
 
+  syncMojonesUI();
   redrawAll();
   statusBar.textContent = "✅ Anchors & Escrituras loaded";
 }
@@ -3624,7 +3627,7 @@ function getDefaultAnchorOffset(anc, isHist) {
   return { dx: 25, dy: -25 };
 }
 
-function getAnchorCardBounds(anc, pt, isHist, ctx) {
+function getAnchorCardBounds(anc, pt, isHist, ctx, uiScale = 1.0) {
   const isEnabled = anc.active !== false && anc.enabled !== false;
   const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
   const fullText = labelName + (isEnabled ? "" : " (off)");
@@ -3638,18 +3641,18 @@ function getAnchorCardBounds(anc, pt, isHist, ctx) {
   if (hasImg) {
     const natW = anc._imgElement.naturalWidth;
     const natH = anc._imgElement.naturalHeight;
-    const baseW = 80;
+    const baseW = Math.round(80 * uiScale);
     const maxH = Math.max(50, Math.round(baseW * 1.35));
     const scale = Math.min(baseW / natW, maxH / natH);
     const imgW = Math.max(35, Math.round(natW * scale));
     const imgH = Math.max(35, Math.round(natH * scale));
 
-    const padX = 8, padTop = 7, padBottom = 8;
-    const headerH = 18;
-    const dividerGap = 5;
-    const imgGap = 6;
-    const fontSize = 11;
-    const badgeR = 8.5;
+    const padX = Math.round(8 * uiScale), padTop = Math.round(7 * uiScale), padBottom = Math.round(8 * uiScale);
+    const headerH = Math.round(18 * uiScale);
+    const dividerGap = Math.round(5 * uiScale);
+    const imgGap = Math.round(6 * uiScale);
+    const fontSize = Math.round(11 * uiScale);
+    const badgeR = 8.5 * uiScale;
 
     ctx.save();
     ctx.font = "bold " + fontSize + "px sans-serif";
@@ -3665,8 +3668,8 @@ function getAnchorCardBounds(anc, pt, isHist, ctx) {
     let finalOffX = offX, finalOffY = offY;
 
     const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
-    const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : canvasTrue.width;
-    const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : canvasTrue.height;
+    const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (typeof canvasTrue !== "undefined" ? canvasTrue.width : 800);
+    const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (typeof canvasTrue !== "undefined" ? canvasTrue.height : 600);
     const margin = 24;
 
     if (!isHist && !hasCustom && anc.id === 1) {
@@ -3683,10 +3686,10 @@ function getAnchorCardBounds(anc, pt, isHist, ctx) {
 
     return { cardX, cardY, cardW, cardH, offX: finalOffX, offY: finalOffY };
   } else {
-    const padX = 8;
-    const cardH = 24;
-    const fontSize = 11;
-    const badgeR = 8;
+    const padX = Math.round(8 * uiScale);
+    const cardH = Math.round(24 * uiScale);
+    const fontSize = Math.round(11 * uiScale);
+    const badgeR = 8 * uiScale;
 
     ctx.save();
     ctx.font = "bold " + fontSize + "px sans-serif";
@@ -3700,8 +3703,8 @@ function getAnchorCardBounds(anc, pt, isHist, ctx) {
     let finalOffX = offX, finalOffY = offY;
 
     const hasCustom = offset && typeof offset.dx === "number" && typeof offset.dy === "number";
-    const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : canvasTrue.width;
-    const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : canvasTrue.height;
+    const canvasW = (ctx && ctx.canvas) ? ctx.canvas.width : (typeof canvasTrue !== "undefined" ? canvasTrue.width : 800);
+    const canvasH = (ctx && ctx.canvas) ? ctx.canvas.height : (typeof canvasTrue !== "undefined" ? canvasTrue.height : 600);
     const margin = 24;
 
     if (!isHist && !hasCustom && anc.id === 1) {
@@ -3720,7 +3723,7 @@ function getAnchorCardBounds(anc, pt, isHist, ctx) {
   }
 }
 
-function drawAnchorLabelCard(ctx, anc, pt, isHist) {
+function drawAnchorLabelCard(ctx, anc, pt, isHist, uiScale = 1.0) {
   const isEnabled = anc.active !== false && anc.enabled !== false;
   const labelName = (anc.name && anc.name.trim()) ? anc.name.trim() : (`#${anc.id}`);
   const fullText = labelName + (isEnabled ? "" : " (off)");
@@ -3733,7 +3736,7 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist) {
     anc._imgElement = img;
   }
 
-  const bounds = getAnchorCardBounds(anc, pt, isHist, ctx);
+  const bounds = getAnchorCardBounds(anc, pt, isHist, ctx, uiScale);
   const cardX = bounds.cardX;
   const cardY = bounds.cardY;
   const cardW = bounds.cardW;
@@ -3752,11 +3755,11 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist) {
     if (dist >= 10) {
       const ux = dx / dist;
       const uy = dy / dist;
-      const tipX = pt.x - ux * 6.5;
-      const tipY = pt.y - uy * 6.5;
+      const tipX = pt.x - ux * (6.5 * uiScale);
+      const tipY = pt.y - uy * (6.5 * uiScale);
 
-      const headLen = 12;
-      const headHalfW = 6.5;
+      const headLen = 12 * uiScale;
+      const headHalfW = 6.5 * uiScale;
       const baseX = tipX - ux * headLen;
       const baseY = tipY - uy * headLen;
       const px = -uy;
@@ -3771,12 +3774,12 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist) {
       ctx.shadowBlur = 4;
       ctx.shadowOffsetY = 1;
 
-      // 3px solid arrow stem
+      // Solid arrow stem
       ctx.beginPath();
       ctx.moveTo(startX, startY);
       ctx.lineTo(baseX + ux * 2, baseY + uy * 2);
       ctx.strokeStyle = arrowCol;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = Math.max(1.5, Math.round(3 * uiScale));
       ctx.stroke();
 
       // Arrowhead pointing towards the anchor
@@ -3797,18 +3800,18 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist) {
   if (hasImg) {
     const natW = anc._imgElement.naturalWidth;
     const natH = anc._imgElement.naturalHeight;
-    const baseW = 80;
+    const baseW = Math.round(80 * uiScale);
     const maxH = Math.max(50, Math.round(baseW * 1.35));
     const scale = Math.min(baseW / natW, maxH / natH);
     const imgW = Math.max(35, Math.round(natW * scale));
     const imgH = Math.max(35, Math.round(natH * scale));
 
-    const padX = 8, padTop = 7;
-    const headerH = 18;
-    const dividerGap = 5;
-    const imgGap = 6;
-    const fontSize = 11;
-    const badgeR = 8.5;
+    const padX = Math.round(8 * uiScale), padTop = Math.round(7 * uiScale);
+    const headerH = Math.round(18 * uiScale);
+    const dividerGap = Math.round(5 * uiScale);
+    const imgGap = Math.round(6 * uiScale);
+    const fontSize = Math.round(11 * uiScale);
+    const badgeR = 8.5 * uiScale;
 
     ctx.save();
 
@@ -3842,7 +3845,7 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist) {
     ctx.stroke();
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 9px sans-serif";
+    ctx.font = "bold " + Math.max(7, Math.round(9 * uiScale)) + "px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("#" + anc.id, badgeCenterX, badgeCenterY);
@@ -3887,9 +3890,9 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist) {
     ctx.restore();
   } else {
     // Compact Badge without image (or loading fallback)
-    const padX = 8;
-    const fontSize = 11;
-    const badgeR = 8;
+    const padX = Math.round(8 * uiScale);
+    const fontSize = Math.round(11 * uiScale);
+    const badgeR = 8 * uiScale;
     const textWithIcon = (anc.image ? "📷 " : "") + fullText;
 
     ctx.save();
@@ -3918,7 +3921,7 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist) {
     ctx.stroke();
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 9px sans-serif";
+    ctx.font = "bold " + Math.max(7, Math.round(9 * uiScale)) + "px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("#" + anc.id, badgeCenterX, badgeCenterY);
@@ -3934,26 +3937,111 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist) {
 }
 
 function drawMojones1073(ctx, vp, h) {
-  if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length < 2) return;
-  const activeList = state.anchors1073.filter(a => a.active !== false);
-  if (activeList.length < 2) return;
+  if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length === 0) return;
+  const uiScale = state.mojonesSize || 1.0;
+  const pinRadius = Math.max(3, Math.round(7 * uiScale));
+  const pinLineWidth = Math.max(1, Math.round(2 * uiScale));
 
-  activeList.forEach(anc => {
+  state.anchors1073.forEach(anc => {
+    if (anc.showMojon === false) return;
     const sp = worldToScreenGIS(anc.dst, vp, h);
 
     // Anchor pin on ground
     ctx.save();
     ctx.beginPath();
-    ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
+    ctx.arc(sp.x, sp.y, pinRadius, 0, Math.PI * 2);
     ctx.fillStyle = anc.color || "#ff1744";
     ctx.fill();
     ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = pinLineWidth;
     ctx.stroke();
     ctx.restore();
 
     // Corner card and connecting arrow
-    drawAnchorLabelCard(ctx, anc, sp, false);
+    drawAnchorLabelCard(ctx, anc, sp, false, uiScale);
+  });
+}
+
+function hitTestMojonLabel(mouseX, mouseY, vp, canvasH) {
+  if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length === 0) return null;
+  const ctx = (typeof canvasTrue !== "undefined" && canvasTrue) ? canvasTrue.getContext("2d") : null;
+  const uiScale = state.mojonesSize || 1.0;
+  for (let i = state.anchors1073.length - 1; i >= 0; i--) {
+    const anc = state.anchors1073[i];
+    if (anc.showMojon === false) continue;
+    const sp = worldToScreenGIS(anc.dst, vp, canvasH);
+    const bounds = getAnchorCardBounds(anc, sp, false, ctx, uiScale);
+    if (mouseX >= bounds.cardX && mouseX <= bounds.cardX + bounds.cardW &&
+        mouseY >= bounds.cardY && mouseY <= bounds.cardY + bounds.cardH) {
+      return { anc, bounds, sp };
+    }
+  }
+  return null;
+}
+
+function syncMojonesUI() {
+  const masterChk = document.getElementById("chk-show-mojones-1073");
+  if (masterChk) masterChk.checked = state.showMojones1073 !== false;
+
+  const slider = document.getElementById("mojones-size-slider");
+  const valSpan = document.getElementById("mojones-size-val");
+  const curScale = state.mojonesSize || 1.0;
+  if (slider) slider.value = Math.round(curScale * 100);
+  if (valSpan) valSpan.textContent = `${Math.round(curScale * 100)}%`;
+
+  const tbody = document.getElementById("poly-summary-tbody");
+  if (!tbody) return;
+
+  const mainRow = document.getElementById("row-mojones-main");
+  if (!mainRow) return;
+
+  const existingSubrows = tbody.querySelectorAll(".mojon-subrow");
+  existingSubrows.forEach(r => r.remove());
+
+  let insertAfterEl = mainRow;
+  (state.anchors1073 || []).forEach(anc => {
+    const isShown = anc.showMojon !== false;
+    const tr = document.createElement("tr");
+    tr.className = "mojon-subrow";
+    tr.dataset.mojonId = anc.id;
+    const col = anc.color || "#ff1744";
+    const name = anc.name ? `${anc.name}` : `#${anc.id}`;
+    tr.style.cssText = `background:${colorToRgba(col, 0.04)};border-bottom:1px solid rgba(255,255,255,0.04);`;
+
+    tr.innerHTML = `
+      <td style="text-align:center;padding:1px 0;">
+        <span class="mojon-dot" style="width:9px;height:9px;border-radius:50%;background:${col};box-shadow:0 0 4px ${col};display:inline-block;"></span>
+      </td>
+      <td class="col-name" style="padding-left:6px;color:${col};font-size:0.69rem;font-weight:600;" title="Mojón #${anc.id}: ${name}">
+        ↳ Mojón #${anc.id} (${name})
+      </td>
+      <td colspan="4" style="padding:1px 4px;text-align:right;">
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.65rem;color:var(--text-muted);margin:0;">
+            <span>Ver:</span>
+            <input type="checkbox" class="chk-mojon-single" data-mojon-id="${anc.id}" ${isShown ? "checked" : ""} style="accent-color:${col};cursor:pointer;width:12px;height:12px;margin:0;" title="Mostrar u ocultar Mojón #${anc.id} (${name})">
+          </label>
+        </div>
+      </td>
+    `;
+
+    insertAfterEl.insertAdjacentElement("afterend", tr);
+    insertAfterEl = tr;
+  });
+
+  tbody.querySelectorAll(".chk-mojon-single").forEach(chk => {
+    chk.addEventListener("change", (e) => {
+      const id = chk.dataset.mojonId;
+      const anc = (state.anchors1073 || []).find(a => String(a.id) === String(id));
+      if (anc) {
+        anc.showMojon = e.target.checked;
+        if (e.target.checked && state.showMojones1073 === false) {
+          state.showMojones1073 = true;
+          if (masterChk) masterChk.checked = true;
+        }
+        redrawAll();
+      }
+    });
   });
 }
 
@@ -6477,9 +6565,32 @@ function setupEventListeners() {
   if (chkShowMojones) {
     chkShowMojones.addEventListener("change", e => {
       state.showMojones1073 = e.target.checked;
+      if (e.target.checked) {
+        const allOff = (state.anchors1073 || []).every(a => a.showMojon === false);
+        if (allOff) {
+          (state.anchors1073 || []).forEach(a => a.showMojon = true);
+        }
+      }
+      document.querySelectorAll(".chk-mojon-single").forEach(sc => {
+        const anc = (state.anchors1073 || []).find(a => String(a.id) === String(sc.dataset.mojonId));
+        if (anc) sc.checked = anc.showMojon !== false;
+      });
       redrawAll();
     });
   }
+
+  const rngMojonesSize = document.getElementById("mojones-size-slider");
+  const valMojonesSize = document.getElementById("mojones-size-val");
+  if (rngMojonesSize) {
+    rngMojonesSize.addEventListener("input", e => {
+      const pct = parseInt(e.target.value, 10);
+      state.mojonesSize = pct / 100;
+      if (valMojonesSize) valMojonesSize.textContent = `${pct}%`;
+      redrawAll();
+    });
+  }
+
+  syncMojonesUI();
 
   const chkWarpedDxf = document.getElementById("chk-show-warped-dxf");
   const rngWarpedDxfOp = document.getElementById("warped-dxf-opacity");
@@ -7454,6 +7565,7 @@ function attachCanvasInteractions(canvas, mapName) {
   let draggingAnchor = null; // { list, anc, field }
   let draggingCaseLabel = null; // { lbl, startMouseX, startMouseY, origWorldX, origWorldY }
   let draggingCaseArrow = null; // { arrow, part, startMouseX, startMouseY, origStartX, origStartY, origEndX, origEndY }
+  let draggingMojonLabel = null; // { anc, startMouseX, startMouseY, startOffX, startOffY }
 
   // Always read the CURRENT viewport from state — fitViewport() creates new objects,
   // so a captured reference from call time would go stale immediately.
@@ -7634,6 +7746,22 @@ function attachCanvasInteractions(canvas, mapName) {
         };
         selectCaseLabel(hitLbl.id);
         canvas.style.cursor = "grabbing";
+        return; // Prevent map pan!
+      }
+    }
+
+    if (mapName === "true" && e.button === 0) {
+      const hitMojon = hitTestMojonLabel(mouseX, mouseY, vp, canvas.height);
+      if (hitMojon) {
+        draggingMojonLabel = {
+          anc: hitMojon.anc,
+          startMouseX: mouseX,
+          startMouseY: mouseY,
+          startOffX: hitMojon.bounds.offX,
+          startOffY: hitMojon.bounds.offY
+        };
+        canvas.style.cursor = "grabbing";
+        statusBar.textContent = `📍 Moving label for Mojón #${hitMojon.anc.id} (${hitMojon.anc.name || ''}). Release to place.`;
         return; // Prevent map pan!
       }
     }
@@ -7826,6 +7954,17 @@ function attachCanvasInteractions(canvas, mapName) {
       return;
     }
 
+    if (draggingMojonLabel) {
+      const dx = mouseX - draggingMojonLabel.startMouseX;
+      const dy = mouseY - draggingMojonLabel.startMouseY;
+      draggingMojonLabel.anc.labelOffsetDst = {
+        dx: draggingMojonLabel.startOffX + dx,
+        dy: draggingMojonLabel.startOffY + dy
+      };
+      redrawAll();
+      return;
+    }
+
     if (isPanning && (e.buttons & 1)) {
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
@@ -7866,6 +8005,14 @@ function attachCanvasInteractions(canvas, mapName) {
       }
       const hitLbl = getLabelAtScreen(mouseX, mouseY);
       if (hitLbl) {
+        canvas.style.cursor = "grab";
+        return;
+      }
+    }
+
+    if (mapName === "true" && !isPanning && !draggingMojonLabel && !draggingCaseLabel && !draggingCaseArrow) {
+      const hitMojon = hitTestMojonLabel(mouseX, mouseY, vp, canvas.height);
+      if (hitMojon) {
         canvas.style.cursor = "grab";
         return;
       }
@@ -7960,6 +8107,13 @@ function attachCanvasInteractions(canvas, mapName) {
       redrawTrueCanvas();
       return;
     }
+    if (draggingMojonLabel) {
+      statusBar.textContent = `📍 Positioned label for Mojón #${draggingMojonLabel.anc.id} (${draggingMojonLabel.anc.name || ''}).`;
+      draggingMojonLabel = null;
+      canvas.style.cursor = "grab";
+      redrawAll();
+      return;
+    }
     if (draggingCaseArrow) {
       draggingCaseArrow = null;
       canvas.style.cursor = "grab";
@@ -8000,6 +8154,7 @@ function attachCanvasInteractions(canvas, mapName) {
     if (mapName === "true" && state.draggingMeasureMarker !== null) {
       state.draggingMeasureMarker = null;
     }
+    if (draggingMojonLabel) { draggingMojonLabel = null; }
     if (draggingCaseArrow) { draggingCaseArrow = null; }
     if (draggingCaseLabel) { draggingCaseLabel = null; }
     if (draggingAnchor) { draggingAnchor = null; }
