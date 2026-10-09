@@ -699,6 +699,75 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       border-radius: 50%; background: var(--accent-cyan); cursor: pointer;
     }
     .opacity-val { font-size: 0.68rem; color: var(--accent-cyan); font-family: monospace; min-width: 28px; text-align: right; }
+
+    /* Reconstructed Polygon Segment Tooltip */
+    .reconstructed-segment-tooltip {
+      position: absolute;
+      display: none;
+      pointer-events: none;
+      z-index: 120;
+      background: rgba(10, 16, 28, 0.96);
+      border: 1px solid rgba(0, 229, 255, 0.45);
+      border-radius: 8px;
+      padding: 9px 13px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), 0 0 12px rgba(0, 229, 255, 0.22);
+      backdrop-filter: blur(10px);
+      color: #f0f4f8;
+      font-size: 0.76rem;
+      min-width: 195px;
+      user-select: none;
+      transition: opacity 0.12s ease;
+    }
+    .reconstructed-segment-tooltip .seg-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .reconstructed-segment-tooltip .seg-title {
+      font-weight: 700;
+      color: var(--accent-cyan);
+      font-size: 0.8rem;
+    }
+    .reconstructed-segment-tooltip .seg-badge {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #e0e6ed;
+      text-transform: uppercase;
+    }
+    .reconstructed-segment-tooltip .seg-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 3px 0;
+    }
+    .reconstructed-segment-tooltip .seg-lbl {
+      color: var(--text-muted);
+      font-size: 0.73rem;
+    }
+    .reconstructed-segment-tooltip .seg-val {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 600;
+      font-size: 0.76rem;
+    }
+    .reconstructed-segment-tooltip .seg-diff-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 5px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      font-size: 0.73rem;
+    }
   </style>
 </head>
 <body>
@@ -842,6 +911,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
           </div>
           <div class="canvas-container" id="container-true">
             <canvas id="canvas-true"></canvas>
+            <div id="reconstructed-segment-tooltip" class="reconstructed-segment-tooltip"></div>
 
             <!-- Floating Measurement HUD Overlay -->
             <div id="measure-hud" style="display:none;position:absolute;top:10px;right:10px;background:rgba(18,24,38,0.92);border:1px solid rgba(255,179,0,0.5);border-radius:6px;padding:7px 11px;font-size:0.75rem;color:var(--text-main);box-shadow:0 4px 16px rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:35;min-width:190px;">
@@ -1916,7 +1986,10 @@ const state = {
     "dxf_anchors",
     "measure_polygons"
   ],
-  layerStyles: null // initialized below
+  layerStyles: null, // initialized below
+
+  // Reconstructed polygon hover state
+  hoveredReconstructedSegment: null
 };
 
 const DEFAULT_LAYER_ORDER = [
@@ -4073,6 +4146,7 @@ function applyReconstructedPolygon(obj) {
     })),
     segmentSections: obj.segmentSections || obj.segmentNames || [],
     segmentLengths: obj.segmentLengths || [],
+    segmentParts: obj.segmentParts || [],
     sectionStyles: obj.sectionStyles ? { ...obj.sectionStyles } : {
       "1073": { color: "#ff1744", dash: "solid", width: 3.5, showNodes: false },
       "e1073": { color: "#ff1744", dash: "solid", width: 3.5, showNodes: false },
@@ -4343,7 +4417,193 @@ function drawReconstructedPolygon(ctx, vp, canvasH) {
     }
   }
 
+  // 5. Highlight hovered segment if active
+  if (state.hoveredReconstructedSegment != null && state.hoveredReconstructedSegment >= 0 && state.hoveredReconstructedSegment < nSegs) {
+    const hIdx = state.hoveredReconstructedSegment;
+    const ha = verts[hIdx], hb = verts[(hIdx + 1) % verts.length];
+    const sha = worldToScreenGIS(ha, vp, canvasH);
+    const shb = worldToScreenGIS(hb, vp, canvasH);
+
+    ctx.save();
+    // Subtle outer halo glow
+    ctx.beginPath();
+    ctx.moveTo(sha.x, sha.y);
+    ctx.lineTo(shb.x, shb.y);
+    ctx.strokeStyle = "#ffd600";
+    ctx.lineWidth = 8;
+    ctx.lineCap = "round";
+    ctx.shadowColor = "rgba(255, 214, 0, 0.9)";
+    ctx.shadowBlur = 12;
+    ctx.stroke();
+
+    // Bright core line
+    ctx.beginPath();
+    ctx.moveTo(sha.x, sha.y);
+    ctx.lineTo(shb.x, shb.y);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 3.5;
+    ctx.lineCap = "round";
+    ctx.shadowBlur = 0;
+    ctx.stroke();
+
+    // Node endpoints
+    [sha, shb].forEach(pt => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffd600";
+      ctx.fill();
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
   ctx.restore();
+}
+
+function findReconstructedPolygonSegmentAt(mouseX, mouseY, vp, canvas) {
+  const poly = state.reconstructedPolygon;
+  if (!poly || !poly.vertices || poly.vertices.length < 2) return null;
+  const ac = state.caseMode ? getActiveCase() : null;
+  const isVis = ac ? (ac.layers?.reconstructed !== false && ac.layers?.dxf296 !== false) : (state.showReconstructedPolygon !== false);
+  if (!isVis || poly.show === false) return null;
+
+  const verts = poly.vertices;
+  const nSegs = poly.closed ? verts.length : verts.length - 1;
+  const h = canvas.height;
+  const HIT_RADIUS = 9; // pixels tolerance
+
+  let bestDist = Infinity;
+  let bestIdx = null;
+
+  for (let i = 0; i < nSegs; i++) {
+    const a = verts[i];
+    const b = verts[(i + 1) % verts.length];
+    const sa = worldToScreenGIS(a, vp, h);
+    const sb = worldToScreenGIS(b, vp, h);
+
+    const dx = sb.x - sa.x;
+    const dy = sb.y - sa.y;
+    const lenSq = dx * dx + dy * dy;
+    let dist;
+
+    if (lenSq === 0) {
+      dist = Math.hypot(mouseX - sa.x, mouseY - sa.y);
+    } else {
+      let t = ((mouseX - sa.x) * dx + (mouseY - sa.y) * dy) / lenSq;
+      t = Math.max(0, Math.min(1, t));
+      const projX = sa.x + t * dx;
+      const projY = sa.y + t * dy;
+      dist = Math.hypot(mouseX - projX, mouseY - projY);
+    }
+
+    if (dist <= HIT_RADIUS && dist < bestDist) {
+      bestDist = dist;
+      bestIdx = i;
+    }
+  }
+
+  if (bestIdx !== null) {
+    const a = verts[bestIdx];
+    const b = verts[(bestIdx + 1) % verts.length];
+    const fieldLength = Math.hypot(b.x - a.x, b.y - a.y);
+    const rawDeedLen = poly.segmentLengths && poly.segmentLengths[bestIdx] != null ? poly.segmentLengths[bestIdx] : null;
+    const deedLength = (rawDeedLen !== null && rawDeedLen !== "" && !isNaN(rawDeedLen)) ? Number(rawDeedLen) : null;
+    const section = poly.segmentSections && poly.segmentSections[bestIdx] ? String(poly.segmentSections[bestIdx]).trim() : null;
+    const part = poly.segmentParts && poly.segmentParts[bestIdx] ? String(poly.segmentParts[bestIdx]).trim() : null;
+
+    return {
+      index: bestIdx,
+      fieldLength,
+      deedLength,
+      section,
+      part
+    };
+  }
+
+  return null;
+}
+
+function updateReconstructedTooltip(segHit, mouseX, mouseY, canvas) {
+  const tooltip = document.getElementById("reconstructed-segment-tooltip");
+  if (!tooltip) return;
+  if (!segHit) {
+    tooltip.style.display = "none";
+    return;
+  }
+
+  const partTitle = segHit.part ? `Tramo ${segHit.part}` : `Segmento #${segHit.index + 1}`;
+  const secBadge = segHit.section ? `<span class="seg-badge">${segHit.section}</span>` : "";
+
+  let deedRow = `<span style="color:var(--text-muted);font-style:italic;">Sin dato</span>`;
+  let diffRow = "";
+
+  if (segHit.deedLength != null) {
+    deedRow = `<span class="seg-val" style="color:#ffffff;">${segHit.deedLength.toFixed(2)} m</span>`;
+    const diff = segHit.fieldLength - segHit.deedLength;
+    const diffPct = segHit.deedLength > 0 ? (diff / segHit.deedLength) * 100 : 0;
+    const sign = diff >= 0 ? "+" : "";
+
+    let diffColor = "#00e676"; // green (< 1m)
+    if (Math.abs(diff) > 3.0) {
+      diffColor = "#ff5252"; // red (> 3m)
+    } else if (Math.abs(diff) > 1.0) {
+      diffColor = "#ffd600"; // yellow (1m - 3m)
+    }
+
+    diffRow = `
+      <div class="seg-diff-row">
+        <span class="seg-lbl">Diferencia (&Delta;):</span>
+        <span class="seg-val" style="color:${diffColor};font-weight:700;">${sign}${diff.toFixed(2)} m (${sign}${diffPct.toFixed(1)}%)</span>
+      </div>
+    `;
+  }
+
+  tooltip.innerHTML = `
+    <div class="seg-header">
+      <span class="seg-title">🔷 ${partTitle}</span>
+      ${secBadge}
+    </div>
+    <div class="seg-row">
+      <span class="seg-lbl">Campo (Medido):</span>
+      <span class="seg-val" style="color:#00e5ff;">${segHit.fieldLength.toFixed(2)} m</span>
+    </div>
+    <div class="seg-row">
+      <span class="seg-lbl">Escritura (Título):</span>
+      ${deedRow}
+    </div>
+    ${diffRow}
+  `;
+
+  tooltip.style.display = "block";
+
+  // Prevent tooltip from overflowing the viewport boundaries
+  const pad = 12;
+  const tipW = tooltip.offsetWidth || 200;
+  const tipH = tooltip.offsetHeight || 100;
+  const cW = canvas.width;
+  const cH = canvas.height;
+
+  let left = mouseX + 16;
+  let top = mouseY + 16;
+
+  if (left + tipW > cW - pad) {
+    left = mouseX - tipW - 14;
+  }
+  if (top + tipH > cH - pad) {
+    top = mouseY - tipH - 14;
+  }
+  if (left < pad) left = pad;
+  if (top < pad) top = pad;
+
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+}
+
+function hideReconstructedTooltip() {
+  const tooltip = document.getElementById("reconstructed-segment-tooltip");
+  if (tooltip) tooltip.style.display = "none";
 }
 
 function drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio) {
@@ -6515,6 +6775,10 @@ function setupEventListeners() {
       state.showWarped296OnField = e.target.checked;
       const sum296Chk = document.getElementById("sum-show-dxf-296");
       if (sum296Chk) sum296Chk.checked = e.target.checked;
+      if (!e.target.checked) {
+        state.hoveredReconstructedSegment = null;
+        hideReconstructedTooltip();
+      }
       updateMasterCheckboxes();
       redrawAll();
     });
@@ -7897,6 +8161,7 @@ function attachCanvasInteractions(canvas, mapName) {
       isPanning = true;
       lastX = e.clientX; lastY = e.clientY;
       canvas.style.cursor = "grabbing";
+      if (mapName === "true") hideReconstructedTooltip();
       return;
     }
 
@@ -8212,6 +8477,31 @@ function attachCanvasInteractions(canvas, mapName) {
       const hit = findMeasureMarkerAt(mouseX, mouseY, vp, canvas, mapName);
       canvas.style.cursor = hit ? "move" : "crosshair";
     }
+
+    // Segment Hover & Tooltip for Reconstructed Polygon on Field canvas
+    if (mapName === "true") {
+      const isBusy = isPanning || draggingAnchor || draggingMojonLabel || draggingCaseLabel || draggingCaseArrow ||
+                     (state.measureTool && state.measureTool.active) || isNodeEditingActive() || state.draggingMeasurePt !== null;
+      if (!isBusy) {
+        const segHit = findReconstructedPolygonSegmentAt(mouseX, mouseY, vp, canvas);
+        const oldHover = state.hoveredReconstructedSegment;
+        const newHover = segHit ? segHit.index : null;
+        if (oldHover !== newHover) {
+          state.hoveredReconstructedSegment = newHover;
+          redrawAll();
+        }
+        updateReconstructedTooltip(segHit, mouseX, mouseY, canvas);
+        if (segHit && state.toolMode === "pan") {
+          canvas.style.cursor = "pointer";
+        }
+      } else {
+        if (state.hoveredReconstructedSegment !== null) {
+          state.hoveredReconstructedSegment = null;
+          redrawAll();
+        }
+        hideReconstructedTooltip();
+      }
+    }
   });
 
   canvas.addEventListener("mouseup", (e) => {
@@ -8277,6 +8567,11 @@ function attachCanvasInteractions(canvas, mapName) {
       }
       state.hoverPolyNodeIdx = null;
       state.hoverPolySegment = null;
+      if (state.hoveredReconstructedSegment !== null) {
+        state.hoveredReconstructedSegment = null;
+        redrawAll();
+      }
+      hideReconstructedTooltip();
     }
     if (mapName === "true" && state.draggingMeasureMarker !== null) {
       state.draggingMeasureMarker = null;
@@ -8294,6 +8589,9 @@ function attachCanvasInteractions(canvas, mapName) {
 
   canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
+    if (mapName === "true") {
+      hideReconstructedTooltip();
+    }
     const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
     const { x: mouseX, y: mouseY } = getCanvasXY(e);
     const vp = getVP();
