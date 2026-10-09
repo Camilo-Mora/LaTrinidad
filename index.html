@@ -3841,11 +3841,102 @@ function isPolySpecsOpen() {
   return inspector && inspector.style.display !== "none";
 }
 
+function isNodeEditingActive() {
+  return state.nodeEditingPolyIdx !== null &&
+         state.nodeEditingPolyIdx >= 0 &&
+         state.nodeEditingPolyIdx < state.measurePolygons.length &&
+         isPolySpecsOpen();
+}
+
+function updateEditNodesBtnUI() {
+  const btn = document.getElementById("btn-poly-specs-edit-nodes");
+  if (!btn) return;
+  const active = isNodeEditingActive();
+  if (active) {
+    btn.classList.add("active");
+    btn.style.background = "rgba(0, 229, 255, 0.35)";
+    btn.style.borderColor = "var(--accent-cyan)";
+    btn.style.color = "#00e5ff";
+    btn.innerHTML = "✏️ Editing ON";
+  } else {
+    btn.classList.remove("active");
+    btn.style.background = "";
+    btn.style.borderColor = "";
+    btn.style.color = "";
+    btn.innerHTML = "✏️ Edit Nodes";
+  }
+}
+
+function findPolyNodeAt(mouseX, mouseY, vp, canvasH, poly, threshold = 14) {
+  if (!poly || !poly.points || poly.points.length === 0) return -1;
+  let closestIdx = -1;
+  let minD = threshold;
+  for (let i = 0; i < poly.points.length; i++) {
+    const sp = worldToScreenGIS(poly.points[i], vp, canvasH);
+    const d = Math.hypot(sp.x - mouseX, sp.y - mouseY);
+    if (d <= minD) {
+      minD = d;
+      closestIdx = i;
+    }
+  }
+  return closestIdx;
+}
+
+function findPolySegmentAt(mouseX, mouseY, vp, canvasH, poly, threshold = 12) {
+  if (!poly || !poly.points || poly.points.length < 2) return null;
+  const pts = poly.points;
+  const numSegs = (poly.showArea !== false && pts.length >= 3) ? pts.length : pts.length - 1;
+  let closestSeg = null;
+  let minD = threshold;
+
+  for (let i = 0; i < numSegs; i++) {
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % pts.length];
+    const s1 = worldToScreenGIS(p1, vp, canvasH);
+    const s2 = worldToScreenGIS(p2, vp, canvasH);
+
+    const dx = s2.x - s1.x;
+    const dy = s2.y - s1.y;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) continue;
+
+    let t = ((mouseX - s1.x) * dx + (mouseY - s1.y) * dy) / lenSq;
+    if (t < 0.05 || t > 0.95) continue;
+
+    const projX = s1.x + t * dx;
+    const projY = s1.y + t * dy;
+    const dist = Math.hypot(mouseX - projX, mouseY - projY);
+
+    if (dist <= minD) {
+      minD = dist;
+      const worldPt = {
+        x: p1.x + t * (p2.x - p1.x),
+        y: p1.y + t * (p2.y - p1.y)
+      };
+      closestSeg = {
+        segIndex: i,
+        insertIdx: i + 1,
+        screenPt: { x: projX, y: projY },
+        worldPt,
+        dist
+      };
+    }
+  }
+  return closestSeg;
+}
+
 function openPolySpecs(polyIdx) {
   currentEditingPolyIdx = polyIdx;
   const poly = state.measurePolygons[polyIdx];
   if (!poly) return;
   state.activeMeasureIdx = polyIdx;
+  if (state.nodeEditingPolyIdx !== null && state.nodeEditingPolyIdx !== polyIdx) {
+    state.nodeEditingPolyIdx = null;
+    state.draggingPolyNodeIdx = null;
+    state.hoverPolyNodeIdx = null;
+    state.hoverPolySegment = null;
+  }
+  updateEditNodesBtnUI();
 
   const inspector = document.getElementById("poly-specs-inspector");
   const title = document.getElementById("poly-specs-title");
@@ -3923,13 +4014,20 @@ function openPolySpecs(polyIdx) {
 
   updatePolySpecsPreview(poly);
   if (inspector) inspector.style.display = "block";
+  updateEditNodesBtnUI();
   updatePolygonSummaryUI();
 }
 
 function closePolySpecs() {
   const inspector = document.getElementById("poly-specs-inspector");
   if (inspector) inspector.style.display = "none";
+  state.nodeEditingPolyIdx = null;
+  state.draggingPolyNodeIdx = null;
+  state.hoverPolyNodeIdx = null;
+  state.hoverPolySegment = null;
+  updateEditNodesBtnUI();
   updatePolygonSummaryUI();
+  redrawAll();
 }
 
 function togglePolySpecs(polyIdx) {
@@ -4161,14 +4259,33 @@ function drawMeasurementsGIS(ctx, vp, h) {
     ctx.setLineDash([]);
 
     if (!ac) {
-      const showNodes = poly.showNodes !== false;
-      const dotR = isActive ? Math.max(4, lineW + 2) : Math.max(3, lineW + 1);
+      const isEditingThisPoly = isNodeEditingActive() && state.nodeEditingPolyIdx === polyIdx;
+      const showNodes = poly.showNodes !== false || isEditingThisPoly;
+      const dotR = isEditingThisPoly ? 7.5 : (isActive ? Math.max(4, lineW + 2) : Math.max(3, lineW + 1));
       for (let i = 0; i < pts.length; i++) {
         const sp = worldToScreenGIS(pts[i], vp, h);
         if (showNodes) {
-          ctx.beginPath(); ctx.arc(sp.x, sp.y, dotR, 0, Math.PI * 2);
-          ctx.fillStyle = color; ctx.fill();
-          ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+          ctx.beginPath();
+          const isNodeActive = isEditingThisPoly && (state.hoverPolyNodeIdx === i || state.draggingPolyNodeIdx === i);
+          const r = isNodeActive ? dotR + 3 : dotR;
+          ctx.arc(sp.x, sp.y, r, 0, Math.PI * 2);
+          if (isEditingThisPoly) {
+            ctx.fillStyle = isNodeActive ? "#ffff00" : "#ffffff";
+            ctx.fill();
+            ctx.strokeStyle = isNodeActive ? "#00e5ff" : color;
+            ctx.lineWidth = isNodeActive ? 3 : 2;
+            ctx.stroke();
+
+            ctx.font = "bold 9px monospace";
+            ctx.fillStyle = "#000000";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(`${i + 1}`, sp.x, sp.y);
+            ctx.textAlign = "left";
+          } else {
+            ctx.fillStyle = color; ctx.fill();
+            ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+          }
         }
 
         if (i > 0 && state.measureLabels !== false) {
@@ -4189,6 +4306,24 @@ function drawMeasurementsGIS(ctx, vp, h) {
           ctx.fillText(`${dist.toFixed(1)} m`, midX, midY + 3);
           ctx.textAlign = "left";
         }
+      }
+
+      if (isEditingThisPoly && state.hoverPolySegment && state.draggingPolyNodeIdx === null) {
+        const spGhost = state.hoverPolySegment.screenPt;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(spGhost.x, spGhost.y, 5.5, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 229, 255, 0.9)";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.font = "bold 9px sans-serif";
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText("+ dbl-click", spGhost.x + 8, spGhost.y);
+        ctx.restore();
       }
     }
 
@@ -5288,16 +5423,21 @@ function setupEventListeners() {
     });
   });
 
-  const btnEditPoly = document.getElementById("btn-edit-polygons-toggle");
-  if (btnEditPoly) {
-    btnEditPoly.addEventListener("click", () => {
-      state.editPolygonsActive = !state.editPolygonsActive;
-      btnEditPoly.classList.toggle("active", state.editPolygonsActive);
-      btnEditPoly.style.background = state.editPolygonsActive ? "rgba(0,229,255,0.25)" : "rgba(0,0,0,0.25)";
-      btnEditPoly.style.borderColor = state.editPolygonsActive ? "var(--accent-cyan)" : "rgba(0,229,255,0.25)";
-      statusBar.textContent = state.editPolygonsActive
-        ? "✏️ Modo Edición de Polígonos activado: selección y modificación de vértices disponible."
-        : "🖐️ Navegación: arrastre el mapa para desplazarse o use la rueda para zoom.";
+  const btnPolySpecsEditNodes = document.getElementById("btn-poly-specs-edit-nodes");
+  if (btnPolySpecsEditNodes) {
+    btnPolySpecsEditNodes.addEventListener("click", () => {
+      if (state.nodeEditingPolyIdx === currentEditingPolyIdx) {
+        state.nodeEditingPolyIdx = null;
+        statusBar.textContent = "🔒 Node editing disabled.";
+      } else {
+        state.nodeEditingPolyIdx = currentEditingPolyIdx;
+        const curPoly = state.measurePolygons[currentEditingPolyIdx];
+        statusBar.textContent = `✏️ Editing nodes for "${curPoly?.name || 'Polygon'}": drag to move/snap, dbl-click line to add node, right-click node to delete.`;
+      }
+      state.draggingPolyNodeIdx = null;
+      state.hoverPolyNodeIdx = null;
+      state.hoverPolySegment = null;
+      updateEditNodesBtnUI();
       redrawAll();
     });
   }
@@ -5958,6 +6098,30 @@ function attachCanvasInteractions(canvas, mapName) {
   }
 
   canvas.addEventListener("contextmenu", (e) => {
+    if (mapName === "true" && isNodeEditingActive()) {
+      e.preventDefault();
+      const { x: mouseX, y: mouseY } = getCanvasXY(e);
+      const vp = getVP();
+      const poly = state.measurePolygons[state.nodeEditingPolyIdx];
+      if (poly) {
+        const hitNode = findPolyNodeAt(mouseX, mouseY, vp, canvas.height, poly);
+        if (hitNode !== -1) {
+          if ((poly.points || []).length <= 3) {
+            statusBar.textContent = "⚠️ Cannot delete vertex: polygon must have at least 3 points.";
+            return;
+          }
+          poly.points.splice(hitNode, 1);
+          state.hoverPolyNodeIdx = null;
+          state.draggingPolyNodeIdx = null;
+          state.hoverPolySegment = null;
+          statusBar.textContent = `🗑️ Deleted Vertex #${hitNode + 1} from "${poly.name || 'Polygon'}".`;
+          updatePolygonSummaryUI();
+          redrawAll();
+          return;
+        }
+      }
+      return;
+    }
     if (mapName === "true" && state.measureTool && state.measureTool.active) {
       e.preventDefault();
       const { x: mouseX, y: mouseY } = getCanvasXY(e);
@@ -5981,6 +6145,24 @@ function attachCanvasInteractions(canvas, mapName) {
   });
 
   canvas.addEventListener("dblclick", (e) => {
+    if (mapName === "true" && isNodeEditingActive()) {
+      const { x: mouseX, y: mouseY } = getCanvasXY(e);
+      const vp = getVP();
+      const poly = state.measurePolygons[state.nodeEditingPolyIdx];
+      if (poly) {
+        const hitSeg = findPolySegmentAt(mouseX, mouseY, vp, canvas.height, poly);
+        if (hitSeg) {
+          e.preventDefault();
+          poly.points.splice(hitSeg.insertIdx, 0, hitSeg.worldPt);
+          state.hoverPolySegment = null;
+          state.hoverPolyNodeIdx = hitSeg.insertIdx;
+          statusBar.textContent = `➕ Inserted Vertex #${hitSeg.insertIdx + 1} into "${poly.name || 'Polygon'}".`;
+          updatePolygonSummaryUI();
+          redrawAll();
+          return;
+        }
+      }
+    }
     if (mapName === "true" && state.measureTool && state.measureTool.active) {
       if (state.measureTool.points.length >= 3) {
         e.preventDefault();
@@ -5998,6 +6180,17 @@ function attachCanvasInteractions(canvas, mapName) {
     const vp = getVP();
 
     if (e.button === 2) {
+      if (mapName === "true" && isNodeEditingActive()) {
+        const poly = state.measurePolygons[state.nodeEditingPolyIdx];
+        const hitNode = poly ? findPolyNodeAt(mouseX, mouseY, vp, canvas.height, poly) : -1;
+        if (hitNode !== -1) {
+          return; // Handled by contextmenu listener
+        }
+        isPanning = true;
+        lastX = e.clientX; lastY = e.clientY;
+        canvas.style.cursor = "grabbing";
+        return;
+      }
       if (mapName === "true" && state.measureTool && state.measureTool.active) {
         const hitMeasure = findLiveMeasureMarkerAt(mouseX, mouseY, vp, canvas.height, 14);
         if (hitMeasure) {
@@ -6018,6 +6211,25 @@ function attachCanvasInteractions(canvas, mapName) {
         }
         redrawAll();
       }
+      return;
+    }
+
+    if (mapName === "true" && isNodeEditingActive() && e.button === 0) {
+      const poly = state.measurePolygons[state.nodeEditingPolyIdx];
+      if (poly) {
+        const hitNode = findPolyNodeAt(mouseX, mouseY, vp, canvas.height, poly);
+        if (hitNode !== -1) {
+          state.draggingPolyNodeIdx = hitNode;
+          canvas.style.cursor = "grabbing";
+          statusBar.textContent = `📍 Dragging Vertex #${hitNode + 1} of "${poly.name || 'Polygon'}" (Magnetic snap active).`;
+          redrawAll();
+          return;
+        }
+      }
+      // Clicking empty space while in node edit mode: PAN the canvas!
+      isPanning = true;
+      lastX = e.clientX; lastY = e.clientY;
+      canvas.style.cursor = "grabbing";
       return;
     }
 
@@ -6154,6 +6366,63 @@ function attachCanvasInteractions(canvas, mapName) {
     const worldPt = toWorld(mouseX, mouseY, vp, canvas.height);
 
     coordsBar.textContent = `${mapName.toUpperCase()} Coords: (${worldPt.x.toFixed(2)}, ${worldPt.y.toFixed(2)}) m`;
+
+    if (mapName === "true" && isNodeEditingActive()) {
+      const poly = state.measurePolygons[state.nodeEditingPolyIdx];
+      if (poly) {
+        // A. Dragging node with magnetic snap
+        if (state.draggingPolyNodeIdx !== null) {
+          const ptIdx = state.draggingPolyNodeIdx;
+          const snap = getFieldSnapTarget(mouseX, mouseY, vp, canvas, "true", e.shiftKey, {
+            polyIdx: state.nodeEditingPolyIdx,
+            ptIdx
+          });
+          state.currentSnapTarget = snap;
+          const targetWorldPt = snap ? { ...snap.worldPt } : { x: worldPt.x, y: worldPt.y };
+          poly.points[ptIdx] = targetWorldPt;
+          const snapInfo = snap ? ` [🧲 Snapped to ${snap.mapName || 'vertex'}]` : "";
+          coordsBar.textContent = `✏️ Moving Vertex #${ptIdx + 1}${snapInfo} | UTM: (${targetWorldPt.x.toFixed(2)}, ${targetWorldPt.y.toFixed(2)})`;
+          canvas.style.cursor = "grabbing";
+          updatePolygonSummaryUI();
+          redrawAll();
+          return;
+        }
+
+        // B. Panning canvas
+        if (isPanning && (e.buttons & 1 || e.buttons & 2)) {
+          const dx = e.clientX - lastX;
+          const dy = e.clientY - lastY;
+          lastX = e.clientX; lastY = e.clientY;
+          vp.offsetX += dx;
+          vp.offsetY -= dy;
+          redrawAll();
+          return;
+        }
+
+        // C. Hovering over nodes or segments
+        const hoverNode = findPolyNodeAt(mouseX, mouseY, vp, canvas.height, poly);
+        const hoverSeg = hoverNode === -1 ? findPolySegmentAt(mouseX, mouseY, vp, canvas.height, poly) : null;
+        const needsRedraw = (state.hoverPolyNodeIdx !== (hoverNode !== -1 ? hoverNode : null)) ||
+                            (Boolean(state.hoverPolySegment) !== Boolean(hoverSeg));
+        state.hoverPolyNodeIdx = hoverNode !== -1 ? hoverNode : null;
+        state.hoverPolySegment = hoverSeg;
+
+        if (hoverNode !== -1) {
+          canvas.style.cursor = "move";
+          coordsBar.textContent = `📍 Vertex #${hoverNode + 1} of "${poly.name || 'Polygon'}" | Click & drag to move • Right-click to delete`;
+        } else if (hoverSeg) {
+          canvas.style.cursor = "crosshair";
+          coordsBar.textContent = `✂️ Boundary Segment | Double-click to insert new vertex`;
+        } else {
+          canvas.style.cursor = "grab";
+          coordsBar.textContent = `Field UTM: (${worldPt.x.toFixed(2)}, ${worldPt.y.toFixed(2)}) | Node editing active for "${poly.name || 'Polygon'}"`;
+        }
+        if (needsRedraw) {
+          redrawAll();
+        }
+        return;
+      }
+    }
 
     if (draggingCaseArrow) {
       const curWorld = toWorld(mouseX, mouseY, vp, canvas.height);
@@ -6302,6 +6571,15 @@ function attachCanvasInteractions(canvas, mapName) {
   canvas.addEventListener("mouseup", (e) => {
     const vp = getVP();
     const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
+    if (mapName === "true" && state.draggingPolyNodeIdx !== null) {
+      const poly = state.measurePolygons[state.nodeEditingPolyIdx];
+      const ptIdx = state.draggingPolyNodeIdx;
+      statusBar.textContent = `✅ Vertex #${ptIdx + 1} repositioned for "${poly?.name || 'Polygon'}".`;
+      state.draggingPolyNodeIdx = null;
+      state.currentSnapTarget = null;
+      updatePolygonSummaryUI();
+      redrawAll();
+    }
     if (mapName === "true" && state.draggingMeasureMarker !== null) {
       const idx = state.draggingMeasureMarker;
       state.draggingMeasureMarker = null;
@@ -6334,11 +6612,19 @@ function attachCanvasInteractions(canvas, mapName) {
       redrawAll();
     }
     isPanning = false;
-    canvas.style.cursor = state.toolMode === "pan" ? "grab" : "crosshair";
+    canvas.style.cursor = (mapName === "true" && isNodeEditingActive()) ? "grab" : (state.toolMode === "pan" ? "grab" : "crosshair");
   });
 
   canvas.addEventListener("mouseleave", () => {
     isPanning = false;
+    if (mapName === "true") {
+      if (state.draggingPolyNodeIdx !== null) {
+        state.draggingPolyNodeIdx = null;
+        updatePolygonSummaryUI();
+      }
+      state.hoverPolyNodeIdx = null;
+      state.hoverPolySegment = null;
+    }
     if (mapName === "true" && state.draggingMeasureMarker !== null) {
       state.draggingMeasureMarker = null;
     }
