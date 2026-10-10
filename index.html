@@ -237,11 +237,39 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       display: flex;
       align-items: center;
       gap: 6px;
+      margin-left: auto;
       background: rgba(0, 0, 0, 0.45);
       padding: 4px 10px;
       border-radius: var(--radius-md);
       border: 1px solid var(--border-color);
       font-size: 0.78rem;
+    }
+
+    .btn-deed-dl {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-main);
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .btn-deed-dl:hover:not(:disabled) {
+      background: rgba(0, 229, 255, 0.25);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      transform: scale(1.08);
+    }
+    .btn-deed-dl:disabled, .btn-deed-dl.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      filter: grayscale(1);
     }
 
     .window-selector-group label {
@@ -731,16 +759,10 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
 
     /* Footer Status Bar */
     .app-footer {
-      height: 28px;
-      background: var(--bg-panel);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 14px;
-      font-size: 0.73rem;
-      color: var(--text-muted);
-      z-index: 100;
+      display: none !important;
+      height: 0;
+      overflow: hidden;
+      visibility: hidden;
     }
     .status-bar { color: var(--accent-cyan); }
 
@@ -919,14 +941,20 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
           <input type="checkbox" id="chk-show-296">
           <span style="color:var(--accent-purple);font-weight:600;">Escritura 296</span>
         </label>
+        <button type="button" id="btn-dl-dxf-296" class="btn-deed-dl" title="Download Escritura 296 Reconstructed DXF">📥</button>
+
         <label class="window-checkbox" title="Toggle Escritura 1073 Window">
           <input type="checkbox" id="chk-show-1073">
           <span style="color:var(--accent-red);font-weight:600;">Escritura 1073</span>
         </label>
+        <button type="button" id="btn-dl-dxf-1073" class="btn-deed-dl disabled" disabled title="Escritura 1073 requires unavailable field data for reconstruction">📥</button>
+
         <label class="window-checkbox" title="Toggle Escritura 196 Window">
           <input type="checkbox" id="chk-show-196">
           <span style="color:var(--accent-orange);font-weight:600;">Escritura 196</span>
         </label>
+        <button type="button" id="btn-dl-dxf-196" class="btn-deed-dl" title="Download Escritura 196 Reconstructed DXF">📥</button>
+
         <label class="window-checkbox" title="Toggle Field Window">
           <input type="checkbox" id="chk-show-true" checked>
           <span style="color:var(--accent-green);font-weight:600;">Field</span>
@@ -935,14 +963,6 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
           <input type="checkbox" id="chk-show-sidebar">
           <span style="color:var(--accent-cyan);font-weight:600;">Control Panel</span>
         </label>
-      </div>
-
-      <!-- File Actions -->
-      <div class="header-section">
-        <button id="btn-export-dxf" class="btn btn-success" title="Export Rectified DXF File">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Export DXF
-        </button>
       </div>
     </header>
 
@@ -1013,28 +1033,15 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
 
         <!-- True Field Survey Viewport -->
         <div class="viewport-card" id="card-true">
-          <div class="viewport-header">
-            <span class="view-title title-true">📍 Field data</span>
-            <div class="view-controls">
-              <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View (Centrar mapa en límites)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">⛶</button>
-              <button class="vp-tool-btn" id="btn-measure-tool" data-map="true" data-mode="measure" title="Measure Distances [M] (Medir distancias en el mapa)" style="padding:2px 6px;font-size:0.75rem;border-radius:3px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);cursor:pointer;color:var(--text-main);line-height:1.2;">📏</button>
-              <button id="btn-toggle-snap" class="vp-tool-btn active" title="Toggle Node Snapping across field map (Hold Shift to invert)" style="padding:2px 7px;font-size:0.75rem;border-radius:3px;background:rgba(0,229,255,0.18);border:1px solid rgba(0,229,255,0.4);cursor:pointer;color:var(--accent-cyan);line-height:1.2;font-weight:600;">🧲 Snap: ON</button>
-              <label for="geotiff-input" class="btn btn-secondary btn-sm" title="Load Shared GeoTIFF Background">🗺️ GeoTIFF</label>
-              <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff" style="display:none;">
-              <label class="window-checkbox" style="font-size:0.72rem; margin-right:4px;" title="Check to load full native original resolution without downsampling. Uncheck for fast 4K display.">
-                <input type="checkbox" id="chk-geotiff-fullres">
-                <span style="color:var(--accent-cyan);font-weight:600;">Full Res</span>
-              </label>
-              <label style="display:flex;align-items:center;gap:4px;cursor:pointer;" title="Load Custom True Survey DXF">
-                <input type="file" id="true-dxf-input" accept=".dxf">
-                <span class="btn btn-secondary btn-sm">Load DXF</span>
-              </label>
-              <label for="overlay-file-input" class="btn btn-warning btn-sm" style="cursor:pointer;" title="Load Overlay Polygon DXF or DWG">🔶 Overlay</label>
-              <span id="status-true" class="view-badge green">Target DXF</span>
-            </div>
-          </div>
           <div class="canvas-container" id="container-true">
             <canvas id="canvas-true"></canvas>
+
+            <!-- Floating Top-Left Canvas Controls (⛶ Center Map, 📏 Measure) -->
+            <div style="position:absolute;top:10px;left:10px;z-index:30;display:flex;align-items:center;gap:5px;background:rgba(15,22,36,0.85);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.18);border-radius:6px;padding:3px 6px;box-shadow:0 3px 12px rgba(0,0,0,0.5);">
+              <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View (Centrar mapa en límites)" style="padding:3px 8px;font-size:0.85rem;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);cursor:pointer;color:var(--text-main);line-height:1.2;">⛶</button>
+              <button class="vp-tool-btn" id="btn-measure-tool" data-map="true" data-mode="measure" title="Measure Distances [M] (Medir distancias en el mapa)" style="padding:3px 8px;font-size:0.85rem;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);cursor:pointer;color:var(--text-main);line-height:1.2;">📏</button>
+            </div>
+
             <div id="reconstructed-segment-tooltip" class="reconstructed-segment-tooltip"></div>
 
             <!-- Floating Measurement HUD Overlay -->
@@ -1068,6 +1075,28 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
         <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 6px 4px;">
           <span style="font-size:0.8rem; font-weight:700; color:var(--accent-cyan);">Control Panel</span>
         </div>
+
+        <!-- ===== FIELD SURVEY TOOLS PANEL ===== -->
+        <section class="panel-card" id="panel-field-tools" style="margin-bottom:8px;">
+          <div class="panel-header">
+            <h3>📍 Field Survey & Background Tools</h3>
+            <span id="status-true" class="view-badge green">Target DXF</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding-top:4px;">
+            <button id="btn-toggle-snap" class="vp-tool-btn active" title="Toggle Node Snapping across field map (Hold Shift to invert)" style="padding:4px 8px;font-size:0.75rem;border-radius:4px;background:rgba(0,229,255,0.18);border:1px solid rgba(0,229,255,0.4);cursor:pointer;color:var(--accent-cyan);line-height:1.2;font-weight:600;">🧲 Snap: ON</button>
+            <label for="geotiff-input" class="btn btn-secondary btn-sm" title="Load Shared GeoTIFF Background" style="cursor:pointer;padding:4px 8px;font-size:0.75rem;">🗺️ GeoTIFF</label>
+            <input type="file" id="geotiff-input" accept=".tif,.tiff,.geotiff" style="display:none;">
+            <label class="window-checkbox" style="font-size:0.72rem; margin:0;" title="Check to load full native original resolution without downsampling. Uncheck for fast 4K display.">
+              <input type="checkbox" id="chk-geotiff-fullres">
+              <span style="color:var(--accent-cyan);font-weight:600;">Full Res</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin:0;" title="Load Custom True Survey DXF">
+              <input type="file" id="true-dxf-input" accept=".dxf" style="display:none;">
+              <span class="btn btn-secondary btn-sm" style="padding:4px 8px;font-size:0.75rem;">Load DXF</span>
+            </label>
+            <label for="overlay-file-input" class="btn btn-warning btn-sm" style="cursor:pointer;padding:4px 8px;font-size:0.75rem;margin:0;" title="Load Overlay Polygon DXF or DWG">🔶 Overlay</label>
+          </div>
+        </section>
 
         <!-- ===== CASES PANEL ===== -->
         <section class="panel-card" id="panel-cases" style="margin-bottom:8px;">
@@ -9068,7 +9097,15 @@ function setupEventListeners() {
   }
 
   // Export DXF
-  document.getElementById("btn-export-dxf").addEventListener("click", exportRectifiedDXF);
+  const btnExportDxf = document.getElementById("btn-export-dxf");
+  if (btnExportDxf) btnExportDxf.addEventListener("click", exportRectifiedDXF);
+
+  // Per-Deed DXF Downloads
+  const btnDl296 = document.getElementById("btn-dl-dxf-296");
+  if (btnDl296) btnDl296.addEventListener("click", exportDXF296);
+
+  const btnDl196 = document.getElementById("btn-dl-dxf-196");
+  if (btnDl196) btnDl196.addEventListener("click", exportDXF196);
 
   const geoInput = document.getElementById("geotiff-input");
   if (geoInput) {
@@ -10573,6 +10610,66 @@ function exportRectifiedDXF() {
   a.href = URL.createObjectURL(blob);
   a.download = "GeoRectified_Combined.dxf";
   a.click();
+}
+
+function exportDXF296() {
+  let entities = [];
+  if (state.reconstructedPolygon && state.reconstructedPolygon.vertices && state.reconstructedPolygon.vertices.length >= 2) {
+    if (typeof updateReconstructedPolygonWarp === "function") {
+      updateReconstructedPolygonWarp();
+    }
+    const pts = state.reconstructedPolygon.vertices.map(v => ({ x: v.x, y: v.y }));
+    entities.push({
+      type: "POLYLINE",
+      layer: "RECONSTRUCCION_ESCRITURA_296",
+      closed: state.reconstructedPolygon.closed !== false,
+      points: pts
+    });
+  } else if (state.entities296 && state.entities296.length > 0) {
+    entities = state.entities296;
+  }
+
+  if (entities.length === 0) {
+    if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "⚠️ No reconstructed data available for Escritura 296.";
+    return;
+  }
+
+  const dxfText = DXFParser.serialize(entities);
+  const blob = new Blob([dxfText], { type: "application/dxf" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Reconstruccion_Escritura_296.dxf";
+  a.click();
+  if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "✅ Downloaded Reconstruccion_Escritura_296.dxf";
+}
+
+function exportDXF196() {
+  let entities = [];
+  if (state.entities196Optimized && state.entities196Optimized.length > 0) {
+    state.entities196Optimized.forEach(ent => {
+      entities.push({ ...ent, layer: ent.layer || "RECONSTRUCCION_ESCRITURA_196" });
+    });
+  } else if (getActiveAnchors(state.anchors196).length >= 2 && state.entities196 && state.entities196.length > 0) {
+    const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
+    state.entities196.forEach(ent => {
+      entities.push({ ...ent, layer: "RECONSTRUCCION_ESCRITURA_196", points: ent.points.map(p => warper(p)) });
+    });
+  } else if (state.entities196 && state.entities196.length > 0) {
+    entities = state.entities196;
+  }
+
+  if (entities.length === 0) {
+    if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "⚠️ No reconstructed data available for Escritura 196.";
+    return;
+  }
+
+  const dxfText = DXFParser.serialize(entities);
+  const blob = new Blob([dxfText], { type: "application/dxf" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Reconstruccion_Escritura_196.dxf";
+  a.click();
+  if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "✅ Downloaded Reconstruccion_Escritura_196.dxf";
 }
 
 // [SECTION: JS_CASE_BUILDER_SYSTEM]
