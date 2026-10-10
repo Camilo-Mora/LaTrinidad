@@ -114,9 +114,16 @@
         "y": 1943219.1261545115
       }
     ],
-    "visible": false,
+    "visible": true,
     "fillColor": "#2979ff",
-    "lineOpacity": 1
+    "lineOpacity": 1,
+    "closed": true,
+    "gradBuffer": false,
+    "gradDist": 50,
+    "gradSide": 1,
+    "gradScale": "viridis",
+    "gradStartOp": 0.7,
+    "gradEndOp": 0
   },
   {
     "id": 1,
@@ -252,8 +259,8 @@
     "id": 3,
     "name": "Lote#5",
     "color": "#ff1744",
-    "fillOpacity": 0.3,
-    "lineWidth": 1.5,
+    "fillOpacity": 0.36,
+    "lineWidth": 6.5,
     "lineType": "dashed",
     "showArea": false,
     "showNodes": false,
@@ -307,9 +314,16 @@
         "y": 1943283.691775514
       }
     ],
-    "visible": false,
+    "visible": true,
     "fillColor": "#ff1744",
-    "lineOpacity": 1
+    "lineOpacity": 0.48,
+    "closed": true,
+    "gradBuffer": false,
+    "gradDist": 50,
+    "gradSide": 1,
+    "gradScale": "viridis",
+    "gradStartOp": 0.7,
+    "gradEndOp": 0
   },
   {
     "id": 5,
@@ -320,7 +334,7 @@
     "lineType": "dashed",
     "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 4645158.5876,
@@ -358,9 +372,9 @@
     "id": 6,
     "name": "Jimmy Ruiz",
     "color": "#ff9100",
-    "fillOpacity": 0.18,
-    "lineWidth": 2.5,
-    "lineType": "solid",
+    "fillOpacity": 0.31,
+    "lineWidth": 6,
+    "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
     "visible": false,
@@ -411,15 +425,22 @@
       }
     ],
     "fillColor": "#ff9100",
-    "lineOpacity": 1
+    "lineOpacity": 1,
+    "closed": true,
+    "gradBuffer": false,
+    "gradDist": 50,
+    "gradSide": 1,
+    "gradScale": "viridis",
+    "gradStartOp": 0.7,
+    "gradEndOp": 0
   },
   {
     "id": 7,
     "name": "Pedro Ruiz",
     "color": "#ff9100",
-    "fillOpacity": 0.15,
-    "lineWidth": 2.5,
-    "lineType": "solid",
+    "fillOpacity": 0.3,
+    "lineWidth": 5,
+    "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
     "visible": false,
@@ -482,15 +503,22 @@
       }
     ],
     "fillColor": "#ff9100",
-    "lineOpacity": 1
+    "lineOpacity": 1,
+    "closed": true,
+    "gradBuffer": false,
+    "gradDist": 50,
+    "gradSide": 1,
+    "gradScale": "viridis",
+    "gradStartOp": 0.7,
+    "gradEndOp": 0
   },
   {
     "id": 8,
     "name": "Nacho196",
     "color": "#ff9100",
-    "fillOpacity": 0.15,
-    "lineWidth": 2.5,
-    "lineType": "solid",
+    "fillOpacity": 0.3,
+    "lineWidth": 5,
+    "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
     "visible": true,
@@ -626,12 +654,23 @@
         "y": 1943345.497726665
       },
       {
+        "x": 4644972.289001536,
+        "y": 1943371.9019327634
+      },
+      {
         "x": 4644956.579903586,
         "y": 1943373.0231996474
       }
     ],
     "fillColor": "#ff6d00",
-    "lineOpacity": 1
+    "lineOpacity": 1,
+    "closed": true,
+    "gradBuffer": false,
+    "gradDist": 50,
+    "gradSide": 1,
+    "gradScale": "viridis",
+    "gradStartOp": 0.7,
+    "gradEndOp": 0
   },
   {
     "id": 10,
@@ -761,6 +800,76 @@
     ],
     "fillColor": "#ff9100",
     "lineOpacity": 1
+  },
+  {
+    "id": 14,
+    "name": "JimmyInvasion",
+    "color": "#ff9100",
+    "fillColor": "#ff8000",
+    "fillOpacity": 0.02,
+    "lineOpacity": 0.91,
+    "lineWidth": 2.5,
+    "lineType": "dashed",
+    "showArea": false,
+    "showNodes": false,
+    "visible": false,
+    "closed": true,
+    "gradBuffer": false,
+    "gradDist": 50,
+    "gradSide": 1,
+    "gradScale": "viridis",
+    "gradStartOp": 0.7,
+    "gradEndOp": 0,
+    "points": [
+      {
+        "x": 4644954.729638558,
+        "y": 1943374.325840401
+      },
+      {
+        "x": 4644939.87164235,
+        "y": 1943376.4133006127
+      },
+      {
+        "x": 4644914.081793946,
+        "y": 1943371.2839986258
+      },
+      {
+        "x": 4644902.77094851,
+        "y": 1943371.3858567895
+      },
+      {
+        "x": 4644874.310363071,
+        "y": 1943336.3443971365
+      },
+      {
+        "x": 4644868.216301979,
+        "y": 1943330.852231427
+      },
+      {
+        "x": 4644902.7323533995,
+        "y": 1943313.7632083443
+      },
+      {
+        "x": 4644917.060581962,
+        "y": 1943327.3452502356
+      },
+      {
+        "x": 4644924.957323664,
+        "y": 1943341.6695250522
+      },
+      {
+        "x": 4644926.1105605615,
+        "y": 1943349.1512606968
+      },
+      {
+        "x": 4644930.704641337,
+        "y": 1943356.3311785413
+      },
+      {
+        "x": 4644939.55630995,
+        "y": 1943363.8291526404
+      }
+    ]
   },
   {
     "id": 13,

@@ -1283,7 +1283,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
 
                 <div id="poly-specs-grad-controls" style="display:none;flex-direction:column;gap:5px;margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,255,255,0.12);">
                   <!-- Color Scale & Direction Flip -->
-                  <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="display:flex;align-items:flex-end;gap:6px;">
                     <label style="flex:1;display:flex;flex-direction:column;gap:2px;font-size:0.67rem;color:var(--text-muted);">
                       <span>Escala de Color</span>
                       <select id="poly-specs-grad-scale" style="background:rgba(255,255,255,0.08);border:1px solid var(--border-color);color:#fff;border-radius:3px;padding:2px 4px;font-size:0.70rem;">
@@ -1295,7 +1295,15 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                         <option value="single">Monocromo (Color del polígono)</option>
                       </select>
                     </label>
-                    <button type="button" id="btn-poly-specs-grad-flip" class="btn-sm btn-secondary" style="margin-top:12px;padding:3px 8px;font-size:0.68rem;white-space:nowrap;" title="Invertir lado de proyección del degradado perpendicular">⇄ Invertir Lado</button>
+                    <button type="button" id="btn-poly-specs-grad-flip" class="btn-sm btn-secondary" style="padding:3px 8px;font-size:0.68rem;white-space:nowrap;height:24px;" title="Invertir lado de proyección del degradado perpendicular">⇄ Invertir Lado</button>
+                  </div>
+
+                  <!-- Reverse Color Scale Checkbox -->
+                  <div style="display:flex;align-items:center;justify-content:flex-start;margin-top:2px;">
+                    <label class="window-checkbox" style="font-size:0.68rem;color:var(--text-muted);margin:0;cursor:pointer;" title="Invertir el orden de la paleta de colores (ej. Amarillo → Púrpura en Viridis)">
+                      <input type="checkbox" id="poly-specs-grad-rev-colors" style="accent-color:var(--accent-yellow);">
+                      <span>↺ Invertir escala de color</span>
+                    </label>
                   </div>
 
                   <!-- Buffer Depth Slider -->
@@ -5364,6 +5372,7 @@ function openPolySpecs(polyIdx) {
   const gradStartOpVal = document.getElementById("poly-specs-grad-start-op-val");
   const gradEndOpInput = document.getElementById("poly-specs-grad-end-op");
   const gradEndOpVal = document.getElementById("poly-specs-grad-end-op-val");
+  const gradRevColorsChk = document.getElementById("poly-specs-grad-rev-colors");
 
   if (gradSection) gradSection.style.display = "block";
   if (poly.closed === undefined) poly.closed = true;
@@ -5371,6 +5380,7 @@ function openPolySpecs(polyIdx) {
   if (poly.gradDist === undefined) poly.gradDist = 50;
   if (poly.gradSide === undefined) poly.gradSide = 1;
   if (poly.gradScale === undefined) poly.gradScale = "viridis";
+  if (poly.gradReverseColors === undefined) poly.gradReverseColors = false;
   if (poly.gradStartOp === undefined) poly.gradStartOp = 0.70;
   if (poly.gradEndOp === undefined) poly.gradEndOp = 0.00;
 
@@ -5378,6 +5388,7 @@ function openPolySpecs(polyIdx) {
   if (gradBufferChk) gradBufferChk.checked = !!poly.gradBuffer;
   if (gradControls) gradControls.style.display = (poly.closed === false || poly.gradBuffer) ? "flex" : "none";
   if (gradScaleSelect) gradScaleSelect.value = poly.gradScale || "viridis";
+  if (gradRevColorsChk) gradRevColorsChk.checked = !!poly.gradReverseColors;
   if (gradDistInput) gradDistInput.value = poly.gradDist || 50;
   if (gradDistVal) gradDistVal.textContent = `${poly.gradDist || 50} m`;
   if (gradStartOpInput) gradStartOpInput.value = Math.round((poly.gradStartOp ?? 0.70) * 100);
@@ -5570,60 +5581,78 @@ function openPolyStyleModal(polyIdx) {
   openPolySpecs(polyIdx);
 }
 
-function getGradientPaletteStops(scaleName, baseColor = "#00e5ff") {
+function getGradientPaletteStops(scaleName, baseColor = "#00e5ff", reverse = false) {
+  let stops;
   switch (scaleName) {
     case "plasma":
-      return [
+      stops = [
         { pos: 0.00, r: 13,  g: 8,   b: 135 },
         { pos: 0.25, r: 106, g: 0,   b: 168 },
         { pos: 0.50, r: 177, g: 42,  b: 144 },
         { pos: 0.75, r: 225, g: 100, b: 98  },
         { pos: 1.00, r: 252, g: 166, b: 54  }
       ];
+      break;
     case "turbo":
-      return [
+      stops = [
         { pos: 0.00, r: 48,  g: 18,  b: 59  },
         { pos: 0.33, r: 26,  g: 228, b: 182 },
         { pos: 0.66, r: 250, g: 186, b: 57  },
         { pos: 1.00, r: 122, g: 4,   b: 3   }
       ];
+      break;
     case "heat":
-      return [
+      stops = [
         { pos: 0.00, r: 255, g: 255, b: 178 },
         { pos: 0.25, r: 254, g: 204, b: 92  },
         { pos: 0.50, r: 253, g: 141, b: 60  },
         { pos: 0.75, r: 240, g: 59,  b: 32  },
         { pos: 1.00, r: 189, g: 0,   b: 38  }
       ];
+      break;
     case "warning": {
       const cr = parseInt(baseColor.slice(1,3),16) || 0;
       const cg = parseInt(baseColor.slice(3,5),16) || 229;
       const cb = parseInt(baseColor.slice(5,7),16) || 255;
-      return [
+      stops = [
         { pos: 0.00, r: cr,  g: cg,  b: cb  },
         { pos: 0.50, r: 255, g: 165, b: 0   },
         { pos: 1.00, r: 255, g: 0,   b: 51  }
       ];
+      break;
     }
     case "single": {
       const cr = parseInt(baseColor.slice(1,3),16) || 0;
       const cg = parseInt(baseColor.slice(3,5),16) || 229;
       const cb = parseInt(baseColor.slice(5,7),16) || 255;
-      return [
+      stops = [
         { pos: 0.00, r: cr, g: cg, b: cb },
         { pos: 1.00, r: cr, g: cg, b: cb }
       ];
+      break;
     }
     case "viridis":
     default:
-      return [
+      stops = [
         { pos: 0.00, r: 68,  g: 1,   b: 84  },
         { pos: 0.25, r: 59,  g: 82,  b: 139 },
         { pos: 0.50, r: 33,  g: 145, b: 140 },
         { pos: 0.75, r: 94,  g: 201, b: 98  },
         { pos: 1.00, r: 253, g: 231, b: 37  }
       ];
+      break;
   }
+
+  if (reverse) {
+    const revColors = stops.slice().reverse();
+    return stops.map((st, i) => ({
+      pos: st.pos,
+      r: revColors[i].r,
+      g: revColors[i].g,
+      b: revColors[i].b
+    }));
+  }
+  return stops;
 }
 
 function updatePolySpecsPreview(poly) {
@@ -5655,7 +5684,7 @@ function updatePolySpecsPreview(poly) {
     const scale = poly.gradScale || "viridis";
     const startOp = poly.gradStartOp !== undefined ? poly.gradStartOp : 0.70;
     const endOp = poly.gradEndOp !== undefined ? poly.gradEndOp : 0.00;
-    const stops = getGradientPaletteStops(scale, color);
+    const stops = getGradientPaletteStops(scale, color, poly.gradReverseColors === true);
     const gradCss = stops.map(st => {
       const op = startOp + st.pos * (endOp - startOp);
       return `rgba(${st.r}, ${st.g}, ${st.b}, ${Math.max(0, Math.min(1, op))}) ${(st.pos * 100).toFixed(0)}%`;
@@ -5817,7 +5846,7 @@ function drawPerpendicularGradientBuffer(ctx, poly, vp, h, toScreenFn = worldToS
   const startOp = poly.gradStartOp !== undefined ? Math.max(0, Math.min(1, poly.gradStartOp)) : 0.70;
   const endOp = poly.gradEndOp !== undefined ? Math.max(0, Math.min(1, poly.gradEndOp)) : 0.00;
   const scale = poly.gradScale || "viridis";
-  const stops = getGradientPaletteStops(scale, poly.color || "#00e5ff");
+  const stops = getGradientPaletteStops(scale, poly.color || "#00e5ff", poly.gradReverseColors === true);
 
   // 1. Compute segment unit normals in world coordinates (meters)
   const segNormals = [];
@@ -7701,6 +7730,7 @@ function setupEventListeners() {
         gradDist: 50,
         gradSide: 1,
         gradScale: "viridis",
+        gradReverseColors: false,
         gradStartOp: 0.70,
         gradEndOp: 0.00,
         points: []
@@ -8066,6 +8096,7 @@ function setupEventListeners() {
   const specsGradStartOpVal = document.getElementById("poly-specs-grad-start-op-val");
   const specsGradEndOp = document.getElementById("poly-specs-grad-end-op");
   const specsGradEndOpVal = document.getElementById("poly-specs-grad-end-op-val");
+  const specsGradRevColors = document.getElementById("poly-specs-grad-rev-colors");
 
   if (specsClosed) {
     specsClosed.addEventListener("change", (e) => {
@@ -8121,6 +8152,17 @@ function setupEventListeners() {
       const poly = state.measurePolygons[currentEditingPolyIdx];
       if (!poly) return;
       poly.gradScale = e.target.value;
+      updatePolySpecsPreview(poly);
+      redrawAll();
+    });
+  }
+
+  if (specsGradRevColors) {
+    specsGradRevColors.addEventListener("change", (e) => {
+      if (currentEditingPolyIdx === null) return;
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (!poly) return;
+      poly.gradReverseColors = e.target.checked;
       updatePolySpecsPreview(poly);
       redrawAll();
     });
