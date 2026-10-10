@@ -1067,7 +1067,7 @@
       "lineOpacity": 1,
       "showNodes": false,
       "showArea": false,
-      "visible": true
+      "visible": false
     }
   },
   "layerOrder": [
@@ -1117,7 +1117,7 @@
       "nodes": false
     },
     "dxf_survey_cortez_oct_2026": {
-      "show": true,
+      "show": false,
       "area": false,
       "nodes": false
     },

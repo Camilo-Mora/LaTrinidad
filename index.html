@@ -1444,7 +1444,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_survey_cortez_oct_2026" data-dir="1" title="Bring Forward (draw on top)">▲</button>
                     <button type="button" class="btn-revert-element btn-layer-revert" data-layer="dxf_survey_cortez_oct_2026" title="↺ Restaurar especificaciones originales (Base)" style="display:none;">↺</button>
                   </td>
-                  <td><input type="checkbox" id="sum-show-survey-cortez-oct-2026" checked title="Show/hide survey on field map" style="accent-color:#00b0ff;"></td>
+                  <td><input type="checkbox" id="sum-show-survey-cortez-oct-2026" title="Show/hide survey on field map" style="accent-color:#00b0ff;"></td>
                   <td><input type="checkbox" id="sum-area-survey-cortez-oct-2026" title="Display area badge" style="accent-color:var(--accent-yellow);"></td>
                   <td><input type="checkbox" id="sum-nodes-survey-cortez-oct-2026" title="Display vertex nodes" style="accent-color:#00b0ff;"></td>
                 </tr>
@@ -2086,14 +2086,14 @@ const state = {
   showNodesSurveyCortez2025: false,
   surveyCortez2025Entities: [],
 
-  showSurveyCortezOct2026: true, // 2026 (Oct) by Cristian Cortez
+  showSurveyCortezOct2026: false, // 2026 (Oct) by Cristian Cortez
   showAreaSurveyCortezOct2026: false,
   showNodesSurveyCortezOct2026: false,
   surveyCortezOct2026Entities: [],
 
   overlayLayer: {
     entities: [],
-    visible: true,
+    visible: false,
     color: "#ff9100",
     fillOpacity: 0.0,
     lineWidth: 2.5,
@@ -2370,7 +2370,7 @@ const DEFAULT_LAYER_STYLES = {
     lineOpacity: 1.0,
     showNodes: false,
     showArea: false,
-    visible: true
+    visible: false
   }
 };
 state.layerStyles = JSON.parse(JSON.stringify(DEFAULT_LAYER_STYLES));
@@ -2486,6 +2486,8 @@ function applyLayerDisplaySnapshot(ld) {
         state[cfg.nodesProp] = item.nodes !== false;
         if (cfg.showProp === "showReconstructedPolygon") {
           state.showWarped296OnField = item.show !== false;
+        } else if (cfg.showProp === "showSurveyCortezOct2026" && state.overlayLayer) {
+          state.overlayLayer.visible = state[cfg.showProp];
         }
       }
     });
@@ -3094,6 +3096,7 @@ async function autoLoadSurveyDXFs() {
       state.overlayLayer.entities = entsOct;
       state.overlayLayer.fileName = "CercoCampo_CristianCortes_Oct_2026.dxf";
       state.overlayLayer.label = "2026 (Oct) by Cristian Cortez";
+      state.overlayLayer.visible = state.showSurveyCortezOct2026 !== false;
     }
   } catch(e) {
     console.warn("Cortez Oct 2026 auto-load skipped:", e);
@@ -3917,12 +3920,11 @@ function drawLayerByKey(key, ctx, vp, h) {
       }
       break;
     }
-    case "dxf_survey_cortez_oct_2026":
-    case "dxf_overlay": {
-      const ents = (state.overlayLayer && state.overlayLayer.entities && state.overlayLayer.entities.length > 0)
-        ? state.overlayLayer.entities
-        : (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0 ? state.surveyCortezOct2026Entities : []);
-      const isVisible = (state.showSurveyCortezOct2026 !== false || (state.overlayLayer && state.overlayLayer.visible)) && ents.length > 0;
+    case "dxf_survey_cortez_oct_2026": {
+      const ents = (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0)
+        ? state.surveyCortezOct2026Entities
+        : (state.overlayLayer && state.overlayLayer.entities ? state.overlayLayer.entities : []);
+      const isVisible = (state.showSurveyCortezOct2026 !== false) && ents.length > 0;
       if (isVisible) {
         drawGISLayerWithNodesAndArea(
           ctx,
@@ -3932,6 +3934,27 @@ function drawLayerByKey(key, ctx, vp, h) {
           color,
           state.showNodesSurveyCortezOct2026,
           state.showAreaSurveyCortezOct2026,
+          lineOp,
+          lineW,
+          lineDash,
+          fillColor,
+          fillOpacity
+        );
+      }
+      break;
+    }
+    case "dxf_overlay": {
+      const ents = (state.overlayLayer && state.overlayLayer.entities) ? state.overlayLayer.entities : [];
+      const isVisible = (state.overlayLayer && state.overlayLayer.visible !== false) && ents.length > 0;
+      if (isVisible) {
+        drawGISLayerWithNodesAndArea(
+          ctx,
+          ents,
+          vp,
+          h,
+          color,
+          false,
+          false,
           lineOp,
           lineW,
           lineDash,
@@ -6240,7 +6263,7 @@ function updatePolySpecsArea() {
           : (currentEditingLayerKey === "dxf_survey_cortez_sep_2026")
             ? state.surveyCortez2025Entities
             : (currentEditingLayerKey === "dxf_survey_cortez_oct_2026")
-              ? state.surveyCortez2026Entities
+              ? state.surveyCortezOct2026Entities
               : [];
       (entities || []).forEach(ent => {
         const pts = ent.points || ent.vertices;
@@ -7161,7 +7184,7 @@ function findMeasureSnapTarget(mouseX, mouseY, vp, canvasH) {
   }
 
   // 6. Overlay Layer
-  if (state.overlayLayer && state.overlayLayer.visible && (state.overlayLayer.entities || []).length > 0) {
+  if (state.overlayLayer && state.overlayLayer.visible && state.showSurveyCortezOct2026 !== false && (state.overlayLayer.entities || []).length > 0) {
     for (let entIdx = 0; entIdx < state.overlayLayer.entities.length; entIdx++) {
       const ent = state.overlayLayer.entities[entIdx];
       const pts = ent.points || ent.vertices;
@@ -7723,6 +7746,8 @@ function setupPolygonSummaryListeners() {
         } else if (cfg.showProp === "showWarped1073OnField") {
           const barChk = document.getElementById("chk-show-warped-dxf");
           if (barChk) barChk.checked = this.checked;
+        } else if (cfg.showProp === "showSurveyCortezOct2026") {
+          if (state.overlayLayer) state.overlayLayer.visible = this.checked;
         }
         if (currentEditingLayerKey === cfg.layerKey) {
           const visChk = document.getElementById("poly-specs-visible");
@@ -8609,6 +8634,8 @@ function setupEventListeners() {
           } else if (currentEditingLayerKey === "dxf_1073") {
             const b = document.getElementById("chk-show-warped-dxf");
             if (b) b.checked = e.target.checked;
+          } else if (currentEditingLayerKey === "dxf_survey_cortez_oct_2026") {
+            if (state.overlayLayer) state.overlayLayer.visible = e.target.checked;
           }
         }
         updateMasterCheckboxes();
@@ -11185,11 +11212,14 @@ function applyActiveCase(caseObj) {
         state[cfg.nodesProp] = item.nodes !== false;
         if (cfg.showProp === "showReconstructedPolygon") {
           state.showWarped296OnField = item.show !== false;
+        } else if (cfg.showProp === "showSurveyCortezOct2026") {
+          if (state.overlayLayer) state.overlayLayer.visible = state[cfg.showProp];
         }
       } else {
         // Layer not saved in case: hide it
         state[cfg.showProp] = false;
         if (cfg.showProp === "showReconstructedPolygon") state.showWarped296OnField = false;
+        if (cfg.showProp === "showSurveyCortezOct2026" && state.overlayLayer) state.overlayLayer.visible = false;
       }
     });
 
@@ -11217,6 +11247,10 @@ function applyActiveCase(caseObj) {
     state.showWarped1073OnField = caseObj.layers.dxf1073 !== false;
     state.showWarped196OnField = caseObj.layers.dxf196 !== false;
     state.showFieldDXFOnField = caseObj.layers.dxfTrue !== false;
+    state.showSurveyValoy2025 = !!caseObj.layers.surveyValoy2025;
+    state.showSurveyCortez2025 = !!caseObj.layers.surveyCortez2025;
+    state.showSurveyCortezOct2026 = !!caseObj.layers.surveyCortezOct2026;
+    if (state.overlayLayer) state.overlayLayer.visible = state.showSurveyCortezOct2026;
   }
 
   // 6. Measurement Polygons
@@ -11813,12 +11847,17 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
     case "dxf_survey_cortez_sep_2026":
       if (state.showSurveyCortez2025 !== false) strokePlain(state.surveyCortez2025Entities, lineOp);
       break;
-    case "dxf_survey_cortez_oct_2026":
+    case "dxf_survey_cortez_oct_2026": {
+      const ents = (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0)
+        ? state.surveyCortezOct2026Entities
+        : (state.overlayLayer && state.overlayLayer.entities ? state.overlayLayer.entities : []);
+      const isVisible = (state.showSurveyCortezOct2026 !== false) && ents.length > 0;
+      if (isVisible) strokePlain(ents, lineOp);
+      break;
+    }
     case "dxf_overlay": {
-      const ents = (state.overlayLayer && state.overlayLayer.entities && state.overlayLayer.entities.length > 0)
-        ? state.overlayLayer.entities
-        : (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0 ? state.surveyCortezOct2026Entities : []);
-      const isVisible = (state.showSurveyCortezOct2026 !== false || (state.overlayLayer && state.overlayLayer.visible)) && ents.length > 0;
+      const ents = state.overlayLayer && state.overlayLayer.entities ? state.overlayLayer.entities : [];
+      const isVisible = (state.overlayLayer && state.overlayLayer.visible !== false) && ents.length > 0;
       if (isVisible) strokePlain(ents, lineOp);
       break;
     }
