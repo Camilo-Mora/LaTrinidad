@@ -302,12 +302,12 @@
     "id": 6,
     "name": "Jimmy Ruiz",
     "color": "#ff9100",
-    "fillOpacity": 0.31,
+    "fillOpacity": 0.3,
     "lineWidth": 6,
-    "lineType": "dashed",
+    "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 4644914.081793946,
@@ -362,18 +362,19 @@
     "gradSide": 1,
     "gradScale": "viridis",
     "gradStartOp": 0.7,
-    "gradEndOp": 0
+    "gradEndOp": 0,
+    "gradReverseColors": false
   },
   {
     "id": 7,
     "name": "Pedro Ruiz",
     "color": "#ff9100",
-    "fillOpacity": 0.15,
-    "lineWidth": 2.5,
-    "lineType": "solid",
+    "fillOpacity": 0.3,
+    "lineWidth": 6,
+    "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 4644859.837229533,
@@ -440,18 +441,19 @@
     "gradSide": 1,
     "gradScale": "viridis",
     "gradStartOp": 0.7,
-    "gradEndOp": 0
+    "gradEndOp": 0,
+    "gradReverseColors": false
   },
   {
     "id": 8,
     "name": "Nacho196",
     "color": "#ff9100",
-    "fillOpacity": 0.15,
-    "lineWidth": 2.5,
-    "lineType": "solid",
+    "fillOpacity": 0.3,
+    "lineWidth": 6,
+    "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 4644972.289001536,
@@ -518,7 +520,8 @@
     "gradSide": 1,
     "gradScale": "plasma",
     "gradStartOp": 0.42,
-    "gradEndOp": 0.01
+    "gradEndOp": 0.01,
+    "gradReverseColors": false
   },
   {
     "id": 9,
@@ -529,7 +532,7 @@
     "lineType": "solid",
     "showArea": false,
     "showNodes": false,
-    "visible": true,
+    "visible": false,
     "points": [
       {
         "x": 4644954.729638558,
@@ -751,7 +754,7 @@
     "lineType": "solid",
     "showArea": false,
     "showNodes": true,
-    "visible": true,
+    "visible": false,
     "points": [
       {
         "x": 4644954.729638558,
