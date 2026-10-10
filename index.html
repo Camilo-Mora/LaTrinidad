@@ -2302,25 +2302,29 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 function loadDefaultPdf(url, target) {
-  pdfjsLib.getDocument(url).promise.then((pdf) => {
+  const p = pdfjsLib.getDocument(url).promise.then((pdf) => {
     if (target === "296") state.pdf296Doc = pdf;
     if (target === "1073") state.pdf1073Doc = pdf;
     if (target === "196") state.pdf196Doc = pdf;
-    renderPdfPage(pdf, 1, target);
+    return renderPdfPage(pdf, 1, target);
   }).catch((_) => {
     // Graceful fallback if HTTP fetch unavailable
   });
+  if (target === "1073") state.pdf1073Promise = p;
+  else if (target === "196") state.pdf196Promise = p;
+  else if (target === "296") state.pdf296Promise = p;
+  return p;
 }
 
 function renderPdfPage(pdfDoc, pageNum, target) {
-  pdfDoc.getPage(pageNum).then((page) => {
+  return pdfDoc.getPage(pageNum).then((page) => {
     const viewport = page.getViewport({ scale: 2.0 });
     const origViewport = page.getViewport({ scale: 1.0 });
     const offCanvas = document.createElement("canvas");
     offCanvas.width = viewport.width;
     offCanvas.height = viewport.height;
     const offCtx = offCanvas.getContext("2d");
-    page.render({ canvasContext: offCtx, viewport: viewport }).promise.then(() => {
+    return page.render({ canvasContext: offCtx, viewport: viewport }).promise.then(() => {
       if (target === "296") {
         state.pdf296Canvas = offCanvas;
         state.pdf296Width = origViewport.width;
@@ -4232,9 +4236,9 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist, uiScale = 1.0) {
   }
 }
 
-function drawMojones1073(ctx, vp, h) {
+function drawMojones1073(ctx, vp, h, customScale = null) {
   if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length === 0) return;
-  const uiScale = state.mojonesSize || 1.0;
+  const uiScale = customScale !== null ? customScale : (state.mojonesSize || 1.0);
   const pinRadius = Math.max(3, Math.round(7 * uiScale));
   const pinLineWidth = Math.max(1, Math.round(2 * uiScale));
 
@@ -8775,21 +8779,27 @@ function handlePdfFileSelect(file, targetKey) {
   const reader = new FileReader();
   reader.onload = function () {
     const typedArray = new Uint8Array(this.result);
-    pdfjsLib.getDocument(typedArray).promise.then((pdfDoc) => {
+    const p = pdfjsLib.getDocument(typedArray).promise.then((pdfDoc) => {
       if (targetKey === "296") {
         state.pdf296Doc = pdfDoc;
-        renderPdfPage(pdfDoc, 1, "296");
-        document.getElementById("status-296").textContent = "PDF & DXF Loaded";
+        return renderPdfPage(pdfDoc, 1, "296").then(() => {
+          document.getElementById("status-296").textContent = "PDF & DXF Loaded";
+        });
       } else if (targetKey === "196") {
         state.pdf196Doc = pdfDoc;
-        renderPdfPage(pdfDoc, 1, "196");
-        document.getElementById("status-196").textContent = "PDF & DXF Loaded";
+        return renderPdfPage(pdfDoc, 1, "196").then(() => {
+          document.getElementById("status-196").textContent = "PDF & DXF Loaded";
+        });
       } else {
         state.pdf1073Doc = pdfDoc;
-        renderPdfPage(pdfDoc, 1, "1073");
-        document.getElementById("status-1073").textContent = "PDF & DXF Loaded";
+        return renderPdfPage(pdfDoc, 1, "1073").then(() => {
+          document.getElementById("status-1073").textContent = "PDF & DXF Loaded";
+        });
       }
     }).catch((err) => console.error("PDF Load Error:", err));
+    if (targetKey === "1073") state.pdf1073Promise = p;
+    else if (targetKey === "196") state.pdf196Promise = p;
+    else if (targetKey === "296") state.pdf296Promise = p;
   };
   reader.readAsArrayBuffer(file);
 }
@@ -11100,18 +11110,44 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
       if (state.showReconstructedPolygon !== false) drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio);
       if (state.showWarped296OnField !== false) strokeWarped(state.entities296, state.anchors296, (state.dxfOpacity?.dxf_296 ?? 0.85) * lineOp);
       break;
-    case "dxf_1073":
-      if (state.showWarped1073OnField !== false) strokeWarped(state.entities1073, state.anchors1073, (state.dxfOpacity?.dxf_1073 ?? 0.9) * lineOp);
+    case "dxf_1073": {
+      const isDxfVisible = (state.showWarped1073OnField !== false);
+      const isPdfVisible = (state.showWarpedPdf1073 !== false);
+      const canvasW = ctx.canvas ? ctx.canvas.width : 3840;
+      if ((isDxfVisible || isPdfVisible) && getActiveAnchors(state.anchors1073).length >= 2) {
+        try {
+          const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
+          if (isPdfVisible && state.pdf1073Canvas && state.pdf1073Width > 0) {
+            drawWarpedPdfImage1073(ctx, warper, vpExp, canvasW, EXP_H);
+          }
+          if (isDxfVisible) {
+            strokeWarped(state.entities1073, state.anchors1073, (state.dxfOpacity?.dxf_1073 ?? 0.9) * lineOp);
+          }
+        } catch (_) {}
+      }
       break;
-    case "dxf_196":
-      if (state.showWarped196OnField !== false) {
+    }
+    case "dxf_196": {
+      const isVisible = (state.showWarped196OnField !== false);
+      const isPdfVisible = (state.showWarpedPdf196 !== false);
+      const canvasW = ctx.canvas ? ctx.canvas.width : 3840;
+      if (isPdfVisible && getActiveAnchors(state.anchors196).length >= 2) {
+        try {
+          const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
+          if (state.pdf196Canvas && state.pdf196Width > 0) {
+            drawWarpedPdfImage196(ctx, warper, vpExp, canvasW, EXP_H);
+          }
+        } catch (_) {}
+      }
+      if (isVisible) {
         if (state.entities196Optimized && state.entities196Optimized.length > 0) {
           strokePlain(state.entities196Optimized, (state.dxfOpacity?.dxf_196 ?? 0.85) * lineOp);
-        } else {
+        } else if (getActiveAnchors(state.anchors196).length >= 2) {
           strokeWarped(state.entities196, state.anchors196, (state.dxfOpacity?.dxf_196 ?? 0.85) * lineOp);
         }
       }
       break;
+    }
     case "dxf_anchors":
       // In Case HD image export, suppress anchors from other panels
       break;
@@ -11194,6 +11230,16 @@ async function exportCaseImageHD() {
     statusBar.textContent = "⏳ Rendering HD case image (" + (ac.name || "Caso") + ")...";
     await new Promise(r => requestAnimationFrame(r));
 
+    // Ensure PDF canvases are rendered if needed by the case
+    if (state.showWarpedPdf1073 !== false && !state.pdf1073Canvas && state.pdf1073Doc) {
+      await renderPdfPage(state.pdf1073Doc, 1, "1073");
+    }
+    if (state.showWarpedPdf196 !== false && !state.pdf196Canvas && state.pdf196Doc) {
+      await renderPdfPage(state.pdf196Doc, 1, "196");
+    }
+    if (state.pdf1073Promise) await state.pdf1073Promise;
+    if (state.pdf196Promise) await state.pdf196Promise;
+
     const EXP_W = 3840;
     const aspect = canvasTrue.height / Math.max(1, canvasTrue.width);
     const EXP_H = Math.round(EXP_W * aspect);
@@ -11223,6 +11269,10 @@ async function exportCaseImageHD() {
     order.forEach(key => drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac));
     if (!order.includes("dxf_296") && state.showReconstructedPolygon !== false) {
       drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio);
+    }
+
+    if (state.showMojones1073 !== false) {
+      drawMojones1073(ctx, vpExp, EXP_H, (state.mojonesSize || 1.0) * scaleRatio);
     }
 
     if (ac.labels && ac.labels.length > 0) {
