@@ -114,7 +114,7 @@
         "y": 1943219.1261545115
       }
     ],
-    "visible": true,
+    "visible": false,
     "fillColor": "#2979ff",
     "lineOpacity": 1,
     "closed": true,
@@ -314,7 +314,7 @@
         "y": 1943283.691775514
       }
     ],
-    "visible": true,
+    "visible": false,
     "fillColor": "#ff1744",
     "lineOpacity": 1,
     "closed": true,
@@ -443,7 +443,7 @@
     "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
-    "visible": true,
+    "visible": false,
     "points": [
       {
         "x": 4644859.837229533,

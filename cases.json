@@ -1939,8 +1939,7 @@
     "name": "Pedro",
     "selectedPolyIds": [
       4,
-      3,
-      7
+      3
     ],
     "polyStyles": {
       "1": {
@@ -2059,12 +2058,21 @@
         "lineType": "dashdot",
         "lineOpacity": 1,
         "showArea": false
+      },
+      "14": {
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "showArea": false
       }
     },
     "camera": {
-      "scale": 1.170030505587996,
-      "offsetX": -5434301.1901550405,
-      "offsetY": -2273507.4819438756
+      "scale": 2.3533492670086735,
+      "offsetX": -10930541.859382201,
+      "offsetY": -4572839.436863775
     },
     "layers": {
       "reconstructed": true,
@@ -2088,29 +2096,29 @@
     "labels": [
       {
         "id": "lbl_-891177485",
-        "text": "Lote Pedro Ruiz\n[size=10]Area reportada en documento: [/size]2,142 m²\n[size=9]Area invadida: 1,409m²[/size]",
-        "worldX": 4644676.857,
-        "worldY": 1943408.4424,
+        "text": "[size=25]Lote Pedro Ruiz[/size]\n[size=15]Area reportada en documento: [/size]2,142 m²\n[size=15]Area invadida: $PedroInvasion$m²[/size]\nEscritura 623 de 2014; FMI 378-185656.",
+        "worldX": 4644709.151398908,
+        "worldY": 1943406.7426947942,
         "fontSize": 20,
         "bold": true,
         "italic": true,
         "textColor": "#ffffff",
         "bgColor": "#ff8000",
-        "bgOpacity": 0.3,
+        "bgOpacity": 0.45,
         "borderColor": "#ff8000",
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 107.42113353405148,
-          "y": 433.31951862340793,
-          "w": 238.4333267211914,
-          "h": 85
+          "x": 76.01753089763224,
+          "y": 97.60344326775521,
+          "w": 379.4333190917969,
+          "h": 116
         },
         "showBorder": false
       },
       {
         "id": "lbl_-891677727",
-        "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657.\n[size=15]Area reportada en documento: [/size]10,604m²",
+        "text": "Plano original Lote #5\n[size=15]Area reportada en documento: [/size]10,604m²\nEscritura 1073 de 1973; FMI 378-185657.",
         "worldX": 4644970.0941,
         "worldY": 1943210.5721,
         "fontSize": 20,
@@ -2123,8 +2131,8 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 451.51748590450734,
-          "y": 665.8338057734072,
+          "x": 691.1068452447653,
+          "y": 560.2613687356934,
           "w": 388.5666809082031,
           "h": 83
         },
@@ -2133,20 +2141,20 @@
       {
         "id": "lbl_-890857908",
         "text": "La Trinidad",
-        "worldX": 4644730.9733,
-        "worldY": 1943265.4532,
+        "worldX": 4644740.7466049325,
+        "worldY": 1943256.52974767,
         "fontSize": 20,
         "bold": true,
         "italic": true,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 172.7388553833589,
-          "y": 602.6212445930578,
+          "x": 152.37208583578467,
+          "y": 453.10697227716446,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -2156,20 +2164,20 @@
       {
         "id": "lbl_-890787437",
         "text": "Casa del Sol",
-        "worldX": 4644739.1935,
-        "worldY": 1943189.3374,
+        "worldX": 4644741.743057809,
+        "worldY": 1943187.6376947945,
         "fontSize": 20,
         "bold": true,
         "italic": false,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 182.35674014594406,
-          "y": 691.6790525503457,
+          "x": 154.7170874811709,
+          "y": 615.2340344153345,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -2217,10 +2225,10 @@
       {
         "id": "arr_-891647703",
         "name": "Arrow 4",
-        "startX": 4644779.388,
-        "startY": 1943217.3137,
-        "endX": 4644778.6106,
-        "endY": 1943188.3737,
+        "startX": 4644789.161304933,
+        "startY": 1943216.0389210957,
+        "endX": 4644788.383904933,
+        "endY": 1943187.0989210957,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
@@ -2309,7 +2317,7 @@
       {
         "id": 7,
         "name": "Pedro Ruiz",
-        "visible": true,
+        "visible": false,
         "showArea": false,
         "showNodes": false,
         "color": "#ff9100",
@@ -2383,6 +2391,19 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1
+      },
+      {
+        "id": 14,
+        "name": "JimmyInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91
       },
       {
         "id": 13,
@@ -2576,8 +2597,8 @@
     "name": "Nacho106",
     "selectedPolyIds": [
       4,
-      3,
-      8
+      8,
+      3
     ],
     "polyStyles": {
       "1": {
@@ -4292,6 +4313,662 @@
         "opacity": 0.85,
         "lineWidth": 8,
         "headSize": 18
+      }
+    ]
+  },
+  {
+    "id": 1791601280976,
+    "name": "PlanoCuraduria",
+    "selectedPolyIds": [
+      8,
+      3
+    ],
+    "polygons": [
+      {
+        "id": 4,
+        "name": "LinderoHistorico_1073_296",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.15,
+        "lineWidth": 6,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 1,
+        "name": "LoteA",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 2,
+        "name": "LoteB",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 5,
+        "name": "Restitucion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.25,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 6,
+        "name": "Jimmy Ruiz",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 7,
+        "name": "Pedro Ruiz",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.3,
+        "lineWidth": 6,
+        "lineType": "dotted",
+        "lineOpacity": 1
+      },
+      {
+        "id": 8,
+        "name": "Nacho196",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.54
+      },
+      {
+        "id": 9,
+        "name": "196InTrinidad",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 10,
+        "name": "Carretera",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 11,
+        "name": "PedroInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.11,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 12,
+        "name": "NachoInvasion196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 14,
+        "name": "JimmyInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91
+      },
+      {
+        "id": 13,
+        "name": "Lote#6",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.06,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1
+      }
+    ],
+    "polyStyles": {
+      "1": {
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "2": {
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "3": {
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.11,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "4": {
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.15,
+        "lineWidth": 6,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "5": {
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.25,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "6": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "7": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.3,
+        "lineWidth": 6,
+        "lineType": "dotted",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "8": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.54,
+        "showArea": false
+      },
+      "9": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "10": {
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "11": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "12": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "13": {
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.06,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "14": {
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "showArea": false
+      }
+    },
+    "layerDisplay": {
+      "dxf_296": {
+        "show": true,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_1073": {
+        "show": false,
+        "area": false,
+        "nodes": false,
+        "showPdf": true,
+        "pdfOpacity": 0.27
+      },
+      "dxf_196": {
+        "show": true,
+        "area": false,
+        "nodes": false,
+        "showPdf": true,
+        "pdfOpacity": 0.78
+      },
+      "dxf_survey_cortez_2019": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_valoy_2025": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "mojones": {
+        "show": false,
+        "items": {
+          "1": false,
+          "2": false,
+          "4": false
+        }
+      }
+    },
+    "layerStyles": {
+      "dxf_296": {
+        "name": "Lindero La Trinidad (E. 296)",
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.08,
+        "lineWidth": 3.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_1073": {
+        "name": "Escritura 1073",
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.9,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_196": {
+        "name": "Escritura 196",
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 3,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_2019": {
+        "name": "In 2019 by Cristian Cortez",
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_valoy_2025": {
+        "name": "In 2025 by Wilmar Valoy",
+        "color": "#ffb300",
+        "fillColor": "#ffb300",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "name": "2026 (Sep) by Cristian Cortez",
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "name": "2026 (Oct) by Cristian Cortez",
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      }
+    },
+    "trinidadSectionStyles": {
+      "1073": {
+        "color": "#00ff00",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e296": {
+        "color": "#80ffff",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "quebrada": {
+        "color": "#00ff40",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e1073": {
+        "color": "#00ff00",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      }
+    },
+    "layerOrder": [
+      "dxf_1073",
+      "dxf_survey_cortez_2019",
+      "dxf_survey_valoy_2025",
+      "dxf_survey_cortez_sep_2026",
+      "dxf_survey_cortez_oct_2026",
+      "dxf_anchors",
+      "dxf_196",
+      "dxf_296",
+      "measure_polygons"
+    ],
+    "camera": {
+      "scale": 1.1735449876453288,
+      "offsetX": -5450129.317096247,
+      "offsetY": -2280252.3803930907
+    },
+    "layers": {
+      "reconstructed": true,
+      "dxf296": true,
+      "dxf1073": false,
+      "dxf196": true,
+      "dxfTrue": false,
+      "surveyValoy2025": false,
+      "surveyCortez2025": false,
+      "surveyCortezOct2026": false,
+      "dxfOverlay": false,
+      "geotiff": true
+    },
+    "dxfOpacity": {
+      "dxf_296": 1,
+      "dxf_1073": 1,
+      "dxf_196": 1,
+      "dxf_true": 1
+    },
+    "geotiffBW": false,
+    "labels": [
+      {
+        "id": "lbl_1791601290272",
+        "text": "[size=30]Lote #5[/size]\nPlano pasado a Curaduria 2013\nFMI 378-185657",
+        "worldX": 4644499.942715951,
+        "worldY": 1943622.8409708713,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ff8000",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 393.31079707387835,
+          "y": 94.5374987507239,
+          "w": 222.03334045410156,
+          "h": 88
+        }
+      },
+      {
+        "id": "lbl_1791601520172",
+        "text": "[size=30]Lote #5[/size]\nPlano Original escritura 1073 de 1973\nFMI 378-185657",
+        "worldX": 4645168.718439989,
+        "worldY": 1943429.540827044,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ff0000",
+        "bgOpacity": 0.55,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 1178.1491958769038,
+          "y": 321.3839136501774,
+          "w": 262.6000061035156,
+          "h": 88
+        }
+      },
+      {
+        "id": "lbl_1791601994793",
+        "text": "Casa del Sol",
+        "worldX": 4644750.62693004,
+        "worldY": 1943164.8589532175,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 687.5,
+          "y": 632,
+          "w": 97.36666870117188,
+          "h": 32
+        }
+      },
+      {
+        "id": "lbl_1791601997067",
+        "text": "La Trinidad",
+        "worldX": 4644733.584549722,
+        "worldY": 1943285.859853477,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 667.5,
+          "y": 490,
+          "w": 88.76667022705078,
+          "h": 32
+        }
+      }
+    ],
+    "arrows": [
+      {
+        "id": "arr_1791601319484",
+        "name": "Arrow 1",
+        "startX": 4644663.551267855,
+        "startY": 1943563.4655513428,
+        "endX": 4644880.696844967,
+        "endY": 1943335.557285396,
+        "color": "#ff8000",
+        "opacity": 0.85,
+        "lineWidth": 10,
+        "headSize": 28
+      },
+      {
+        "id": "arr_1791601576670",
+        "name": "Arrow 2",
+        "startX": 4645165.621937665,
+        "startY": 1943401.6710770368,
+        "endX": 4645045.452971349,
+        "endY": 1943372.9841847157,
+        "color": "#ff0000",
+        "opacity": 0.85,
+        "lineWidth": 10,
+        "headSize": 28
+      },
+      {
+        "id": "arr_1791602030367",
+        "name": "Arrow 3",
+        "startX": 4644747.894738549,
+        "startY": 1943217.584831538,
+        "endX": 4644748.246407435,
+        "endY": 1943274.8878069357,
+        "color": "#0000ff",
+        "opacity": 0.85,
+        "lineWidth": 20,
+        "headSize": 40
+      },
+      {
+        "id": "arr_1791602070990",
+        "name": "Arrow 4",
+        "startX": 4644788.796451314,
+        "startY": 1943206.5072843314,
+        "endX": 4644789.1481202,
+        "endY": 1943164.1123348672,
+        "color": "#0000ff",
+        "opacity": 0.85,
+        "lineWidth": 20,
+        "headSize": 40
       }
     ]
   }
