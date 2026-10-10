@@ -114,7 +114,7 @@
         "y": 1943219.1261545115
       }
     ],
-    "visible": false,
+    "visible": true,
     "fillColor": "#2979ff",
     "lineOpacity": 1,
     "closed": true,
@@ -302,12 +302,12 @@
     "id": 6,
     "name": "Jimmy Ruiz",
     "color": "#ff9100",
-    "fillOpacity": 0.3,
+    "fillOpacity": 0.31,
     "lineWidth": 6,
-    "lineType": "dotted",
+    "lineType": "dashed",
     "showArea": false,
     "showNodes": false,
-    "visible": true,
+    "visible": false,
     "points": [
       {
         "x": 4644914.081793946,
@@ -368,12 +368,12 @@
     "id": 7,
     "name": "Pedro Ruiz",
     "color": "#ff9100",
-    "fillOpacity": 0.3,
-    "lineWidth": 6,
-    "lineType": "dotted",
+    "fillOpacity": 0.15,
+    "lineWidth": 2.5,
+    "lineType": "solid",
     "showArea": false,
     "showNodes": false,
-    "visible": true,
+    "visible": false,
     "points": [
       {
         "x": 4644859.837229533,
@@ -446,12 +446,12 @@
     "id": 8,
     "name": "Nacho196",
     "color": "#ff9100",
-    "fillOpacity": 0.3,
-    "lineWidth": 6,
-    "lineType": "dotted",
+    "fillOpacity": 0.15,
+    "lineWidth": 2.5,
+    "lineType": "solid",
     "showArea": false,
     "showNodes": false,
-    "visible": true,
+    "visible": false,
     "points": [
       {
         "x": 4644972.289001536,
@@ -676,8 +676,8 @@
     "id": 3,
     "name": "Lote#5",
     "color": "#ff1744",
-    "fillOpacity": 0.13,
-    "lineWidth": 1.5,
+    "fillOpacity": 0.36,
+    "lineWidth": 6.5,
     "lineType": "dashed",
     "showArea": false,
     "showNodes": false,
@@ -731,9 +731,9 @@
         "y": 1943283.691775514
       }
     ],
-    "visible": false,
+    "visible": true,
     "fillColor": "#ff1744",
-    "lineOpacity": 1,
+    "lineOpacity": 0.48,
     "closed": true,
     "gradBuffer": false,
     "gradDist": 50,
