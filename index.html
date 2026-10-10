@@ -937,31 +937,40 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
 
       <!-- Subwindow Display Selector -->
       <div class="window-selector-group">
+        <span style="font-weight:700;color:var(--text-muted);font-size:0.75rem;letter-spacing:0.3px;text-transform:uppercase;margin-right:2px;user-select:none;">Escrituras:</span>
+
         <label class="window-checkbox" title="Toggle Escritura 296 Window">
           <input type="checkbox" id="chk-show-296">
-          <span style="color:var(--accent-purple);font-weight:600;">Escritura 296</span>
         </label>
         <button type="button" id="btn-dl-dxf-296" class="btn-deed-dl" title="Download Escritura 296 Reconstructed DXF">📥</button>
+        <label for="chk-show-296" style="cursor:pointer;"><span style="color:var(--accent-purple);font-weight:700;">296</span></label>
+
+        <span style="color:var(--border-color);font-size:0.8rem;user-select:none;margin:0 2px;">|</span>
 
         <label class="window-checkbox" title="Toggle Escritura 1073 Window">
           <input type="checkbox" id="chk-show-1073">
-          <span style="color:var(--accent-red);font-weight:600;">Escritura 1073</span>
         </label>
         <button type="button" id="btn-dl-dxf-1073" class="btn-deed-dl disabled" disabled title="Escritura 1073 requires unavailable field data for reconstruction">📥</button>
+        <label for="chk-show-1073" style="cursor:pointer;"><span style="color:var(--accent-red);font-weight:700;">1073</span></label>
+
+        <span style="color:var(--border-color);font-size:0.8rem;user-select:none;margin:0 2px;">|</span>
 
         <label class="window-checkbox" title="Toggle Escritura 196 Window">
           <input type="checkbox" id="chk-show-196">
-          <span style="color:var(--accent-orange);font-weight:600;">Escritura 196</span>
         </label>
         <button type="button" id="btn-dl-dxf-196" class="btn-deed-dl" title="Download Escritura 196 Reconstructed DXF">📥</button>
+        <label for="chk-show-196" style="cursor:pointer;"><span style="color:var(--accent-orange);font-weight:700;">196</span></label>
 
-        <label class="window-checkbox" title="Toggle Field Window">
+        <span style="color:var(--border-color);font-size:0.8rem;user-select:none;margin:0 4px;">|</span>
+
+        <label class="window-checkbox" title="Toggle Campo Window">
           <input type="checkbox" id="chk-show-true" checked>
-          <span style="color:var(--accent-green);font-weight:600;">Field</span>
+          <span style="color:var(--accent-green);font-weight:600;">Campo</span>
         </label>
-        <label class="window-checkbox" title="Toggle Control Panel">
+
+        <label class="window-checkbox" title="Toggle Panel de Controles">
           <input type="checkbox" id="chk-show-sidebar">
-          <span style="color:var(--accent-cyan);font-weight:600;">Control Panel</span>
+          <span style="color:var(--accent-cyan);font-weight:600;">Controles</span>
         </label>
       </div>
     </header>
@@ -1073,7 +1082,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       <!-- Sidebar -->
       <aside class="sidebar collapsed">
         <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 6px 4px;">
-          <span style="font-size:0.8rem; font-weight:700; color:var(--accent-cyan);">Control Panel</span>
+          <span style="font-size:0.8rem; font-weight:700; color:var(--accent-cyan);">Controles</span>
         </div>
 
         <!-- ===== FIELD SURVEY TOOLS PANEL ===== -->
