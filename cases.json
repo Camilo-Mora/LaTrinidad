@@ -4,10 +4,10 @@
     "name": "Escritura 196",
     "selectedPolyIds": [
       4,
-      3,
       6,
       7,
-      8
+      8,
+      3
     ],
     "polyStyles": {
       "1": {
@@ -126,6 +126,15 @@
         "lineType": "dashdot",
         "lineOpacity": 1,
         "showArea": false
+      },
+      "14": {
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "showArea": false
       }
     },
     "camera": {
@@ -155,9 +164,9 @@
     "labels": [
       {
         "id": "lbl_1790055358584",
-        "text": "Plano Lote #5 aprobado en Curaduria 2013\nEscritura 196 de 2014;FMI 378-185657.\n[size=15]Area reportada en documento: [/size]10,604m²\n[size=15]Area invadida: 5,593m²[/size]",
-        "worldX": 4644647.084859317,
-        "worldY": 1943411.4769018476,
+        "text": "[size=35]Plano Lote #5[/size]\nAprobado en Curaduria 2013\nArea reportada en documento:[size=35]10,604m²[/size]\nFMI 378-185657; Escritura 196 de 2014.\n[size=15]Area invadida: $196InTrinidad$m2[/size]",
+        "worldX": 4644655.46254427,
+        "worldY": 1943446.466056653,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -168,16 +177,16 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 107.30366926081479,
-          "y": 99.46630641818047,
-          "w": 416.0333251953125,
-          "h": 110
+          "x": 124.30366925895214,
+          "y": 28.466306417714804,
+          "w": 451.23333740234375,
+          "h": 173
         },
         "showBorder": false
       },
       {
         "id": "lbl_1790055426610",
-        "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657.\n[size=15]Area reportada en documento: [/size]10,604m²",
+        "text": "[size=35]Plano original Lote #5[/size]\nEscritura 1073 de 1973\nArea reportada en documento:[size=35]10,604m²[/size]\nFMI 378-185657",
         "worldX": 4644944.024715646,
         "worldY": 1943174.301652202,
         "fontSize": 20,
@@ -192,8 +201,8 @@
         "_box": {
           "x": 710.8540857154876,
           "y": 581.7423709169962,
-          "w": 388.5666809082031,
-          "h": 83
+          "w": 449.23333740234375,
+          "h": 146
         },
         "showBorder": false
       },
@@ -248,10 +257,10 @@
       {
         "id": "arr_1790055482625",
         "name": "Arrow 1",
-        "startX": 4644833.8298,
-        "startY": 1943353.8405,
-        "endX": 4644867.444160455,
-        "endY": 1943331.259343671,
+        "startX": 4644851.077974904,
+        "startY": 1943368.1318449203,
+        "endX": 4644884.692335359,
+        "endY": 1943345.5506885913,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -330,19 +339,6 @@
         "color": "#00e676",
         "fillColor": "#00e676",
         "fillOpacity": 0.1,
-        "lineWidth": 1.5,
-        "lineType": "dashed",
-        "lineOpacity": 1
-      },
-      {
-        "id": 3,
-        "name": "Lote#5",
-        "visible": true,
-        "showArea": false,
-        "showNodes": false,
-        "color": "#ff1744",
-        "fillColor": "#ff1744",
-        "fillOpacity": 0.3,
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1
@@ -439,6 +435,19 @@
         "lineOpacity": 1
       },
       {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.3,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
         "id": 12,
         "name": "NachoInvasion196",
         "visible": false,
@@ -450,6 +459,19 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1
+      },
+      {
+        "id": 14,
+        "name": "JimmyInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91
       },
       {
         "id": 13,
@@ -1280,8 +1302,8 @@
     "name": "Jimmy",
     "selectedPolyIds": [
       4,
-      3,
-      6
+      6,
+      3
     ],
     "polyStyles": {
       "1": {
@@ -2276,19 +2298,6 @@
         "lineOpacity": 1
       },
       {
-        "id": 3,
-        "name": "Lote#5",
-        "visible": true,
-        "showArea": false,
-        "showNodes": false,
-        "color": "#ff1744",
-        "fillColor": "#ff1744",
-        "fillOpacity": 0.13,
-        "lineWidth": 1.5,
-        "lineType": "dashed",
-        "lineOpacity": 1
-      },
-      {
         "id": 5,
         "name": "Restitucion",
         "visible": false,
@@ -2377,6 +2386,19 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.13,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
         "lineOpacity": 1
       },
       {
@@ -4463,7 +4485,7 @@
         "color": "#ff1744",
         "fillColor": "#ff1744",
         "fillOpacity": 0.11,
-        "lineWidth": 1.5,
+        "lineWidth": 4.5,
         "lineType": "dashed",
         "lineOpacity": 1
       },
@@ -4530,7 +4552,7 @@
         "color": "#ff1744",
         "fillColor": "#ff1744",
         "fillOpacity": 0.11,
-        "lineWidth": 1.5,
+        "lineWidth": 4.5,
         "lineType": "dashed",
         "lineOpacity": 1,
         "showArea": false
@@ -4834,7 +4856,7 @@
     "labels": [
       {
         "id": "lbl_1791601290272",
-        "text": "[size=30]Lote #5[/size]\nPlano pasado a Curaduria 2013\nFMI 378-185657",
+        "text": "[size=30]Lote #5[/size]\nPlano pasado a Curaduria 2013\nArea reportada en documento:[size=35]10,604m²[/size]\nFMI 378-185657",
         "worldX": 4644499.942715951,
         "worldY": 1943622.8409708713,
         "fontSize": 14,
@@ -4850,15 +4872,15 @@
         "_box": {
           "x": 393.31079707387835,
           "y": 94.5374987507239,
-          "w": 222.03334045410156,
-          "h": 88
+          "w": 367.90000915527344,
+          "h": 132
         }
       },
       {
         "id": "lbl_1791601520172",
-        "text": "[size=30]Lote #5[/size]\nPlano Original escritura 1073 de 1973\nFMI 378-185657",
-        "worldX": 4645168.718439989,
-        "worldY": 1943429.540827044,
+        "text": "[size=30]Lote #5[/size]\nPlano Original escritura 1073 de 1973\nArea reportada en documento:[size=35]10,604m²[/size]\nFMI 378-185657",
+        "worldX": 4644950.575971915,
+        "worldY": 1943172.2008842388,
         "fontSize": 14,
         "bold": true,
         "italic": false,
@@ -4870,10 +4892,10 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 1178.1491958769038,
-          "y": 321.3839136501774,
-          "w": 262.6000061035156,
-          "h": 88
+          "x": 922.1491958769038,
+          "y": 623.3839136501774,
+          "w": 367.90000915527344,
+          "h": 132
         }
       },
       {
@@ -4925,8 +4947,8 @@
       {
         "id": "arr_1791601319484",
         "name": "Arrow 1",
-        "startX": 4644663.551267855,
-        "startY": 1943563.4655513428,
+        "startX": 4644689.966957348,
+        "startY": 1943529.3807907063,
         "endX": 4644880.696844967,
         "endY": 1943335.557285396,
         "color": "#ff8000",
@@ -4937,10 +4959,10 @@
       {
         "id": "arr_1791601576670",
         "name": "Arrow 2",
-        "startX": 4645165.621937665,
-        "startY": 1943401.6710770368,
-        "endX": 4645045.452971349,
-        "endY": 1943372.9841847157,
+        "startX": 4644949.183707624,
+        "startY": 1943118.767563754,
+        "endX": 4644865.655858991,
+        "endY": 1943154.8417166423,
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,

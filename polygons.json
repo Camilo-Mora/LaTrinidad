@@ -256,76 +256,6 @@
     "lineOpacity": 1
   },
   {
-    "id": 3,
-    "name": "Lote#5",
-    "color": "#ff1744",
-    "fillOpacity": 0.13,
-    "lineWidth": 1.5,
-    "lineType": "dashed",
-    "showArea": false,
-    "showNodes": false,
-    "points": [
-      {
-        "x": 4644871.773157394,
-        "y": 1943283.691775514
-      },
-      {
-        "x": 4644935.701851828,
-        "y": 1943345.015713888
-      },
-      {
-        "x": 4644956.836875882,
-        "y": 1943338.9073636208
-      },
-      {
-        "x": 4644969.1887083035,
-        "y": 1943345.497726665
-      },
-      {
-        "x": 4644984.870755903,
-        "y": 1943345.2266125965
-      },
-      {
-        "x": 4645021.170002499,
-        "y": 1943370.3615173367
-      },
-      {
-        "x": 4645025.183112673,
-        "y": 1943389.2695473724
-      },
-      {
-        "x": 4645060.880530019,
-        "y": 1943394.9404751936
-      },
-      {
-        "x": 4644945.7137463745,
-        "y": 1943214.8789949943
-      },
-      {
-        "x": 4644831.375592883,
-        "y": 1943110.6517842854
-      },
-      {
-        "x": 4644810.175469862,
-        "y": 1943074.9052349771
-      },
-      {
-        "x": 4644871.773157394,
-        "y": 1943283.691775514
-      }
-    ],
-    "visible": false,
-    "fillColor": "#ff1744",
-    "lineOpacity": 1,
-    "closed": true,
-    "gradBuffer": false,
-    "gradDist": 50,
-    "gradSide": 1,
-    "gradScale": "viridis",
-    "gradStartOp": 0.7,
-    "gradEndOp": 0
-  },
-  {
     "id": 5,
     "name": "Restitucion",
     "color": "#00e5ff",
@@ -372,12 +302,12 @@
     "id": 6,
     "name": "Jimmy Ruiz",
     "color": "#ff9100",
-    "fillOpacity": 0.18,
-    "lineWidth": 2.5,
-    "lineType": "solid",
+    "fillOpacity": 0.3,
+    "lineWidth": 6,
+    "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 4644914.081793946,
@@ -443,7 +373,7 @@
     "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 4644859.837229533,
@@ -516,12 +446,12 @@
     "id": 8,
     "name": "Nacho196",
     "color": "#ff9100",
-    "fillOpacity": 0.15,
-    "lineWidth": 2.5,
-    "lineType": "solid",
+    "fillOpacity": 0.3,
+    "lineWidth": 6,
+    "lineType": "dotted",
     "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 4644972.289001536,
@@ -584,10 +514,10 @@
     "lineOpacity": 1,
     "closed": false,
     "gradBuffer": true,
-    "gradDist": 30,
+    "gradDist": 20,
     "gradSide": 1,
-    "gradScale": "turbo",
-    "gradStartOp": 0.78,
+    "gradScale": "plasma",
+    "gradStartOp": 0.42,
     "gradEndOp": 0.01
   },
   {
@@ -741,6 +671,76 @@
     ],
     "fillColor": "#ff6d00",
     "lineOpacity": 1
+  },
+  {
+    "id": 3,
+    "name": "Lote#5",
+    "color": "#ff1744",
+    "fillOpacity": 0.13,
+    "lineWidth": 1.5,
+    "lineType": "dashed",
+    "showArea": false,
+    "showNodes": false,
+    "points": [
+      {
+        "x": 4644871.773157394,
+        "y": 1943283.691775514
+      },
+      {
+        "x": 4644935.701851828,
+        "y": 1943345.015713888
+      },
+      {
+        "x": 4644956.836875882,
+        "y": 1943338.9073636208
+      },
+      {
+        "x": 4644969.1887083035,
+        "y": 1943345.497726665
+      },
+      {
+        "x": 4644984.870755903,
+        "y": 1943345.2266125965
+      },
+      {
+        "x": 4645021.170002499,
+        "y": 1943370.3615173367
+      },
+      {
+        "x": 4645025.183112673,
+        "y": 1943389.2695473724
+      },
+      {
+        "x": 4645060.880530019,
+        "y": 1943394.9404751936
+      },
+      {
+        "x": 4644945.7137463745,
+        "y": 1943214.8789949943
+      },
+      {
+        "x": 4644831.375592883,
+        "y": 1943110.6517842854
+      },
+      {
+        "x": 4644810.175469862,
+        "y": 1943074.9052349771
+      },
+      {
+        "x": 4644871.773157394,
+        "y": 1943283.691775514
+      }
+    ],
+    "visible": false,
+    "fillColor": "#ff1744",
+    "lineOpacity": 1,
+    "closed": true,
+    "gradBuffer": false,
+    "gradDist": 50,
+    "gradSide": 1,
+    "gradScale": "viridis",
+    "gradStartOp": 0.7,
+    "gradEndOp": 0
   },
   {
     "id": 12,
