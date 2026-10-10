@@ -519,9 +519,9 @@
     "gradDist": 20,
     "gradSide": 1,
     "gradScale": "plasma",
-    "gradStartOp": 0.42,
-    "gradEndOp": 0.01,
-    "gradReverseColors": false
+    "gradStartOp": 0.52,
+    "gradEndOp": 0.11,
+    "gradReverseColors": true
   },
   {
     "id": 9,
