@@ -582,6 +582,26 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       opacity: 0.25;
       cursor: not-allowed;
     }
+    .btn-revert-element {
+      padding: 0 3px;
+      font-size: 0.65rem;
+      line-height: 1.2;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.45);
+      color: var(--accent-cyan);
+      border-radius: 3px;
+      cursor: pointer;
+      margin-left: 2px;
+      font-weight: bold;
+      vertical-align: middle;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .btn-revert-element:hover {
+      background: rgba(0, 229, 255, 0.3);
+      border-color: var(--accent-cyan);
+      color: #fff;
+      transform: scale(1.08);
+    }
     /* Panel body collapse: .panel-body-collapsed hides the body of a panel-card */
     .panel-body-collapsed { display: none !important; }
 
@@ -986,6 +1006,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td style="white-space:nowrap;padding:1px 2px;">
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="-1" title="Send Backward (draw behind)">▼</button>
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_296" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                    <button type="button" class="btn-revert-element btn-layer-revert" data-layer="dxf_296" title="↺ Restaurar especificaciones originales (Base)" style="display:none;">↺</button>
                   </td>
                   <td><input type="checkbox" id="sum-show-dxf-296" checked title="Mostrar u ocultar Lindero La Trinidad (Escritura 296) en el mapa" style="accent-color:#00e5ff;"></td>
                   <td><input type="checkbox" id="sum-area-dxf-296" title="Display area badge for Lindero La Trinidad" style="accent-color:var(--accent-yellow);"></td>
@@ -997,6 +1018,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td style="white-space:nowrap;padding:1px 2px;">
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_1073" data-dir="-1" title="Send Backward (draw behind)">▼</button>
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_1073" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                    <button type="button" class="btn-revert-element btn-layer-revert" data-layer="dxf_1073" title="↺ Restaurar especificaciones originales (Base)" style="display:none;">↺</button>
                   </td>
                   <td><input type="checkbox" id="sum-show-dxf-1073" checked title="Show/hide Escritura 1073 on field map" style="accent-color:#ff1744;"></td>
                   <td><input type="checkbox" id="sum-area-dxf-1073" title="Display area badge for Escritura 1073" style="accent-color:var(--accent-yellow);"></td>
@@ -1024,6 +1046,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td style="white-space:nowrap;padding:1px 2px;">
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_196" data-dir="-1" title="Send Backward (draw behind)">▼</button>
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_196" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                    <button type="button" class="btn-revert-element btn-layer-revert" data-layer="dxf_196" title="↺ Restaurar especificaciones originales (Base)" style="display:none;">↺</button>
                   </td>
                   <td><input type="checkbox" id="sum-show-dxf-196" checked title="Show/hide Escritura 196 on field map" style="accent-color:#ff9100;"></td>
                   <td><input type="checkbox" id="sum-area-dxf-196" title="Display area badge for Escritura 196" style="accent-color:var(--accent-yellow);"></td>
@@ -1077,6 +1100,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td style="white-space:nowrap;padding:1px 2px;">
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_survey_cortez_2019" data-dir="-1" title="Send Backward (draw behind)">▼</button>
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_survey_cortez_2019" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                    <button type="button" class="btn-revert-element btn-layer-revert" data-layer="dxf_survey_cortez_2019" title="↺ Restaurar especificaciones originales (Base)" style="display:none;">↺</button>
                   </td>
                   <td><input type="checkbox" id="sum-show-survey-cortez-2019" checked title="Show/hide survey on field map" style="accent-color:#00e676;"></td>
                   <td><input type="checkbox" id="sum-area-survey-cortez-2019" title="Display area badge" style="accent-color:var(--accent-yellow);"></td>
@@ -1088,6 +1112,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td style="white-space:nowrap;padding:1px 2px;">
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_survey_valoy_2025" data-dir="-1" title="Send Backward (draw behind)">▼</button>
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_survey_valoy_2025" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                    <button type="button" class="btn-revert-element btn-layer-revert" data-layer="dxf_survey_valoy_2025" title="↺ Restaurar especificaciones originales (Base)" style="display:none;">↺</button>
                   </td>
                   <td><input type="checkbox" id="sum-show-survey-valoy-2025" checked title="Show/hide survey on field map" style="accent-color:#ffb300;"></td>
                   <td><input type="checkbox" id="sum-area-survey-valoy-2025" title="Display area badge" style="accent-color:var(--accent-yellow);"></td>
@@ -1099,6 +1124,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td style="white-space:nowrap;padding:1px 2px;">
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_survey_cortez_sep_2026" data-dir="-1" title="Send Backward (draw behind)">▼</button>
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_survey_cortez_sep_2026" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                    <button type="button" class="btn-revert-element btn-layer-revert" data-layer="dxf_survey_cortez_sep_2026" title="↺ Restaurar especificaciones originales (Base)" style="display:none;">↺</button>
                   </td>
                   <td><input type="checkbox" id="sum-show-survey-cortez-sep-2026" checked title="Show/hide survey on field map" style="accent-color:#00e5ff;"></td>
                   <td><input type="checkbox" id="sum-area-survey-cortez-sep-2026" title="Display area badge" style="accent-color:var(--accent-yellow);"></td>
@@ -1110,6 +1136,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <td style="white-space:nowrap;padding:1px 2px;">
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_survey_cortez_oct_2026" data-dir="-1" title="Send Backward (draw behind)">▼</button>
                     <button type="button" class="btn-order-btn btn-order-layer" data-layer="dxf_survey_cortez_oct_2026" data-dir="1" title="Bring Forward (draw on top)">▲</button>
+                    <button type="button" class="btn-revert-element btn-layer-revert" data-layer="dxf_survey_cortez_oct_2026" title="↺ Restaurar especificaciones originales (Base)" style="display:none;">↺</button>
                   </td>
                   <td><input type="checkbox" id="sum-show-survey-cortez-oct-2026" checked title="Show/hide survey on field map" style="accent-color:#00b0ff;"></td>
                   <td><input type="checkbox" id="sum-area-survey-cortez-oct-2026" title="Display area badge" style="accent-color:var(--accent-yellow);"></td>
@@ -1130,7 +1157,10 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
             <div id="poly-specs-inspector" style="display:none;background:rgba(0,0,0,0.38);border:1px solid var(--accent-cyan);border-radius:6px;padding:8px;margin-top:8px;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                 <span id="poly-specs-title" style="font-size:0.75rem;font-weight:700;color:var(--accent-cyan);">✏️ Polygon Specs</span>
-                <button type="button" id="btn-poly-specs-close" class="btn-sm btn-secondary" style="padding:1px 6px;font-size:0.72rem;" title="Close Specs">✕</button>
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <button type="button" id="btn-poly-specs-revert" class="btn-sm btn-secondary" style="display:none;padding:1px 6px;font-size:0.7rem;color:var(--accent-cyan);" title="↺ Restaurar especificaciones originales (Base)">↺ Base</button>
+                  <button type="button" id="btn-poly-specs-close" class="btn-sm btn-secondary" style="padding:1px 6px;font-size:0.72rem;" title="Close Specs">✕</button>
+                </div>
               </div>
 
               <!-- Area Display at Top of Window -->
@@ -6878,6 +6908,121 @@ function moveLayerOrder(layerKey, direction) {
    POLYGON SUMMARY PANEL
    ========================================================= */
 
+function isPolyModifiedFromBaseline(poly) {
+  if (!state.caseMode || !state.baselineWorkspace || !Array.isArray(state.baselineWorkspace.polygons)) {
+    return false;
+  }
+  // Only elements used in the active case (visible)
+  if (poly.visible === false) return false;
+
+  const bp = state.baselineWorkspace.polygons.find(p => p.id === poly.id);
+  if (!bp) return false;
+
+  if (poly.color !== bp.color) return true;
+  if ((poly.fillColor || poly.color) !== (bp.fillColor || bp.color)) return true;
+  if ((poly.fillOpacity !== undefined ? poly.fillOpacity : 0.25) !== (bp.fillOpacity !== undefined ? bp.fillOpacity : 0.25)) return true;
+  if ((poly.lineWidth !== undefined ? poly.lineWidth : 2.5) !== (bp.lineWidth !== undefined ? bp.lineWidth : 2.5)) return true;
+  if ((poly.lineType || "solid") !== (bp.lineType || "solid")) return true;
+  if ((poly.lineOpacity !== undefined ? poly.lineOpacity : 1.0) !== (bp.lineOpacity !== undefined ? bp.lineOpacity : 1.0)) return true;
+  if (!!poly.showArea !== !!bp.showArea) return true;
+  if ((poly.showNodes !== false) !== (bp.showNodes !== false)) return true;
+  if (!!poly.gradBuffer !== !!bp.gradBuffer) return true;
+  if ((poly.gradDist !== undefined ? poly.gradDist : 50) !== (bp.gradDist !== undefined ? bp.gradDist : 50)) return true;
+  if ((poly.gradSide || "both") !== (bp.gradSide || "both")) return true;
+  if ((poly.gradScale || "viridis") !== (bp.gradScale || "viridis")) return true;
+  if ((poly.gradStartOpacity !== undefined ? poly.gradStartOpacity : 0.6) !== (bp.gradStartOpacity !== undefined ? bp.gradStartOpacity : 0.6)) return true;
+  if ((poly.gradEndOpacity !== undefined ? poly.gradEndOpacity : 0.05) !== (bp.gradEndOpacity !== undefined ? bp.gradEndOpacity : 0.05)) return true;
+  if (!!poly.gradReverseColors !== !!bp.gradReverseColors) return true;
+
+  return false;
+}
+
+function isLayerModifiedFromBaseline(layerKey) {
+  if (!state.caseMode || !state.baselineWorkspace) return false;
+  const cfg = (typeof STATIC_SUMMARY_LAYERS !== "undefined")
+    ? STATIC_SUMMARY_LAYERS.find(c => c.layerKey === layerKey)
+    : null;
+  if (!cfg) return false;
+
+  // Only elements used in the active case (visible)
+  if (state[cfg.showProp] === false) return false;
+
+  const baseLS = state.baselineWorkspace.layerStyles ? state.baselineWorkspace.layerStyles[layerKey] : null;
+  const currLS = state.layerStyles ? state.layerStyles[layerKey] : null;
+  if (baseLS && currLS) {
+    if (currLS.color !== baseLS.color) return true;
+    if ((currLS.lineWidth !== undefined ? currLS.lineWidth : 2.5) !== (baseLS.lineWidth !== undefined ? baseLS.lineWidth : 2.5)) return true;
+    if ((currLS.lineType || "solid") !== (baseLS.lineType || "solid")) return true;
+    if ((currLS.lineOpacity !== undefined ? currLS.lineOpacity : 1.0) !== (baseLS.lineOpacity !== undefined ? baseLS.lineOpacity : 1.0)) return true;
+    if ((currLS.fillOpacity !== undefined ? currLS.fillOpacity : 0.15) !== (baseLS.fillOpacity !== undefined ? baseLS.fillOpacity : 0.15)) return true;
+  }
+
+  const baseLD = (state.baselineWorkspace.layerDisplay && state.baselineWorkspace.layerDisplay[layerKey]) || null;
+  if (baseLD) {
+    if (!!state[cfg.areaProp] !== !!baseLD.area) return true;
+    if ((state[cfg.nodesProp] !== false) !== (baseLD.nodes !== false)) return true;
+  }
+
+  return false;
+}
+
+function revertPolyToBaseline(idx) {
+  const poly = state.measurePolygons[idx];
+  if (!poly || !state.baselineWorkspace || !Array.isArray(state.baselineWorkspace.polygons)) return;
+  const bp = state.baselineWorkspace.polygons.find(p => p.id === poly.id);
+  if (!bp) return;
+
+  poly.color = bp.color;
+  poly.fillColor = bp.fillColor || bp.color;
+  poly.fillOpacity = bp.fillOpacity !== undefined ? bp.fillOpacity : 0.25;
+  poly.lineWidth = bp.lineWidth !== undefined ? bp.lineWidth : 2.5;
+  poly.lineType = bp.lineType || "solid";
+  poly.lineOpacity = bp.lineOpacity !== undefined ? bp.lineOpacity : 1.0;
+  poly.showArea = !!bp.showArea;
+  poly.showNodes = bp.showNodes !== false;
+  poly.gradBuffer = !!bp.gradBuffer;
+  poly.gradDist = bp.gradDist !== undefined ? bp.gradDist : 50;
+  poly.gradSide = bp.gradSide || "both";
+  poly.gradScale = bp.gradScale || "viridis";
+  poly.gradStartOpacity = bp.gradStartOpacity !== undefined ? bp.gradStartOpacity : 0.6;
+  poly.gradEndOpacity = bp.gradEndOpacity !== undefined ? bp.gradEndOpacity : 0.05;
+  poly.gradReverseColors = !!bp.gradReverseColors;
+
+  if (currentEditingPolyIdx === idx && isPolySpecsOpen()) {
+    populatePolySpecs(poly);
+  }
+
+  updatePolygonSummaryUI();
+  updateMeasurementUI();
+  redrawAll();
+  statusBar.textContent = `↺ Restored baseline settings for "${poly.name || 'Polygon'}".`;
+}
+
+function revertLayerToBaseline(layerKey) {
+  if (!state.baselineWorkspace) return;
+  const cfg = (typeof STATIC_SUMMARY_LAYERS !== "undefined")
+    ? STATIC_SUMMARY_LAYERS.find(c => c.layerKey === layerKey)
+    : null;
+  if (!cfg) return;
+
+  if (state.baselineWorkspace.layerStyles && state.baselineWorkspace.layerStyles[layerKey]) {
+    state.layerStyles[layerKey] = JSON.parse(JSON.stringify(state.baselineWorkspace.layerStyles[layerKey]));
+  }
+  if (state.baselineWorkspace.layerDisplay && state.baselineWorkspace.layerDisplay[layerKey]) {
+    const ld = state.baselineWorkspace.layerDisplay[layerKey];
+    state[cfg.areaProp] = !!ld.area;
+    state[cfg.nodesProp] = ld.nodes !== false;
+  }
+
+  if (currentEditingLayerKey === layerKey && isPolySpecsOpen()) {
+    populateLayerSpecs(layerKey);
+  }
+
+  syncPolygonOverviewUI();
+  redrawAll();
+  statusBar.textContent = `↺ Restored baseline settings for "${state.layerStyles[layerKey]?.name || layerKey}".`;
+}
+
 function updatePolygonSummaryUI() {
   const tbody = document.getElementById("poly-summary-tbody");
   if (!tbody) return;
@@ -6918,6 +7063,10 @@ function updatePolygonSummaryUI() {
     const openBadge = poly.closed === false ? ` <span style="font-size:0.58rem;padding:0 3px;border-radius:2px;background:rgba(0,229,255,0.18);color:var(--accent-cyan);border:1px solid rgba(0,229,255,0.3);" title="Límite abierto / Incertidumbre">Abierto</span>` : '';
     const isFirst = idx === 0;
     const isLast = idx === state.measurePolygons.length - 1;
+    const isMod = isPolyModifiedFromBaseline(poly);
+    const revertBtn = isMod
+      ? `<button type="button" class="btn-revert-element btn-poly-revert" data-idx="${idx}" title="↺ Restaurar especificaciones originales del polígono (Base)">↺</button>`
+      : '';
 
     tr.innerHTML = `
       <td>${dot}</td>
@@ -6926,7 +7075,7 @@ function updatePolygonSummaryUI() {
       </td>
       <td style="white-space:nowrap;padding:1px 2px;">
         <button type="button" class="btn-order-btn btn-poly-down" data-idx="${idx}" style="padding:0 3px;font-size:0.6rem;line-height:1.2;" title="Send Backward (draw behind)" ${isFirst ? "disabled" : ""}>▼</button>
-        <button type="button" class="btn-order-btn btn-poly-up" data-idx="${idx}" style="padding:0 3px;font-size:0.6rem;line-height:1.2;" title="Bring Forward (draw on top)" ${isLast ? "disabled" : ""}>▲</button>
+        <button type="button" class="btn-order-btn btn-poly-up" data-idx="${idx}" style="padding:0 3px;font-size:0.6rem;line-height:1.2;" title="Bring Forward (draw on top)" ${isLast ? "disabled" : ""}>▲</button>${revertBtn}
       </td>
       <td><input type="checkbox" class="sum-poly-show" data-idx="${idx}" ${poly.visible !== false ? "checked" : ""} style="accent-color:${poly.color};" title="Show/hide this polygon"></td>
       <td><input type="checkbox" class="sum-poly-area" data-idx="${idx}" ${poly.showArea ? "checked" : ""} style="accent-color:var(--accent-yellow);" title="Toggle area display"></td>
@@ -6975,6 +7124,15 @@ function updatePolygonSummaryUI() {
     });
   });
 
+  // Wire dynamic polygon revert buttons
+  tbody.querySelectorAll(".btn-poly-revert").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.idx, 10);
+      revertPolyToBaseline(idx);
+    });
+  });
+
   // Wire row checkboxes
   tbody.querySelectorAll(".sum-poly-show").forEach(chk => {
     chk.addEventListener("change", function() {
@@ -7005,7 +7163,7 @@ function updatePolygonSummaryUI() {
     });
   });
 
-    // Update static layer rows (colors, dots, active ring, names)
+  // Update static layer rows (colors, dots, active ring, names, and revert button visibility)
   if (typeof STATIC_SUMMARY_LAYERS !== "undefined") {
     STATIC_SUMMARY_LAYERS.forEach(cfg => {
       const key = cfg.layerKey;
@@ -7029,10 +7187,28 @@ function updatePolygonSummaryUI() {
       if (showChk) showChk.style.accentColor = ls.color;
       const nodesChk = document.getElementById(cfg.nodesId);
       if (nodesChk) nodesChk.style.accentColor = ls.color;
+
+      const revBtn = tbody.querySelector(`.btn-layer-revert[data-layer="${key}"]`);
+      if (revBtn) {
+        const isModified = isLayerModifiedFromBaseline(key);
+        revBtn.style.display = isModified ? "inline-block" : "none";
+      }
     });
     if (typeof syncTrinidadSectionUI === "function") {
       syncTrinidadSectionUI();
     }
+  }
+
+  // Update inspector revert button if inspector is open
+  const btnSpecsRevert = document.getElementById("btn-poly-specs-revert");
+  if (btnSpecsRevert) {
+    let isMod = false;
+    if (currentEditingPolyIdx !== null && state.measurePolygons && state.measurePolygons[currentEditingPolyIdx]) {
+      isMod = isPolyModifiedFromBaseline(state.measurePolygons[currentEditingPolyIdx]);
+    } else if (currentEditingLayerKey) {
+      isMod = isLayerModifiedFromBaseline(currentEditingLayerKey);
+    }
+    btnSpecsRevert.style.display = isMod ? "inline-block" : "none";
   }
 
   updateMasterCheckboxes();
@@ -7358,6 +7534,27 @@ function setupPolygonSummaryListeners() {
       moveLayerOrder(layer, dir);
     });
   });
+
+  // ---- Static DXF revert to baseline buttons ----
+  document.querySelectorAll("#poly-summary-tbody .btn-layer-revert").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const layer = btn.dataset.layer;
+      revertLayerToBaseline(layer);
+    });
+  });
+
+  // ---- Inspector specs revert button ----
+  const btnSpecsRevert = document.getElementById("btn-poly-specs-revert");
+  if (btnSpecsRevert) {
+    btnSpecsRevert.addEventListener("click", () => {
+      if (currentEditingPolyIdx !== null) {
+        revertPolyToBaseline(currentEditingPolyIdx);
+      } else if (currentEditingLayerKey) {
+        revertLayerToBaseline(currentEditingLayerKey);
+      }
+    });
+  }
 
   // Initial render of summary
   updatePolygonSummaryUI();
@@ -10069,7 +10266,14 @@ function captureCaseSnapshot(name, id = Date.now()) {
     fillOpacity: p.fillOpacity !== undefined ? p.fillOpacity : 0.25,
     lineWidth: p.lineWidth !== undefined ? p.lineWidth : 2.5,
     lineType: p.lineType || "solid",
-    lineOpacity: p.lineOpacity !== undefined ? p.lineOpacity : 1.0
+    lineOpacity: p.lineOpacity !== undefined ? p.lineOpacity : 1.0,
+    gradBuffer: !!p.gradBuffer,
+    gradDist: p.gradDist !== undefined ? p.gradDist : 50,
+    gradSide: p.gradSide || "both",
+    gradScale: p.gradScale || "viridis",
+    gradStartOpacity: p.gradStartOpacity !== undefined ? p.gradStartOpacity : 0.6,
+    gradEndOpacity: p.gradEndOpacity !== undefined ? p.gradEndOpacity : 0.05,
+    gradReverseColors: !!p.gradReverseColors
   }));
 
   const polyStyles = {};
@@ -10081,7 +10285,15 @@ function captureCaseSnapshot(name, id = Date.now()) {
       lineWidth: p.lineWidth,
       lineType: p.lineType,
       lineOpacity: p.lineOpacity,
-      showArea: p.showArea
+      showArea: p.showArea,
+      showNodes: p.showNodes,
+      gradBuffer: p.gradBuffer,
+      gradDist: p.gradDist,
+      gradSide: p.gradSide,
+      gradScale: p.gradScale,
+      gradStartOpacity: p.gradStartOpacity,
+      gradEndOpacity: p.gradEndOpacity,
+      gradReverseColors: p.gradReverseColors
     };
   });
 
@@ -10143,6 +10355,11 @@ function captureCaseSnapshot(name, id = Date.now()) {
 
 function applyActiveCase(caseObj) {
   if (!caseObj) {
+    if (state.baselineWorkspace) {
+      const baseSnap = state.baselineWorkspace;
+      state.baselineWorkspace = null;
+      applyActiveCase(baseSnap);
+    }
     state.caseMode = false;
     state.activeCaseId = null;
     state.caseSelectedLabelId = null;
@@ -10157,6 +10374,11 @@ function applyActiveCase(caseObj) {
     buildCaseArrowsList();
     drawViewportTrue();
     return;
+  }
+
+  // If entering case mode from normal mode, capture baseline snapshot
+  if (!state.caseMode && !state.baselineWorkspace && caseObj.name !== "__baseline__") {
+    state.baselineWorkspace = captureCaseSnapshot("__baseline__");
   }
 
   state.caseMode = true;
@@ -10247,6 +10469,13 @@ function applyActiveCase(caseObj) {
         if (cp.lineWidth !== undefined) p.lineWidth = cp.lineWidth;
         if (cp.lineType) p.lineType = cp.lineType;
         if (cp.lineOpacity !== undefined) p.lineOpacity = cp.lineOpacity;
+        if (cp.gradBuffer !== undefined) p.gradBuffer = !!cp.gradBuffer;
+        if (cp.gradDist !== undefined) p.gradDist = cp.gradDist;
+        if (cp.gradSide !== undefined) p.gradSide = cp.gradSide;
+        if (cp.gradScale !== undefined) p.gradScale = cp.gradScale;
+        if (cp.gradStartOpacity !== undefined) p.gradStartOpacity = cp.gradStartOpacity;
+        if (cp.gradEndOpacity !== undefined) p.gradEndOpacity = cp.gradEndOpacity;
+        if (cp.gradReverseColors !== undefined) p.gradReverseColors = !!cp.gradReverseColors;
       } else {
         p.visible = false;
       }
@@ -10344,19 +10573,8 @@ function deleteActiveCase() {
   if (!ac) return;
   if (!confirm(`Delete case '${ac.name}'?`)) return;
   state.cases = state.cases.filter(c => c.id !== ac.id);
-  state.activeCaseId = null;
-  state.caseMode = false;
-  state.caseSelectedLabelId = null;
-  state.caseSelectedArrowId = null;
-  const inspector = document.getElementById("case-label-inspector");
-  if (inspector) inspector.style.display = "none";
-  const arrInsp = document.getElementById("case-arrow-inspector");
-  if (arrInsp) arrInsp.style.display = "none";
+  applyActiveCase(null);
   rebuildCaseSelector();
-  buildCasePolyChecklist();
-  buildCaseLabelsList();
-  buildCaseArrowsList();
-  drawViewportTrue();
   statusBar.textContent = "🗑️ Case deleted.";
 }
 
@@ -11127,18 +11345,7 @@ function setupCasesPanel() {
   sel.addEventListener("change", () => {
     const val = sel.value;
     if (!val) {
-      state.activeCaseId = null;
-      state.caseMode = false;
-      state.caseSelectedLabelId = null;
-      state.caseSelectedArrowId = null;
-      const inspector = document.getElementById("case-label-inspector");
-      if (inspector) inspector.style.display = "none";
-      const arrInsp = document.getElementById("case-arrow-inspector");
-      if (arrInsp) arrInsp.style.display = "none";
-      buildCasePolyChecklist();
-      buildCaseLabelsList();
-      buildCaseArrowsList();
-      drawViewportTrue();
+      applyActiveCase(null);
       return;
     }
     const c = getCaseById(val);
@@ -11201,15 +11408,8 @@ function setupCasesPanel() {
         const data = JSON.parse(text);
         if (Array.isArray(data)) {
           state.cases = data;
-          state.activeCaseId = null;
-          state.caseMode = false;
-          state.caseSelectedLabelId = null;
-          state.caseSelectedArrowId = null;
+          applyActiveCase(null);
           rebuildCaseSelector();
-          buildCasePolyChecklist();
-          buildCaseLabelsList();
-          buildCaseArrowsList();
-          drawViewportTrue();
           statusBar.textContent = `✅ Loaded ${data.length} case(s) from ${file.name}`;
         }
       } catch (_) {

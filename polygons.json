@@ -114,7 +114,7 @@
         "y": 1943219.1261545115
       }
     ],
-    "visible": true,
+    "visible": false,
     "fillColor": "#2979ff",
     "lineOpacity": 1,
     "closed": true,
@@ -529,7 +529,7 @@
     "lineType": "solid",
     "showArea": false,
     "showNodes": false,
-    "visible": false,
+    "visible": true,
     "points": [
       {
         "x": 4644954.729638558,
@@ -731,7 +731,7 @@
         "y": 1943283.691775514
       }
     ],
-    "visible": true,
+    "visible": false,
     "fillColor": "#ff1744",
     "lineOpacity": 0.48,
     "closed": true,
@@ -750,8 +750,8 @@
     "lineWidth": 2.5,
     "lineType": "solid",
     "showArea": false,
-    "showNodes": false,
-    "visible": false,
+    "showNodes": true,
+    "visible": true,
     "points": [
       {
         "x": 4644954.729638558,
@@ -794,12 +794,24 @@
         "y": 1943345.497726665
       },
       {
+        "x": 4644972.289001536,
+        "y": 1943371.9019327634
+      },
+      {
         "x": 4644956.579903586,
         "y": 1943373.0231996474
       }
     ],
     "fillColor": "#ff9100",
-    "lineOpacity": 1
+    "lineOpacity": 1,
+    "closed": true,
+    "gradBuffer": false,
+    "gradDist": 50,
+    "gradSide": 1,
+    "gradScale": "viridis",
+    "gradReverseColors": false,
+    "gradStartOp": 0.7,
+    "gradEndOp": 0
   },
   {
     "id": 14,
