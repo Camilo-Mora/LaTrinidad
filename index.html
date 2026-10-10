@@ -1715,9 +1715,14 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 class DXFParser {
   static parse(dxfText) {
     if (!dxfText) return [];
+    if (dxfText.charCodeAt(0) === 0xFEFF) {
+      dxfText = dxfText.slice(1);
+    }
     const lines = dxfText.split(/\r?\n/);
     const entities = [];
     let currentEntity = null;
+    let pendingX = null;
+    let pendingY = null;
     let i = 0;
     while (i < lines.length - 1) {
       const code = parseInt(lines[i].trim(), 10);
@@ -1726,6 +1731,10 @@ class DXFParser {
       if (isNaN(code)) continue;
 
       if (code === 0) {
+        if (currentEntity && pendingX !== null && pendingY !== null) {
+          currentEntity.points.push({ x: pendingX, y: pendingY });
+          pendingX = null; pendingY = null;
+        }
         const uVal = val.toUpperCase();
         if (uVal === "VERTEX") {
           let vx = 0, vy = 0;
@@ -1758,7 +1767,7 @@ class DXFParser {
           currentEntity = null;
         }
 
-        if (["POLYLINE", "LWPOLYLINE", "LINE", "ARC", "CIRCLE"].includes(uVal)) {
+        if (["POLYLINE", "LWPOLYLINE", "LINE", "ARC", "CIRCLE", "3DFACE", "SPLINE"].includes(uVal)) {
           currentEntity = { type: uVal, layer: "0", closed: uVal === "CIRCLE", points: [], cx: 0, cy: 0, r: 0, startAngle: 0, endAngle: 360 };
         }
         continue;
@@ -1768,15 +1777,18 @@ class DXFParser {
       if (code === 8) currentEntity.layer = val;
       if (code === 70) currentEntity.closed = (parseInt(val, 10) & 1) !== 0;
       if (code === 10) {
-        const x = parseFloat(val);
-        let y = 0;
-        if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 20) {
-          y = parseFloat(lines[i + 1].trim());
-          i += 2;
+        pendingX = parseFloat(val);
+        if (pendingY !== null) {
+          currentEntity.points.push({ x: pendingX, y: pendingY });
+          pendingX = null; pendingY = null;
         }
-        currentEntity.points.push({ x, y });
-      }
-      if (code === 11) {
+      } else if (code === 20) {
+        pendingY = parseFloat(val);
+        if (pendingX !== null) {
+          currentEntity.points.push({ x: pendingX, y: pendingY });
+          pendingX = null; pendingY = null;
+        }
+      } else if (code === 11) {
         const x = parseFloat(val);
         let y = 0;
         if (i < lines.length - 1 && parseInt(lines[i].trim(), 10) === 21) {
@@ -1787,6 +1799,9 @@ class DXFParser {
       }
     }
     if (currentEntity) {
+      if (pendingX !== null && pendingY !== null) {
+        currentEntity.points.push({ x: pendingX, y: pendingY });
+      }
       DXFParser.finalizeEntity(currentEntity);
       if (currentEntity.points.length >= 1) entities.push(currentEntity);
     }
@@ -3858,10 +3873,10 @@ function drawLayerByKey(key, ctx, vp, h) {
     }
     case "dxf_survey_cortez_oct_2026":
     case "dxf_overlay": {
-      const ents = (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0)
-        ? state.surveyCortezOct2026Entities
-        : (state.overlayLayer && state.overlayLayer.entities ? state.overlayLayer.entities : []);
-      const isVisible = (state.showSurveyCortezOct2026 !== false) && ents.length > 0;
+      const ents = (state.overlayLayer && state.overlayLayer.entities && state.overlayLayer.entities.length > 0)
+        ? state.overlayLayer.entities
+        : (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0 ? state.surveyCortezOct2026Entities : []);
+      const isVisible = (state.showSurveyCortezOct2026 !== false || (state.overlayLayer && state.overlayLayer.visible)) && ents.length > 0;
       if (isVisible) {
         drawGISLayerWithNodesAndArea(
           ctx,
@@ -8705,11 +8720,35 @@ function setupEventListeners() {
       reader.onload = (ev) => {
         const entities = DXFParser.parse(ev.target.result);
         state.entitiesTrue = entities;
+        state.showFieldDXFOnField = true;
+
+        // Check checkbox in Polygon Overview
+        const chkSumTrue = document.getElementById("sum-show-survey-cortez-2019");
+        if (chkSumTrue) chkSumTrue.checked = true;
+
+        // Update layer name display if available
+        const nameBtn = document.querySelector('button.trinidad-sec-name-btn[data-layer-key="dxf_survey_cortez_2019"]');
+        if (nameBtn) nameBtn.textContent = file.name;
+
+        // Sync with active case if present
+        const ac = state.caseMode ? getActiveCase() : null;
+        if (ac) {
+          if (ac.layers) ac.layers.dxfTrue = true;
+          if (ac.layerDisplay && ac.layerDisplay["dxf_survey_cortez_2019"]) {
+            ac.layerDisplay["dxf_survey_cortez_2019"].show = true;
+          }
+        }
+
         if (entities.length > 0) {
           state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(entities));
+          if (ac) {
+            ac.camera = { ...state.vpTrue };
+          }
           statusBar.textContent = `✅ Field DXF loaded (${entities.length} entities) from ${file.name}`;
         }
-        document.getElementById("status-true").textContent = `${entities.length} entities`;
+        const statusTrueEl = document.getElementById("status-true");
+        if (statusTrueEl) statusTrueEl.textContent = `${entities.length} entities`;
+        updatePolygonSummaryUI();
         redrawAll();
       };
       reader.readAsText(file);
@@ -8742,10 +8781,45 @@ function setupEventListeners() {
       if (!file) return;
       
       state.overlayLayer.fileName = file.name;
-      overlayStatus.textContent = "Loading...";
+      if (overlayStatus) overlayStatus.textContent = "Loading...";
+
+      const handleEntitiesLoaded = (entities, formatLabel) => {
+        state.overlayLayer.entities = entities;
+        state.surveyCortezOct2026Entities = entities;
+        state.showSurveyCortezOct2026 = true;
+        state.overlayLayer.visible = true;
+
+        if (overlayStatus) overlayStatus.textContent = `${formatLabel} Loaded (${entities.length})`;
+        const sumNameEl = document.getElementById("sum-name-dxf-overlay");
+        if (sumNameEl) sumNameEl.textContent = file.name;
+
+        // Check visibility in Polygon Overview
+        const chkOct = document.getElementById("sum-show-survey-cortez-oct-2026");
+        if (chkOct) chkOct.checked = true;
+
+        // Sync with active case
+        const ac = state.caseMode ? getActiveCase() : null;
+        if (ac) {
+          if (ac.layers) ac.layers.surveyCortezOct2026 = true;
+          if (ac.layerDisplay && ac.layerDisplay["dxf_survey_cortez_oct_2026"]) {
+            ac.layerDisplay["dxf_survey_cortez_oct_2026"].show = true;
+          }
+        }
+
+        if (entities.length > 0) {
+          state.vpTrue = fitViewport(canvasTrue, computeBoundingBox(entities));
+          if (ac) {
+            ac.camera = { ...state.vpTrue };
+          }
+          statusBar.textContent = `✅ Overlay loaded (${entities.length} entities) from ${file.name}`;
+        }
+        updatePolygonSummaryUI();
+        updateAnalyticsUI();
+        redrawAll();
+      };
       
       if (file.name.toLowerCase().endsWith(".dwg")) {
-        overlayStatus.textContent = "⏳ Converting DWG...";
+        if (overlayStatus) overlayStatus.textContent = "⏳ Converting DWG...";
         const reader = new FileReader();
         reader.onload = (ev) => {
           try {
@@ -8775,24 +8849,21 @@ function setupEventListeners() {
             worker.onmessage = (msg) => {
               if (msg.data.success) {
                 const entities = DXFParser.parse(msg.data.dxfText);
-                state.overlayLayer.entities = entities;
-                overlayStatus.textContent = `DWG Loaded (${entities.length})`;
-                updateAnalyticsUI();
-                redrawAll();
+                handleEntitiesLoaded(entities, "DWG");
               } else {
-                overlayStatus.textContent = "❌ Conversion Failed";
+                if (overlayStatus) overlayStatus.textContent = "❌ Conversion Failed";
                 alert("DWG conversion failed: " + msg.data.error + "\n\nPlease open the file in AutoCAD, QGIS, or LibreCAD and export as DXF (ASCII).");
               }
               worker.terminate();
             };
             worker.onerror = (err) => {
-              overlayStatus.textContent = "❌ Worker Error";
+              if (overlayStatus) overlayStatus.textContent = "❌ Worker Error";
               alert("DWG conversion worker failed. Please convert to DXF in CAD software.\n" + err.message);
               worker.terminate();
             };
             worker.postMessage({ fileData: ev.target.result, fileName: file.name }, [ev.target.result]);
           } catch (err) {
-            overlayStatus.textContent = "❌ Error";
+            if (overlayStatus) overlayStatus.textContent = "❌ Error";
             alert("DWG conversion setup failed. Please convert to DXF in CAD software.\n" + err.message);
           }
         };
@@ -8802,10 +8873,7 @@ function setupEventListeners() {
         const reader = new FileReader();
         reader.onload = (ev) => {
           const entities = DXFParser.parse(ev.target.result);
-          state.overlayLayer.entities = entities;
-          overlayStatus.textContent = `DXF Loaded (${entities.length})`;
-          updateAnalyticsUI();
-          redrawAll();
+          handleEntitiesLoaded(entities, "DXF");
         };
         reader.readAsText(file);
       }
@@ -10294,30 +10362,72 @@ function deleteAnchor(targetKey, index) {
 // [SECTION: JS_PDF_AND_DXF_EXPORT]
 function exportRectifiedDXF() {
   let combinedEntities = [];
-  if (getActiveAnchors(state.anchors296).length >= 2) {
+
+  // 1. Reconstructed Lindero La Trinidad (Escritura 296)
+  if (state.reconstructedPolygon && state.reconstructedPolygon.vertices && state.reconstructedPolygon.vertices.length >= 2) {
+    if (typeof updateReconstructedPolygonWarp === "function") {
+      updateReconstructedPolygonWarp();
+    }
+    const pts = state.reconstructedPolygon.vertices.map(v => ({ x: v.x, y: v.y }));
+    combinedEntities.push({
+      type: "POLYLINE",
+      layer: "LINDERO_LA_TRINIDAD_296",
+      closed: state.reconstructedPolygon.closed !== false,
+      points: pts
+    });
+  }
+
+  // 2. Rectified Deed 296 (raw deed warped if anchors exist)
+  if (getActiveAnchors(state.anchors296).length >= 2 && state.entities296 && state.entities296.length > 0) {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
     state.entities296.forEach((ent) => {
       combinedEntities.push({ ...ent, layer: "RECTIFIED_296", points: ent.points.map(p => warper(p)) });
     });
   }
-  if (getActiveAnchors(state.anchors1073).length >= 2) {
+
+  // 3. Rectified Deed 1073
+  if (getActiveAnchors(state.anchors1073).length >= 2 && state.entities1073 && state.entities1073.length > 0) {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
     state.entities1073.forEach((ent) => {
       combinedEntities.push({ ...ent, layer: "RECTIFIED_1073", points: ent.points.map(p => warper(p)) });
     });
   }
+
+  // 4. Rectified Deed 196 (prefer optimized field parcels, fallback to warped raw DXF)
   if (state.entities196Optimized && state.entities196Optimized.length > 0) {
     state.entities196Optimized.forEach((ent) => {
-      combinedEntities.push({ ...ent, layer: "RECTIFIED_196" });
+      combinedEntities.push({ ...ent, layer: ent.layer || "RECTIFIED_196" });
     });
-  } else if (getActiveAnchors(state.anchors196).length >= 2) {
+  } else if (getActiveAnchors(state.anchors196).length >= 2 && state.entities196 && state.entities196.length > 0) {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
     state.entities196.forEach((ent) => {
       combinedEntities.push({ ...ent, layer: "RECTIFIED_196", points: ent.points.map(p => warper(p)) });
     });
   }
 
-  const dxfText = DXFParser.serialize(combinedEntities.length > 0 ? combinedEntities : state.entities296);
+  // 5. Field Survey Cristian Cortez 2019 (True DXF)
+  if (state.entitiesTrue && state.entitiesTrue.length > 0) {
+    state.entitiesTrue.forEach((ent) => {
+      combinedEntities.push({ ...ent, layer: ent.layer || "SURVEY_CORTEZ_2019" });
+    });
+  }
+
+  // 6. Visible Measurement / Case Polygons
+  if (state.measurePolygons && state.measurePolygons.length > 0) {
+    state.measurePolygons.forEach((poly) => {
+      if (poly.visible === false || !poly.points || poly.points.length < 2) return;
+      combinedEntities.push({
+        type: "POLYLINE",
+        layer: (poly.name || "POLYGON").replace(/[^a-zA-Z0-9_-]/g, "_"),
+        closed: poly.closed !== false,
+        points: poly.points.map(p => ({ x: p.x, y: p.y }))
+      });
+    });
+  }
+
+  // Fallback to raw 296 if nothing was generated
+  const entitiesToExport = combinedEntities.length > 0 ? combinedEntities : state.entities296;
+  const dxfText = DXFParser.serialize(entitiesToExport);
   const blob = new Blob([dxfText], { type: "application/dxf" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -11420,10 +11530,11 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
       break;
     case "dxf_survey_cortez_oct_2026":
     case "dxf_overlay": {
-      const ents = (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0)
-        ? state.surveyCortezOct2026Entities
-        : (state.overlayLayer && state.overlayLayer.entities ? state.overlayLayer.entities : []);
-      if (state.showSurveyCortezOct2026 !== false) strokePlain(ents, lineOp);
+      const ents = (state.overlayLayer && state.overlayLayer.entities && state.overlayLayer.entities.length > 0)
+        ? state.overlayLayer.entities
+        : (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0 ? state.surveyCortezOct2026Entities : []);
+      const isVisible = (state.showSurveyCortezOct2026 !== false || (state.overlayLayer && state.overlayLayer.visible)) && ents.length > 0;
+      if (isVisible) strokePlain(ents, lineOp);
       break;
     }
     case "dxf_296":
