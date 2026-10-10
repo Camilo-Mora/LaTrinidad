@@ -1313,7 +1313,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "2": {
         "color": "#00e676",
@@ -1322,7 +1330,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "3": {
         "color": "#ff1744",
@@ -1331,7 +1347,15 @@
         "lineWidth": 6.5,
         "lineType": "dashed",
         "lineOpacity": 0.48,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "4": {
         "color": "#2979ff",
@@ -1340,7 +1364,15 @@
         "lineWidth": 6,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "5": {
         "color": "#00e5ff",
@@ -1349,16 +1381,32 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "6": {
         "color": "#ff9100",
         "fillColor": "#ff9100",
-        "fillOpacity": 0.31,
+        "fillOpacity": 0.3,
         "lineWidth": 6,
-        "lineType": "dashed",
+        "lineType": "dotted",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "7": {
         "color": "#ff9100",
@@ -1367,7 +1415,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "8": {
         "color": "#ff9100",
@@ -1376,7 +1432,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       "9": {
         "color": "#ff6d00",
@@ -1385,7 +1449,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "10": {
         "color": "#b0bec5",
@@ -1394,7 +1466,15 @@
         "lineWidth": 2,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "11": {
         "color": "#ff6d00",
@@ -1403,7 +1483,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "12": {
         "color": "#ff9100",
@@ -1412,7 +1500,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "13": {
         "color": "#2979ff",
@@ -1421,7 +1517,15 @@
         "lineWidth": 1,
         "lineType": "dashdot",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "14": {
         "color": "#ff9100",
@@ -1430,7 +1534,15 @@
         "lineWidth": 2.5,
         "lineType": "dashed",
         "lineOpacity": 0.91,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
@@ -1611,7 +1723,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 1,
@@ -1624,7 +1743,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 2,
@@ -1637,20 +1763,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
-      },
-      {
-        "id": 3,
-        "name": "Lote#5",
-        "visible": true,
-        "showArea": false,
-        "showNodes": false,
-        "color": "#ff1744",
-        "fillColor": "#ff1744",
-        "fillOpacity": 0.36,
-        "lineWidth": 6.5,
-        "lineType": "dashed",
-        "lineOpacity": 0.48
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 5,
@@ -1663,7 +1783,14 @@
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 6,
@@ -1673,10 +1800,17 @@
         "showNodes": false,
         "color": "#ff9100",
         "fillColor": "#ff9100",
-        "fillOpacity": 0.31,
+        "fillOpacity": 0.3,
         "lineWidth": 6,
-        "lineType": "dashed",
-        "lineOpacity": 1
+        "lineType": "dotted",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 7,
@@ -1689,7 +1823,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 8,
@@ -1702,7 +1843,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       {
         "id": 9,
@@ -1715,7 +1863,14 @@
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 10,
@@ -1728,7 +1883,14 @@
         "fillOpacity": 0.08,
         "lineWidth": 2,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 11,
@@ -1741,7 +1903,34 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.36,
+        "lineWidth": 6.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.48,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 12,
@@ -1754,20 +1943,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
-      },
-      {
-        "id": 13,
-        "name": "Lote#6",
-        "visible": false,
-        "showArea": false,
-        "showNodes": false,
-        "color": "#2979ff",
-        "fillColor": "#2979ff",
-        "fillOpacity": 0.06,
-        "lineWidth": 1,
-        "lineType": "dashdot",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 14,
@@ -1780,7 +1963,34 @@
         "fillOpacity": 0.02,
         "lineWidth": 2.5,
         "lineType": "dashed",
-        "lineOpacity": 0.91
+        "lineOpacity": 0.91,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 13,
+        "name": "Lote#6",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.06,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -1961,6 +2171,7 @@
     "name": "Pedro",
     "selectedPolyIds": [
       4,
+      7,
       3
     ],
     "polyStyles": {
@@ -1971,7 +2182,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "2": {
         "color": "#00e676",
@@ -1980,7 +2199,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "3": {
         "color": "#ff1744",
@@ -1989,7 +2216,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "4": {
         "color": "#2979ff",
@@ -1998,7 +2233,15 @@
         "lineWidth": 6,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "5": {
         "color": "#00e5ff",
@@ -2007,7 +2250,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "6": {
         "color": "#ff9100",
@@ -2016,16 +2267,32 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "7": {
         "color": "#ff9100",
         "fillColor": "#ff9100",
-        "fillOpacity": 0.15,
-        "lineWidth": 2.5,
-        "lineType": "solid",
+        "fillOpacity": 0.3,
+        "lineWidth": 6,
+        "lineType": "dotted",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "8": {
         "color": "#ff9100",
@@ -2034,7 +2301,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       "9": {
         "color": "#ff6d00",
@@ -2043,7 +2318,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "10": {
         "color": "#b0bec5",
@@ -2052,7 +2335,15 @@
         "lineWidth": 2,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "11": {
         "color": "#ff6d00",
@@ -2061,7 +2352,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "12": {
         "color": "#ff9100",
@@ -2070,7 +2369,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "13": {
         "color": "#2979ff",
@@ -2079,7 +2386,15 @@
         "lineWidth": 1,
         "lineType": "dashdot",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "14": {
         "color": "#ff9100",
@@ -2088,13 +2403,21 @@
         "lineWidth": 2.5,
         "lineType": "dashed",
         "lineOpacity": 0.91,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
-      "scale": 2.3533492670086735,
-      "offsetX": -10930541.859382201,
-      "offsetY": -4572839.436863775
+      "scale": 2.3545259416421773,
+      "offsetX": -10936007.735311888,
+      "offsetY": -4575126.026582206
     },
     "layers": {
       "reconstructed": true,
@@ -2119,8 +2442,8 @@
       {
         "id": "lbl_-891177485",
         "text": "[size=25]Lote Pedro Ruiz[/size]\n[size=15]Area reportada en documento: [/size]2,142 m²\n[size=15]Area invadida: $PedroInvasion$m²[/size]\nEscritura 623 de 2014; FMI 378-185656.",
-        "worldX": 4644709.151398908,
-        "worldY": 1943406.7426947942,
+        "worldX": 4644838.753496131,
+        "worldY": 1943432.6693575333,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -2131,8 +2454,8 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 76.01753089763224,
-          "y": 97.60344326775521,
+          "x": 380.60453966632485,
+          "y": 36.390744988806546,
           "w": 379.4333190917969,
           "h": 116
         },
@@ -2141,20 +2464,20 @@
       {
         "id": "lbl_-891677727",
         "text": "Plano original Lote #5\n[size=15]Area reportada en documento: [/size]10,604m²\nEscritura 1073 de 1973; FMI 378-185657.",
-        "worldX": 4644970.0941,
-        "worldY": 1943210.5721,
+        "worldX": 4644910.604417801,
+        "worldY": 1943171.90380657,
         "fontSize": 20,
         "bold": true,
         "italic": true,
         "textColor": "#ffffff",
         "bgColor": "#ff0000",
-        "bgOpacity": 0.4,
+        "bgOpacity": 0.95,
         "borderColor": "#ff0000",
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 691.1068452447653,
-          "y": 560.2613687356934,
+          "x": 550.77939867042,
+          "y": 651.3699994189665,
           "w": 388.5666809082031,
           "h": 83
         },
@@ -2175,8 +2498,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 152.37208583578467,
-          "y": 453.10697227716446,
+          "x": 151.84477188065648,
+          "y": 453.1160257626325,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -2198,8 +2521,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 154.7170874811709,
-          "y": 615.2340344153345,
+          "x": 154.19094602763653,
+          "y": 615.3241514312103,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -2211,10 +2534,10 @@
       {
         "id": "arr_-890877823",
         "name": "Arrow 1",
-        "startX": 4644841.549,
-        "startY": 1943358.9386,
-        "endX": 4644867.2291,
-        "endY": 1943322.1892,
+        "startX": 4644853.023071922,
+        "startY": 1943384.8658998103,
+        "endX": 4644862.554910685,
+        "endY": 1943327.7132419185,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -2223,10 +2546,10 @@
       {
         "id": "arr_-891379088",
         "name": "Arrow 2",
-        "startX": 4644984.5385,
-        "startY": 1943213.0116,
-        "endX": 4644947.2684,
-        "endY": 1943247.4888,
+        "startX": 4644961.592479723,
+        "startY": 1943174.7682328715,
+        "endX": 4644924.322379723,
+        "endY": 1943209.2454328714,
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -2269,7 +2592,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 1,
@@ -2282,7 +2612,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 2,
@@ -2295,7 +2632,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 5,
@@ -2308,7 +2652,14 @@
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 6,
@@ -2321,20 +2672,34 @@
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 7,
         "name": "Pedro Ruiz",
-        "visible": false,
+        "visible": true,
         "showArea": false,
         "showNodes": false,
         "color": "#ff9100",
         "fillColor": "#ff9100",
-        "fillOpacity": 0.15,
-        "lineWidth": 2.5,
-        "lineType": "solid",
-        "lineOpacity": 1
+        "fillOpacity": 0.3,
+        "lineWidth": 6,
+        "lineType": "dotted",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 8,
@@ -2347,7 +2712,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       {
         "id": 9,
@@ -2360,7 +2732,14 @@
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 10,
@@ -2373,7 +2752,14 @@
         "fillOpacity": 0.08,
         "lineWidth": 2,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 11,
@@ -2386,7 +2772,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 3,
@@ -2399,7 +2792,14 @@
         "fillOpacity": 0.13,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 12,
@@ -2412,7 +2812,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 14,
@@ -2425,7 +2832,14 @@
         "fillOpacity": 0.02,
         "lineWidth": 2.5,
         "lineType": "dashed",
-        "lineOpacity": 0.91
+        "lineOpacity": 0.91,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 13,
@@ -2438,7 +2852,14 @@
         "fillOpacity": 0.06,
         "lineWidth": 1,
         "lineType": "dashdot",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -2510,7 +2931,7 @@
         "fillOpacity": 0,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 0.9,
+        "lineOpacity": 0.31,
         "showNodes": false,
         "showArea": false,
         "visible": true
@@ -2630,7 +3051,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "2": {
         "color": "#00e676",
@@ -2639,7 +3068,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "3": {
         "color": "#ff1744",
@@ -2648,7 +3085,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "4": {
         "color": "#2979ff",
@@ -2657,7 +3102,15 @@
         "lineWidth": 6,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "5": {
         "color": "#00e5ff",
@@ -2666,7 +3119,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "6": {
         "color": "#ff9100",
@@ -2675,7 +3136,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "7": {
         "color": "#ff9100",
@@ -2684,16 +3153,32 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "8": {
         "color": "#ff9100",
         "fillColor": "#ff9100",
-        "fillOpacity": 0.15,
-        "lineWidth": 2.5,
-        "lineType": "solid",
+        "fillOpacity": 0.3,
+        "lineWidth": 6,
+        "lineType": "dotted",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       "9": {
         "color": "#ff6d00",
@@ -2702,7 +3187,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "10": {
         "color": "#b0bec5",
@@ -2711,7 +3204,15 @@
         "lineWidth": 2,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "11": {
         "color": "#ff6d00",
@@ -2720,7 +3221,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "12": {
         "color": "#ff9100",
@@ -2729,7 +3238,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "13": {
         "color": "#2979ff",
@@ -2738,13 +3255,38 @@
         "lineWidth": 1,
         "lineType": "dashdot",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "14": {
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
-      "scale": 1.170030505587996,
-      "offsetX": -5434301.1901550405,
-      "offsetY": -2273507.4819438756
+      "scale": 2.046390666964064,
+      "offsetX": -9504701.1139386,
+      "offsetY": -3976295.5608165986
     },
     "layers": {
       "reconstructed": true,
@@ -2768,44 +3310,44 @@
     "labels": [
       {
         "id": "lbl_-890853196",
-        "text": "Lote Nacho Ruiz\n[size=10]Area reportada en documento: [/size]5,572 m²\n[size=9]Area invadida: 1,770m²[/size]",
-        "worldX": 4644676.857,
-        "worldY": 1943408.4424,
+        "text": "[size=30]Lote Nacho Ruiz[/size]\n[size=10]Area reportada en documento: [/size]5,572 m²\n[size=15]Area invadida: $NachoInvasion196$m2[/size]\nEscritura 196 de 2014; FMI 378-185657",
+        "worldX": 4644854.242484531,
+        "worldY": 1943451.4449417044,
         "fontSize": 20,
         "bold": true,
         "italic": true,
         "textColor": "#ffffff",
         "bgColor": "#ff8000",
-        "bgOpacity": 0.3,
+        "bgOpacity": 0.7,
         "borderColor": "#ff8000",
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 107.42113353405148,
-          "y": 433.31951862340793,
-          "w": 238.4333267211914,
-          "h": 85
+          "x": 480.2572901826352,
+          "y": 7.662190069910139,
+          "w": 373.8666687011719,
+          "h": 123
         },
         "showBorder": false
       },
       {
         "id": "lbl_-891057664",
-        "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657.\n[size=15]Area reportada en documento: [/size]10,604m²",
-        "worldX": 4644970.0941,
-        "worldY": 1943210.5721,
+        "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657\n[size=15]Area reportada en documento: [/size]10,604m²",
+        "worldX": 4644912.431600896,
+        "worldY": 1943166.1035625555,
         "fontSize": 20,
         "bold": true,
         "italic": true,
         "textColor": "#ffffff",
         "bgColor": "#ff0000",
-        "bgOpacity": 0.4,
+        "bgOpacity": 0.6,
         "borderColor": "#ff0000",
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 451.51748590450734,
-          "y": 665.8338057734072,
-          "w": 388.5666809082031,
+          "x": 600.3349548298866,
+          "y": 592.5821252590977,
+          "w": 383,
           "h": 83
         },
         "showBorder": false
@@ -2825,8 +3367,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 172.7388553833589,
-          "y": 602.6212445930578,
+          "x": 230.00038143247366,
+          "y": 390.2739544259384,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -2848,8 +3390,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 182.35674014594406,
-          "y": 691.6790525503457,
+          "x": 246.8221219945699,
+          "y": 546.0366171547212,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -2861,10 +3403,10 @@
       {
         "id": "arr_-891267770",
         "name": "Arrow 1",
-        "startX": 4644841.549,
-        "startY": 1943358.9386,
-        "endX": 4644920.2935,
-        "endY": 1943331.3673,
+        "startX": 4644965.1813074,
+        "startY": 1943395.0998282516,
+        "endX": 4644957.432058742,
+        "endY": 1943359.7098843055,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -2873,10 +3415,10 @@
       {
         "id": "arr_-890667455",
         "name": "Arrow 2",
-        "startX": 4644984.5385,
-        "startY": 1943213.0116,
-        "endX": 4644947.2684,
-        "endY": 1943247.4888,
+        "startX": 4644964.0145596415,
+        "startY": 1943168.054397309,
+        "endX": 4644926.744459642,
+        "endY": 1943202.5315973088,
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -2919,7 +3461,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 1,
@@ -2932,7 +3481,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 2,
@@ -2945,20 +3501,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
-      },
-      {
-        "id": 3,
-        "name": "Lote#5",
-        "visible": true,
-        "showArea": false,
-        "showNodes": false,
-        "color": "#ff1744",
-        "fillColor": "#ff1744",
-        "fillOpacity": 0.13,
-        "lineWidth": 1.5,
-        "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 5,
@@ -2971,7 +3521,14 @@
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 6,
@@ -2984,7 +3541,14 @@
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 7,
@@ -2997,7 +3561,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 8,
@@ -3007,10 +3578,17 @@
         "showNodes": false,
         "color": "#ff9100",
         "fillColor": "#ff9100",
-        "fillOpacity": 0.15,
-        "lineWidth": 2.5,
-        "lineType": "solid",
-        "lineOpacity": 1
+        "fillOpacity": 0.3,
+        "lineWidth": 6,
+        "lineType": "dotted",
+        "lineOpacity": 1,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       {
         "id": 9,
@@ -3023,7 +3601,14 @@
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 10,
@@ -3036,7 +3621,14 @@
         "fillOpacity": 0.08,
         "lineWidth": 2,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 11,
@@ -3049,7 +3641,34 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.13,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 12,
@@ -3062,7 +3681,34 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 14,
+        "name": "JimmyInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 13,
@@ -3075,7 +3721,14 @@
         "fillOpacity": 0.06,
         "lineWidth": 1,
         "lineType": "dashdot",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -3147,7 +3800,7 @@
         "fillOpacity": 0,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 0.9,
+        "lineOpacity": 0.3,
         "showNodes": false,
         "showArea": false,
         "visible": true
@@ -3261,97 +3914,273 @@
     "polyStyles": {
       "1": {
         "color": "#ffd600",
+        "fillColor": "#ffd600",
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "2": {
         "color": "#00e676",
+        "fillColor": "#00e676",
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "3": {
         "color": "#ff1744",
+        "fillColor": "#ff1744",
         "fillOpacity": 0.3,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "4": {
         "color": "#2979ff",
+        "fillColor": "#2979ff",
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "5": {
         "color": "#00e5ff",
+        "fillColor": "#00e5ff",
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "6": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "7": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "8": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       "9": {
         "color": "#ff6d00",
+        "fillColor": "#ff6d00",
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "10": {
         "color": "#b0bec5",
-        "fillOpacity": 0.08
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "11": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "12": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "13": {
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.06,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "14": {
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
-      "scale": 2.0484375692286942,
-      "offsetX": -9514286.577213824,
-      "offsetY": -3980405.8119129124
+      "scale": 3.1154174881006895,
+      "offsetX": -14469927.401495067,
+      "offsetY": -6053652.40894305
     },
     "layers": {
+      "reconstructed": true,
       "dxf296": true,
       "dxf1073": true,
       "dxf196": false,
       "dxfTrue": false,
+      "surveyValoy2025": false,
+      "surveyCortez2025": false,
+      "surveyCortezOct2026": false,
+      "dxfOverlay": false,
       "geotiff": true
     },
     "dxfOpacity": {
-      "dxf_296": 0.25,
-      "dxf_1073": 0.25,
-      "dxf_196": 0.4,
+      "dxf_296": 1,
+      "dxf_1073": 1,
+      "dxf_196": 1,
       "dxf_true": 1
     },
     "geotiffBW": false,
     "labels": [
       {
         "id": "lbl_-891276541",
-        "text": "Carretera\n[size=10]Area invadida: [/size]1,056m²",
-        "worldX": 4644724.2787,
-        "worldY": 1943308.2932,
+        "text": "[size=30]Carretera[/size]\n[size=10]Area invadida: [/size]$Carretera$m2",
+        "worldX": 4644749.315472855,
+        "worldY": 1943299.947609048,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -3362,31 +4191,31 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 136.46339605888352,
-          "y": 33.93264243518934,
-          "w": 156.1111068725586,
-          "h": 60
+          "x": 400.8437727726996,
+          "y": 234.7675366671756,
+          "w": 161.76666259765625,
+          "h": 73
         },
         "showBorder": false
       },
       {
         "id": "lbl_-890902859",
         "text": "La Trinidad",
-        "worldX": 4644730.9733,
-        "worldY": 1943265.4532,
+        "worldX": 4644731.294284267,
+        "worldY": 1943250.045955166,
         "fontSize": 20,
         "bold": true,
         "italic": true,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 152.54715879121795,
-          "y": 123.57101058703847,
-          "w": 113.38888549804688,
+          "x": 346.70024668984115,
+          "y": 392.23202185705304,
+          "w": 113.53333282470703,
           "h": 31
         },
         "showBg": true,
@@ -3395,21 +4224,21 @@
       {
         "id": "lbl_-891502063",
         "text": "Casa del Sol",
-        "worldX": 4644739.1935,
-        "worldY": 1943189.3374,
+        "worldX": 4644747.860075219,
+        "worldY": 1943189.6583842675,
         "fontSize": 20,
         "bold": true,
         "italic": false,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 170.04859114298597,
-          "y": 279.31477231695317,
-          "w": 124.88888549804688,
+          "x": 398.3096015229821,
+          "y": 580.3645162982866,
+          "w": 125.03333282470703,
           "h": 31
         },
         "showBg": true,
@@ -3420,11 +4249,11 @@
       {
         "id": "arr_-891499005",
         "name": "Arrow 1",
-        "startX": 4644794.8051,
-        "startY": 1943283.1257,
-        "endX": 4644814.9862,
-        "endY": 1943268.5086,
-        "color": "#ff8000",
+        "startX": 4644791.916241595,
+        "startY": 1943278.952904524,
+        "endX": 4644812.097341594,
+        "endY": 1943264.3358045241,
+        "color": "#c0c0c0",
         "opacity": 0.85,
         "lineWidth": 10,
         "headSize": 18
@@ -3432,10 +4261,10 @@
       {
         "id": "arr_-891388614",
         "name": "Arrow 3",
-        "startX": 4644751.1576,
-        "startY": 1943212.3069,
-        "endX": 4644751.5085,
-        "endY": 1943246.6193,
+        "startX": 4644750.194647198,
+        "startY": 1943208.7760730588,
+        "endX": 4644750.5455471985,
+        "endY": 1943243.0884730588,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
@@ -3444,15 +4273,469 @@
       {
         "id": "arr_-890676517",
         "name": "Arrow 4",
-        "startX": 4644779.388,
-        "startY": 1943217.3137,
-        "endX": 4644778.6106,
-        "endY": 1943188.3737,
+        "startX": 4644775.536188792,
+        "startY": 1943212.8199202567,
+        "endX": 4644775.079773059,
+        "endY": 1943189.015668535,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
         "headSize": 18
       }
+    ],
+    "polygons": [
+      {
+        "id": 4,
+        "name": "LinderoHistorico_1073_296",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.15,
+        "lineWidth": 6,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 1,
+        "name": "LoteA",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 2,
+        "name": "LoteB",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 5,
+        "name": "Restitucion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.25,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 6,
+        "name": "Jimmy Ruiz",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 7,
+        "name": "Pedro Ruiz",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 8,
+        "name": "Nacho196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
+      },
+      {
+        "id": 9,
+        "name": "196InTrinidad",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 10,
+        "name": "Carretera",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 11,
+        "name": "PedroInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.3,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 12,
+        "name": "NachoInvasion196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 14,
+        "name": "JimmyInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 13,
+        "name": "Lote#6",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.06,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      }
+    ],
+    "layerDisplay": {
+      "dxf_296": {
+        "show": true,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_1073": {
+        "show": true,
+        "area": false,
+        "nodes": false,
+        "showPdf": false,
+        "pdfOpacity": 0.5
+      },
+      "dxf_196": {
+        "show": false,
+        "area": false,
+        "nodes": false,
+        "showPdf": false,
+        "pdfOpacity": 0.5
+      },
+      "dxf_survey_cortez_2019": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_valoy_2025": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "mojones": {
+        "show": false,
+        "items": {
+          "1": false,
+          "2": false,
+          "4": false
+        }
+      }
+    },
+    "layerStyles": {
+      "dxf_296": {
+        "name": "Lindero La Trinidad (E. 296)",
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.08,
+        "lineWidth": 3.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": true,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_1073": {
+        "name": "Escritura 1073",
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.3,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_196": {
+        "name": "Escritura 196",
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.85,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_2019": {
+        "name": "In 2019 by Cristian Cortez",
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_valoy_2025": {
+        "name": "In 2025 by Wilmar Valoy",
+        "color": "#ffb300",
+        "fillColor": "#ffb300",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "name": "2026 (Sep) by Cristian Cortez",
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "name": "2026 (Oct) by Cristian Cortez",
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      }
+    },
+    "trinidadSectionStyles": {
+      "1073": {
+        "color": "#ff0000",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e296": {
+        "color": "#80ffff",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "quebrada": {
+        "color": "#00ff40",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e1073": {
+        "color": "#0000ff",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      }
+    },
+    "layerOrder": [
+      "dxf_296",
+      "dxf_1073",
+      "dxf_196",
+      "dxf_survey_cortez_2019",
+      "dxf_survey_valoy_2025",
+      "dxf_survey_cortez_sep_2026",
+      "dxf_survey_cortez_oct_2026",
+      "dxf_anchors",
+      "measure_polygons"
     ]
   },
   {
@@ -4108,89 +5391,269 @@
     "name": "Restitucion",
     "selectedPolyIds": [
       4,
-      5,
-      1
+      1,
+      5
     ],
     "polyStyles": {
       "1": {
         "color": "#ffd600",
+        "fillColor": "#ffd600",
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "2": {
         "color": "#00e676",
+        "fillColor": "#00e676",
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "3": {
         "color": "#ff1744",
+        "fillColor": "#ff1744",
         "fillOpacity": 0.3,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "4": {
         "color": "#2979ff",
+        "fillColor": "#2979ff",
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "5": {
         "color": "#0000ff",
+        "fillColor": "#00e5ff",
         "fillOpacity": 0.36,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "6": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "7": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "8": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       "9": {
         "color": "#ff6d00",
+        "fillColor": "#ff6d00",
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "showArea": false
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "10": {
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "11": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "12": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "13": {
+        "color": "#ef28ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.28,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "14": {
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
-      "scale": 0.7704685980212121,
-      "offsetX": -3578427.3028308805,
-      "offsetY": -1497122.6169093456
+      "scale": 1.3475543933678371,
+      "offsetX": -6258783.105103101,
+      "offsetY": -2618384.1887783
     },
     "layers": {
+      "reconstructed": true,
       "dxf296": true,
       "dxf1073": true,
       "dxf196": false,
       "dxfTrue": false,
+      "surveyValoy2025": false,
+      "surveyCortez2025": false,
+      "surveyCortezOct2026": false,
+      "dxfOverlay": false,
       "geotiff": true
     },
     "dxfOpacity": {
-      "dxf_296": 0.25,
-      "dxf_1073": 0.25,
+      "dxf_296": 1,
+      "dxf_1073": 1,
       "dxf_196": 1,
       "dxf_true": 1
     },
@@ -4199,8 +5662,8 @@
       {
         "id": "lbl_-879101834",
         "text": "Lote A\n[size=14]Area 8,105 m²[/size]",
-        "worldX": 4644733.0366,
-        "worldY": 1943433.9201,
+        "worldX": 4644907.426592089,
+        "worldY": 1943447.2776313089,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -4211,18 +5674,18 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 188.34910380793735,
-          "y": 141.15813422761858,
-          "w": 100.88888549804688,
+          "x": 477.30438796337694,
+          "y": 256.27152746682987,
+          "w": 101.13333129882812,
           "h": 60
         },
         "showBorder": true
       },
       {
         "id": "lbl_-879210777",
-        "text": "Restitucion sugerida\n[size=14]Area: 7,581 m²[/size]",
-        "worldX": 4644753.4968,
-        "worldY": 1943579.058,
+        "text": "Restitucion sugerida\n[size=14]Area: $Restitucion$m²[/size]",
+        "worldX": 4644860.357050472,
+        "worldY": 1943556.0533627456,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -4233,9 +5696,9 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 204.6191107208142,
-          "y": 30.33891535771545,
-          "w": 205.77777099609375,
+          "x": 414.8756203632802,
+          "y": 110.69031267752871,
+          "w": 206,
           "h": 58
         },
         "showBorder": false
@@ -4243,8 +5706,8 @@
       {
         "id": "lbl_-879265913",
         "text": "La Trinidad",
-        "worldX": 4644672.5807,
-        "worldY": 1943277.3946,
+        "worldX": 4644734.173761034,
+        "worldY": 1943262.5528985455,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -4255,9 +5718,9 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 144.3215297210263,
-          "y": 263.87856605357956,
-          "w": 113.38888549804688,
+          "x": 245.83677431195974,
+          "y": 507.19815266598016,
+          "w": 113.53333282470703,
           "h": 31
         },
         "showBg": true,
@@ -4266,8 +5729,8 @@
       {
         "id": "lbl_-879079028",
         "text": "Casa del Sol",
-        "worldX": 4644746.9972,
-        "worldY": 1943191.9011,
+        "worldX": 4644744.028859709,
+        "worldY": 1943188.1906746363,
         "fontSize": 20,
         "bold": true,
         "italic": false,
@@ -4278,9 +5741,9 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 201.90425611194223,
-          "y": 329.4576897491934,
-          "w": 124.88888549804688,
+          "x": 259.1170558286831,
+          "y": 607.4052941952832,
+          "w": 125.03333282470703,
           "h": 31
         },
         "showBg": true,
@@ -4291,10 +5754,10 @@
       {
         "id": "arr_-879455096",
         "name": "Arrow 1",
-        "startX": 4644833.8298,
-        "startY": 1943353.8405,
-        "endX": 4644859.51,
-        "endY": 1943317.0912,
+        "startX": 4644923.6220937995,
+        "startY": 1943405.7864550906,
+        "endX": 4644923.329316254,
+        "endY": 1943372.7475804542,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -4327,15 +5790,469 @@
       {
         "id": "arr_-879790520",
         "name": "Arrow 4",
-        "startX": 4644779.388,
-        "startY": 1943217.3137,
-        "endX": 4644778.6106,
-        "endY": 1943188.3737,
+        "startX": 4644782.356340291,
+        "startY": 1943214.3453597093,
+        "endX": 4644781.578940291,
+        "endY": 1943185.4053597094,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
         "headSize": 18
       }
+    ],
+    "polygons": [
+      {
+        "id": 4,
+        "name": "LinderoHistorico_1073_296",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.15,
+        "lineWidth": 6,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 1,
+        "name": "LoteA",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 2,
+        "name": "LoteB",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 5,
+        "name": "Restitucion",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#0000ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.36,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 6,
+        "name": "Jimmy Ruiz",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 7,
+        "name": "Pedro Ruiz",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 8,
+        "name": "Nacho196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
+      },
+      {
+        "id": 9,
+        "name": "196InTrinidad",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 10,
+        "name": "Carretera",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 11,
+        "name": "PedroInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.3,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 12,
+        "name": "NachoInvasion196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 14,
+        "name": "JimmyInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 13,
+        "name": "Lote#6",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ef28ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.28,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      }
+    ],
+    "layerDisplay": {
+      "dxf_296": {
+        "show": true,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_1073": {
+        "show": true,
+        "area": false,
+        "nodes": false,
+        "showPdf": false,
+        "pdfOpacity": 0.5
+      },
+      "dxf_196": {
+        "show": false,
+        "area": false,
+        "nodes": false,
+        "showPdf": false,
+        "pdfOpacity": 0.5
+      },
+      "dxf_survey_cortez_2019": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_valoy_2025": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "mojones": {
+        "show": false,
+        "items": {
+          "1": false,
+          "2": false,
+          "4": false
+        }
+      }
+    },
+    "layerStyles": {
+      "dxf_296": {
+        "name": "Lindero La Trinidad (E. 296)",
+        "color": "#00e5ff",
+        "fillColor": "#ffffff",
+        "fillOpacity": 0.08,
+        "lineWidth": 3.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_1073": {
+        "name": "Escritura 1073",
+        "color": "#ff80ab",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.67,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_196": {
+        "name": "Escritura 196",
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.85,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_2019": {
+        "name": "In 2019 by Cristian Cortez",
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_valoy_2025": {
+        "name": "In 2025 by Wilmar Valoy",
+        "color": "#ffb300",
+        "fillColor": "#ffb300",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "name": "2026 (Sep) by Cristian Cortez",
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "name": "2026 (Oct) by Cristian Cortez",
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      }
+    },
+    "trinidadSectionStyles": {
+      "1073": {
+        "color": "#0000ff",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e296": {
+        "color": "#80ffff",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "quebrada": {
+        "color": "#00ff40",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e1073": {
+        "color": "#0000ff",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      }
+    },
+    "layerOrder": [
+      "dxf_296",
+      "dxf_1073",
+      "dxf_196",
+      "dxf_survey_cortez_2019",
+      "dxf_survey_valoy_2025",
+      "dxf_survey_cortez_sep_2026",
+      "dxf_survey_cortez_oct_2026",
+      "dxf_anchors",
+      "measure_polygons"
     ]
   },
   {
@@ -4357,7 +6274,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 1,
@@ -4370,7 +6294,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 2,
@@ -4383,7 +6314,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 5,
@@ -4396,7 +6334,14 @@
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 6,
@@ -4409,7 +6354,14 @@
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 7,
@@ -4422,7 +6374,14 @@
         "fillOpacity": 0.3,
         "lineWidth": 6,
         "lineType": "dotted",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 8,
@@ -4435,7 +6394,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 0.54
+        "lineOpacity": 0.54,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       {
         "id": 9,
@@ -4448,7 +6414,14 @@
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 10,
@@ -4461,7 +6434,14 @@
         "fillOpacity": 0.08,
         "lineWidth": 2,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 11,
@@ -4474,7 +6454,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 3,
@@ -4487,7 +6474,14 @@
         "fillOpacity": 0.11,
         "lineWidth": 4.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 12,
@@ -4500,7 +6494,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 14,
@@ -4513,7 +6514,14 @@
         "fillOpacity": 0.02,
         "lineWidth": 2.5,
         "lineType": "dashed",
-        "lineOpacity": 0.91
+        "lineOpacity": 0.91,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 13,
@@ -4526,7 +6534,14 @@
         "fillOpacity": 0.06,
         "lineWidth": 1,
         "lineType": "dashdot",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "polyStyles": {
@@ -4537,7 +6552,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "2": {
         "color": "#00e676",
@@ -4546,7 +6569,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "3": {
         "color": "#ff1744",
@@ -4555,7 +6586,15 @@
         "lineWidth": 4.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "4": {
         "color": "#2979ff",
@@ -4564,7 +6603,15 @@
         "lineWidth": 6,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "5": {
         "color": "#00e5ff",
@@ -4573,7 +6620,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "6": {
         "color": "#ff9100",
@@ -4582,7 +6637,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "7": {
         "color": "#ff9100",
@@ -4591,7 +6654,15 @@
         "lineWidth": 6,
         "lineType": "dotted",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "8": {
         "color": "#ff9100",
@@ -4600,7 +6671,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 0.54,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       "9": {
         "color": "#ff6d00",
@@ -4609,7 +6688,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "10": {
         "color": "#b0bec5",
@@ -4618,7 +6705,15 @@
         "lineWidth": 2,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "11": {
         "color": "#ff6d00",
@@ -4627,7 +6722,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "12": {
         "color": "#ff9100",
@@ -4636,7 +6739,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "13": {
         "color": "#2979ff",
@@ -4645,7 +6756,15 @@
         "lineWidth": 1,
         "lineType": "dashdot",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "14": {
         "color": "#ff9100",
@@ -4654,7 +6773,15 @@
         "lineWidth": 2.5,
         "lineType": "dashed",
         "lineOpacity": 0.91,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "layerDisplay": {
@@ -4831,8 +6958,8 @@
     ],
     "camera": {
       "scale": 1.1735449876453288,
-      "offsetX": -5450129.317096247,
-      "offsetY": -2280252.3803930907
+      "offsetX": -5450172.317096247,
+      "offsetY": -2280203.3803930907
     },
     "layers": {
       "reconstructed": true,
@@ -4870,8 +6997,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 393.31079707387835,
-          "y": 94.5374987507239,
+          "x": 350.31079707387835,
+          "y": 45.5374987507239,
           "w": 367.90000915527344,
           "h": 132
         }
@@ -4892,8 +7019,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 922.1491958769038,
-          "y": 623.3839136501774,
+          "x": 879.1491958769038,
+          "y": 574.3839136501774,
           "w": 367.90000915527344,
           "h": 132
         }
@@ -4914,8 +7041,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 687.5,
-          "y": 632,
+          "x": 644.5,
+          "y": 583,
           "w": 97.36666870117188,
           "h": 32
         }
@@ -4923,7 +7050,7 @@
       {
         "id": "lbl_1791601997067",
         "text": "La Trinidad",
-        "worldX": 4644733.584549722,
+        "worldX": 4644728.471835626,
         "worldY": 1943285.859853477,
         "fontSize": 14,
         "bold": true,
@@ -4936,8 +7063,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 667.5,
-          "y": 490,
+          "x": 618.4999999990687,
+          "y": 441,
           "w": 88.76667022705078,
           "h": 32
         }
@@ -4959,10 +7086,10 @@
       {
         "id": "arr_1791601576670",
         "name": "Arrow 2",
-        "startX": 4644949.183707624,
-        "startY": 1943118.767563754,
-        "endX": 4644865.655858991,
-        "endY": 1943154.8417166423,
+        "startX": 4644946.627350576,
+        "startY": 1943111.9506116265,
+        "endX": 4644863.099501943,
+        "endY": 1943148.0247645148,
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -4971,10 +7098,10 @@
       {
         "id": "arr_1791602030367",
         "name": "Arrow 3",
-        "startX": 4644747.894738549,
-        "startY": 1943217.584831538,
-        "endX": 4644748.246407435,
-        "endY": 1943274.8878069357,
+        "startX": 4644748.746857566,
+        "startY": 1943213.3242364584,
+        "endX": 4644749.098526452,
+        "endY": 1943270.6272118562,
         "color": "#0000ff",
         "opacity": 0.85,
         "lineWidth": 20,
