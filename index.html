@@ -2218,6 +2218,227 @@ const DEFAULT_LAYER_STYLES = {
 };
 state.layerStyles = JSON.parse(JSON.stringify(DEFAULT_LAYER_STYLES));
 
+const STATIC_SUMMARY_LAYERS = [
+  // Group 1: Escrituras
+  {
+    layerKey: "dxf_296",
+    showId: "sum-show-dxf-296",
+    areaId: "sum-area-dxf-296",
+    nodesId: "sum-nodes-dxf-296",
+    showProp: "showReconstructedPolygon",
+    areaProp: "showArea296",
+    nodesProp: "showNodes296"
+  },
+  {
+    layerKey: "dxf_1073",
+    showId: "sum-show-dxf-1073",
+    areaId: "sum-area-dxf-1073",
+    nodesId: "sum-nodes-dxf-1073",
+    showProp: "showWarped1073OnField",
+    areaProp: "showArea1073",
+    nodesProp: "showNodes1073"
+  },
+  {
+    layerKey: "dxf_196",
+    showId: "sum-show-dxf-196",
+    areaId: "sum-area-dxf-196",
+    nodesId: "sum-nodes-dxf-196",
+    showProp: "showWarped196OnField",
+    areaProp: "showArea196",
+    nodesProp: "showNodes196"
+  },
+  // Group 2: Muestreos de campo
+  {
+    layerKey: "dxf_survey_cortez_2019",
+    showId: "sum-show-survey-cortez-2019",
+    areaId: "sum-area-survey-cortez-2019",
+    nodesId: "sum-nodes-survey-cortez-2019",
+    showProp: "showFieldDXFOnField",
+    areaProp: "showAreaSurveyCortez2019",
+    nodesProp: "showNodesSurveyCortez2019"
+  },
+  {
+    layerKey: "dxf_survey_valoy_2025",
+    showId: "sum-show-survey-valoy-2025",
+    areaId: "sum-area-survey-valoy-2025",
+    nodesId: "sum-nodes-survey-valoy-2025",
+    showProp: "showSurveyValoy2025",
+    areaProp: "showAreaSurveyValoy2025",
+    nodesProp: "showNodesSurveyValoy2025"
+  },
+  {
+    layerKey: "dxf_survey_cortez_sep_2026",
+    showId: "sum-show-survey-cortez-sep-2026",
+    areaId: "sum-area-survey-cortez-sep-2026",
+    nodesId: "sum-nodes-survey-cortez-sep-2026",
+    showProp: "showSurveyCortez2025",
+    areaProp: "showAreaSurveyCortez2025",
+    nodesProp: "showNodesSurveyCortez2025"
+  },
+  {
+    layerKey: "dxf_survey_cortez_oct_2026",
+    showId: "sum-show-survey-cortez-oct-2026",
+    areaId: "sum-area-survey-cortez-oct-2026",
+    nodesId: "sum-nodes-survey-cortez-oct-2026",
+    showProp: "showSurveyCortezOct2026",
+    areaProp: "showAreaSurveyCortezOct2026",
+    nodesProp: "showNodesSurveyCortezOct2026"
+  }
+];
+
+function captureLayerDisplaySnapshot() {
+  const ld = {};
+  if (Array.isArray(STATIC_SUMMARY_LAYERS)) {
+    STATIC_SUMMARY_LAYERS.forEach(cfg => {
+      ld[cfg.layerKey] = {
+        show: state[cfg.showProp] !== false,
+        area: !!state[cfg.areaProp],
+        nodes: state[cfg.nodesProp] !== false
+      };
+    });
+  }
+  ld.dxf_1073 = Object.assign({}, ld.dxf_1073 || {}, {
+    show: state.showWarped1073OnField !== false,
+    area: !!state.showArea1073,
+    nodes: state.showNodes1073 !== false,
+    showPdf: state.showWarpedPdf1073 !== false,
+    pdfOpacity: state.warpedPdf1073Opacity ?? 0.5
+  });
+  ld.dxf_196 = Object.assign({}, ld.dxf_196 || {}, {
+    show: state.showWarped196OnField !== false,
+    area: !!state.showArea196,
+    nodes: state.showNodes196 !== false,
+    showPdf: state.showWarpedPdf196 !== false,
+    pdfOpacity: state.warpedPdf196Opacity ?? 0.5
+  });
+  ld.mojones = {
+    show: state.showMojones1073 !== false,
+    items: Object.fromEntries((state.anchors1073 || []).map(a => [String(a.id), a.showMojon !== false]))
+  };
+  return ld;
+}
+
+function applyLayerDisplaySnapshot(ld) {
+  if (!ld || typeof ld !== "object") return;
+  if (Array.isArray(STATIC_SUMMARY_LAYERS)) {
+    STATIC_SUMMARY_LAYERS.forEach(cfg => {
+      const item = ld[cfg.layerKey];
+      if (item) {
+        state[cfg.showProp] = item.show !== false;
+        state[cfg.areaProp] = !!item.area;
+        state[cfg.nodesProp] = item.nodes !== false;
+        if (cfg.showProp === "showReconstructedPolygon") {
+          state.showWarped296OnField = item.show !== false;
+        }
+      }
+    });
+  }
+
+  if (ld.dxf_1073) {
+    if (ld.dxf_1073.showPdf !== undefined) state.showWarpedPdf1073 = ld.dxf_1073.showPdf;
+    if (ld.dxf_1073.pdfOpacity !== undefined) state.warpedPdf1073Opacity = ld.dxf_1073.pdfOpacity;
+  }
+  if (ld.dxf_196) {
+    if (ld.dxf_196.showPdf !== undefined) state.showWarpedPdf196 = ld.dxf_196.showPdf;
+    if (ld.dxf_196.pdfOpacity !== undefined) state.warpedPdf196Opacity = ld.dxf_196.pdfOpacity;
+  }
+  if (ld.mojones) {
+    if (ld.mojones.show !== undefined) state.showMojones1073 = ld.mojones.show;
+    if (ld.mojones.items) {
+      (state.anchors1073 || []).forEach(a => {
+        const v = ld.mojones.items[String(a.id)];
+        if (v !== undefined) a.showMojon = v !== false;
+      });
+    }
+  }
+}
+
+function syncBaselineWorkspaceWithCurrent(targetKey, isLayer = false) {
+  if (!state.baselineWorkspace) {
+    state.baselineWorkspace = {
+      name: "__baseline__",
+      polygons: JSON.parse(JSON.stringify(state.measurePolygons || [])),
+      layerStyles: JSON.parse(JSON.stringify(state.layerStyles || DEFAULT_LAYER_STYLES)),
+      layerOrder: [...(state.layerOrder || DEFAULT_LAYER_ORDER)],
+      layerDisplay: captureLayerDisplaySnapshot(),
+      trinidadSectionStyles: (state.reconstructedPolygon && state.reconstructedPolygon.sectionStyles)
+        ? JSON.parse(JSON.stringify(state.reconstructedPolygon.sectionStyles))
+        : (state.pendingTrinidadSectionStyles ? JSON.parse(JSON.stringify(state.pendingTrinidadSectionStyles)) : null)
+    };
+    return;
+  }
+
+  if (isLayer && targetKey) {
+    if (!state.baselineWorkspace.layerStyles) {
+      state.baselineWorkspace.layerStyles = JSON.parse(JSON.stringify(DEFAULT_LAYER_STYLES));
+    }
+    if (state.layerStyles && state.layerStyles[targetKey]) {
+      state.baselineWorkspace.layerStyles[targetKey] = JSON.parse(JSON.stringify(state.layerStyles[targetKey]));
+    }
+    if (!state.baselineWorkspace.layerDisplay) {
+      state.baselineWorkspace.layerDisplay = {};
+    }
+    const currentLD = captureLayerDisplaySnapshot();
+    if (currentLD[targetKey]) {
+      state.baselineWorkspace.layerDisplay[targetKey] = JSON.parse(JSON.stringify(currentLD[targetKey]));
+    }
+  } else if (!isLayer && targetKey != null) {
+    const poly = state.measurePolygons[targetKey];
+    if (poly) {
+      if (!Array.isArray(state.baselineWorkspace.polygons)) {
+        state.baselineWorkspace.polygons = [];
+      }
+      const bpIdx = state.baselineWorkspace.polygons.findIndex(p => p.id === poly.id);
+      if (bpIdx !== -1) {
+        state.baselineWorkspace.polygons[bpIdx] = JSON.parse(JSON.stringify(poly));
+      } else {
+        state.baselineWorkspace.polygons.push(JSON.parse(JSON.stringify(poly)));
+      }
+    }
+  }
+}
+
+function applyLoadedPolygonsBundle(data) {
+  if (!data) return;
+  if (Array.isArray(data)) {
+    // Legacy format: raw array of polygons
+    state.measurePolygons = data;
+    state.activeMeasureIdx = 0;
+  } else if (typeof data === "object") {
+    if (Array.isArray(data.polygons)) {
+      state.measurePolygons = data.polygons;
+      state.activeMeasureIdx = 0;
+    }
+    if (data.layerStyles && typeof data.layerStyles === "object") {
+      state.layerStyles = Object.assign({}, DEFAULT_LAYER_STYLES, data.layerStyles);
+    }
+    if (Array.isArray(data.layerOrder) && data.layerOrder.length > 0) {
+      state.layerOrder = [...data.layerOrder];
+    }
+    if (data.layerDisplay && typeof data.layerDisplay === "object") {
+      applyLayerDisplaySnapshot(data.layerDisplay);
+    }
+    if (data.trinidadSectionStyles) {
+      state.pendingTrinidadSectionStyles = data.trinidadSectionStyles;
+      if (state.reconstructedPolygon) {
+        state.reconstructedPolygon.sectionStyles = JSON.parse(JSON.stringify(data.trinidadSectionStyles));
+      }
+    }
+  }
+
+  // Baseline workspace snapshot is initialized or updated from this master bundle
+  state.baselineWorkspace = {
+    name: "__baseline__",
+    polygons: JSON.parse(JSON.stringify(state.measurePolygons || [])),
+    layerStyles: JSON.parse(JSON.stringify(state.layerStyles || DEFAULT_LAYER_STYLES)),
+    layerOrder: [...(state.layerOrder || DEFAULT_LAYER_ORDER)],
+    layerDisplay: captureLayerDisplaySnapshot(),
+    trinidadSectionStyles: (state.reconstructedPolygon && state.reconstructedPolygon.sectionStyles)
+      ? JSON.parse(JSON.stringify(state.reconstructedPolygon.sectionStyles))
+      : (state.pendingTrinidadSectionStyles ? JSON.parse(JSON.stringify(state.pendingTrinidadSectionStyles)) : null)
+  };
+}
+
 function colorToRgba(hexOrRgb, opacity = 1) {
   if (!hexOrRgb) return `rgba(0, 229, 255, ${opacity})`;
   if (hexOrRgb.startsWith("rgba")) return hexOrRgb;
@@ -2558,14 +2779,12 @@ async function autoLoadPolygons() {
     const response = await fetch("polygons.json?_t=" + Date.now(), { cache: "no-store" });
     if (response.ok) {
       const data = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        state.measurePolygons = data;
-        state.activeMeasureIdx = 0;
-        updateMeasurementUI();
-        updatePolygonSummaryUI();
-        redrawAll();
-        statusBar.textContent = "✅ Polygons loaded from polygons.json";
-      }
+      applyLoadedPolygonsBundle(data);
+      updateMeasurementUI();
+      updatePolygonSummaryUI();
+      if (typeof syncPolygonOverviewUI === "function") syncPolygonOverviewUI();
+      redrawAll();
+      statusBar.textContent = "✅ Polygons & layer styles loaded from polygons.json";
     }
   } catch (err) {
     console.log("polygons.json auto-load skipped (CORS or missing file).");
@@ -4404,6 +4623,9 @@ function applyReconstructedPolygon(obj) {
     closed: obj.closed !== false,
     show: obj.show !== false
   };
+  if (state.pendingTrinidadSectionStyles) {
+    state.reconstructedPolygon.sectionStyles = JSON.parse(JSON.stringify(state.pendingTrinidadSectionStyles));
+  }
   updateReconstructedPolygonWarp();
   return true;
 }
@@ -4471,6 +4693,9 @@ function setTrinidadSectionColor(secKey, color) {
     state.reconstructedPolygon.sectionStyles["1073"].color = color;
   } else if (key === "1073" && state.reconstructedPolygon.sectionStyles["e1073"]) {
     state.reconstructedPolygon.sectionStyles["e1073"].color = color;
+  }
+  if (state.baselineWorkspace && state.reconstructedPolygon.sectionStyles) {
+    state.baselineWorkspace.trinidadSectionStyles = JSON.parse(JSON.stringify(state.reconstructedPolygon.sectionStyles));
   }
 }
 
@@ -5592,6 +5817,11 @@ function openLayerSpecs(layerKey) {
 }
 
 function closePolySpecs() {
+  if (currentEditingLayerKey) {
+    syncBaselineWorkspaceWithCurrent(currentEditingLayerKey, true);
+  } else if (currentEditingPolyIdx !== null) {
+    syncBaselineWorkspaceWithCurrent(currentEditingPolyIdx, false);
+  }
   const inspector = document.getElementById("poly-specs-inspector");
   if (inspector) inspector.style.display = "none";
   currentEditingLayerKey = null;
@@ -7251,73 +7481,7 @@ function syncMeasCardCheckbox(polyIdx, type, value) {
   // The state is already set so just let the next updateMeasurementUI call sync it.
 }
 
-const STATIC_SUMMARY_LAYERS = [
-  // Group 1: Escrituras
-  {
-    layerKey: "dxf_296",
-    showId: "sum-show-dxf-296",
-    areaId: "sum-area-dxf-296",
-    nodesId: "sum-nodes-dxf-296",
-    showProp: "showReconstructedPolygon",
-    areaProp: "showArea296",
-    nodesProp: "showNodes296"
-  },
-  {
-    layerKey: "dxf_1073",
-    showId: "sum-show-dxf-1073",
-    areaId: "sum-area-dxf-1073",
-    nodesId: "sum-nodes-dxf-1073",
-    showProp: "showWarped1073OnField",
-    areaProp: "showArea1073",
-    nodesProp: "showNodes1073"
-  },
-  {
-    layerKey: "dxf_196",
-    showId: "sum-show-dxf-196",
-    areaId: "sum-area-dxf-196",
-    nodesId: "sum-nodes-dxf-196",
-    showProp: "showWarped196OnField",
-    areaProp: "showArea196",
-    nodesProp: "showNodes196"
-  },
-  // Group 2: Muestreos de campo
-  {
-    layerKey: "dxf_survey_cortez_2019",
-    showId: "sum-show-survey-cortez-2019",
-    areaId: "sum-area-survey-cortez-2019",
-    nodesId: "sum-nodes-survey-cortez-2019",
-    showProp: "showFieldDXFOnField",
-    areaProp: "showAreaSurveyCortez2019",
-    nodesProp: "showNodesSurveyCortez2019"
-  },
-  {
-    layerKey: "dxf_survey_valoy_2025",
-    showId: "sum-show-survey-valoy-2025",
-    areaId: "sum-area-survey-valoy-2025",
-    nodesId: "sum-nodes-survey-valoy-2025",
-    showProp: "showSurveyValoy2025",
-    areaProp: "showAreaSurveyValoy2025",
-    nodesProp: "showNodesSurveyValoy2025"
-  },
-  {
-    layerKey: "dxf_survey_cortez_sep_2026",
-    showId: "sum-show-survey-cortez-sep-2026",
-    areaId: "sum-area-survey-cortez-sep-2026",
-    nodesId: "sum-nodes-survey-cortez-sep-2026",
-    showProp: "showSurveyCortez2025",
-    areaProp: "showAreaSurveyCortez2025",
-    nodesProp: "showNodesSurveyCortez2025"
-  },
-  {
-    layerKey: "dxf_survey_cortez_oct_2026",
-    showId: "sum-show-survey-cortez-oct-2026",
-    areaId: "sum-area-survey-cortez-oct-2026",
-    nodesId: "sum-nodes-survey-cortez-oct-2026",
-    showProp: "showSurveyCortezOct2026",
-    areaProp: "showAreaSurveyCortezOct2026",
-    nodesProp: "showNodesSurveyCortezOct2026"
-  }
-];
+// (STATIC_SUMMARY_LAYERS is defined at top-level configuration near line 2220)
 
 // Update the master All-row checkboxes based on current state
 function updateMasterCheckboxes() {
@@ -8648,13 +8812,40 @@ function setupEventListeners() {
   const btnSavePolygons = document.getElementById("btn-save-polygons-json");
   if (btnSavePolygons) {
     btnSavePolygons.addEventListener("click", () => {
-      const jsonStr = JSON.stringify(state.measurePolygons, null, 2);
+      if (typeof closePolySpecs === "function" && isPolySpecsOpen()) {
+        closePolySpecs();
+      }
+
+      const envelope = {
+        version: 2,
+        description: "La Trinidad - Polygons and Layer Settings",
+        exportedAt: new Date().toISOString(),
+        polygons: state.measurePolygons,
+        layerStyles: state.layerStyles || DEFAULT_LAYER_STYLES,
+        layerOrder: state.layerOrder || DEFAULT_LAYER_ORDER,
+        layerDisplay: captureLayerDisplaySnapshot(),
+        trinidadSectionStyles: (state.reconstructedPolygon && state.reconstructedPolygon.sectionStyles)
+          ? state.reconstructedPolygon.sectionStyles
+          : (state.pendingTrinidadSectionStyles || null)
+      };
+
+      state.baselineWorkspace = {
+        name: "__baseline__",
+        polygons: JSON.parse(JSON.stringify(envelope.polygons || [])),
+        layerStyles: JSON.parse(JSON.stringify(envelope.layerStyles)),
+        layerOrder: [...envelope.layerOrder],
+        layerDisplay: JSON.parse(JSON.stringify(envelope.layerDisplay)),
+        trinidadSectionStyles: envelope.trinidadSectionStyles ? JSON.parse(JSON.stringify(envelope.trinidadSectionStyles)) : null
+      };
+
+      const jsonStr = JSON.stringify(envelope, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = "polygons.json";
       a.click();
-      statusBar.textContent = "💾 Saved polygons to polygons.json file!";
+      statusBar.textContent = "💾 Saved polygons & layer styles to polygons.json file!";
+      updatePolygonSummaryUI();
     });
   }
 
@@ -8667,14 +8858,12 @@ function setupEventListeners() {
       reader.onload = (ev) => {
         try {
           const data = JSON.parse(ev.target.result);
-          if (Array.isArray(data) && data.length > 0) {
-            state.measurePolygons = data;
-            state.activeMeasureIdx = 0;
-            updateMeasurementUI();
-            updatePolygonSummaryUI();
-            redrawAll();
-            statusBar.textContent = `✅ Loaded ${data.length} polygons from ${file.name}`;
-          }
+          applyLoadedPolygonsBundle(data);
+          updateMeasurementUI();
+          updatePolygonSummaryUI();
+          if (typeof syncPolygonOverviewUI === "function") syncPolygonOverviewUI();
+          redrawAll();
+          statusBar.textContent = `✅ Loaded polygons & layer styles from ${file.name}`;
         } catch (err) {
           statusBar.textContent = "⚠️ Error parsing polygons JSON file.";
         }
@@ -10358,19 +10547,7 @@ function captureCaseSnapshot(name, id = Date.now()) {
   });
 
   // Layer visibility & display options from Polygon Overview
-  const layerDisplay = {
-    dxf_296: { show: state.showReconstructedPolygon !== false, area: !!state.showArea296, nodes: state.showNodes296 !== false },
-    dxf_1073: { show: state.showWarped1073OnField !== false, area: !!state.showArea1073, nodes: state.showNodes1073 !== false, showPdf: state.showWarpedPdf1073 !== false, pdfOpacity: state.warpedPdf1073Opacity ?? 0.5 },
-    dxf_196: { show: state.showWarped196OnField !== false, area: !!state.showArea196, nodes: state.showNodes196 !== false, showPdf: state.showWarpedPdf196 !== false, pdfOpacity: state.warpedPdf196Opacity ?? 0.5 },
-    dxf_survey_cortez_2019: { show: state.showFieldDXFOnField !== false, area: !!state.showAreaSurveyCortez2019, nodes: state.showNodesSurveyCortez2019 !== false },
-    dxf_survey_valoy_2025: { show: state.showSurveyValoy2025 !== false, area: !!state.showAreaSurveyValoy2025, nodes: state.showNodesSurveyValoy2025 !== false },
-    dxf_survey_cortez_sep_2026: { show: state.showSurveyCortez2025 !== false, area: !!state.showAreaSurveyCortez2025, nodes: state.showNodesSurveyCortez2025 !== false },
-    dxf_survey_cortez_oct_2026: { show: state.showSurveyCortezOct2026 !== false, area: !!state.showAreaSurveyCortezOct2026, nodes: state.showNodesSurveyCortezOct2026 !== false },
-    mojones: {
-      show: state.showMojones1073 !== false,
-      items: Object.fromEntries((state.anchors1073 || []).map(a => [String(a.id), a.showMojon !== false]))
-    }
-  };
+  const layerDisplay = captureLayerDisplaySnapshot();
 
   // Backwards compatibility layers object
   const layers = {
@@ -10462,10 +10639,40 @@ function applyActiveCase(caseObj) {
 
   // 3. Layer Styles & Sub-tramos
   if (caseObj.layerStyles) {
-    state.layerStyles = JSON.parse(JSON.stringify(caseObj.layerStyles));
+    const updatedStyles = JSON.parse(JSON.stringify(caseObj.layerStyles));
+    // If baseline workspace has customized layer styles (from polygons.json or user master edits),
+    // and this case was just using the old hardcoded DEFAULT_LAYER_STYLES, don't overwrite the master baseline style!
+    if (state.baselineWorkspace && state.baselineWorkspace.layerStyles) {
+      Object.keys(DEFAULT_LAYER_STYLES).forEach(lk => {
+        const baseStyle = state.baselineWorkspace.layerStyles[lk];
+        const defStyle = DEFAULT_LAYER_STYLES[lk];
+        const caseStyle = updatedStyles[lk];
+        if (baseStyle && defStyle && caseStyle) {
+          if (caseStyle.color === defStyle.color && baseStyle.color !== defStyle.color) {
+            caseStyle.color = baseStyle.color;
+            if (baseStyle.lineWidth !== undefined && caseStyle.lineWidth === defStyle.lineWidth) caseStyle.lineWidth = baseStyle.lineWidth;
+            if (baseStyle.lineType && caseStyle.lineType === defStyle.lineType) caseStyle.lineType = baseStyle.lineType;
+            if (baseStyle.lineOpacity !== undefined && caseStyle.lineOpacity === defStyle.lineOpacity) caseStyle.lineOpacity = baseStyle.lineOpacity;
+            if (baseStyle.fillColor && caseStyle.fillColor === defStyle.fillColor) caseStyle.fillColor = baseStyle.fillColor;
+            if (baseStyle.fillOpacity !== undefined && caseStyle.fillOpacity === defStyle.fillOpacity) caseStyle.fillOpacity = baseStyle.fillOpacity;
+          }
+        }
+      });
+    }
+    state.layerStyles = updatedStyles;
   }
   if (caseObj.trinidadSectionStyles && state.reconstructedPolygon) {
-    state.reconstructedPolygon.sectionStyles = JSON.parse(JSON.stringify(caseObj.trinidadSectionStyles));
+    const updatedSec = JSON.parse(JSON.stringify(caseObj.trinidadSectionStyles));
+    if (state.baselineWorkspace && state.baselineWorkspace.trinidadSectionStyles) {
+      const baseSec = state.baselineWorkspace.trinidadSectionStyles;
+      const defSecColors = { "1073": "#ff1744", "e1073": "#ff1744", "e296": "#80ffff", "quebrada": "#00e676" };
+      Object.keys(baseSec).forEach(sk => {
+        if (baseSec[sk] && updatedSec[sk] && defSecColors[sk] && updatedSec[sk].color === defSecColors[sk] && baseSec[sk].color !== defSecColors[sk]) {
+          updatedSec[sk].color = baseSec[sk].color;
+        }
+      });
+    }
+    state.reconstructedPolygon.sectionStyles = updatedSec;
   }
 
   // 4. Layer Stack Order
