@@ -444,6 +444,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       width: 100%;
       height: 100%;
       cursor: crosshair;
+      touch-action: none;
     }
 
     .viewport-hint {
@@ -2799,6 +2800,7 @@ function resizeCanvases() {
   const c3 = document.getElementById("container-196");
   const c4 = document.getElementById("container-true");
 
+  const prevW = canvasTrue.width, prevH = canvasTrue.height;
   canvas296.width  = c1.clientWidth  || 300;
   canvas296.height = c1.clientHeight || 500;
   canvas1073.width  = c2.clientWidth  || 300;
@@ -2807,6 +2809,12 @@ function resizeCanvases() {
   canvas196.height = c3.clientHeight || 500;
   canvasTrue.width  = c4.clientWidth  || 300;
   canvasTrue.height = c4.clientHeight || 500;
+
+  if (state.caseMode && prevW > 0 && prevH > 0 && (canvasTrue.width !== prevW || canvasTrue.height !== prevH)) {
+    const prevCenter = screenToWorldGIS(prevW / 2, prevH / 2, state.vpTrue, prevH);
+    state.vpTrue.offsetX = (canvasTrue.width / 2) - prevCenter.x * state.vpTrue.scale;
+    state.vpTrue.offsetY = (canvasTrue.height / 2) - prevCenter.y * state.vpTrue.scale;
+  }
 
   if (!state.vp296.bbox) {
     if (state.entities296 && state.entities296.length > 0) state.vp296 = fitViewport(canvas296, computeBoundingBox(state.entities296));
@@ -4575,7 +4583,14 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist, uiScale = 1.0) {
 
 function drawMojones1073(ctx, vp, h, customScale = null) {
   if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length === 0) return;
-  const uiScale = customScale !== null ? customScale : (state.mojonesSize || 1.0);
+  let zoomFactor = 1.0;
+  if (state.caseMode && vp) {
+    const ac = getActiveCase();
+    const refScale = (ac && ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+    zoomFactor = Math.max(0.25, Math.min(1.35, vp.scale / refScale));
+  }
+  const baseScale = customScale !== null ? customScale : (state.mojonesSize || 1.0);
+  const uiScale = baseScale * zoomFactor;
   const pinRadius = Math.max(3, Math.round(7 * uiScale));
   const pinLineWidth = Math.max(1, Math.round(2 * uiScale));
 
@@ -4602,7 +4617,13 @@ function drawMojones1073(ctx, vp, h, customScale = null) {
 function hitTestMojonLabel(mouseX, mouseY, vp, canvasH) {
   if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length === 0) return null;
   const ctx = (typeof canvasTrue !== "undefined" && canvasTrue) ? canvasTrue.getContext("2d") : null;
-  const uiScale = state.mojonesSize || 1.0;
+  let zoomFactor = 1.0;
+  if (state.caseMode && vp) {
+    const ac = getActiveCase();
+    const refScale = (ac && ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+    zoomFactor = Math.max(0.25, Math.min(1.35, vp.scale / refScale));
+  }
+  const uiScale = (state.mojonesSize || 1.0) * zoomFactor;
   for (let i = state.anchors1073.length - 1; i >= 0; i--) {
     const anc = state.anchors1073[i];
     if (anc.showMojon === false) continue;
@@ -9977,6 +9998,125 @@ function attachCanvasInteractions(canvas, mapName) {
     vp.offsetY += (ptAfter.y - ptBefore.y) * vp.scale;
     redrawAll();
   }, { passive: false });
+
+  // Touch gestures for tablets & portable devices (single-finger pan, two-finger pinch-to-zoom)
+  let lastTouchDist = null;
+  let isTouchPanning = false;
+  let lastTouchClientX = 0, lastTouchClientY = 0;
+
+  function getTouchDistance(t1, t2) {
+    return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+  }
+
+  function getTouchMidpoint(t1, t2) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((t1.clientX + t2.clientX) / 2) - rect.left,
+      y: ((t1.clientY + t2.clientY) / 2) - rect.top
+    };
+  }
+
+  canvas.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = t.clientX - rect.left;
+      const mouseY = t.clientY - rect.top;
+
+      if (mapName === "true" && state.caseMode) {
+        const hitLbl = getLabelAtScreen(mouseX, mouseY);
+        if (hitLbl) {
+          selectCaseLabel(hitLbl.id);
+          const vp = getVP();
+          draggingCaseLabel = {
+            lbl: hitLbl,
+            startMouseX: mouseX,
+            startMouseY: mouseY,
+            origWorldX: hitLbl.worldX,
+            origWorldY: hitLbl.worldY
+          };
+          e.preventDefault();
+          return;
+        }
+      }
+
+      isTouchPanning = true;
+      lastTouchClientX = t.clientX;
+      lastTouchClientY = t.clientY;
+      lastTouchDist = null;
+    } else if (e.touches.length === 2) {
+      isTouchPanning = false;
+      draggingCaseLabel = null;
+      lastTouchDist = getTouchDistance(e.touches[0], e.touches[1]);
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", (e) => {
+    if (e.touches.length === 1 && isTouchPanning) {
+      const t = e.touches[0];
+      const dx = t.clientX - lastTouchClientX;
+      const dy = t.clientY - lastTouchClientY;
+      lastTouchClientX = t.clientX;
+      lastTouchClientY = t.clientY;
+
+      if (draggingCaseLabel) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = t.clientX - rect.left;
+        const mouseY = t.clientY - rect.top;
+        const vp = getVP();
+        const curWorld = screenToWorldGIS(mouseX, mouseY, vp, canvas.height);
+        const startWorld = screenToWorldGIS(draggingCaseLabel.startMouseX, draggingCaseLabel.startMouseY, vp, canvas.height);
+        draggingCaseLabel.lbl.worldX = draggingCaseLabel.origWorldX + (curWorld.x - startWorld.x);
+        draggingCaseLabel.lbl.worldY = draggingCaseLabel.origWorldY + (curWorld.y - startWorld.y);
+        redrawAll();
+        e.preventDefault();
+        return;
+      }
+
+      const vp = getVP();
+      vp.offsetX += dx;
+      if (mapName === "true") {
+        vp.offsetY -= dy;
+      } else {
+        vp.offsetY += dy;
+      }
+      redrawAll();
+      e.preventDefault();
+    } else if (e.touches.length === 2 && lastTouchDist !== null) {
+      const newDist = getTouchDistance(e.touches[0], e.touches[1]);
+      if (newDist > 0 && lastTouchDist > 0) {
+        const factor = newDist / lastTouchDist;
+        lastTouchDist = newDist;
+        const mid = getTouchMidpoint(e.touches[0], e.touches[1]);
+        const vp = getVP();
+        const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
+        const ptBefore = toWorld(mid.x, mid.y, vp, canvas.height);
+        vp.scale *= factor;
+        const ptAfter = toWorld(mid.x, mid.y, vp, canvas.height);
+        vp.offsetX += (ptAfter.x - ptBefore.x) * vp.scale;
+        vp.offsetY += (ptAfter.y - ptBefore.y) * vp.scale;
+        redrawAll();
+      }
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", (e) => {
+    if (e.touches.length < 2) {
+      lastTouchDist = null;
+    }
+    if (e.touches.length === 0) {
+      isTouchPanning = false;
+      draggingCaseLabel = null;
+    }
+  });
+
+  canvas.addEventListener("touchcancel", () => {
+    isTouchPanning = false;
+    lastTouchDist = null;
+    draggingCaseLabel = null;
+  });
 }
 function calculatePolygonArea(points) {
   let area = 0;
@@ -10799,7 +10939,10 @@ function captureCaseSnapshot(name, id = Date.now()) {
     camera: {
       scale: state.vpTrue.scale,
       offsetX: state.vpTrue.offsetX,
-      offsetY: state.vpTrue.offsetY
+      offsetY: state.vpTrue.offsetY,
+      canvasW: canvasTrue.width,
+      canvasH: canvasTrue.height,
+      centerWorld: screenToWorldGIS(canvasTrue.width / 2, canvasTrue.height / 2, state.vpTrue, canvasTrue.height)
     },
     layers,
     dxfOpacity: Object.assign({}, state.dxfOpacity),
@@ -10847,11 +10990,35 @@ function applyActiveCase(caseObj) {
   if (!caseObj.arrows) caseObj.arrows = [];
   if (!caseObj.labels) caseObj.labels = [];
 
-  // 1. Camera View
+  // 1. Camera View: responsive, device-independent centered framing
   if (caseObj.camera) {
-    state.vpTrue.scale = caseObj.camera.scale;
-    state.vpTrue.offsetX = caseObj.camera.offsetX;
-    state.vpTrue.offsetY = caseObj.camera.offsetY;
+    const cam = caseObj.camera;
+    const curW = canvasTrue.width || 800;
+    const curH = canvasTrue.height || 600;
+
+    // Baseline reference resolution (standard desktop canvas from office computer)
+    const refW = cam.canvasW || 1280;
+    const refH = cam.canvasH || 750;
+
+    let centerWorldX, centerWorldY;
+    if (cam.centerWorld && typeof cam.centerWorld.x === "number" && typeof cam.centerWorld.y === "number") {
+      centerWorldX = cam.centerWorld.x;
+      centerWorldY = cam.centerWorld.y;
+    } else {
+      // Reconstruct geographic center from saved camera offsets and reference canvas size
+      centerWorldX = (refW / 2 - cam.offsetX) / cam.scale;
+      centerWorldY = (refH / 2 - cam.offsetY) / cam.scale;
+    }
+
+    // Automatic internal scale calculation for initial display:
+    // If the device has a smaller screen (tablet or portable device), scale proportionally
+    // so the entire case composition fits without overflowing or clipping.
+    const screenFactor = Math.min(curW / refW, curH / refH);
+    const initialScale = cam.scale * Math.min(1.0, screenFactor);
+
+    state.vpTrue.scale = initialScale;
+    state.vpTrue.offsetX = (curW / 2) - centerWorldX * initialScale;
+    state.vpTrue.offsetY = (curH / 2) - centerWorldY * initialScale;
   }
 
   // 2. Spotlight B&W mode
@@ -11226,6 +11393,8 @@ function getArrowHitAtScreen(screenX, screenY) {
   if (!ac || !ac.arrows || ac.arrows.length === 0) return null;
   const vp = state.vpTrue;
   const h = canvasTrue.height;
+  const refScale = (ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+  const zoomFactor = Math.max(0.2, Math.min(1.35, vp.scale / refScale));
 
   // Check currently selected arrow's handles first
   if (state.caseSelectedArrowId) {
@@ -11261,7 +11430,7 @@ function getArrowHitAtScreen(screenX, screenY) {
       const projY = s.y + t * (e.y - s.y);
       dist = Math.hypot(screenX - projX, screenY - projY);
     }
-    const hitThreshold = Math.max(7, (arr.lineWidth || 3) + 4);
+    const hitThreshold = Math.max(7, ((arr.lineWidth || 3) * zoomFactor) + 4);
     if (dist <= hitThreshold) {
       return { arrow: arr, part: "body" };
     }
@@ -11283,7 +11452,7 @@ function drawSingleArrow(ctx, sx, sy, ex, ey, headSize, lineWidth, color, opacit
   const angle = Math.atan2(dy, dx);
   const length = Math.hypot(dx, dy);
 
-  const hs = Math.min(headSize || 16, Math.max(6, length * 0.6));
+  const hs = Math.min(headSize || 16, Math.max(4, length * 0.6));
   const headAngle = Math.PI / 6;
 
   // Draw shaft ending at arrowhead indentation
@@ -11335,11 +11504,16 @@ function drawSingleArrow(ctx, sx, sy, ex, ey, headSize, lineWidth, color, opacit
 function drawCaseArrows(ctx, vp, h) {
   const ac = getActiveCase();
   if (!ac || !ac.arrows) return;
+  const refScale = (ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+  const zoomFactor = Math.max(0.2, Math.min(1.35, vp.scale / refScale));
+
   ac.arrows.forEach(arr => {
     const s = worldToScreenGIS({ x: arr.startX, y: arr.startY }, vp, h);
     const e = worldToScreenGIS({ x: arr.endX, y: arr.endY }, vp, h);
     const isSel = arr.id === state.caseSelectedArrowId;
-    drawSingleArrow(ctx, s.x, s.y, e.x, e.y, arr.headSize || 16, arr.lineWidth || 3, arr.color || "#00e5ff", arr.opacity !== undefined ? arr.opacity : 0.85, isSel);
+    const scaledHead = Math.max(4, Math.round((arr.headSize || 16) * zoomFactor));
+    const scaledWidth = Math.max(1, (arr.lineWidth || 3) * zoomFactor);
+    drawSingleArrow(ctx, s.x, s.y, e.x, e.y, scaledHead, scaledWidth, arr.color || "#00e5ff", arr.opacity !== undefined ? arr.opacity : 0.85, isSel);
   });
 }
 
@@ -11362,33 +11536,38 @@ function getLabelAtScreen(screenX, screenY) {
 function drawCaseLabels(ctx, vp, h) {
   const ac = getActiveCase();
   if (!ac || !ac.labels) return;
+  const refScale = (ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+  const zoomFactor = Math.max(0.2, Math.min(1.35, vp.scale / refScale));
+
   ac.labels.forEach(lbl => {
     const sp = worldToScreenGIS({ x: lbl.worldX, y: lbl.worldY }, vp, h);
     const resolvedText = resolveCaseLabelTemplate(lbl.text || "");
     const rawLines = resolvedText.split("\n");
-    const defaultFs = lbl.fontSize || 14;
-    const pad = lbl.padding || 7;
+    const defaultFs = Math.max(3, Math.round((lbl.fontSize || 14) * zoomFactor));
+    const pad = Math.max(1, Math.round((lbl.padding || 7) * zoomFactor));
     const bold = lbl.bold ? "bold " : "";
     const italic = lbl.italic ? "italic " : "";
 
     const linesData = rawLines.map(line => {
-      const spans = parseLineSpans(line, defaultFs);
+      const spans = parseLineSpans(line, lbl.fontSize || 14);
       let lineWidth = 0;
       let maxFs = defaultFs;
-      spans.forEach(span => {
-        ctx.font = `${bold}${italic}${span.fontSize}px sans-serif`;
-        span.width = ctx.measureText(span.text).width;
-        lineWidth += span.width;
-        if (span.fontSize > maxFs) maxFs = span.fontSize;
+      const scaledSpans = spans.map(span => {
+        const spanFs = Math.max(3, Math.round(span.fontSize * zoomFactor));
+        ctx.font = `${bold}${italic}${spanFs}px sans-serif`;
+        const width = ctx.measureText(span.text).width;
+        lineWidth += width;
+        if (spanFs > maxFs) maxFs = spanFs;
+        return { text: span.text, fontSize: spanFs, width };
       });
-      const lineH = Math.max(Math.round(maxFs * 1.25), maxFs + 4);
-      return { spans, lineWidth, maxFs, lineH };
+      const lineH = Math.max(Math.round(maxFs * 1.25), maxFs + Math.max(2, Math.round(3 * zoomFactor)));
+      return { spans: scaledSpans, lineWidth, maxFs, lineH };
     });
 
     const maxW = linesData.length > 0 ? Math.max(...linesData.map(l => l.lineWidth)) : 0;
     const totalLinesH = linesData.reduce((sum, l) => sum + l.lineH, 0);
-    const boxW = Math.max(maxW + pad * 2, 20);
-    const boxH = Math.max(totalLinesH + pad * 2, 10);
+    const boxW = Math.max(maxW + pad * 2, 10 * zoomFactor);
+    const boxH = Math.max(totalLinesH + pad * 2, 8 * zoomFactor);
     const x = sp.x - pad;
     const y = sp.y - pad;
     lbl._box = { x, y, w: boxW, h: boxH };
@@ -11398,10 +11577,10 @@ function drawCaseLabels(ctx, vp, h) {
       const nbr = parseInt(bgHex.slice(1,3), 16), nbg = parseInt(bgHex.slice(3,5), 16), nbb = parseInt(bgHex.slice(5,7), 16);
       const br = isNaN(nbr) ? 255 : nbr, bg = isNaN(nbg) ? 255 : nbg, bb = isNaN(nbb) ? 255 : nbb;
       ctx.fillStyle = `rgba(${br},${bg},${bb},${bgOp})`;
-      const bw = lbl.borderWidth !== undefined ? lbl.borderWidth : 1.5;
+      const bw = Math.max(0.5, (lbl.borderWidth !== undefined ? lbl.borderWidth : 1.5) * zoomFactor);
       ctx.strokeStyle = lbl.borderColor || "#000000";
       ctx.lineWidth = bw;
-      const radius = 4;
+      const radius = Math.max(1, 4 * zoomFactor);
       ctx.beginPath();
       ctx.moveTo(x + radius, y);
       ctx.lineTo(x + boxW - radius, y);
@@ -11419,8 +11598,8 @@ function drawCaseLabels(ctx, vp, h) {
     if (lbl.id === state.caseSelectedLabelId) {
       ctx.save();
       ctx.strokeStyle = "#00e5ff";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([4, 3]);
+      ctx.lineWidth = Math.max(1.5, 2 * zoomFactor);
+      ctx.setLineDash([4 * zoomFactor, 3 * zoomFactor]);
       ctx.strokeRect(x - 2, y - 2, boxW + 4, boxH + 4);
       ctx.setLineDash([]);
       ctx.restore();
