@@ -12,83 +12,142 @@
     "polyStyles": {
       "1": {
         "color": "#ffd600",
+        "fillColor": "#ffd600",
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
+        "lineOpacity": 1,
         "showArea": false
       },
       "2": {
         "color": "#00e676",
+        "fillColor": "#00e676",
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
+        "lineOpacity": 1,
         "showArea": false
       },
       "3": {
         "color": "#ff1744",
+        "fillColor": "#ff1744",
         "fillOpacity": 0.3,
         "lineWidth": 1.5,
         "lineType": "dashed",
+        "lineOpacity": 1,
         "showArea": false
       },
       "4": {
         "color": "#2979ff",
+        "fillColor": "#2979ff",
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
+        "lineOpacity": 1,
         "showArea": false
       },
       "5": {
         "color": "#00e5ff",
+        "fillColor": "#00e5ff",
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
+        "lineOpacity": 1,
         "showArea": false
       },
       "6": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
+        "lineOpacity": 1,
         "showArea": false
       },
       "7": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
+        "lineOpacity": 1,
         "showArea": false
       },
       "8": {
         "color": "#ff9100",
+        "fillColor": "#ff9100",
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
+        "lineOpacity": 1,
         "showArea": false
       },
       "9": {
         "color": "#ff6d00",
+        "fillColor": "#ff6d00",
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "10": {
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "11": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "12": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false
+      },
+      "13": {
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.06,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1,
         "showArea": false
       }
     },
     "camera": {
-      "scale": 1.170030505587996,
-      "offsetX": -5434301.1901550405,
-      "offsetY": -2273507.4819438756
+      "scale": 1.764521914813557,
+      "offsetX": -8195316.477661984,
+      "offsetY": -3428571.067716463
     },
     "layers": {
+      "reconstructed": true,
       "dxf296": true,
       "dxf1073": true,
       "dxf196": true,
       "dxfTrue": false,
+      "surveyValoy2025": false,
+      "surveyCortez2025": false,
+      "surveyCortezOct2026": false,
+      "dxfOverlay": false,
       "geotiff": true
     },
     "dxfOpacity": {
-      "dxf_296": 0.25,
-      "dxf_1073": 0.25,
+      "dxf_296": 1,
+      "dxf_1073": 1,
       "dxf_196": 1,
       "dxf_true": 1
     },
@@ -96,44 +155,44 @@
     "labels": [
       {
         "id": "lbl_1790055358584",
-        "text": "Plano Lote #5\npasado a la Curaduria 2013\n[size=10]Area reportada en documento: [/size]10,604m²\n[size=9]Area invadida: 5,593m²[/size]",
-        "worldX": 4644658.9861,
-        "worldY": 1943429.0454,
+        "text": "Plano Lote #5 aprobado en Curaduria 2013\nEscritura 196 de 2014;FMI 378-185657.\n[size=15]Area reportada en documento: [/size]10,604m²\n[size=15]Area invadida: 5,593m²[/size]",
+        "worldX": 4644647.084859317,
+        "worldY": 1943411.4769018476,
         "fontSize": 20,
         "bold": true,
         "italic": true,
         "textColor": "#ffffff",
         "bgColor": "#ff8000",
-        "bgOpacity": 0.3,
+        "bgOpacity": 0.65,
         "borderColor": "#ff8000",
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 86.51163537241518,
-          "y": 381.21338011696935,
-          "w": 269.23333740234375,
+          "x": 260.0901471832767,
+          "y": 151.9272229722701,
+          "w": 416.0333251953125,
           "h": 110
         },
         "showBorder": false
       },
       {
         "id": "lbl_1790055426610",
-        "text": "Plano original Lote #5\nescritura 1073 de 1973.\n[size=10]Area reportada en documento: [/size]10,604m²",
-        "worldX": 4644970.0941,
-        "worldY": 1943210.5721,
+        "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657.\n[size=15]Area reportada en documento: [/size]10,604m²",
+        "worldX": 4644944.024715646,
+        "worldY": 1943174.301652202,
         "fontSize": 20,
         "bold": true,
         "italic": true,
         "textColor": "#ffffff",
         "bgColor": "#ff0000",
-        "bgOpacity": 0.4,
+        "bgOpacity": 0.75,
         "borderColor": "#ff0000",
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 451.51748590450734,
-          "y": 637.8338057734072,
-          "w": 241.99999237060547,
+          "x": 785.0470310579985,
+          "y": 571.4281486235559,
+          "w": 388.5666809082031,
           "h": 83
         },
         "showBorder": false
@@ -141,20 +200,20 @@
       {
         "id": "lbl_1790055589249",
         "text": "La Trinidad",
-        "worldX": 4644730.9733,
-        "worldY": 1943265.4532,
+        "worldX": 4644731.540025746,
+        "worldY": 1943259.219216785,
         "fontSize": 20,
         "bold": true,
         "italic": true,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 172.7388553833589,
-          "y": 574.6212445930578,
+          "x": 411.113139167428,
+          "y": 422.5892449640669,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -164,20 +223,20 @@
       {
         "id": "lbl_1790055631386",
         "text": "Casa del Sol",
-        "worldX": 4644739.1935,
-        "worldY": 1943189.3374,
+        "worldX": 4644744.294031722,
+        "worldY": 1943188.2039485064,
         "fontSize": 20,
         "bold": true,
         "italic": false,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 182.35674014594406,
-          "y": 663.6790525503457,
+          "x": 433.61786221154034,
+          "y": 547.8972421279177,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -191,8 +250,8 @@
         "name": "Arrow 1",
         "startX": 4644833.8298,
         "startY": 1943353.8405,
-        "endX": 4644859.51,
-        "endY": 1943317.0912,
+        "endX": 4644867.444160455,
+        "endY": 1943331.259343671,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -201,10 +260,10 @@
       {
         "id": "arr_1790055494953",
         "name": "Arrow 2",
-        "startX": 4644984.5385,
-        "startY": 1943213.0116,
-        "endX": 4644947.2684,
-        "endY": 1943247.4888,
+        "startX": 4644972.070533569,
+        "startY": 1943173.9075234677,
+        "endX": 4644934.80043357,
+        "endY": 1943208.3847234675,
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -225,15 +284,358 @@
       {
         "id": "arr_1790055689888",
         "name": "Arrow 4",
-        "startX": 4644779.388,
-        "startY": 1943217.3137,
-        "endX": 4644778.6106,
-        "endY": 1943188.3737,
+        "startX": 4644786.188708962,
+        "startY": 1943215.6135227594,
+        "endX": 4644785.411308962,
+        "endY": 1943186.6735227595,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
         "headSize": 18
       }
+    ],
+    "polygons": [
+      {
+        "id": 4,
+        "name": "LinderoHistorico_1073_296",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.15,
+        "lineWidth": 6,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 1,
+        "name": "LoteA",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 2,
+        "name": "LoteB",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0.1,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.3,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 5,
+        "name": "Restitucion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.25,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1
+      },
+      {
+        "id": 6,
+        "name": "Jimmy Ruiz",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 7,
+        "name": "Pedro Ruiz",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 8,
+        "name": "Nacho196",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 9,
+        "name": "196InTrinidad",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 10,
+        "name": "Carretera",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.08,
+        "lineWidth": 2,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 11,
+        "name": "PedroInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 12,
+        "name": "NachoInvasion196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1
+      },
+      {
+        "id": 13,
+        "name": "Lote#6",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.06,
+        "lineWidth": 1,
+        "lineType": "dashdot",
+        "lineOpacity": 1
+      }
+    ],
+    "layerDisplay": {
+      "dxf_296": {
+        "show": true,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_1073": {
+        "show": true,
+        "area": false,
+        "nodes": false,
+        "showPdf": false,
+        "pdfOpacity": 0.5
+      },
+      "dxf_196": {
+        "show": true,
+        "area": false,
+        "nodes": false,
+        "showPdf": false,
+        "pdfOpacity": 0.5
+      },
+      "dxf_survey_cortez_2019": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_valoy_2025": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "show": false,
+        "area": false,
+        "nodes": false
+      },
+      "mojones": {
+        "show": false,
+        "items": {
+          "1": false,
+          "2": false,
+          "4": false
+        }
+      }
+    },
+    "layerStyles": {
+      "dxf_296": {
+        "name": "Lindero La Trinidad (E. 296)",
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.08,
+        "lineWidth": 3.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_1073": {
+        "name": "Escritura 1073",
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.4,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_196": {
+        "name": "Escritura 196",
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0.85,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_2019": {
+        "name": "In 2019 by Cristian Cortez",
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_valoy_2025": {
+        "name": "In 2025 by Wilmar Valoy",
+        "color": "#ffb300",
+        "fillColor": "#ffb300",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_sep_2026": {
+        "name": "2026 (Sep) by Cristian Cortez",
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      },
+      "dxf_survey_cortez_oct_2026": {
+        "name": "2026 (Oct) by Cristian Cortez",
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0,
+        "lineWidth": 2.2,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showNodes": false,
+        "showArea": false,
+        "visible": true
+      }
+    },
+    "trinidadSectionStyles": {
+      "1073": {
+        "color": "#00c8c8",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e296": {
+        "color": "#80ffff",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "quebrada": {
+        "color": "#00ff40",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      },
+      "e1073": {
+        "color": "#00c8c8",
+        "dash": "solid",
+        "width": 3.5,
+        "showNodes": false
+      }
+    },
+    "layerOrder": [
+      "dxf_1073",
+      "dxf_survey_cortez_2019",
+      "dxf_survey_valoy_2025",
+      "dxf_survey_cortez_sep_2026",
+      "dxf_survey_cortez_oct_2026",
+      "dxf_anchors",
+      "measure_polygons",
+      "dxf_196",
+      "dxf_296"
     ]
   },
   {
@@ -364,9 +766,9 @@
       }
     },
     "camera": {
-      "scale": 1.170030505587996,
-      "offsetX": -5434367.1901550405,
-      "offsetY": -2273559.4819438756
+      "scale": 2.0281861089811,
+      "offsetX": -9420068.651202282,
+      "offsetY": -3941026.6298393966
     },
     "layers": {
       "reconstructed": true,
@@ -390,9 +792,9 @@
     "labels": [
       {
         "id": "lbl_-892263637",
-        "text": "Lote A\n[size=14]$LoteA$m2[/size]\n[size=10]($LoteA$plazas)[/size]",
-        "worldX": 4644754.6711,
-        "worldY": 1943405.54,
+        "text": "[size=25]Lote A[/size]\n[size=15]$LoteA$m2[/size]\n[size=15]($LoteA$plazas)[/size]",
+        "worldX": 4644817.288627769,
+        "worldY": 1943389.2693038082,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -403,18 +805,18 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 132.4660042989999,
-          "y": 75.71541516296566,
-          "w": 72.04545593261719,
-          "h": 85
+          "x": 480.25234781578183,
+          "y": 244.5094944825396,
+          "w": 99.16666412353516,
+          "h": 91
         },
         "showBorder": false
       },
       {
         "id": "lbl_-891592036",
-        "text": "Lote B\n[size=14]$LoteB$m2[/size]\n[size=10]($LoteB$plazas)[/size]",
-        "worldX": 4644883.08607857,
-        "worldY": 1943456.407707147,
+        "text": "[size=25]Lote B[/size]\n[size=15]$LoteB$m2[/size]\n[size=15]($LoteB$plazas)[/size]",
+        "worldX": 4644934.363424145,
+        "worldY": 1943448.0258333513,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -425,10 +827,10 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 283.7154466006905,
-          "y": 17.19864605180919,
-          "w": 70.04545593261719,
-          "h": 83
+          "x": 718.7018235363066,
+          "y": 126.3403174513951,
+          "w": 97.16666412353516,
+          "h": 89
         },
         "showBorder": false
       },
@@ -436,20 +838,20 @@
         "id": "lbl_-891627715",
         "text": "La Trinidad",
         "worldX": 4644730.9733,
-        "worldY": 1943265.4532,
+        "worldY": 1943260.0296346028,
         "fontSize": 20,
         "bold": true,
         "italic": true,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 106.7388553833589,
-          "y": 241.62124459305778,
-          "w": 113.13636016845703,
+          "x": 307.1887990422547,
+          "y": 508.6315962942317,
+          "w": 113.53333282470703,
           "h": 31
         },
         "showBg": true,
@@ -458,21 +860,21 @@
       {
         "id": "lbl_-891812000",
         "text": "Casa del Sol",
-        "worldX": 4644739.1935,
+        "worldX": 4644739.6865514,
         "worldY": 1943189.3374,
         "fontSize": 20,
         "bold": true,
         "italic": false,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 116.35674014594406,
-          "y": 330.67905255034566,
-          "w": 124.63636016845703,
+          "x": 324.86089449748397,
+          "y": 652.0086045283824,
+          "w": 125.03333282470703,
           "h": 31
         },
         "showBg": true,
@@ -483,8 +885,8 @@
       {
         "id": "arr_-892298710",
         "name": "Arrow 1",
-        "startX": 4644811.5386,
-        "startY": 1943341.1084,
+        "startX": 4644837.177272786,
+        "startY": 1943348.0111195967,
         "endX": 4644861.2463,
         "endY": 1943323.0703,
         "color": "#ffff00",
@@ -495,10 +897,10 @@
       {
         "id": "arr_-892209150",
         "name": "Arrow 2",
-        "startX": 4644940.898878572,
-        "startY": 1943399.6493500064,
-        "endX": 4644979.495378572,
-        "endY": 1943376.4975500063,
+        "startX": 4644969.002808358,
+        "startY": 1943407.5381724024,
+        "endX": 4645007.599308358,
+        "endY": 1943384.3863724023,
         "color": "#00f23d",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -519,10 +921,10 @@
       {
         "id": "arr_-892287965",
         "name": "Arrow 4",
-        "startX": 4644787.080107135,
-        "startY": 1943217.3137,
-        "endX": 4644786.302707135,
-        "endY": 1943188.3737,
+        "startX": 4644792.996723932,
+        "startY": 1943216.3275972006,
+        "endX": 4644792.219323932,
+        "endY": 1943187.3875972007,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
@@ -969,8 +1371,8 @@
       {
         "id": "lbl_-891520115",
         "text": "Lote Jimmy Ruiz\n[size=10]Area reportada en documento: [/size]2,413 m²\n[size=9]Area invadida: 2,413m²[/size]",
-        "worldX": 4644672.6622,
-        "worldY": 1943427.2758,
+        "worldX": 4644784.507508073,
+        "worldY": 1943407.8892799339,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -981,9 +1383,9 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 102.13901382894255,
-          "y": 12.114192903856747,
-          "w": 238.3333282470703,
+          "x": 341.8694658279419,
+          "y": 63.51753156166524,
+          "w": 238.4333267211914,
           "h": 85
         },
         "showBorder": false
@@ -1003,9 +1405,9 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 452.01207729731686,
-          "y": 264.9942528735846,
-          "w": 241.88888549804688,
+          "x": 840.66395124048,
+          "y": 593.7766931653023,
+          "w": 241.99999237060547,
           "h": 83
         },
         "showBorder": false
@@ -1013,8 +1415,8 @@
       {
         "id": "lbl_-891256621",
         "text": "La Trinidad",
-        "worldX": 4644730.9733,
-        "worldY": 1943265.4532,
+        "worldX": 4644738.429653872,
+        "worldY": 1943255.3871222734,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -1025,9 +1427,9 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 173.13851407915354,
-          "y": 203.03273363341577,
-          "w": 113.38888549804688,
+          "x": 220.27593742311,
+          "y": 474.5704286945984,
+          "w": 113.53333282470703,
           "h": 31
         },
         "showBg": true,
@@ -1036,8 +1438,8 @@
       {
         "id": "lbl_-891695788",
         "text": "Casa del Sol",
-        "worldX": 4644739.1935,
-        "worldY": 1943189.3374,
+        "worldX": 4644748.513942339,
+        "worldY": 1943187.8461292258,
         "fontSize": 20,
         "bold": true,
         "italic": false,
@@ -1048,9 +1450,9 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 183.13501582783647,
-          "y": 291.99075462284964,
-          "w": 124.88888549804688,
+          "x": 247.3247836586088,
+          "y": 655.7340220836923,
+          "w": 125.03333282470703,
           "h": 31
         },
         "showBg": true,
@@ -1085,10 +1487,10 @@
       {
         "id": "arr_-891202942",
         "name": "Arrow 3",
-        "startX": 4644751.1576,
-        "startY": 1943212.3069,
-        "endX": 4644751.5085,
-        "endY": 1943246.6193,
+        "startX": 4644757.122683097,
+        "startY": 1943211.9340823062,
+        "endX": 4644757.473583098,
+        "endY": 1943246.2464823062,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
@@ -1097,10 +1499,10 @@
       {
         "id": "arr_-890852931",
         "name": "Arrow 4",
-        "startX": 4644779.388,
-        "startY": 1943217.3137,
-        "endX": 4644778.6106,
-        "endY": 1943188.3737,
+        "startX": 4644786.471536178,
+        "startY": 1943215.8224292258,
+        "endX": 4644785.694136178,
+        "endY": 1943186.8824292258,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
