@@ -1268,6 +1268,65 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                 </label>
               </div>
 
+              <!-- Open Shape & Perpendicular Gradient Buffer (Uncertain / Incomplete Deed Boundaries) -->
+              <div id="poly-specs-grad-section" style="margin-top:7px;padding:7px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.22);border-radius:6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <label class="window-checkbox" style="font-size:0.72rem;font-weight:700;color:var(--accent-cyan);margin:0;cursor:pointer;" title="Desmarcar para límites no cerrados (escrituras incompletas)">
+                    <input type="checkbox" id="poly-specs-closed" checked style="accent-color:var(--accent-cyan);">
+                    <span>Polígono Cerrado</span>
+                  </label>
+                  <label class="window-checkbox" style="font-size:0.70rem;color:var(--accent-yellow);margin:0;cursor:pointer;" title="Activar relleno degradado perpendicular para límites de incertidumbre">
+                    <input type="checkbox" id="poly-specs-grad-buffer" style="accent-color:var(--accent-yellow);">
+                    <span>🌊 Gradient Buffer</span>
+                  </label>
+                </div>
+
+                <div id="poly-specs-grad-controls" style="display:none;flex-direction:column;gap:5px;margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,255,255,0.12);">
+                  <!-- Color Scale & Direction Flip -->
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <label style="flex:1;display:flex;flex-direction:column;gap:2px;font-size:0.67rem;color:var(--text-muted);">
+                      <span>Escala de Color</span>
+                      <select id="poly-specs-grad-scale" style="background:rgba(255,255,255,0.08);border:1px solid var(--border-color);color:#fff;border-radius:3px;padding:2px 4px;font-size:0.70rem;">
+                        <option value="viridis">Viridis (Púrpura → Teal → Amarillo)</option>
+                        <option value="plasma">Plasma (Azul → Magenta → Amarillo)</option>
+                        <option value="turbo">Turbo (Arcoíris espectral)</option>
+                        <option value="heat">Heat (Amarillo → Naranja → Rojo)</option>
+                        <option value="warning">Alerta (Color → Rojo Alerta)</option>
+                        <option value="single">Monocromo (Color del polígono)</option>
+                      </select>
+                    </label>
+                    <button type="button" id="btn-poly-specs-grad-flip" class="btn-sm btn-secondary" style="margin-top:12px;padding:3px 8px;font-size:0.68rem;white-space:nowrap;" title="Invertir lado de proyección del degradado perpendicular">⇄ Invertir Lado</button>
+                  </div>
+
+                  <!-- Buffer Depth Slider -->
+                  <label style="display:flex;flex-direction:column;gap:2px;font-size:0.67rem;color:var(--text-muted);">
+                    <div style="display:flex;justify-content:space-between;">
+                      <span>Profundidad del Degradado</span>
+                      <span id="poly-specs-grad-dist-val" style="color:var(--accent-cyan);font-family:monospace;font-weight:700;">50 m</span>
+                    </div>
+                    <input type="range" id="poly-specs-grad-dist" min="5" max="300" step="5" value="50" style="width:100%;accent-color:var(--accent-cyan);">
+                  </label>
+
+                  <!-- Start & End Density Sliders -->
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    <label style="display:flex;flex-direction:column;gap:2px;font-size:0.67rem;color:var(--text-muted);">
+                      <div style="display:flex;justify-content:space-between;">
+                        <span>Densidad Borde</span>
+                        <span id="poly-specs-grad-start-op-val" style="color:#fff;font-family:monospace;">70%</span>
+                      </div>
+                      <input type="range" id="poly-specs-grad-start-op" min="0" max="100" value="70" style="width:100%;accent-color:var(--accent-yellow);">
+                    </label>
+                    <label style="display:flex;flex-direction:column;gap:2px;font-size:0.67rem;color:var(--text-muted);">
+                      <div style="display:flex;justify-content:space-between;">
+                        <span>Densidad Final</span>
+                        <span id="poly-specs-grad-end-op-val" style="color:#fff;font-family:monospace;">0%</span>
+                      </div>
+                      <input type="range" id="poly-specs-grad-end-op" min="0" max="100" value="0" style="width:100%;accent-color:var(--accent-yellow);">
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <!-- Live Preview bar -->
               <div style="margin-top:6px;background:rgba(0,0,0,0.3);border:1px solid var(--border-color);border-radius:4px;padding:4px 8px;display:flex;align-items:center;justify-content:space-between;">
                 <span style="font-size:0.68rem;color:var(--text-muted);">Preview:</span>
@@ -4836,11 +4895,12 @@ function updateMeasurementUI() {
     for (let i = 1; i < pts.length; i++) {
       totalDist += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
     }
-    const isArea = !!poly.showArea && pts.length >= 3;
-    if (isArea) {
+    const isClosed = poly.closed !== false;
+    const isArea = !!poly.showArea && pts.length >= (isClosed ? 3 : 2);
+    if (isArea && isClosed && pts.length >= 3) {
       totalDist += Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
     }
-    const areaM2 = isArea ? calculatePolygonArea(pts) : 0;
+    const areaM2 = (isArea && isClosed && pts.length >= 3) ? calculatePolygonArea(pts) : 0;
     const plazas = areaM2 / 6400;
 
     // Card container
@@ -4962,7 +5022,7 @@ function updateMeasurementUI() {
     // Stats row: distance
     const statsRow = document.createElement("div");
     statsRow.style.cssText = "display:flex;justify-content:space-between;margin-top:3px;font-size:0.74rem;";
-    statsRow.innerHTML = `<span style="color:var(--text-muted);">Distance</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${totalDist.toFixed(2)} m</span>`;
+    statsRow.innerHTML = `<span style="color:var(--text-muted);">${isClosed ? 'Distance' : 'Límite'}</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${totalDist.toFixed(2)} m</span>`;
 
     card.appendChild(headerRow);
     card.appendChild(statsRow);
@@ -4971,7 +5031,13 @@ function updateMeasurementUI() {
     if (isArea) {
       const areaRow = document.createElement("div");
       areaRow.style.cssText = "display:flex;justify-content:space-between;margin-top:2px;font-size:0.72rem;";
-      areaRow.innerHTML = `<span style="color:var(--text-muted);">Area</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${areaM2.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} m² (${plazas.toFixed(2)} plazas)</span>`;
+      if (!isClosed) {
+        const bufDist = poly.gradDist || 50;
+        const bufArea = totalDist * bufDist;
+        areaRow.innerHTML = `<span style="color:var(--text-muted);">Buffer (~${bufDist}m)</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">~${bufArea.toLocaleString('en-US',{maximumFractionDigits:0})} m² (Abierto)</span>`;
+      } else {
+        areaRow.innerHTML = `<span style="color:var(--text-muted);">Area</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${areaM2.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} m² (${plazas.toFixed(2)} plazas)</span>`;
+      }
       card.appendChild(areaRow);
     }
 
@@ -5077,7 +5143,7 @@ function buildSegmentsList(poly) {
     row.innerHTML = `<span style="color:var(--text-muted);">Seg ${i}</span><span style="color:${poly.color};font-weight:700;font-family:monospace;">${dist.toFixed(2)} m</span>`;
     container.appendChild(row);
   }
-  if (poly.showArea && pts.length >= 3) {
+  if (poly.closed !== false && poly.showArea && pts.length >= 3) {
     const closeDist = Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
     const row = document.createElement("div");
     row.style.cssText = `display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:2px 7px;font-size:0.72rem;`;
@@ -5139,7 +5205,7 @@ function findPolyNodeAt(mouseX, mouseY, vp, canvasH, poly, threshold = 14) {
 function findPolySegmentAt(mouseX, mouseY, vp, canvasH, poly, threshold = 12) {
   if (!poly || !poly.points || poly.points.length < 2) return null;
   const pts = poly.points;
-  const numSegs = (poly.showArea !== false && pts.length >= 3) ? pts.length : pts.length - 1;
+  const numSegs = (poly.closed !== false && pts.length >= 3) ? pts.length : pts.length - 1;
   let closestSeg = null;
   let minD = threshold;
 
@@ -5286,6 +5352,39 @@ function openPolySpecs(polyIdx) {
   if (lineColLabel) lineColLabel.style.display = "flex";
   if (paletteContainer) paletteContainer.style.display = "flex";
 
+  // Open Boundary & Perpendicular Gradient Buffer Controls Synchronization
+  const gradSection = document.getElementById("poly-specs-grad-section");
+  const closedChk = document.getElementById("poly-specs-closed");
+  const gradBufferChk = document.getElementById("poly-specs-grad-buffer");
+  const gradControls = document.getElementById("poly-specs-grad-controls");
+  const gradScaleSelect = document.getElementById("poly-specs-grad-scale");
+  const gradDistInput = document.getElementById("poly-specs-grad-dist");
+  const gradDistVal = document.getElementById("poly-specs-grad-dist-val");
+  const gradStartOpInput = document.getElementById("poly-specs-grad-start-op");
+  const gradStartOpVal = document.getElementById("poly-specs-grad-start-op-val");
+  const gradEndOpInput = document.getElementById("poly-specs-grad-end-op");
+  const gradEndOpVal = document.getElementById("poly-specs-grad-end-op-val");
+
+  if (gradSection) gradSection.style.display = "block";
+  if (poly.closed === undefined) poly.closed = true;
+  if (poly.gradBuffer === undefined) poly.gradBuffer = false;
+  if (poly.gradDist === undefined) poly.gradDist = 50;
+  if (poly.gradSide === undefined) poly.gradSide = 1;
+  if (poly.gradScale === undefined) poly.gradScale = "viridis";
+  if (poly.gradStartOp === undefined) poly.gradStartOp = 0.70;
+  if (poly.gradEndOp === undefined) poly.gradEndOp = 0.00;
+
+  if (closedChk) closedChk.checked = poly.closed !== false;
+  if (gradBufferChk) gradBufferChk.checked = !!poly.gradBuffer;
+  if (gradControls) gradControls.style.display = (poly.closed === false || poly.gradBuffer) ? "flex" : "none";
+  if (gradScaleSelect) gradScaleSelect.value = poly.gradScale || "viridis";
+  if (gradDistInput) gradDistInput.value = poly.gradDist || 50;
+  if (gradDistVal) gradDistVal.textContent = `${poly.gradDist || 50} m`;
+  if (gradStartOpInput) gradStartOpInput.value = Math.round((poly.gradStartOp ?? 0.70) * 100);
+  if (gradStartOpVal) gradStartOpVal.textContent = `${Math.round((poly.gradStartOp ?? 0.70) * 100)}%`;
+  if (gradEndOpInput) gradEndOpInput.value = Math.round((poly.gradEndOp ?? 0.00) * 100);
+  if (gradEndOpVal) gradEndOpVal.textContent = `${Math.round((poly.gradEndOp ?? 0.00) * 100)}%`;
+
   updatePolySpecsPreview(poly);
   updatePolySpecsArea();
   if (inspector) inspector.style.display = "block";
@@ -5352,6 +5451,9 @@ function openLayerSpecs(layerKey) {
   const paletteContainer = document.getElementById("poly-specs-palette");
   const btnEditNodes = document.getElementById("btn-poly-specs-edit-nodes");
   const btnDelete = document.getElementById("btn-poly-specs-delete");
+
+  const gradSection = document.getElementById("poly-specs-grad-section");
+  if (gradSection) gradSection.style.display = "none";
 
   if (title) title.textContent = `✏️ Layer Specs: ${ls.name}`;
   if (nameInput) {
@@ -5468,6 +5570,62 @@ function openPolyStyleModal(polyIdx) {
   openPolySpecs(polyIdx);
 }
 
+function getGradientPaletteStops(scaleName, baseColor = "#00e5ff") {
+  switch (scaleName) {
+    case "plasma":
+      return [
+        { pos: 0.00, r: 13,  g: 8,   b: 135 },
+        { pos: 0.25, r: 106, g: 0,   b: 168 },
+        { pos: 0.50, r: 177, g: 42,  b: 144 },
+        { pos: 0.75, r: 225, g: 100, b: 98  },
+        { pos: 1.00, r: 252, g: 166, b: 54  }
+      ];
+    case "turbo":
+      return [
+        { pos: 0.00, r: 48,  g: 18,  b: 59  },
+        { pos: 0.33, r: 26,  g: 228, b: 182 },
+        { pos: 0.66, r: 250, g: 186, b: 57  },
+        { pos: 1.00, r: 122, g: 4,   b: 3   }
+      ];
+    case "heat":
+      return [
+        { pos: 0.00, r: 255, g: 255, b: 178 },
+        { pos: 0.25, r: 254, g: 204, b: 92  },
+        { pos: 0.50, r: 253, g: 141, b: 60  },
+        { pos: 0.75, r: 240, g: 59,  b: 32  },
+        { pos: 1.00, r: 189, g: 0,   b: 38  }
+      ];
+    case "warning": {
+      const cr = parseInt(baseColor.slice(1,3),16) || 0;
+      const cg = parseInt(baseColor.slice(3,5),16) || 229;
+      const cb = parseInt(baseColor.slice(5,7),16) || 255;
+      return [
+        { pos: 0.00, r: cr,  g: cg,  b: cb  },
+        { pos: 0.50, r: 255, g: 165, b: 0   },
+        { pos: 1.00, r: 255, g: 0,   b: 51  }
+      ];
+    }
+    case "single": {
+      const cr = parseInt(baseColor.slice(1,3),16) || 0;
+      const cg = parseInt(baseColor.slice(3,5),16) || 229;
+      const cb = parseInt(baseColor.slice(5,7),16) || 255;
+      return [
+        { pos: 0.00, r: cr, g: cg, b: cb },
+        { pos: 1.00, r: cr, g: cg, b: cb }
+      ];
+    }
+    case "viridis":
+    default:
+      return [
+        { pos: 0.00, r: 68,  g: 1,   b: 84  },
+        { pos: 0.25, r: 59,  g: 82,  b: 139 },
+        { pos: 0.50, r: 33,  g: 145, b: 140 },
+        { pos: 0.75, r: 94,  g: 201, b: 98  },
+        { pos: 1.00, r: 253, g: 231, b: 37  }
+      ];
+  }
+}
+
 function updatePolySpecsPreview(poly) {
   const preview = document.getElementById("poly-specs-preview");
   if (!preview) return;
@@ -5492,7 +5650,29 @@ function updatePolySpecsPreview(poly) {
     preview.style.borderStyle = "solid";
   }
 
-  preview.style.background = `rgba(${isNaN(fr)?0:fr},${isNaN(fg)?229:fg},${isNaN(fb)?255:fb},${fillOp})`;
+  const isGradActive = (poly.closed === false || poly.gradBuffer === true);
+  if (isGradActive) {
+    const scale = poly.gradScale || "viridis";
+    const startOp = poly.gradStartOp !== undefined ? poly.gradStartOp : 0.70;
+    const endOp = poly.gradEndOp !== undefined ? poly.gradEndOp : 0.00;
+    const stops = getGradientPaletteStops(scale, color);
+    const gradCss = stops.map(st => {
+      const op = startOp + st.pos * (endOp - startOp);
+      return `rgba(${st.r}, ${st.g}, ${st.b}, ${Math.max(0, Math.min(1, op))}) ${(st.pos * 100).toFixed(0)}%`;
+    }).join(", ");
+    preview.style.background = `linear-gradient(to right, ${gradCss})`;
+    if (poly.closed === false) {
+      preview.style.borderRightStyle = "none";
+      preview.textContent = "Open Boundary";
+    } else {
+      preview.style.borderRightStyle = preview.style.borderStyle;
+      preview.textContent = "Buffer Preview";
+    }
+  } else {
+    preview.style.background = `rgba(${isNaN(fr)?0:fr},${isNaN(fg)?229:fg},${isNaN(fb)?255:fb},${fillOp})`;
+    preview.style.borderRightStyle = preview.style.borderStyle;
+    preview.textContent = "Area Preview";
+  }
 
   if (currentEditingLayerKey === "dxf_296" && typeof getTrinidadSectionStyle === "function") {
     const c1 = getTrinidadSectionStyle("e296").color || "#80ffff";
@@ -5511,13 +5691,25 @@ function updatePolySpecsArea() {
 
   if (currentEditingPolyIdx !== null) {
     const poly = state.measurePolygons[currentEditingPolyIdx];
-    if (poly && poly.points && poly.points.length >= 3) {
-      const areaM2 = calculatePolygonArea(poly.points);
-      const plazas = areaM2 / 6400;
-      areaValEl.textContent = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m² (${plazas.toFixed(2)} plazas)`;
-    } else {
-      areaValEl.textContent = "0.00 m² (0.00 plazas)";
+    if (poly && poly.points && poly.points.length >= 2) {
+      if (poly.closed === false) {
+        let lenM = 0;
+        for (let i = 1; i < poly.points.length; i++) {
+          lenM += Math.hypot(poly.points[i].x - poly.points[i-1].x, poly.points[i].y - poly.points[i-1].y);
+        }
+        const dist = (poly.gradDist !== undefined && !isNaN(poly.gradDist)) ? poly.gradDist : 50;
+        const approxArea = lenM * dist;
+        areaValEl.textContent = `Límite: ${lenM.toFixed(1)} m | Buffer: ~${approxArea.toLocaleString('en-US', { maximumFractionDigits: 0 })} m² (Abierto)`;
+        return;
+      }
+      if (poly.points.length >= 3) {
+        const areaM2 = calculatePolygonArea(poly.points);
+        const plazas = areaM2 / 6400;
+        areaValEl.textContent = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m² (${plazas.toFixed(2)} plazas)`;
+        return;
+      }
     }
+    areaValEl.textContent = "0.00 m² (0.00 plazas)";
     return;
   }
 
@@ -5611,6 +5803,132 @@ function drawPendingAnchor(ctx, pt, vp, h) {
   ctx.fillStyle = "#00e5ff"; ctx.fill();
 }
 
+/* PERPENDICULAR GRADIENT UNCERTAINTY BUFFER (OPEN / FRAUDULENT DEED BOUNDARIES) */
+function drawPerpendicularGradientBuffer(ctx, poly, vp, h, toScreenFn = worldToScreenGIS) {
+  if (!poly || !poly.points || poly.points.length < 2) return;
+  const pts = poly.points;
+  const isClosed = poly.closed !== false;
+  const N = pts.length;
+  const numSegs = isClosed ? N : N - 1;
+  if (numSegs < 1) return;
+
+  const dist = (poly.gradDist !== undefined && !isNaN(poly.gradDist)) ? Math.max(1, poly.gradDist) : 50;
+  const side = poly.gradSide === -1 ? -1 : 1;
+  const startOp = poly.gradStartOp !== undefined ? Math.max(0, Math.min(1, poly.gradStartOp)) : 0.70;
+  const endOp = poly.gradEndOp !== undefined ? Math.max(0, Math.min(1, poly.gradEndOp)) : 0.00;
+  const scale = poly.gradScale || "viridis";
+  const stops = getGradientPaletteStops(scale, poly.color || "#00e5ff");
+
+  // 1. Compute segment unit normals in world coordinates (meters)
+  const segNormals = [];
+  for (let i = 0; i < numSegs; i++) {
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % N];
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-6) {
+      segNormals.push({ nx: 0, ny: 0, len: 0 });
+    } else {
+      segNormals.push({
+        nx: (-dy / len) * side,
+        ny: (dx / len) * side,
+        len
+      });
+    }
+  }
+
+  // 2. Compute vertex offset vectors with miter limit clamping
+  const vertexOffsets = new Array(N);
+  for (let i = 0; i < N; i++) {
+    if (!isClosed) {
+      if (i === 0) {
+        vertexOffsets[0] = { ox: segNormals[0].nx * dist, oy: segNormals[0].ny * dist };
+        continue;
+      }
+      if (i === N - 1) {
+        const lastNorm = segNormals[numSegs - 1];
+        vertexOffsets[N - 1] = { ox: lastNorm.nx * dist, oy: lastNorm.ny * dist };
+        continue;
+      }
+    }
+    // Interior vertex or closed loop vertex
+    const prevNorm = isClosed ? segNormals[(i - 1 + numSegs) % numSegs] : segNormals[i - 1];
+    const nextNorm = isClosed ? segNormals[i % numSegs] : segNormals[i];
+
+    const bx = prevNorm.nx + nextNorm.nx;
+    const by = prevNorm.ny + nextNorm.ny;
+    const blen = Math.hypot(bx, by);
+
+    if (blen < 1e-4) {
+      vertexOffsets[i] = { ox: nextNorm.nx * dist, oy: nextNorm.ny * dist };
+    } else {
+      const ubx = bx / blen;
+      const uby = by / blen;
+      const cosTh = Math.max(0.1, ubx * nextNorm.nx + uby * nextNorm.ny);
+      const miter = Math.min(2.5, Math.max(1.0, 1.0 / cosTh));
+      vertexOffsets[i] = { ox: ubx * dist * miter, oy: uby * dist * miter };
+    }
+  }
+
+  // 3. Render each quadrilateral ribbon segment with perpendicular linear gradient
+  ctx.save();
+  for (let i = 0; i < numSegs; i++) {
+    const nextI = (i + 1) % N;
+    const p1 = pts[i];
+    const p2 = pts[nextI];
+    const o1 = vertexOffsets[i];
+    const o2 = vertexOffsets[nextI];
+
+    const q1 = { x: p1.x + o1.ox, y: p1.y + o1.oy };
+    const q2 = { x: p2.x + o2.ox, y: p2.y + o2.oy };
+
+    const sp1 = toScreenFn(p1, vp, h);
+    const sp2 = toScreenFn(p2, vp, h);
+    const sq2 = toScreenFn(q2, vp, h);
+    const sq1 = toScreenFn(q1, vp, h);
+
+    const midBaseX = (sp1.x + sp2.x) / 2;
+    const midBaseY = (sp1.y + sp2.y) / 2;
+    const midOffX = (sq1.x + sq2.x) / 2;
+    const midOffY = (sq1.y + sq2.y) / 2;
+
+    const grad = ctx.createLinearGradient(midBaseX, midBaseY, midOffX, midOffY);
+    stops.forEach(st => {
+      const op = startOp + st.pos * (endOp - startOp);
+      grad.addColorStop(st.pos, `rgba(${st.r}, ${st.g}, ${st.b}, ${Math.max(0, Math.min(1, op))})`);
+    });
+
+    ctx.beginPath();
+    ctx.moveTo(sp1.x, sp1.y);
+    ctx.lineTo(sp2.x, sp2.y);
+    ctx.lineTo(sq2.x, sq2.y);
+    ctx.lineTo(sq1.x, sq1.y);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  // Draw subtle dashed boundary on the uncertain edge (the outer edge Q)
+  ctx.beginPath();
+  const sq0 = toScreenFn({ x: pts[0].x + vertexOffsets[0].ox, y: pts[0].y + vertexOffsets[0].oy }, vp, h);
+  ctx.moveTo(sq0.x, sq0.y);
+  for (let i = 1; i < (isClosed ? N : N); i++) {
+    const sq = toScreenFn({ x: pts[i].x + vertexOffsets[i].ox, y: pts[i].y + vertexOffsets[i].oy }, vp, h);
+    ctx.lineTo(sq.x, sq.y);
+  }
+  if (isClosed) {
+    ctx.closePath();
+  }
+  ctx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0.15, endOp * 0.5 + 0.1)})`;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
+}
+
 /* MEASUREMENT RENDERING ENGINE (METERS & AREA) */
 function drawMeasurements(ctx, vp, h) {
   state.measurePolygons.forEach((poly, polyIdx) => {
@@ -5623,6 +5941,13 @@ function drawMeasurements(ctx, vp, h) {
     const fillOp = poly.fillOpacity !== undefined ? poly.fillOpacity : 0.15;
     const lineOp = poly.lineOpacity !== undefined ? poly.lineOpacity : 1.0;
     const lineW = poly.lineWidth !== undefined ? poly.lineWidth : (isActive ? 2.5 : 1.8);
+    const isClosed = poly.closed !== false;
+
+    // Perpendicular Gradient Uncertainty Buffer
+    const shouldDrawGradBuffer = (poly.closed === false || poly.gradBuffer === true) && pts.length >= 2;
+    if (shouldDrawGradBuffer) {
+      drawPerpendicularGradientBuffer(ctx, poly, vp, h, worldToScreen);
+    }
 
     ctx.beginPath();
     const start = worldToScreen(pts[0], vp, h);
@@ -5632,7 +5957,7 @@ function drawMeasurements(ctx, vp, h) {
       ctx.lineTo(p.x, p.y);
     }
 
-    if (poly.showArea && pts.length >= 3) {
+    if (isClosed && poly.showArea && pts.length >= 3) {
       ctx.closePath();
       const fr = parseInt(fillColor.slice(1,3),16), fg = parseInt(fillColor.slice(3,5),16), fb = parseInt(fillColor.slice(5,7),16);
       ctx.fillStyle = `rgba(${isNaN(fr)?0:fr},${isNaN(fg)?229:fg},${isNaN(fb)?255:fb},${fillOp})`;
@@ -5676,51 +6001,84 @@ function drawMeasurements(ctx, vp, h) {
       }
     }
 
-    if (poly.showArea && pts.length >= 3 && state.measureLabels !== false) {
-      const pLast = pts[pts.length - 1];
-      const pFirst = pts[0];
-      const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
-      const spLast = worldToScreen(pLast, vp, h);
-      const spFirst = worldToScreen(pFirst, vp, h);
-      const midX = (spLast.x + spFirst.x) / 2;
-      const midY = (spLast.y + spFirst.y) / 2;
+    if (poly.showArea && state.measureLabels !== false) {
+      if (isClosed && pts.length >= 3) {
+        const pLast = pts[pts.length - 1];
+        const pFirst = pts[0];
+        const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
+        const spLast = worldToScreen(pLast, vp, h);
+        const spFirst = worldToScreen(pFirst, vp, h);
+        const midX = (spLast.x + spFirst.x) / 2;
+        const midY = (spLast.y + spFirst.y) / 2;
 
-      ctx.fillStyle = "rgba(0,0,0,0.75)";
-      ctx.fillRect(midX - 24, midY - 10, 48, 18);
-      ctx.strokeStyle = color;
-      ctx.strokeRect(midX - 24, midY - 10, 48, 18);
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.fillRect(midX - 24, midY - 10, 48, 18);
+        ctx.strokeStyle = color;
+        ctx.strokeRect(midX - 24, midY - 10, 48, 18);
 
-      ctx.fillStyle = color;
-      ctx.font = "bold 10px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
-      ctx.textAlign = "left";
+        ctx.fillStyle = color;
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
+        ctx.textAlign = "left";
 
-      let cx = 0, cy = 0;
-      pts.forEach(pt => { cx += pt.x; cy += pt.y; });
-      cx /= pts.length; cy /= pts.length;
-      const sc = worldToScreen({ x: cx, y: cy }, vp, h);
-      const areaM2 = calculatePolygonArea(pts);
-      const plazas = areaM2 / 6400;
+        let cx = 0, cy = 0;
+        pts.forEach(pt => { cx += pt.x; cy += pt.y; });
+        cx /= pts.length; cy /= pts.length;
+        const sc = worldToScreen({ x: cx, y: cy }, vp, h);
+        const areaM2 = calculatePolygonArea(pts);
+        const plazas = areaM2 / 6400;
 
-      const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-      const txt2 = `${plazas.toFixed(2)} plazas`;
+        const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
+        const txt2 = `${plazas.toFixed(2)} plazas`;
 
-      const bw = 104, bh = 32;
-      ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-      ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        const bw = 104, bh = 32;
+        ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
 
-      ctx.fillStyle = color;
-      ctx.font = "bold 10px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(txt1, sc.x, sc.y - 3);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "9px sans-serif";
-      ctx.fillText(txt2, sc.x, sc.y + 9);
-      ctx.textAlign = "left";
+        ctx.fillStyle = color;
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(txt1, sc.x, sc.y - 3);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "9px sans-serif";
+        ctx.fillText(txt2, sc.x, sc.y + 9);
+        ctx.textAlign = "left";
+      } else if (!isClosed && pts.length >= 2) {
+        let totalLen = 0;
+        for (let i = 1; i < pts.length; i++) {
+          totalLen += Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y);
+        }
+        const dist = (poly.gradDist !== undefined && !isNaN(poly.gradDist)) ? poly.gradDist : 50;
+        const approxArea = totalLen * dist;
+
+        let cx = 0, cy = 0;
+        pts.forEach(pt => { cx += pt.x; cy += pt.y; });
+        cx /= pts.length; cy /= pts.length;
+        const sc = worldToScreen({ x: cx, y: cy }, vp, h);
+
+        const txt1 = `📏 Límite: ${totalLen.toFixed(1)} m`;
+        const txt2 = `Buffer: ~${approxArea.toFixed(0)} m² (Abierto)`;
+
+        const bw = 148, bh = 32;
+        ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+
+        ctx.fillStyle = color;
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(txt1, sc.x, sc.y - 3);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "9px sans-serif";
+        ctx.fillText(txt2, sc.x, sc.y + 9);
+        ctx.textAlign = "left";
+      }
     }
   });
 }
@@ -5739,6 +6097,13 @@ function drawMeasurementsGIS(ctx, vp, h) {
     let lineOp = poly.lineOpacity !== undefined ? poly.lineOpacity : 1.0;
     let lineW = poly.lineWidth !== undefined ? poly.lineWidth : (isActive ? 2.5 : 1.8);
     let lineType = poly.lineType || "solid";
+    const isClosed = poly.closed !== false;
+
+    // Perpendicular Gradient Uncertainty Buffer
+    const shouldDrawGradBuffer = (poly.closed === false || poly.gradBuffer === true) && pts.length >= 2;
+    if (shouldDrawGradBuffer) {
+      drawPerpendicularGradientBuffer(ctx, poly, vp, h, worldToScreenGIS);
+    }
 
     ctx.beginPath();
     const start = worldToScreenGIS(pts[0], vp, h);
@@ -5748,7 +6113,7 @@ function drawMeasurementsGIS(ctx, vp, h) {
       ctx.lineTo(p.x, p.y);
     }
 
-    if (pts.length >= 3) {
+    if (isClosed && pts.length >= 3) {
       ctx.closePath();
       const fr = parseInt(fillColor.slice(1,3),16), fg = parseInt(fillColor.slice(3,5),16), fb = parseInt(fillColor.slice(5,7),16);
       ctx.fillStyle = `rgba(${isNaN(fr)?0:fr},${isNaN(fg)?229:fg},${isNaN(fb)?255:fb},${fillOp})`;
@@ -5829,51 +6194,84 @@ function drawMeasurementsGIS(ctx, vp, h) {
       ctx.restore();
     }
 
-    if (poly.showArea && pts.length >= 3 && state.measureLabels !== false) {
-      const pLast = pts[pts.length - 1];
-      const pFirst = pts[0];
-      const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
-      const spLast = worldToScreenGIS(pLast, vp, h);
-      const spFirst = worldToScreenGIS(pFirst, vp, h);
-      const midX = (spLast.x + spFirst.x) / 2;
-      const midY = (spLast.y + spFirst.y) / 2;
+    if (poly.showArea && state.measureLabels !== false) {
+      if (isClosed && pts.length >= 3) {
+        const pLast = pts[pts.length - 1];
+        const pFirst = pts[0];
+        const closeDist = Math.hypot(pFirst.x - pLast.x, pFirst.y - pLast.y);
+        const spLast = worldToScreenGIS(pLast, vp, h);
+        const spFirst = worldToScreenGIS(pFirst, vp, h);
+        const midX = (spLast.x + spFirst.x) / 2;
+        const midY = (spLast.y + spFirst.y) / 2;
 
-      ctx.fillStyle = "rgba(0,0,0,0.75)";
-      ctx.fillRect(midX - 24, midY - 10, 48, 18);
-      ctx.strokeStyle = color;
-      ctx.strokeRect(midX - 24, midY - 10, 48, 18);
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.fillRect(midX - 24, midY - 10, 48, 18);
+        ctx.strokeStyle = color;
+        ctx.strokeRect(midX - 24, midY - 10, 48, 18);
 
-      ctx.fillStyle = color;
-      ctx.font = "bold 10px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
-      ctx.textAlign = "left";
+        ctx.fillStyle = color;
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`${closeDist.toFixed(1)} m`, midX, midY + 3);
+        ctx.textAlign = "left";
 
-      let cx = 0, cy = 0;
-      pts.forEach(pt => { cx += pt.x; cy += pt.y; });
-      cx /= pts.length; cy /= pts.length;
-      const sc = worldToScreenGIS({ x: cx, y: cy }, vp, h);
-      const areaM2 = calculatePolygonArea(pts);
-      const plazas = areaM2 / 6400;
+        let cx = 0, cy = 0;
+        pts.forEach(pt => { cx += pt.x; cy += pt.y; });
+        cx /= pts.length; cy /= pts.length;
+        const sc = worldToScreenGIS({ x: cx, y: cy }, vp, h);
+        const areaM2 = calculatePolygonArea(pts);
+        const plazas = areaM2 / 6400;
 
-      const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-      const txt2 = `${plazas.toFixed(2)} plazas`;
+        const txt1 = `${areaM2.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
+        const txt2 = `${plazas.toFixed(2)} plazas`;
 
-      const bw = 104, bh = 32;
-      ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
-      ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        const bw = 104, bh = 32;
+        ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
 
-      ctx.fillStyle = color;
-      ctx.font = "bold 10px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(txt1, sc.x, sc.y - 3);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "9px sans-serif";
-      ctx.fillText(txt2, sc.x, sc.y + 9);
-      ctx.textAlign = "left";
+        ctx.fillStyle = color;
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(txt1, sc.x, sc.y - 3);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "9px sans-serif";
+        ctx.fillText(txt2, sc.x, sc.y + 9);
+        ctx.textAlign = "left";
+      } else if (!isClosed && pts.length >= 2) {
+        let totalLen = 0;
+        for (let i = 1; i < pts.length; i++) {
+          totalLen += Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y);
+        }
+        const dist = (poly.gradDist !== undefined && !isNaN(poly.gradDist)) ? poly.gradDist : 50;
+        const approxArea = totalLen * dist;
+
+        let cx = 0, cy = 0;
+        pts.forEach(pt => { cx += pt.x; cy += pt.y; });
+        cx /= pts.length; cy /= pts.length;
+        const sc = worldToScreenGIS({ x: cx, y: cy }, vp, h);
+
+        const txt1 = `📏 Límite: ${totalLen.toFixed(1)} m`;
+        const txt2 = `Buffer: ~${approxArea.toFixed(0)} m² (Abierto)`;
+
+        const bw = 148, bh = 32;
+        ctx.fillStyle = "rgba(6, 8, 14, 0.88)";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+        ctx.strokeRect(sc.x - bw / 2, sc.y - bh / 2, bw, bh);
+
+        ctx.fillStyle = color;
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(txt1, sc.x, sc.y - 3);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "9px sans-serif";
+        ctx.fillText(txt2, sc.x, sc.y + 9);
+        ctx.textAlign = "left";
+      }
     }
   });
 }
@@ -6488,13 +6886,14 @@ function updatePolygonSummaryUI() {
     const isEditing = (idx === currentEditingPolyIdx) && isPolySpecsOpen();
     const dot = `<button type="button" class="poly-dot-btn" data-poly-idx="${idx}" title="Click to edit specs (Color, Line, Transparency, Nodes)" style="width:13px;height:13px;border-radius:50%;background:${poly.color};box-shadow:0 0 5px ${poly.color};border:${isEditing ? '2px solid #fff' : '1px solid rgba(255,255,255,0.4)'};cursor:pointer;padding:0;outline:none;display:inline-block;transition:transform 0.1s;"></button>`;
     const name = poly.name || `Polygon ${idx+1}`;
+    const openBadge = poly.closed === false ? ` <span style="font-size:0.58rem;padding:0 3px;border-radius:2px;background:rgba(0,229,255,0.18);color:var(--accent-cyan);border:1px solid rgba(0,229,255,0.3);" title="Límite abierto / Incertidumbre">Abierto</span>` : '';
     const isFirst = idx === 0;
     const isLast = idx === state.measurePolygons.length - 1;
 
     tr.innerHTML = `
       <td>${dot}</td>
       <td class="col-name" style="color:${poly.color};cursor:pointer;" title="Click to edit specs: ${name}">
-        ${name}
+        ${name}${openBadge}
       </td>
       <td style="white-space:nowrap;padding:1px 2px;">
         <button type="button" class="btn-order-btn btn-poly-down" data-idx="${idx}" style="padding:0 3px;font-size:0.6rem;line-height:1.2;" title="Send Backward (draw behind)" ${isFirst ? "disabled" : ""}>▼</button>
@@ -7297,6 +7696,13 @@ function setupEventListeners() {
         showArea: false,
         showNodes: true,
         visible: true,
+        closed: true,
+        gradBuffer: false,
+        gradDist: 50,
+        gradSide: 1,
+        gradScale: "viridis",
+        gradStartOp: 0.70,
+        gradEndOp: 0.00,
         points: []
       };
       state.measurePolygons.push(newPoly);
@@ -7648,6 +8054,113 @@ function setupEventListeners() {
 
   if (btnSpecsClose) btnSpecsClose.addEventListener("click", closePolySpecs);
   if (btnSpecsDone) btnSpecsDone.addEventListener("click", closePolySpecs);
+
+  // Open Boundary & Perpendicular Gradient Buffer Listeners
+  const specsClosed = document.getElementById("poly-specs-closed");
+  const specsGradBuffer = document.getElementById("poly-specs-grad-buffer");
+  const btnGradFlip = document.getElementById("btn-poly-specs-grad-flip");
+  const specsGradScale = document.getElementById("poly-specs-grad-scale");
+  const specsGradDist = document.getElementById("poly-specs-grad-dist");
+  const specsGradDistVal = document.getElementById("poly-specs-grad-dist-val");
+  const specsGradStartOp = document.getElementById("poly-specs-grad-start-op");
+  const specsGradStartOpVal = document.getElementById("poly-specs-grad-start-op-val");
+  const specsGradEndOp = document.getElementById("poly-specs-grad-end-op");
+  const specsGradEndOpVal = document.getElementById("poly-specs-grad-end-op-val");
+
+  if (specsClosed) {
+    specsClosed.addEventListener("change", (e) => {
+      if (currentEditingPolyIdx === null) return;
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (!poly) return;
+      poly.closed = e.target.checked;
+      if (!poly.closed) {
+        poly.gradBuffer = true;
+        if (specsGradBuffer) specsGradBuffer.checked = true;
+      }
+      const gradControls = document.getElementById("poly-specs-grad-controls");
+      if (gradControls) {
+        gradControls.style.display = (!poly.closed || poly.gradBuffer) ? "flex" : "none";
+      }
+      updatePolySpecsPreview(poly);
+      updatePolySpecsArea();
+      updatePolygonSummaryUI();
+      redrawAll();
+    });
+  }
+
+  if (specsGradBuffer) {
+    specsGradBuffer.addEventListener("change", (e) => {
+      if (currentEditingPolyIdx === null) return;
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (!poly) return;
+      poly.gradBuffer = e.target.checked;
+      const gradControls = document.getElementById("poly-specs-grad-controls");
+      if (gradControls) {
+        gradControls.style.display = (!poly.closed || poly.gradBuffer) ? "flex" : "none";
+      }
+      updatePolySpecsPreview(poly);
+      updatePolySpecsArea();
+      redrawAll();
+    });
+  }
+
+  if (btnGradFlip) {
+    btnGradFlip.addEventListener("click", () => {
+      if (currentEditingPolyIdx === null) return;
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (!poly) return;
+      poly.gradSide = (poly.gradSide === -1) ? 1 : -1;
+      statusBar.textContent = `⇄ Gradient projection flipped (${poly.gradSide === 1 ? 'Side A' : 'Side B'}).`;
+      redrawAll();
+    });
+  }
+
+  if (specsGradScale) {
+    specsGradScale.addEventListener("change", (e) => {
+      if (currentEditingPolyIdx === null) return;
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (!poly) return;
+      poly.gradScale = e.target.value;
+      updatePolySpecsPreview(poly);
+      redrawAll();
+    });
+  }
+
+  if (specsGradDist) {
+    specsGradDist.addEventListener("input", (e) => {
+      if (currentEditingPolyIdx === null) return;
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (!poly) return;
+      poly.gradDist = parseFloat(e.target.value) || 50;
+      if (specsGradDistVal) specsGradDistVal.textContent = `${poly.gradDist} m`;
+      updatePolySpecsArea();
+      redrawAll();
+    });
+  }
+
+  if (specsGradStartOp) {
+    specsGradStartOp.addEventListener("input", (e) => {
+      if (currentEditingPolyIdx === null) return;
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (!poly) return;
+      poly.gradStartOp = parseInt(e.target.value, 10) / 100;
+      if (specsGradStartOpVal) specsGradStartOpVal.textContent = `${e.target.value}%`;
+      updatePolySpecsPreview(poly);
+      redrawAll();
+    });
+  }
+
+  if (specsGradEndOp) {
+    specsGradEndOp.addEventListener("input", (e) => {
+      if (currentEditingPolyIdx === null) return;
+      const poly = state.measurePolygons[currentEditingPolyIdx];
+      if (!poly) return;
+      poly.gradEndOp = parseInt(e.target.value, 10) / 100;
+      if (specsGradEndOpVal) specsGradEndOpVal.textContent = `${e.target.value}%`;
+      updatePolySpecsPreview(poly);
+      redrawAll();
+    });
+  }
 
   // Canvas Mouse Actions (Pan, Anchor, Measure)
   attachCanvasInteractions(canvas296,  "296");
@@ -10298,6 +10811,12 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
         const pLineOp = poly.lineOpacity !== undefined ? poly.lineOpacity : 1.0;
         const pLineW = (poly.lineWidth !== undefined ? poly.lineWidth : 2.5) * scaleRatio;
         const lineType = poly.lineType || "solid";
+        const isClosed = poly.closed !== false;
+
+        const shouldDrawGradBuffer = (poly.closed === false || poly.gradBuffer === true) && poly.points.length >= 2;
+        if (shouldDrawGradBuffer) {
+          drawPerpendicularGradientBuffer(ctx, poly, vpExp, EXP_H, worldToScreenGISExport);
+        }
 
         ctx.save();
         ctx.beginPath();
@@ -10307,9 +10826,11 @@ function drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac) {
           const p = worldToScreenGISExport(poly.points[i], vpExp, EXP_H);
           ctx.lineTo(p.x, p.y);
         }
-        ctx.closePath();
-        ctx.fillStyle = colorToRgba(fillColor, Math.min(1, fillOp));
-        ctx.fill();
+        if (isClosed && poly.points.length >= 3) {
+          ctx.closePath();
+          ctx.fillStyle = colorToRgba(fillColor, Math.min(1, fillOp));
+          ctx.fill();
+        }
         ctx.strokeStyle = colorToRgba(pColor, pLineOp);
         ctx.lineWidth = pLineW;
         ctx.setLineDash(getPolyLineDash(lineType).map(v => v * scaleRatio));
