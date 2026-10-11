@@ -2943,13 +2943,7 @@ function resizeCanvases() {
 }
 window.addEventListener("resize", resizeCanvases);
 
-function redrawAll() {
-  drawViewport296();
-  drawViewport1073();
-  drawViewportTrue();
-  updateAnalyticsUI();
-  updateMeasurementUI();
-}
+
 
 function drawGrid(ctx, w, h) {
   ctx.strokeStyle = "rgba(255, 255, 255, 0.04)"; ctx.lineWidth = 1;
@@ -9923,7 +9917,7 @@ function attachCanvasInteractions(canvas, mapName) {
       } else if (draggingCaseArrow.part === "tail") {
         draggingCaseArrow.arrow.startX = draggingCaseArrow.origStartX + dx;
         draggingCaseArrow.arrow.startY = draggingCaseArrow.origStartY + dy;
-        const hit = findLabelNearScreen(mouseX, mouseY, labels, 18);
+        const hit = findLabelNearScreen(mouseX, mouseY, labels, 28);
         if (hit) {
           canvas.style.cursor = "copy";
           const shortTxt = (hit.text || "Label").replace(/\[\/?size[^\]]*\]/gi, "").split("\n")[0].trim().substring(0, 22);
@@ -9934,7 +9928,7 @@ function attachCanvasInteractions(canvas, mapName) {
       } else if (draggingCaseArrow.part === "head") {
         draggingCaseArrow.arrow.endX = draggingCaseArrow.origEndX + dx;
         draggingCaseArrow.arrow.endY = draggingCaseArrow.origEndY + dy;
-        const hit = findLabelNearScreen(mouseX, mouseY, labels, 18);
+        const hit = findLabelNearScreen(mouseX, mouseY, labels, 28);
         if (hit) {
           canvas.style.cursor = "copy";
           const shortTxt = (hit.text || "Label").replace(/\[\/?size[^\]]*\]/gi, "").split("\n")[0].trim().substring(0, 22);
@@ -10182,7 +10176,7 @@ function attachCanvasInteractions(canvas, mapName) {
       const ac = getActiveCase();
       const labels = ac ? (ac.labels || []) : [];
       if (draggingCaseArrow.part === "tail") {
-        const hit = findLabelNearScreen(mouseX, mouseY, labels, 18);
+        const hit = findLabelNearScreen(mouseX, mouseY, labels, 28);
         if (hit) {
           draggingCaseArrow.arrow.pinTailLabelId = hit.id;
           const shortTxt = (hit.text || "Label").replace(/\[\/?size[^\]]*\]/gi, "").split("\n")[0].trim().substring(0, 22);
@@ -10194,7 +10188,7 @@ function attachCanvasInteractions(canvas, mapName) {
           }
         }
       } else if (draggingCaseArrow.part === "head") {
-        const hit = findLabelNearScreen(mouseX, mouseY, labels, 18);
+        const hit = findLabelNearScreen(mouseX, mouseY, labels, 28);
         if (hit) {
           draggingCaseArrow.arrow.pinHeadLabelId = hit.id;
           const shortTxt = (hit.text || "Label").replace(/\[\/?size[^\]]*\]/gi, "").split("\n")[0].trim().substring(0, 22);
@@ -10310,17 +10304,49 @@ function attachCanvasInteractions(canvas, mapName) {
       const mouseY = t.clientY - rect.top;
 
       if (mapName === "true" && state.caseMode) {
+        const hitArrow = getArrowHitAtScreen(mouseX, mouseY);
+        if (hitArrow) {
+          draggingCaseArrow = {
+            arrow: hitArrow.arrow,
+            part: hitArrow.part,
+            startMouseX: mouseX,
+            startMouseY: mouseY,
+            origStartX: hitArrow.arrow.startX,
+            origStartY: hitArrow.arrow.startY,
+            origEndX: hitArrow.arrow.endX,
+            origEndY: hitArrow.arrow.endY
+          };
+          selectCaseArrow(hitArrow.arrow.id);
+          isTouchPanning = false;
+          lastTouchClientX = t.clientX;
+          lastTouchClientY = t.clientY;
+          lastTouchDist = null;
+          e.preventDefault();
+          return;
+        }
         const hitLbl = getLabelAtScreen(mouseX, mouseY);
         if (hitLbl) {
-          selectCaseLabel(hitLbl.id);
-          const vp = getVP();
+          const ac = getActiveCase();
+          const pinnedArrows = ac ? (ac.arrows || []).filter(a => a.pinTailLabelId === hitLbl.id || a.pinHeadLabelId === hitLbl.id).map(a => ({
+            arr: a,
+            origStartX: a.startX,
+            origStartY: a.startY,
+            origEndX: a.endX,
+            origEndY: a.endY
+          })) : [];
           draggingCaseLabel = {
             lbl: hitLbl,
             startMouseX: mouseX,
             startMouseY: mouseY,
             origWorldX: hitLbl.worldX,
-            origWorldY: hitLbl.worldY
+            origWorldY: hitLbl.worldY,
+            pinnedArrows
           };
+          selectCaseLabel(hitLbl.id);
+          isTouchPanning = false;
+          lastTouchClientX = t.clientX;
+          lastTouchClientY = t.clientY;
+          lastTouchDist = null;
           e.preventDefault();
           return;
         }
@@ -10333,42 +10359,88 @@ function attachCanvasInteractions(canvas, mapName) {
     } else if (e.touches.length === 2) {
       isTouchPanning = false;
       draggingCaseLabel = null;
+      draggingCaseArrow = null;
       lastTouchDist = getTouchDistance(e.touches[0], e.touches[1]);
       e.preventDefault();
     }
   }, { passive: false });
 
   canvas.addEventListener("touchmove", (e) => {
-    if (e.touches.length === 1 && isTouchPanning) {
+    if (e.touches.length === 1) {
       const t = e.touches[0];
-      const dx = t.clientX - lastTouchClientX;
-      const dy = t.clientY - lastTouchClientY;
-      lastTouchClientX = t.clientX;
-      lastTouchClientY = t.clientY;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = t.clientX - rect.left;
+      const mouseY = t.clientY - rect.top;
 
-      if (draggingCaseLabel) {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = t.clientX - rect.left;
-        const mouseY = t.clientY - rect.top;
+      if (draggingCaseArrow) {
         const vp = getVP();
         const curWorld = screenToWorldGIS(mouseX, mouseY, vp, canvas.height);
-        const startWorld = screenToWorldGIS(draggingCaseLabel.startMouseX, draggingCaseLabel.startMouseY, vp, canvas.height);
-        draggingCaseLabel.lbl.worldX = draggingCaseLabel.origWorldX + (curWorld.x - startWorld.x);
-        draggingCaseLabel.lbl.worldY = draggingCaseLabel.origWorldY + (curWorld.y - startWorld.y);
+        const startWorld = screenToWorldGIS(draggingCaseArrow.startMouseX, draggingCaseArrow.startMouseY, vp, canvas.height);
+        const dx = curWorld.x - startWorld.x;
+        const dy = curWorld.y - startWorld.y;
+
+        if (draggingCaseArrow.part === "body") {
+          draggingCaseArrow.arrow.startX = draggingCaseArrow.origStartX + dx;
+          draggingCaseArrow.arrow.startY = draggingCaseArrow.origStartY + dy;
+          draggingCaseArrow.arrow.endX = draggingCaseArrow.origEndX + dx;
+          draggingCaseArrow.arrow.endY = draggingCaseArrow.origEndY + dy;
+        } else if (draggingCaseArrow.part === "tail") {
+          draggingCaseArrow.arrow.startX = draggingCaseArrow.origStartX + dx;
+          draggingCaseArrow.arrow.startY = draggingCaseArrow.origStartY + dy;
+        } else if (draggingCaseArrow.part === "head") {
+          draggingCaseArrow.arrow.endX = draggingCaseArrow.origEndX + dx;
+          draggingCaseArrow.arrow.endY = draggingCaseArrow.origEndY + dy;
+        }
+        lastTouchClientX = t.clientX;
+        lastTouchClientY = t.clientY;
         redrawAll();
         e.preventDefault();
         return;
       }
 
-      const vp = getVP();
-      vp.offsetX += dx;
-      if (mapName === "true") {
-        vp.offsetY -= dy;
-      } else {
-        vp.offsetY += dy;
+      if (draggingCaseLabel) {
+        const vp = getVP();
+        const curWorld = screenToWorldGIS(mouseX, mouseY, vp, canvas.height);
+        const startWorld = screenToWorldGIS(draggingCaseLabel.startMouseX, draggingCaseLabel.startMouseY, vp, canvas.height);
+        const dx = curWorld.x - startWorld.x;
+        const dy = curWorld.y - startWorld.y;
+        draggingCaseLabel.lbl.worldX = draggingCaseLabel.origWorldX + dx;
+        draggingCaseLabel.lbl.worldY = draggingCaseLabel.origWorldY + dy;
+        if (Array.isArray(draggingCaseLabel.pinnedArrows)) {
+          draggingCaseLabel.pinnedArrows.forEach(pa => {
+            if (pa.arr.pinTailLabelId === draggingCaseLabel.lbl.id) {
+              pa.arr.startX = pa.origStartX + dx;
+              pa.arr.startY = pa.origStartY + dy;
+            }
+            if (pa.arr.pinHeadLabelId === draggingCaseLabel.lbl.id) {
+              pa.arr.endX = pa.origEndX + dx;
+              pa.arr.endY = pa.origEndY + dy;
+            }
+          });
+        }
+        lastTouchClientX = t.clientX;
+        lastTouchClientY = t.clientY;
+        redrawAll();
+        e.preventDefault();
+        return;
       }
-      redrawAll();
-      e.preventDefault();
+
+      if (isTouchPanning) {
+        const dx = t.clientX - lastTouchClientX;
+        const dy = t.clientY - lastTouchClientY;
+        lastTouchClientX = t.clientX;
+        lastTouchClientY = t.clientY;
+
+        const vp = getVP();
+        vp.offsetX += dx;
+        if (mapName === "true") {
+          vp.offsetY -= dy;
+        } else {
+          vp.offsetY += dy;
+        }
+        redrawAll();
+        e.preventDefault();
+      }
     } else if (e.touches.length === 2 && lastTouchDist !== null) {
       const newDist = getTouchDistance(e.touches[0], e.touches[1]);
       if (newDist > 0 && lastTouchDist > 0) {
@@ -10392,9 +10464,37 @@ function attachCanvasInteractions(canvas, mapName) {
     if (e.touches.length < 2) {
       lastTouchDist = null;
     }
+    if (draggingCaseArrow) {
+      const ac = getActiveCase();
+      const labels = ac ? (ac.labels || []) : [];
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = lastTouchClientX - rect.left;
+      const mouseY = lastTouchClientY - rect.top;
+      if (draggingCaseArrow.part === "tail") {
+        const hit = findLabelNearScreen(mouseX, mouseY, labels, 28);
+        if (hit) {
+          draggingCaseArrow.arrow.pinTailLabelId = hit.id;
+        } else if (draggingCaseArrow.arrow.pinTailLabelId) {
+          draggingCaseArrow.arrow.pinTailLabelId = null;
+        }
+      } else if (draggingCaseArrow.part === "head") {
+        const hit = findLabelNearScreen(mouseX, mouseY, labels, 28);
+        if (hit) {
+          draggingCaseArrow.arrow.pinHeadLabelId = hit.id;
+        } else if (draggingCaseArrow.arrow.pinHeadLabelId) {
+          draggingCaseArrow.arrow.pinHeadLabelId = null;
+        }
+      }
+      buildCaseArrowsList();
+      draggingCaseArrow = null;
+      redrawAll();
+    }
+    if (draggingCaseLabel) {
+      draggingCaseLabel = null;
+      redrawAll();
+    }
     if (e.touches.length === 0) {
       isTouchPanning = false;
-      draggingCaseLabel = null;
     }
   });
 
@@ -10402,6 +10502,7 @@ function attachCanvasInteractions(canvas, mapName) {
     isTouchPanning = false;
     lastTouchDist = null;
     draggingCaseLabel = null;
+    draggingCaseArrow = null;
   });
 }
 function calculatePolygonArea(points) {
@@ -11810,7 +11911,7 @@ function getBoxEdgeIntersection(box, targetX, targetY, margin = 3) {
   };
 }
 
-function findLabelNearScreen(sx, sy, labels, margin = 18) {
+function findLabelNearScreen(sx, sy, labels, margin = 28) {
   if (!labels) return null;
   for (let i = labels.length - 1; i >= 0; i--) {
     const lbl = labels[i];
@@ -11838,7 +11939,7 @@ function resolveArrowScreenPoints(arr, vp, h, isExport = false) {
 
   // Auto-link legacy unconfigured arrows that were drawn inside or touching a label box
   if (arr.pinTailLabelId === undefined && !tailLbl && labels.length > 0) {
-    const hit = findLabelNearScreen(rawS.x, rawS.y, labels, 18);
+    const hit = findLabelNearScreen(rawS.x, rawS.y, labels, 28);
     if (hit) {
       arr.pinTailLabelId = hit.id;
       tailLbl = hit;
@@ -11848,7 +11949,7 @@ function resolveArrowScreenPoints(arr, vp, h, isExport = false) {
   }
 
   if (arr.pinHeadLabelId === undefined && !headLbl && labels.length > 0) {
-    const hit = findLabelNearScreen(rawE.x, rawE.y, labels, 18);
+    const hit = findLabelNearScreen(rawE.x, rawE.y, labels, 28);
     if (hit && hit !== tailLbl) {
       arr.pinHeadLabelId = hit.id;
       headLbl = hit;
@@ -11886,6 +11987,141 @@ function resolveArrowScreenPoints(arr, vp, h, isExport = false) {
   }
 
   return { s: { x: sx, y: sy }, e: { x: ex, y: ey } };
+}
+
+function getArrowHitAtScreen(screenX, screenY) {
+  const ac = getActiveCase();
+  if (!ac || !ac.arrows || ac.arrows.length === 0) return null;
+  const vp = state.vpTrue;
+  const h = canvasTrue.height;
+  const zoomFactor = getCaseZoomFactor(vp, ac);
+
+  // Check currently selected arrow's handles first
+  if (state.caseSelectedArrowId) {
+    const sel = ac.arrows.find(a => a.id === state.caseSelectedArrowId);
+    if (sel) {
+      const { s, e } = resolveArrowScreenPoints(sel, vp, h);
+      if (Math.hypot(screenX - e.x, screenY - e.y) <= 12) return { arrow: sel, part: "head" };
+      if (Math.hypot(screenX - s.x, screenY - s.y) <= 12) return { arrow: sel, part: "tail" };
+    }
+  }
+
+  // Iterate backwards (topmost first)
+  for (let i = ac.arrows.length - 1; i >= 0; i--) {
+    const arr = ac.arrows[i];
+    const { s, e } = resolveArrowScreenPoints(arr, vp, h);
+
+    if (Math.hypot(screenX - e.x, screenY - e.y) <= 12) {
+      return { arrow: arr, part: "head" };
+    }
+    if (Math.hypot(screenX - s.x, screenY - s.y) <= 12) {
+      return { arrow: arr, part: "tail" };
+    }
+    const l2 = (e.x - s.x) * (e.x - s.x) + (e.y - s.y) * (e.y - s.y);
+    let dist = 0;
+    if (l2 === 0) {
+      dist = Math.hypot(screenX - s.x, screenY - s.y);
+    } else {
+      let t = ((screenX - s.x) * (e.x - s.x) + (screenY - s.y) * (e.y - s.y)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      const projX = s.x + t * (e.x - s.x);
+      const projY = s.y + t * (e.y - s.y);
+      dist = Math.hypot(screenX - projX, screenY - projY);
+    }
+    const hitThreshold = Math.max(7, ((arr.lineWidth || 3) * zoomFactor) + 4);
+    if (dist <= hitThreshold) {
+      return { arrow: arr, part: "body" };
+    }
+  }
+  return null;
+}
+
+function drawSingleArrow(ctx, sx, sy, ex, ey, headSize, lineWidth, color, opacity, isSelected, headStyle = "head", arr = null) {
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, opacity !== undefined ? opacity : 0.85));
+  ctx.strokeStyle = color || "#00e5ff";
+  ctx.fillStyle = color || "#00e5ff";
+  ctx.lineWidth = lineWidth || 3;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  const dx = ex - sx;
+  const dy = ey - sy;
+  const angle = Math.atan2(dy, dx);
+  const length = Math.hypot(dx, dy);
+
+  const style = headStyle || "head";
+  const drawHeadAtEnd = style === "head" || style === "both";
+  const drawHeadAtStart = style === "tail" || style === "both";
+
+  const hs = Math.min(headSize || 16, Math.max(4, length * 0.6));
+  const headAngle = Math.PI / 6;
+
+  // Draw shaft ending at arrowhead indentation
+  const shaftStartX = drawHeadAtStart ? sx + hs * 0.5 * Math.cos(angle) : sx;
+  const shaftStartY = drawHeadAtStart ? sy + hs * 0.5 * Math.sin(angle) : sy;
+  const shaftEndX = drawHeadAtEnd ? ex - hs * 0.5 * Math.cos(angle) : ex;
+  const shaftEndY = drawHeadAtEnd ? ey - hs * 0.5 * Math.sin(angle) : ey;
+
+  ctx.beginPath();
+  ctx.moveTo(shaftStartX, shaftStartY);
+  ctx.lineTo(shaftEndX, shaftEndY);
+  ctx.stroke();
+
+  // Draw arrowhead at end
+  if (drawHeadAtEnd && length > 6) {
+    ctx.beginPath();
+    ctx.moveTo(ex, ey);
+    ctx.lineTo(ex - hs * Math.cos(angle - headAngle), ey - hs * Math.sin(angle - headAngle));
+    ctx.lineTo(ex - hs * 0.45 * Math.cos(angle), ey - hs * 0.45 * Math.sin(angle));
+    ctx.lineTo(ex - hs * Math.cos(angle + headAngle), ey - hs * Math.sin(angle + headAngle));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Draw arrowhead at start (Reverse / Tail arrow)
+  if (drawHeadAtStart && length > 6) {
+    const oppAngle = angle + Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx - hs * Math.cos(oppAngle - headAngle), sy - hs * Math.sin(oppAngle - headAngle));
+    ctx.lineTo(sx - hs * 0.45 * Math.cos(oppAngle), sy - hs * 0.45 * Math.sin(oppAngle));
+    ctx.lineTo(sx - hs * Math.cos(oppAngle + headAngle), sy - hs * Math.sin(oppAngle + headAngle));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.restore();
+
+  if (isSelected) {
+    ctx.save();
+    // Selection halo
+    ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+    ctx.lineWidth = (lineWidth || 3) + 6;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+
+    // Tail handle: green (#00e676) if pinned to a label, cyan (#00e5ff) if free ground point
+    const isTailPinned = arr && arr.pinTailLabelId;
+    ctx.fillStyle = isTailPinned ? "#00e676" : "#00e5ff";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Head handle: green (#00e676) if pinned to a label, coral (#ff1744) if free ground point
+    const isHeadPinned = arr && arr.pinHeadLabelId;
+    ctx.fillStyle = isHeadPinned ? "#00e676" : "#ff1744";
+    ctx.beginPath();
+    ctx.arc(ex, ey, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
 }
 
 function drawCaseArrows(ctx, vp, h) {
