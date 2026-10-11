@@ -108,70 +108,47 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
     }
 
     .case-counter-badge {
-      display: none !important;
-    }
-
-    .btn-case-step {
-      width: 28px;
-      height: 28px;
-      min-width: 28px;
-      border-radius: 50%;
-      padding: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at 35% 30%, #90ed3b 0%, #4eb920 46%, #28800e 84%, #1b6007 100%);
-      border: 1.5px solid #206208;
-      box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.65), 
-                  inset 0 -1.5px 2px rgba(0, 0, 0, 0.35),
-                  0 2px 5px rgba(0, 0, 0, 0.5),
-                  0 0 8px rgba(78, 185, 32, 0.4);
-      cursor: pointer;
-      position: relative;
-      user-select: none;
-      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, filter 0.15s ease;
-      outline: none;
-      flex-shrink: 0;
+      font-size: 0.74rem;
+      padding: 1px 7px;
+      border-radius: 12px;
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--accent-cyan);
+      font-weight: 700;
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      letter-spacing: 0.5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      line-height: 1.3;
     }
 
-    /* Gloss highlight overlay */
-    .btn-case-step::before {
-      content: "";
-      position: absolute;
-      top: 1.5px;
-      left: 3px;
-      right: 3px;
-      height: 10px;
-      border-radius: 12px 12px 8px 8px / 9px 9px 5px 5px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.05) 100%);
-      pointer-events: none;
+    .btn-case-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      color: var(--accent-cyan);
+      padding: 3px 7px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      line-height: 1.2;
     }
 
     .btn-case-step:hover {
-      filter: brightness(1.12);
-      transform: scale(1.08);
-      box-shadow: inset 0 1.5px 3px rgba(255, 255, 255, 0.85),
-                  inset 0 -1.5px 2px rgba(0, 0, 0, 0.3),
-                  0 3px 8px rgba(0, 0, 0, 0.6),
-                  0 0 12px rgba(144, 237, 59, 0.65);
+      background: rgba(0, 229, 255, 0.28);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+      color: #fff;
     }
 
     .btn-case-step:active {
-      transform: scale(0.94);
-      filter: brightness(0.92);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5),
-                  0 1px 3px rgba(0, 0, 0, 0.4);
-    }
-
-    .btn-case-step svg {
-      width: 13px;
-      height: 13px;
-      fill: #ffffff;
-      filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.55));
-      display: block;
-      pointer-events: none;
-      position: relative;
-      z-index: 2;
+      transform: scale(0.96);
     }
 
     .key-kbd {
@@ -190,13 +167,11 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       border: 1px solid rgba(0, 229, 255, 0.45);
       color: #fff;
       border-radius: var(--radius-sm);
-      padding: 3px 8px;
-      font-size: 0.8rem;
+      padding: 3px 6px;
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
-      min-width: 140px;
-      max-width: 240px;
-      height: 28px;
+      max-width: 190px;
       text-overflow: ellipsis;
       transition: all 0.15s ease;
     }
@@ -943,28 +918,13 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
     <header class="app-header">
       <!-- App Brand & Case Stepper Navigation -->
       <div class="header-cases-nav">
-        <span style="display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:0.95rem;color:#fff;letter-spacing:-0.2px;white-space:nowrap;user-select:none;">
-          <svg class="brand-tree-icon" viewBox="0 0 24 24" width="20" height="20" aria-label="La Trinidad Tree" style="vertical-align:middle;filter:drop-shadow(0 1px 3px rgba(0,230,118,0.35));flex-shrink:0;">
-            <defs>
-              <linearGradient id="header-tree-leaf-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#4ade80"/>
-                <stop offset="50%" stop-color="#22c55e"/>
-                <stop offset="100%" stop-color="#15803d"/>
-              </linearGradient>
-            </defs>
-            <path d="M10.8 16.5H13.2V22C13.2 22.3 12.9 22.5 12.6 22.5H11.4C11.1 22.5 10.8 22.3 10.8 22V16.5Z" fill="#92400e"/>
-            <path d="M12 2C8.2 2 5.5 4.8 5.5 8C5.5 8.7 5.7 9.4 6 10C4.3 11 3.5 13 4 15C4.5 17 6.5 18 9 18H15C17.5 18 19.5 17 20 15C20.5 13 19.7 11 18 10C18.3 9.4 18.5 8.7 18.5 8C18.5 4.8 15.8 2 12 2Z" fill="url(#header-tree-leaf-grad)"/>
-            <path d="M12 3.5C9.5 3.5 7.5 5.5 7.2 8C7.6 7.4 8.2 7 9 7C9.8 7 10.5 7.4 11 8C11.5 6.5 12.8 5.5 14.5 5.5C15.2 5.5 15.8 5.7 16.3 6C15.5 4.5 13.9 3.5 12 3.5Z" fill="rgba(255,255,255,0.28)"/>
-          </svg>
-          <span>La Trinidad</span>
-        </span>
+        <span style="font-weight:700;font-size:0.95rem;color:#fff;letter-spacing:-0.2px;white-space:nowrap;">La Trinidad</span>
         <span style="color:var(--border-color);font-size:0.85rem;user-select:none;">|</span>
         <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;">Casos</span>
+        <span id="case-counter-badge" class="case-counter-badge" title="Active Case / Total Cases">0/0</span>
 
         <button type="button" id="btn-case-prev" class="btn-case-step" title="Previous Case (Teclado: ←)">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M11 5L3 12L11 19V14.5H21V9.5H11V5Z" />
-          </svg>
+          <span>◀</span><kbd class="key-kbd">←</kbd>
         </button>
 
         <select id="case-selector" class="header-case-select" title="Select Case (or scroll wheel)">
@@ -972,9 +932,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
         </select>
 
         <button type="button" id="btn-case-next" class="btn-case-step" title="Next Case (Teclado: →)">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M13 5L21 12L13 19V14.5H3V9.5H13V5Z" />
-          </svg>
+          <kbd class="key-kbd">→</kbd><span>▶</span>
         </button>
 
         <button type="button" id="btn-case-export-hd" class="btn-case-hd" title="Download HD image (4K PNG)">
@@ -1171,16 +1129,12 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
           </div>
 
           <!-- Prominent & always-visible Case Navigation Bar -->
-          <div style="padding:6px 8px;display:flex;gap:6px;align-items:center;background:rgba(0,0,0,0.25);border-bottom:1px solid rgba(255,255,255,0.06);">
-            <button type="button" id="btn-case-prev-side" class="btn-case-step" title="Previous case (or scroll mouse wheel over selector)">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L3 12L11 19V14.5H21V9.5H11V5Z" /></svg>
-            </button>
+          <div style="padding:6px 8px;display:flex;gap:4px;align-items:center;background:rgba(0,0,0,0.25);border-bottom:1px solid rgba(255,255,255,0.06);">
+            <button type="button" id="btn-case-prev-side" class="btn btn-secondary btn-sm" style="padding:3px 8px;font-size:0.8rem;font-weight:bold;cursor:pointer;" title="Previous case (or scroll mouse wheel over selector)">◀</button>
             <select id="case-selector-side" class="select-dropdown" style="flex:1;min-width:0;background:#121824;border:1px solid var(--accent-cyan);color:#fff;border-radius:4px;padding:4px 6px;font-size:0.8rem;font-weight:600;cursor:pointer;">
               <option value="">— No case selected —</option>
             </select>
-            <button type="button" id="btn-case-next-side" class="btn-case-step" title="Next case (or scroll mouse wheel over selector)">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5L21 12L13 19V14.5H3V9.5H13V5Z" /></svg>
-            </button>
+            <button type="button" id="btn-case-next-side" class="btn btn-secondary btn-sm" style="padding:3px 8px;font-size:0.8rem;font-weight:bold;cursor:pointer;" title="Next case (or scroll mouse wheel over selector)">▶</button>
           </div>
 
           <div id="body-panel-cases" class="panel-body-collapsed">
@@ -10860,15 +10814,12 @@ async function autoLoadCases() {
 function rebuildCaseSelector() {
   const selectors = [document.getElementById("case-selector"), document.getElementById("case-selector-side")].filter(Boolean);
   if (selectors.length === 0) return;
-  const total = (state.cases || []).length;
   selectors.forEach(sel => {
     sel.innerHTML = '<option value="">— No case selected —</option>';
     state.cases.forEach((c, idx) => {
       const opt = document.createElement("option");
       opt.value = c.id;
-      const cleanName = (c.name || "Caso").replace(/^\d+(\/\d+|\.)\s*/, "");
-      const countPrefix = total > 0 ? `${idx + 1}/${total}` : `${idx + 1}`;
-      opt.textContent = `${countPrefix} ${cleanName}`;
+      opt.textContent = `${idx + 1}. ${c.name}`;
       sel.appendChild(opt);
     });
     sel.value = state.activeCaseId !== null ? state.activeCaseId : "";
