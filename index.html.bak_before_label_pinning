@@ -1310,24 +1310,6 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                 <label style="display:flex;flex-direction:column;gap:2px;">Head Size (px)
                   <input type="number" id="arrow-headsize" min="6" max="60" step="1" value="16" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:2px 4px;">
                 </label>
-                <label style="display:flex;flex-direction:column;gap:2px;grid-column:span 2;">Arrow Type / Heads
-                  <select id="arrow-head-style" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:3px 4px;font-size:0.72rem;">
-                    <option value="head">➡️ Standard (Head at end)</option>
-                    <option value="tail">⬅️ Reverse (Head at start / from fence)</option>
-                    <option value="none">➖ Leader Line (No arrowhead)</option>
-                    <option value="both">↔️ Both Ends</option>
-                  </select>
-                </label>
-                <label style="display:flex;flex-direction:column;gap:2px;grid-column:span 2;">Pin Tail (Start) to Label
-                  <select id="arrow-pin-tail" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:3px 4px;font-size:0.72rem;">
-                    <option value="">(None - Free ground point)</option>
-                  </select>
-                </label>
-                <label style="display:flex;flex-direction:column;gap:2px;grid-column:span 2;">Pin Head (End) to Label
-                  <select id="arrow-pin-head" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);color:#fff;border-radius:4px;padding:3px 4px;font-size:0.72rem;">
-                    <option value="">(None - Free ground point)</option>
-                  </select>
-                </label>
               </div>
               <button id="btn-arrow-delete" class="btn btn-sm btn-danger-sm" style="width:100%;margin-top:6px;">🗑️ Delete Arrow</button>
             </div>
@@ -4786,7 +4768,8 @@ function drawMojones1073(ctx, vp, h, customScale = null) {
   let zoomFactor = 1.0;
   if (state.caseMode && vp) {
     const ac = getActiveCase();
-    zoomFactor = getCaseZoomFactor(vp, ac);
+    const refScale = (ac && ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+    zoomFactor = Math.max(0.25, Math.min(1.35, vp.scale / refScale));
   }
   const baseScale = customScale !== null ? customScale : (state.mojonesSize || 1.0);
   const uiScale = baseScale * zoomFactor;
@@ -4819,7 +4802,8 @@ function hitTestMojonLabel(mouseX, mouseY, vp, canvasH) {
   let zoomFactor = 1.0;
   if (state.caseMode && vp) {
     const ac = getActiveCase();
-    zoomFactor = getCaseZoomFactor(vp, ac);
+    const refScale = (ac && ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+    zoomFactor = Math.max(0.25, Math.min(1.35, vp.scale / refScale));
   }
   const uiScale = (state.mojonesSize || 1.0) * zoomFactor;
   for (let i = state.anchors1073.length - 1; i >= 0; i--) {
@@ -9698,21 +9682,12 @@ function attachCanvasInteractions(canvas, mapName) {
       }
       const hitLbl = getLabelAtScreen(mouseX, mouseY);
       if (hitLbl) {
-        const ac = getActiveCase();
-        const pinnedArrows = ac ? (ac.arrows || []).filter(a => a.pinTailLabelId === hitLbl.id || a.pinHeadLabelId === hitLbl.id).map(a => ({
-          arr: a,
-          origStartX: a.startX,
-          origStartY: a.startY,
-          origEndX: a.endX,
-          origEndY: a.endY
-        })) : [];
         draggingCaseLabel = {
           lbl: hitLbl,
           startMouseX: mouseX,
           startMouseY: mouseY,
           origWorldX: hitLbl.worldX,
-          origWorldY: hitLbl.worldY,
-          pinnedArrows
+          origWorldY: hitLbl.worldY
         };
         selectCaseLabel(hitLbl.id);
         canvas.style.cursor = "grabbing";
@@ -9912,9 +9887,6 @@ function attachCanvasInteractions(canvas, mapName) {
       const startWorld = toWorld(draggingCaseArrow.startMouseX, draggingCaseArrow.startMouseY, vp, canvas.height);
       const dx = curWorld.x - startWorld.x;
       const dy = curWorld.y - startWorld.y;
-      const ac = getActiveCase();
-      const labels = ac ? (ac.labels || []) : [];
-
       if (draggingCaseArrow.part === "body") {
         draggingCaseArrow.arrow.startX = draggingCaseArrow.origStartX + dx;
         draggingCaseArrow.arrow.startY = draggingCaseArrow.origStartY + dy;
@@ -9923,25 +9895,9 @@ function attachCanvasInteractions(canvas, mapName) {
       } else if (draggingCaseArrow.part === "tail") {
         draggingCaseArrow.arrow.startX = draggingCaseArrow.origStartX + dx;
         draggingCaseArrow.arrow.startY = draggingCaseArrow.origStartY + dy;
-        const hit = findLabelNearScreen(mouseX, mouseY, labels, 18);
-        if (hit) {
-          canvas.style.cursor = "copy";
-          const shortTxt = (hit.text || "Label").replace(/\[\/?size[^\]]*\]/gi, "").split("\n")[0].trim().substring(0, 22);
-          statusBar.textContent = `🔗 Release to snap arrow tail to label: "${shortTxt}"`;
-        } else {
-          canvas.style.cursor = "crosshair";
-        }
       } else if (draggingCaseArrow.part === "head") {
         draggingCaseArrow.arrow.endX = draggingCaseArrow.origEndX + dx;
         draggingCaseArrow.arrow.endY = draggingCaseArrow.origEndY + dy;
-        const hit = findLabelNearScreen(mouseX, mouseY, labels, 18);
-        if (hit) {
-          canvas.style.cursor = "copy";
-          const shortTxt = (hit.text || "Label").replace(/\[\/?size[^\]]*\]/gi, "").split("\n")[0].trim().substring(0, 22);
-          statusBar.textContent = `🔗 Release to snap arrow head to label: "${shortTxt}"`;
-        } else {
-          canvas.style.cursor = "crosshair";
-        }
       }
       redrawAll();
       return;
@@ -9950,22 +9906,8 @@ function attachCanvasInteractions(canvas, mapName) {
     if (draggingCaseLabel) {
       const curWorld = toWorld(mouseX, mouseY, vp, canvas.height);
       const startWorld = toWorld(draggingCaseLabel.startMouseX, draggingCaseLabel.startMouseY, vp, canvas.height);
-      const dx = curWorld.x - startWorld.x;
-      const dy = curWorld.y - startWorld.y;
-      draggingCaseLabel.lbl.worldX = draggingCaseLabel.origWorldX + dx;
-      draggingCaseLabel.lbl.worldY = draggingCaseLabel.origWorldY + dy;
-      if (Array.isArray(draggingCaseLabel.pinnedArrows)) {
-        draggingCaseLabel.pinnedArrows.forEach(pa => {
-          if (pa.arr.pinTailLabelId === draggingCaseLabel.lbl.id) {
-            pa.arr.startX = pa.origStartX + dx;
-            pa.arr.startY = pa.origStartY + dy;
-          }
-          if (pa.arr.pinHeadLabelId === draggingCaseLabel.lbl.id) {
-            pa.arr.endX = pa.origEndX + dx;
-            pa.arr.endY = pa.origEndY + dy;
-          }
-        });
-      }
+      draggingCaseLabel.lbl.worldX = draggingCaseLabel.origWorldX + (curWorld.x - startWorld.x);
+      draggingCaseLabel.lbl.worldY = draggingCaseLabel.origWorldY + (curWorld.y - startWorld.y);
       redrawAll();
       return;
     }
@@ -10178,46 +10120,12 @@ function attachCanvasInteractions(canvas, mapName) {
       return;
     }
     if (draggingCaseArrow) {
-      const { x: mouseX, y: mouseY } = getCanvasXY(e);
-      const ac = getActiveCase();
-      const labels = ac ? (ac.labels || []) : [];
-      if (draggingCaseArrow.part === "tail") {
-        const hit = findLabelNearScreen(mouseX, mouseY, labels, 18);
-        if (hit) {
-          draggingCaseArrow.arrow.pinTailLabelId = hit.id;
-          const shortTxt = (hit.text || "Label").replace(/\[\/?size[^\]]*\]/gi, "").split("\n")[0].trim().substring(0, 22);
-          statusBar.textContent = `🔗 Arrow tail pinned to label "${shortTxt}".`;
-        } else {
-          if (draggingCaseArrow.arrow.pinTailLabelId) {
-            draggingCaseArrow.arrow.pinTailLabelId = null;
-            statusBar.textContent = "🔓 Arrow tail unpinned (free ground point).";
-          }
-        }
-      } else if (draggingCaseArrow.part === "head") {
-        const hit = findLabelNearScreen(mouseX, mouseY, labels, 18);
-        if (hit) {
-          draggingCaseArrow.arrow.pinHeadLabelId = hit.id;
-          const shortTxt = (hit.text || "Label").replace(/\[\/?size[^\]]*\]/gi, "").split("\n")[0].trim().substring(0, 22);
-          statusBar.textContent = `🔗 Arrow head pinned to label "${shortTxt}".`;
-        } else {
-          if (draggingCaseArrow.arrow.pinHeadLabelId) {
-            draggingCaseArrow.arrow.pinHeadLabelId = null;
-            statusBar.textContent = "🔓 Arrow head unpinned (free ground point).";
-          }
-        }
-      }
-      if (state.caseSelectedArrowId === draggingCaseArrow.arrow.id) {
-        selectCaseArrow(draggingCaseArrow.arrow.id);
-      }
-      buildCaseArrowsList();
       draggingCaseArrow = null;
       canvas.style.cursor = "grab";
-      redrawAll();
     }
     if (draggingCaseLabel) {
       draggingCaseLabel = null;
       canvas.style.cursor = "grab";
-      redrawAll();
     }
     if (draggingAnchor) {
       const { x: mouseX, y: mouseY } = getCanvasXY(e);
@@ -11558,21 +11466,11 @@ function duplicateActiveCase() {
   clone.id   = Date.now();
   clone.name = name.trim();
 
-  const labelIdMap = {};
   if (Array.isArray(clone.labels)) {
-    clone.labels = clone.labels.map(lbl => {
-      const newId = "lbl_" + (Date.now() + Math.random() * 1e6 | 0);
-      labelIdMap[lbl.id] = newId;
-      return { ...lbl, id: newId };
-    });
+    clone.labels = clone.labels.map(lbl => ({ ...lbl, id: "lbl_" + (Date.now() + Math.random() * 1e6 | 0) }));
   }
   if (Array.isArray(clone.arrows)) {
-    clone.arrows = clone.arrows.map(arr => ({
-      ...arr,
-      id: "arr_" + (Date.now() + Math.random() * 1e6 | 0),
-      pinTailLabelId: arr.pinTailLabelId ? (labelIdMap[arr.pinTailLabelId] || arr.pinTailLabelId) : null,
-      pinHeadLabelId: arr.pinHeadLabelId ? (labelIdMap[arr.pinHeadLabelId] || arr.pinHeadLabelId) : null
-    }));
+    clone.arrows = clone.arrows.map(arr => ({ ...arr, id: "arr_" + (Date.now() + Math.random() * 1e6 | 0) }));
   }
 
   state.cases.push(clone);
@@ -11649,14 +11547,7 @@ function addLabelToActiveCase() {
 function deleteSelectedLabel() {
   const ac = getActiveCase();
   if (!ac || !state.caseSelectedLabelId) return;
-  const deletedId = state.caseSelectedLabelId;
-  ac.labels = (ac.labels || []).filter(l => l.id !== deletedId);
-  if (ac.arrows) {
-    ac.arrows.forEach(a => {
-      if (a.pinTailLabelId === deletedId) a.pinTailLabelId = null;
-      if (a.pinHeadLabelId === deletedId) a.pinHeadLabelId = null;
-    });
-  }
+  ac.labels = (ac.labels || []).filter(l => l.id !== state.caseSelectedLabelId);
   state.caseSelectedLabelId = null;
   const inspector = document.getElementById("case-label-inspector");
   if (inspector) inspector.style.display = "none";
@@ -11680,27 +11571,12 @@ function buildCaseArrowsList() {
     const dot = document.createElement("span");
     dot.style.cssText = `display:inline-block;width:9px;height:9px;border-radius:50%;background:${arr.color || "#00e5ff"};opacity:${arr.opacity !== undefined ? arr.opacity : 0.85};flex-shrink:0;border:1px solid rgba(255,255,255,0.4);`;
     const labelSpan = document.createElement("span");
-    let pinTag = "";
-    if (arr.pinTailLabelId || arr.pinHeadLabelId) pinTag = " 🔗";
-    labelSpan.textContent = (arr.name || `Arrow #${idx + 1}`) + pinTag;
+    labelSpan.textContent = arr.name || `Arrow #${idx + 1}`;
     row.appendChild(dot);
     row.appendChild(labelSpan);
     row.addEventListener("click", () => selectCaseArrow(arr.id));
     listEl.appendChild(row);
   });
-}
-
-function populateArrowPinSelect(selectEl, selectedVal, labels) {
-  if (!selectEl) return;
-  selectEl.innerHTML = '<option value="">(None - Free ground point)</option>';
-  labels.forEach(lbl => {
-    const opt = document.createElement("option");
-    opt.value = lbl.id;
-    const cleanText = (lbl.text || "Label").replace(/\[\/?size[^\]]*\]/gi, "").split("\n")[0].trim();
-    opt.textContent = `🏷️ ${cleanText.substring(0, 26) || lbl.id}`;
-    selectEl.appendChild(opt);
-  });
-  selectEl.value = selectedVal || "";
 }
 
 function selectCaseArrow(id) {
@@ -11724,13 +11600,6 @@ function selectCaseArrow(id) {
   if (opVal) opVal.textContent = Math.round(op * 100) + "%";
   document.getElementById("arrow-width").value = arr.lineWidth !== undefined ? arr.lineWidth : 3;
   document.getElementById("arrow-headsize").value = arr.headSize !== undefined ? arr.headSize : 16;
-
-  const labels = ac ? (ac.labels || []) : [];
-  populateArrowPinSelect(document.getElementById("arrow-pin-tail"), arr.pinTailLabelId, labels);
-  populateArrowPinSelect(document.getElementById("arrow-pin-head"), arr.pinHeadLabelId, labels);
-  const headStyleEl = document.getElementById("arrow-head-style");
-  if (headStyleEl) headStyleEl.value = arr.headStyle || "head";
-
   drawViewportTrue();
 }
 
@@ -11783,122 +11652,132 @@ function deleteSelectedArrow() {
   statusBar.textContent = "🗑️ Arrow deleted.";
 }
 
-function getCaseZoomFactor(vp, ac) {
-  if (!ac || !ac.camera || !ac.camera.scale || !vp || !vp.scale) return 1.0;
-  const scaleRatio = vp.scale / ac.camera.scale;
-  return Math.max(0.70, Math.min(1.45, Math.pow(scaleRatio, 0.22)));
-}
+function getArrowHitAtScreen(screenX, screenY) {
+  const ac = getActiveCase();
+  if (!ac || !ac.arrows || ac.arrows.length === 0) return null;
+  const vp = state.vpTrue;
+  const h = canvasTrue.height;
+  const refScale = (ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+  const zoomFactor = Math.max(0.2, Math.min(1.35, vp.scale / refScale));
 
-function getBoxEdgeIntersection(box, targetX, targetY, margin = 3) {
-  if (!box) return { x: targetX, y: targetY };
-  const cx = box.x + box.w / 2;
-  const cy = box.y + box.h / 2;
-  const dx = targetX - cx;
-  const dy = targetY - cy;
-  if (Math.hypot(dx, dy) < 1) return { x: cx + box.w / 2 + margin, y: cy };
+  // Check currently selected arrow's handles first
+  if (state.caseSelectedArrowId) {
+    const sel = ac.arrows.find(a => a.id === state.caseSelectedArrowId);
+    if (sel) {
+      const s = worldToScreenGIS({ x: sel.startX, y: sel.startY }, vp, h);
+      const e = worldToScreenGIS({ x: sel.endX, y: sel.endY }, vp, h);
+      if (Math.hypot(screenX - e.x, screenY - e.y) <= 10) return { arrow: sel, part: "head" };
+      if (Math.hypot(screenX - s.x, screenY - s.y) <= 10) return { arrow: sel, part: "tail" };
+    }
+  }
 
-  const hw = box.w / 2 + margin;
-  const hh = box.h / 2 + margin;
+  // Iterate backwards (topmost first)
+  for (let i = ac.arrows.length - 1; i >= 0; i--) {
+    const arr = ac.arrows[i];
+    const s = worldToScreenGIS({ x: arr.startX, y: arr.startY }, vp, h);
+    const e = worldToScreenGIS({ x: arr.endX, y: arr.endY }, vp, h);
 
-  const tx = Math.abs(dx) > 1e-6 ? hw / Math.abs(dx) : Infinity;
-  const ty = Math.abs(dy) > 1e-6 ? hh / Math.abs(dy) : Infinity;
-  const t = Math.min(tx, ty);
-
-  return {
-    x: cx + dx * t,
-    y: cy + dy * t
-  };
-}
-
-function findLabelNearScreen(sx, sy, labels, margin = 18) {
-  if (!labels) return null;
-  for (let i = labels.length - 1; i >= 0; i--) {
-    const lbl = labels[i];
-    const b = lbl._box;
-    if (b) {
-      if (sx >= b.x - margin && sx <= b.x + b.w + margin &&
-          sy >= b.y - margin && sy <= b.y + b.h + margin) {
-        return lbl;
-      }
+    if (Math.hypot(screenX - e.x, screenY - e.y) <= 10) {
+      return { arrow: arr, part: "head" };
+    }
+    if (Math.hypot(screenX - s.x, screenY - s.y) <= 10) {
+      return { arrow: arr, part: "tail" };
+    }
+    const l2 = (e.x - s.x) * (e.x - s.x) + (e.y - s.y) * (e.y - s.y);
+    let dist = 0;
+    if (l2 === 0) {
+      dist = Math.hypot(screenX - s.x, screenY - s.y);
+    } else {
+      let t = ((screenX - s.x) * (e.x - s.x) + (screenY - s.y) * (e.y - s.y)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      const projX = s.x + t * (e.x - s.x);
+      const projY = s.y + t * (e.y - s.y);
+      dist = Math.hypot(screenX - projX, screenY - projY);
+    }
+    const hitThreshold = Math.max(7, ((arr.lineWidth || 3) * zoomFactor) + 4);
+    if (dist <= hitThreshold) {
+      return { arrow: arr, part: "body" };
     }
   }
   return null;
 }
 
-function resolveArrowScreenPoints(arr, vp, h, isExport = false) {
-  const toScreen = isExport ? worldToScreenGISExport : worldToScreenGIS;
-  const rawS = toScreen({ x: arr.startX, y: arr.startY }, vp, h);
-  const rawE = toScreen({ x: arr.endX, y: arr.endY }, vp, h);
+function drawSingleArrow(ctx, sx, sy, ex, ey, headSize, lineWidth, color, opacity, isSelected) {
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, opacity !== undefined ? opacity : 0.85));
+  ctx.strokeStyle = color || "#00e5ff";
+  ctx.fillStyle = color || "#00e5ff";
+  ctx.lineWidth = lineWidth || 3;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
 
-  const ac = getActiveCase();
-  const labels = ac ? (ac.labels || []) : [];
+  const dx = ex - sx;
+  const dy = ey - sy;
+  const angle = Math.atan2(dy, dx);
+  const length = Math.hypot(dx, dy);
 
-  let tailLbl = arr.pinTailLabelId ? labels.find(l => l.id === arr.pinTailLabelId) : null;
-  let headLbl = arr.pinHeadLabelId ? labels.find(l => l.id === arr.pinHeadLabelId) : null;
+  const hs = Math.min(headSize || 16, Math.max(4, length * 0.6));
+  const headAngle = Math.PI / 6;
 
-  // Auto-link legacy unconfigured arrows that were drawn inside or touching a label box
-  if (arr.pinTailLabelId === undefined && !tailLbl && labels.length > 0) {
-    const hit = findLabelNearScreen(rawS.x, rawS.y, labels, 18);
-    if (hit) {
-      arr.pinTailLabelId = hit.id;
-      tailLbl = hit;
-    } else {
-      arr.pinTailLabelId = null;
-    }
+  // Draw shaft ending at arrowhead indentation
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(ex - hs * 0.5 * Math.cos(angle), ey - hs * 0.5 * Math.sin(angle));
+  ctx.stroke();
+
+  // Draw arrowhead polygon
+  ctx.beginPath();
+  ctx.moveTo(ex, ey);
+  ctx.lineTo(ex - hs * Math.cos(angle - headAngle), ey - hs * Math.sin(angle - headAngle));
+  ctx.lineTo(ex - hs * 0.45 * Math.cos(angle), ey - hs * 0.45 * Math.sin(angle));
+  ctx.lineTo(ex - hs * Math.cos(angle + headAngle), ey - hs * Math.sin(angle + headAngle));
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+
+  if (isSelected) {
+    ctx.save();
+    // Selection halo
+    ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+    ctx.lineWidth = (lineWidth || 3) + 6;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+
+    // Tail handle (cyan circle)
+    ctx.fillStyle = "#00e5ff";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Head handle (bright coral circle)
+    ctx.fillStyle = "#ff1744";
+    ctx.beginPath();
+    ctx.arc(ex, ey, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
   }
-
-  if (arr.pinHeadLabelId === undefined && !headLbl && labels.length > 0) {
-    const hit = findLabelNearScreen(rawE.x, rawE.y, labels, 18);
-    if (hit && hit !== tailLbl) {
-      arr.pinHeadLabelId = hit.id;
-      headLbl = hit;
-    } else {
-      arr.pinHeadLabelId = null;
-    }
-  }
-
-  const getBox = lbl => isExport ? (lbl._boxExport || lbl._box) : lbl._box;
-
-  let sx = rawS.x, sy = rawS.y;
-  let ex = rawE.x, ey = rawE.y;
-
-  const tailBox = tailLbl ? getBox(tailLbl) : null;
-  const headBox = headLbl ? getBox(headLbl) : null;
-
-  // If head is pinned, use head box center as the target direction for the tail
-  const targetForTailX = headBox ? (headBox.x + headBox.w / 2) : rawE.x;
-  const targetForTailY = headBox ? (headBox.y + headBox.h / 2) : rawE.y;
-
-  if (tailBox) {
-    const pt = getBoxEdgeIntersection(tailBox, targetForTailX, targetForTailY, 3);
-    sx = pt.x;
-    sy = pt.y;
-  }
-
-  // Target direction for head is the resolved tail position
-  const targetForHeadX = sx;
-  const targetForHeadY = sy;
-
-  if (headBox) {
-    const pt = getBoxEdgeIntersection(headBox, targetForHeadX, targetForHeadY, 3);
-    ex = pt.x;
-    ey = pt.y;
-  }
-
-  return { s: { x: sx, y: sy }, e: { x: ex, y: ey } };
 }
 
 function drawCaseArrows(ctx, vp, h) {
   const ac = getActiveCase();
   if (!ac || !ac.arrows) return;
-  const zoomFactor = getCaseZoomFactor(vp, ac);
+  const refScale = (ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+  const zoomFactor = Math.max(0.2, Math.min(1.35, vp.scale / refScale));
 
   ac.arrows.forEach(arr => {
-    const { s, e } = resolveArrowScreenPoints(arr, vp, h);
+    const s = worldToScreenGIS({ x: arr.startX, y: arr.startY }, vp, h);
+    const e = worldToScreenGIS({ x: arr.endX, y: arr.endY }, vp, h);
     const isSel = arr.id === state.caseSelectedArrowId;
     const scaledHead = Math.max(4, Math.round((arr.headSize || 16) * zoomFactor));
     const scaledWidth = Math.max(1, (arr.lineWidth || 3) * zoomFactor);
-    drawSingleArrow(ctx, s.x, s.y, e.x, e.y, scaledHead, scaledWidth, arr.color || "#00e5ff", arr.opacity !== undefined ? arr.opacity : 0.85, isSel, arr.headStyle || "head", arr);
+    drawSingleArrow(ctx, s.x, s.y, e.x, e.y, scaledHead, scaledWidth, arr.color || "#00e5ff", arr.opacity !== undefined ? arr.opacity : 0.85, isSel);
   });
 }
 
@@ -11921,14 +11800,15 @@ function getLabelAtScreen(screenX, screenY) {
 function drawCaseLabels(ctx, vp, h) {
   const ac = getActiveCase();
   if (!ac || !ac.labels) return;
-  const zoomFactor = getCaseZoomFactor(vp, ac);
+  const refScale = (ac.camera && ac.camera.scale) ? ac.camera.scale : 1.0;
+  const zoomFactor = Math.max(0.2, Math.min(1.35, vp.scale / refScale));
 
   ac.labels.forEach(lbl => {
     const sp = worldToScreenGIS({ x: lbl.worldX, y: lbl.worldY }, vp, h);
     const resolvedText = resolveCaseLabelTemplate(lbl.text || "");
     const rawLines = resolvedText.split("\n");
-    const defaultFs = Math.max(8, Math.round((lbl.fontSize || 14) * zoomFactor));
-    const pad = Math.max(2, Math.round((lbl.padding || 7) * zoomFactor));
+    const defaultFs = Math.max(3, Math.round((lbl.fontSize || 14) * zoomFactor));
+    const pad = Math.max(1, Math.round((lbl.padding || 7) * zoomFactor));
     const bold = lbl.bold ? "bold " : "";
     const italic = lbl.italic ? "italic " : "";
 
@@ -11937,7 +11817,7 @@ function drawCaseLabels(ctx, vp, h) {
       let lineWidth = 0;
       let maxFs = defaultFs;
       const scaledSpans = spans.map(span => {
-        const spanFs = Math.max(6, Math.round(span.fontSize * zoomFactor));
+        const spanFs = Math.max(3, Math.round(span.fontSize * zoomFactor));
         ctx.font = `${bold}${italic}${spanFs}px sans-serif`;
         const width = ctx.measureText(span.text).width;
         lineWidth += width;
@@ -12352,7 +12232,6 @@ function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
     const boxH = Math.max(totalLinesH + pad * 2, 10 * scaleRatio);
     const x = sp.x - pad;
     const y = sp.y - pad;
-    lbl._boxExport = { x, y, w: boxW, h: boxH };
     if (lbl.showBg !== false) {
       const bgOp = lbl.bgOpacity !== undefined ? lbl.bgOpacity : 0.85;
       const bgHex = lbl.bgColor || "#ffffff";
@@ -12396,10 +12275,11 @@ function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
 
 function drawCaseArrowsForExport(ctx, vp, h, scaleRatio, arrows) {
   arrows.forEach(arr => {
-    const { s, e } = resolveArrowScreenPoints(arr, vp, h, true);
+    const s = worldToScreenGISExport({ x: arr.startX, y: arr.startY }, vp, h);
+    const e = worldToScreenGISExport({ x: arr.endX, y: arr.endY }, vp, h);
     const hs = (arr.headSize || 16) * scaleRatio;
     const lw = (arr.lineWidth || 3) * scaleRatio;
-    drawSingleArrow(ctx, s.x, s.y, e.x, e.y, hs, lw, arr.color || "#00e5ff", arr.opacity !== undefined ? arr.opacity : 0.85, false, arr.headStyle || "head", arr);
+    drawSingleArrow(ctx, s.x, s.y, e.x, e.y, hs, lw, arr.color || "#00e5ff", arr.opacity !== undefined ? arr.opacity : 0.85, false);
   });
 }
 
@@ -12527,12 +12407,6 @@ function setupCasesPanel() {
   if (arrWidth) arrWidth.addEventListener("input", e => updateSelectedArrowProp("lineWidth", parseFloat(e.target.value) || 1));
   const arrHead = document.getElementById("arrow-headsize");
   if (arrHead) arrHead.addEventListener("input", e => updateSelectedArrowProp("headSize", parseFloat(e.target.value) || 6));
-  const arrHeadStyle = document.getElementById("arrow-head-style");
-  if (arrHeadStyle) arrHeadStyle.addEventListener("change", e => updateSelectedArrowProp("headStyle", e.target.value));
-  const arrPinTail = document.getElementById("arrow-pin-tail");
-  if (arrPinTail) arrPinTail.addEventListener("change", e => updateSelectedArrowProp("pinTailLabelId", e.target.value || null));
-  const arrPinHead = document.getElementById("arrow-pin-head");
-  if (arrPinHead) arrPinHead.addEventListener("change", e => updateSelectedArrowProp("pinHeadLabelId", e.target.value || null));
 
   const loadInput = document.getElementById("case-load-input");
   if (loadInput) {
