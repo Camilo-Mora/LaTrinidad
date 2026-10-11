@@ -17,7 +17,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "2": {
         "color": "#00e676",
@@ -26,7 +34,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "3": {
         "color": "#ff1744",
@@ -35,7 +51,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "4": {
         "color": "#2979ff",
@@ -44,7 +68,15 @@
         "lineWidth": 6,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "5": {
         "color": "#00e5ff",
@@ -53,7 +85,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "6": {
         "color": "#ff9100",
@@ -62,7 +102,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "7": {
         "color": "#ff9100",
@@ -71,7 +119,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "8": {
         "color": "#ff9100",
@@ -80,7 +136,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       "9": {
         "color": "#ff6d00",
@@ -89,7 +153,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "10": {
         "color": "#b0bec5",
@@ -98,7 +170,15 @@
         "lineWidth": 2,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "11": {
         "color": "#ff6d00",
@@ -107,7 +187,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "12": {
         "color": "#ff9100",
@@ -116,7 +204,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "13": {
         "color": "#2979ff",
@@ -125,7 +221,15 @@
         "lineWidth": 1,
         "lineType": "dashdot",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "14": {
         "color": "#ff9100",
@@ -134,13 +238,27 @@
         "lineWidth": 2.5,
         "lineType": "dashed",
         "lineOpacity": 0.91,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
       "scale": 2.0292002020355904,
-      "offsetX": -9424806.499311281,
-      "offsetY": -3942897.4278739323
+      "offsetX": -9424677.999311281,
+      "offsetY": -3942855.4278739323,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4644894.816123209,
+        "y": 1943266.3292257895
+      }
     },
     "layers": {
       "reconstructed": true,
@@ -165,8 +283,8 @@
       {
         "id": "lbl_1790055358584",
         "text": "[size=35]Plano Lote #5[/size]\nAprobado en Curaduria 2013\nArea reportada en documento:[size=35]10,604m²[/size]\nFMI 378-185657; Escritura 196 de 2014.\n[size=15]Area invadida: $196InTrinidad$m2[/size]",
-        "worldX": 4644655.46254427,
-        "worldY": 1943446.466056653,
+        "worldX": 4644636.735954374,
+        "worldY": 1943434.638736719,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -177,12 +295,18 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 124.30366925895214,
-          "y": 28.466306417714804,
+          "x": 214.80366925895214,
+          "y": 74.46630641724914,
           "w": 451.23333740234375,
           "h": 173
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 588.2757834316142,
+          "y": 119.62919747353567,
+          "w": 1160.8238368390307,
+          "h": 446.8238063214526
+        }
       },
       {
         "id": "lbl_1790055426610",
@@ -199,12 +323,18 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 710.8540857154876,
-          "y": 581.7423709169962,
+          "x": 839.3540857154876,
+          "y": 603.7423709169962,
           "w": 449.23333740234375,
           "h": 146
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 2102.972218665399,
+          "y": 1548.3985906663465,
+          "w": 1155.6590755747402,
+          "h": 376.6590450571621
+        }
       },
       {
         "id": "lbl_1790055589249",
@@ -221,13 +351,19 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 280.68011004291475,
-          "y": 410.42763170879334,
+          "x": 409.18011004291475,
+          "y": 432.42763170879334,
           "w": 113.53333282470703,
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 992.0992754300444,
+          "y": 1105.9987261344997,
+          "w": 292.0942898963872,
+          "h": 80.49428379287156
+        }
       },
       {
         "id": "lbl_1790055631386",
@@ -244,27 +380,35 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 306.5605415441096,
-          "y": 554.5318284472451,
+          "x": 435.0605415441096,
+          "y": 576.5318284472451,
           "w": 125.03333282470703,
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1058.9324004923312,
+          "y": 1478.130612803003,
+          "w": 321.7276211952153,
+          "h": 80.49428379287156
+        }
       }
     ],
     "arrows": [
       {
         "id": "arr_1790055482625",
         "name": "Arrow 1",
-        "startX": 4644851.077974904,
-        "startY": 1943368.1318449203,
+        "startX": 4644832.351385009,
+        "startY": 1943356.3045249863,
         "endX": 4644884.692335359,
         "endY": 1943345.5506885913,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_1790055358584",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_1790055494953",
@@ -276,31 +420,37 @@
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_1790055426610",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_1790055662888",
         "name": "Arrow 3",
-        "startX": 4644751.1576,
-        "startY": 1943212.3069,
+        "startX": 4644755.592844974,
+        "startY": 1943211.3212900055,
         "endX": 4644751.5085,
         "endY": 1943246.6193,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_1790055589249"
       },
       {
         "id": "arr_1790055689888",
         "name": "Arrow 4",
-        "startX": 4644786.188708962,
-        "startY": 1943215.6135227594,
+        "startX": 4644774.361389028,
+        "startY": 1943211.1782777843,
         "endX": 4644785.411308962,
         "endY": 1943186.6735227595,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_1790055631386"
       }
     ],
     "polygons": [
@@ -315,7 +465,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 1,
@@ -328,7 +485,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 2,
@@ -341,7 +505,14 @@
         "fillOpacity": 0.1,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 5,
@@ -354,7 +525,14 @@
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 6,
@@ -367,7 +545,14 @@
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 7,
@@ -380,7 +565,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 8,
@@ -393,7 +585,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       {
         "id": 9,
@@ -406,7 +605,14 @@
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 10,
@@ -419,7 +625,14 @@
         "fillOpacity": 0.08,
         "lineWidth": 2,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 11,
@@ -432,7 +645,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 3,
@@ -445,7 +665,14 @@
         "fillOpacity": 0.3,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 12,
@@ -458,7 +685,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 14,
@@ -471,7 +705,14 @@
         "fillOpacity": 0.02,
         "lineWidth": 2.5,
         "lineType": "dashed",
-        "lineOpacity": 0.91
+        "lineOpacity": 0.91,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 13,
@@ -484,7 +725,14 @@
         "fillOpacity": 0.06,
         "lineWidth": 1,
         "lineType": "dashdot",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -676,7 +924,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "2": {
         "color": "#00e676",
@@ -685,7 +941,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "3": {
         "color": "#ff1744",
@@ -694,7 +958,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "4": {
         "color": "#2979ff",
@@ -703,7 +975,15 @@
         "lineWidth": 6,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "5": {
         "color": "#00e5ff",
@@ -712,7 +992,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "6": {
         "color": "#ff9100",
@@ -721,7 +1009,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "7": {
         "color": "#ff9100",
@@ -730,7 +1026,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "8": {
         "color": "#ff9100",
@@ -739,7 +1043,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       "9": {
         "color": "#ff6d00",
@@ -748,7 +1060,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "10": {
         "color": "#b0bec5",
@@ -757,7 +1077,15 @@
         "lineWidth": 2,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "11": {
         "color": "#ff6d00",
@@ -766,7 +1094,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "12": {
         "color": "#ff9100",
@@ -775,7 +1111,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "13": {
         "color": "#2979ff",
@@ -784,13 +1128,44 @@
         "lineWidth": 1,
         "lineType": "dashdot",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "14": {
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
       "scale": 2.0281861089811,
-      "offsetX": -9420068.651202282,
-      "offsetY": -3941026.6298393966
+      "offsetX": -9419965.151202282,
+      "offsetY": -3940980.6298393966,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4644893.587174288,
+        "y": 1943313.5905952137
+      }
     },
     "layers": {
       "reconstructed": true,
@@ -827,8 +1202,8 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 480.25234781578183,
-          "y": 244.5094944825396,
+          "x": 583.7523478157818,
+          "y": 262.5094944825396,
           "w": 99.16666412353516,
           "h": 91
         },
@@ -849,8 +1224,8 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 718.7018235363066,
-          "y": 126.3403174513951,
+          "x": 822.2018235363066,
+          "y": 144.3403174513951,
           "w": 97.16666412353516,
           "h": 89
         },
@@ -871,8 +1246,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 307.1887990422547,
-          "y": 508.6315962942317,
+          "x": 410.6887990422547,
+          "y": 526.6315962942317,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -894,8 +1269,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 324.86089449748397,
-          "y": 652.0086045283824,
+          "x": 428.36089449748397,
+          "y": 670.0086045283824,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -914,7 +1289,9 @@
         "color": "#ffff00",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-892263637",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-892209150",
@@ -926,31 +1303,37 @@
         "color": "#00f23d",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-891592036",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-891674265",
         "name": "Arrow 3",
-        "startX": 4644751.1576,
-        "startY": 1943212.3069,
+        "startX": 4644757.5672681965,
+        "startY": 1943214.2791055988,
         "endX": 4644751.5085,
         "endY": 1943246.6193,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-891627715"
       },
       {
         "id": "arr_-892287965",
         "name": "Arrow 4",
-        "startX": 4644792.996723932,
-        "startY": 1943216.3275972006,
+        "startX": 4644770.316359543,
+        "startY": 1943211.8901346028,
         "endX": 4644792.219323932,
         "endY": 1943187.3875972007,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-891812000"
       }
     ],
     "polygons": [
@@ -965,7 +1348,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 1,
@@ -978,7 +1368,14 @@
         "fillOpacity": 0.36,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 2,
@@ -991,20 +1388,14 @@
         "fillOpacity": 0.35,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
-      },
-      {
-        "id": 3,
-        "name": "Lote#5",
-        "visible": false,
-        "showArea": false,
-        "showNodes": false,
-        "color": "#ff1744",
-        "fillColor": "#ff1744",
-        "fillOpacity": 0.3,
-        "lineWidth": 1.5,
-        "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 5,
@@ -1017,7 +1408,14 @@
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 6,
@@ -1030,7 +1428,14 @@
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 7,
@@ -1043,7 +1448,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 8,
@@ -1056,7 +1468,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       {
         "id": 9,
@@ -1069,7 +1488,14 @@
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 10,
@@ -1082,7 +1508,14 @@
         "fillOpacity": 0.08,
         "lineWidth": 2,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 11,
@@ -1095,7 +1528,34 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.3,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 12,
@@ -1108,7 +1568,34 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 14,
+        "name": "JimmyInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 13,
@@ -1121,7 +1608,14 @@
         "fillOpacity": 0.06,
         "lineWidth": 1,
         "lineType": "dashdot",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -1547,8 +2041,14 @@
     },
     "camera": {
       "scale": 2.355703204612998,
-      "offsetX": -10941443.949365929,
-      "offsetY": -4577381.612342203
+      "offsetX": -10941319.449365929,
+      "offsetY": -4577336.612342203,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4644924.253589714,
+        "y": 1943265.8593739318
+      }
     },
     "layers": {
       "reconstructed": true,
@@ -1573,8 +2073,8 @@
       {
         "id": "lbl_-891520115",
         "text": "[size=25]Lote Jimmy Ruiz[/size]\n[size=15]Area reportada en documento: [/size]2,413 m²\n[size=15]Area invadida: $JimmyInvasion$m²[/size]\nEscritura 373 de 2014; FMI 378-185655 ",
-        "worldX": 4644722.73623115,
-        "worldY": 1943427.0745448312,
+        "worldX": 4644716.79320744,
+        "worldY": 1943404.5759550699,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -1585,8 +2085,8 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 139.2849126458168,
-          "y": 17.224905280396342,
+          "x": 249.7849126458168,
+          "y": 89.22490528039634,
           "w": 379.4333190917969,
           "h": 116
         },
@@ -1607,8 +2107,8 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 687.8866369817406,
-          "y": 545.4904083758593,
+          "x": 812.3866369817406,
+          "y": 564.4904083758593,
           "w": 388.5666809082031,
           "h": 83
         },
@@ -1629,8 +2129,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 178.2539588417858,
-          "y": 423.66951679065824,
+          "x": 302.7539588417858,
+          "y": 442.66951679065824,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -1652,8 +2152,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 202.00954950228333,
-          "y": 582.7760505564511,
+          "x": 326.50954950228333,
+          "y": 601.7760505564511,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -1665,14 +2165,16 @@
       {
         "id": "arr_-891058837",
         "name": "Arrow 1",
-        "startX": 4644878.451993369,
-        "startY": 1943395.7707805196,
+        "startX": 4644872.508969658,
+        "startY": 1943373.2721907583,
         "endX": 4644901.266706936,
         "endY": 1943368.8699198111,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-891520115",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-891739744",
@@ -1684,7 +2186,9 @@
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-891041296",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-891202942",
@@ -1696,7 +2200,9 @@
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-891256621"
       },
       {
         "id": "arr_-890852931",
@@ -1708,7 +2214,9 @@
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-891695788"
       }
     ],
     "polygons": [
@@ -2416,8 +2924,14 @@
     },
     "camera": {
       "scale": 2.3545259416421773,
-      "offsetX": -10936007.735311888,
-      "offsetY": -4575126.026582206
+      "offsetX": -10935888.235311888,
+      "offsetY": -4575015.026582206,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4644940.00337243,
+        "y": 1943251.482458096
+      }
     },
     "layers": {
       "reconstructed": true,
@@ -2442,20 +2956,20 @@
       {
         "id": "lbl_-891177485",
         "text": "[size=25]Lote Pedro Ruiz[/size]\n[size=15]Area reportada en documento: [/size]2,142 m²\n[size=15]Area invadida: $PedroInvasion$m²[/size]\nEscritura 623 de 2014; FMI 378-185656.",
-        "worldX": 4644838.753496131,
-        "worldY": 1943432.6693575333,
+        "worldX": 4644681.184622738,
+        "worldY": 1943365.5645543092,
         "fontSize": 20,
         "bold": true,
         "italic": true,
         "textColor": "#ffffff",
         "bgColor": "#ff8000",
-        "bgOpacity": 0.45,
+        "bgOpacity": 0.7,
         "borderColor": "#ff8000",
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 380.60453966632485,
-          "y": 36.390744988806546,
+          "x": 129.10453966632485,
+          "y": 147.39074498880655,
           "w": 379.4333190917969,
           "h": 116
         },
@@ -2476,8 +2990,8 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 550.77939867042,
-          "y": 651.3699994189665,
+          "x": 670.27939867042,
+          "y": 604.3699994189665,
           "w": 388.5666809082031,
           "h": 83
         },
@@ -2486,7 +3000,7 @@
       {
         "id": "lbl_-890857908",
         "text": "La Trinidad",
-        "worldX": 4644740.7466049325,
+        "worldX": 4644730.128756321,
         "worldY": 1943256.52974767,
         "fontSize": 20,
         "bold": true,
@@ -2498,8 +3012,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 151.84477188065648,
-          "y": 453.1160257626325,
+          "x": 246.34477188065648,
+          "y": 406.1160257626325,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -2509,7 +3023,7 @@
       {
         "id": "lbl_-890787437",
         "text": "Casa del Sol",
-        "worldX": 4644741.743057809,
+        "worldX": 4644762.978755032,
         "worldY": 1943187.6376947945,
         "fontSize": 20,
         "bold": true,
@@ -2521,8 +3035,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 154.19094602763653,
-          "y": 615.3241514312103,
+          "x": 323.6909460276365,
+          "y": 568.3241514312103,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -2534,14 +3048,16 @@
       {
         "id": "arr_-890877823",
         "name": "Arrow 1",
-        "startX": 4644853.023071922,
-        "startY": 1943384.8658998103,
+        "startX": 4644695.454198529,
+        "startY": 1943317.7610965862,
         "endX": 4644862.554910685,
         "endY": 1943327.7132419185,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-891177485",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-891379088",
@@ -2553,31 +3069,37 @@
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-891677727",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-890749996",
         "name": "Arrow 3",
-        "startX": 4644751.1576,
-        "startY": 1943212.3069,
-        "endX": 4644751.5085,
-        "endY": 1943246.6193,
+        "startX": 4644752.856455777,
+        "startY": 1943209.7586163334,
+        "endX": 4644726.025663332,
+        "endY": 1943247.0440139442,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-890857908"
       },
       {
         "id": "arr_-891647703",
         "name": "Arrow 4",
         "startX": 4644789.161304933,
         "startY": 1943216.0389210957,
-        "endX": 4644788.383904933,
+        "endX": 4644809.619602156,
         "endY": 1943187.0989210957,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-890787437"
       }
     ],
     "polygons": [
@@ -3285,8 +3807,14 @@
     },
     "camera": {
       "scale": 2.046390666964064,
-      "offsetX": -9504701.1139386,
-      "offsetY": -3976295.5608165986
+      "offsetX": -9504503.6139386,
+      "offsetY": -3976291.5608165986,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4644883.925335806,
+        "y": 1943281.2243598998
+      }
     },
     "layers": {
       "reconstructed": true,
@@ -3311,8 +3839,8 @@
       {
         "id": "lbl_-890853196",
         "text": "[size=30]Lote Nacho Ruiz[/size]\n[size=10]Area reportada en documento: [/size]5,572 m²\n[size=15]Area invadida: $NachoInvasion196$m2[/size]\nEscritura 196 de 2014; FMI 378-185657",
-        "worldX": 4644854.242484531,
-        "worldY": 1943451.4449417044,
+        "worldX": 4644992.046084085,
+        "worldY": 1943441.6716367714,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -3323,8 +3851,8 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 480.2572901826352,
-          "y": 7.662190069910139,
+          "x": 959.7572901826352,
+          "y": 87.6621900703758,
           "w": 373.8666687011719,
           "h": 123
         },
@@ -3333,8 +3861,8 @@
       {
         "id": "lbl_-891057664",
         "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657\n[size=15]Area reportada en documento: [/size]10,604m²",
-        "worldX": 4644912.431600896,
-        "worldY": 1943166.1035625555,
+        "worldX": 4644983.776726905,
+        "worldY": 1943221.811400673,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -3345,8 +3873,8 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 600.3349548298866,
-          "y": 592.5821252590977,
+          "x": 943.8349548298866,
+          "y": 538.582125258632,
           "w": 383,
           "h": 83
         },
@@ -3360,15 +3888,15 @@
         "fontSize": 20,
         "bold": true,
         "italic": true,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 230.00038143247366,
-          "y": 390.2739544259384,
+          "x": 427.50038143247366,
+          "y": 450.2739544259384,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -3383,15 +3911,15 @@
         "fontSize": 20,
         "bold": true,
         "italic": false,
-        "textColor": "#0080ff",
-        "bgColor": "#000000",
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
         "bgOpacity": 0.45,
         "borderColor": "#000000",
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 246.8221219945699,
-          "y": 546.0366171547212,
+          "x": 444.3221219945699,
+          "y": 606.0366171547212,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -3403,50 +3931,58 @@
       {
         "id": "arr_-891267770",
         "name": "Arrow 1",
-        "startX": 4644965.1813074,
-        "startY": 1943395.0998282516,
+        "startX": 4645102.984906953,
+        "startY": 1943385.3265233187,
         "endX": 4644957.432058742,
         "endY": 1943359.7098843055,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-890853196",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-890667455",
         "name": "Arrow 2",
-        "startX": 4644964.0145596415,
-        "startY": 1943168.054397309,
+        "startX": 4645035.359685651,
+        "startY": 1943223.7622354263,
         "endX": 4644926.744459642,
         "endY": 1943202.5315973088,
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-891057664",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-890655979",
         "name": "Arrow 3",
-        "startX": 4644751.1576,
-        "startY": 1943212.3069,
+        "startX": 4644756.532917713,
+        "startY": 1943213.2842304932,
         "endX": 4644751.5085,
         "endY": 1943246.6193,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-890993764"
       },
       {
         "id": "arr_-891550626",
         "name": "Arrow 4",
-        "startX": 4644779.388,
-        "startY": 1943217.3137,
+        "startX": 4644768.637364575,
+        "startY": 1943210.9610517938,
         "endX": 4644778.6106,
         "endY": 1943188.3737,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-890808809"
       }
     ],
     "polygons": [
@@ -4069,7 +4605,7 @@
         "color": "#b0bec5",
         "fillColor": "#b0bec5",
         "fillOpacity": 0.08,
-        "lineWidth": 2,
+        "lineWidth": 6,
         "lineType": "solid",
         "lineOpacity": 1,
         "showArea": false,
@@ -4153,8 +4689,14 @@
     },
     "camera": {
       "scale": 3.1154174881006895,
-      "offsetX": -14469927.401495067,
-      "offsetY": -6053652.40894305
+      "offsetX": -14469823.901495066,
+      "offsetY": -6053606.40894305,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4644824.475937904,
+        "y": 1943247.5525563927
+      }
     },
     "layers": {
       "reconstructed": true,
@@ -4191,8 +4733,8 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 400.8437727726996,
-          "y": 234.7675366671756,
+          "x": 504.34377277456224,
+          "y": 252.7675366671756,
           "w": 161.76666259765625,
           "h": 73
         },
@@ -4213,8 +4755,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 346.70024668984115,
-          "y": 392.23202185705304,
+          "x": 450.2002466917038,
+          "y": 410.23202185705304,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -4236,8 +4778,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 398.3096015229821,
-          "y": 580.3645162982866,
+          "x": 501.80960152484477,
+          "y": 598.3645162982866,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -4256,31 +4798,37 @@
         "color": "#c0c0c0",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-891276541",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-891388614",
         "name": "Arrow 3",
-        "startX": 4644750.194647198,
-        "startY": 1943208.7760730588,
+        "startX": 4644747.305788792,
+        "startY": 1943208.4550887914,
         "endX": 4644750.5455471985,
         "endY": 1943243.0884730588,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-890902859"
       },
       {
         "id": "arr_-890676517",
         "name": "Arrow 4",
-        "startX": 4644775.536188792,
-        "startY": 1943212.8199202567,
-        "endX": 4644775.079773059,
-        "endY": 1943189.015668535,
+        "startX": 4644766.548629306,
+        "startY": 1943210.8940146524,
+        "endX": 4644780.857489872,
+        "endY": 1943188.3737,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-891502063"
       }
     ],
     "polygons": [
@@ -4453,7 +5001,7 @@
         "color": "#b0bec5",
         "fillColor": "#b0bec5",
         "fillOpacity": 0.08,
-        "lineWidth": 2,
+        "lineWidth": 6,
         "lineType": "solid",
         "lineOpacity": 1,
         "gradBuffer": false,
@@ -4755,7 +5303,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "2": {
         "color": "#00e676",
@@ -4764,7 +5320,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "3": {
         "color": "#ff1744",
@@ -4773,7 +5337,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "4": {
         "color": "#00e5ff",
@@ -4782,7 +5354,15 @@
         "lineWidth": 6,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "5": {
         "color": "#00e5ff",
@@ -4791,7 +5371,15 @@
         "lineWidth": 1.5,
         "lineType": "dashed",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "6": {
         "color": "#ff9100",
@@ -4800,7 +5388,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "7": {
         "color": "#ff9100",
@@ -4809,7 +5405,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "8": {
         "color": "#ff9100",
@@ -4818,7 +5422,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       "9": {
         "color": "#ff6d00",
@@ -4827,7 +5439,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "10": {
         "color": "#b0bec5",
@@ -4836,7 +5456,15 @@
         "lineWidth": 2,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "11": {
         "color": "#ff6d00",
@@ -4845,7 +5473,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "12": {
         "color": "#ff9100",
@@ -4854,7 +5490,15 @@
         "lineWidth": 2.5,
         "lineType": "solid",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       "13": {
         "color": "#ef28ff",
@@ -4863,13 +5507,44 @@
         "lineWidth": 1,
         "lineType": "dashdot",
         "lineOpacity": 1,
-        "showArea": false
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "14": {
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
       "scale": 2.047413862297546,
-      "offsetX": -9509461.753044832,
-      "offsetY": -3978321.292007573
+      "offsetX": -9509263.253044832,
+      "offsetY": -3978274.292007573,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4644887.3518776465,
+        "y": 1943278.4769478904
+      }
     },
     "layers": {
       "reconstructed": true,
@@ -4906,8 +5581,8 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 551.7208630833775,
-          "y": 86.18029320333153,
+          "x": 750.2208630833775,
+          "y": 103.18029320333153,
           "w": 97.16666412353516,
           "h": 89
         },
@@ -4928,8 +5603,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 246.82833235897124,
-          "y": 444.66500197025016,
+          "x": 445.32833235897124,
+          "y": 461.66500197025016,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -4939,8 +5614,8 @@
       {
         "id": "lbl_-881357902",
         "text": "Casa del Sol",
-        "worldX": 4644781.197709107,
-        "worldY": 1943188.848978964,
+        "worldX": 4644760.684025589,
+        "worldY": 1943182.011084458,
         "fontSize": 20,
         "bold": true,
         "italic": false,
@@ -4951,8 +5626,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 324.6584837920964,
-          "y": 584.5055460296571,
+          "x": 481.15848379023373,
+          "y": 615.5055460296571,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -4975,10 +5650,10 @@
         "borderWidth": 1,
         "padding": 1,
         "_box": {
-          "x": 574.4659306444228,
-          "y": 473.34172173403203,
-          "w": 47.20000076293945,
-          "h": 20
+          "x": 771.9659306444228,
+          "y": 489.34172173403203,
+          "w": 49.20000076293945,
+          "h": 22
         }
       },
       {
@@ -4997,10 +5672,10 @@
         "borderWidth": 1,
         "padding": 1,
         "_box": {
-          "x": 816.2772423569113,
-          "y": 319.384248518385,
-          "w": 47.20000076293945,
-          "h": 20
+          "x": 1013.7772423569113,
+          "y": 335.384248518385,
+          "w": 49.20000076293945,
+          "h": 22
         }
       }
     ],
@@ -5015,31 +5690,37 @@
         "color": "#00f23d",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-880922831",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-881417909",
         "name": "Arrow 3",
-        "startX": 4644751.1576,
-        "startY": 1943212.3069,
+        "startX": 4644769.229178336,
+        "startY": 1943214.7490051806,
         "endX": 4644751.5085,
         "endY": 1943246.6193,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-880961856"
       },
       {
         "id": "arr_-881172360",
         "name": "Arrow 4",
         "startX": 4644791.598525903,
         "startY": 1943215.8484368916,
-        "endX": 4644790.821125903,
-        "endY": 1943186.9084368916,
+        "endX": 4644770.307442386,
+        "endY": 1943180.0705423858,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-881357902"
       }
     ],
     "polygons": [
@@ -5054,7 +5735,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 6,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 1,
@@ -5067,7 +5755,14 @@
         "fillOpacity": 0.36,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 2,
@@ -5080,20 +5775,14 @@
         "fillOpacity": 0.35,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
-      },
-      {
-        "id": 3,
-        "name": "Lote#5",
-        "visible": true,
-        "showArea": false,
-        "showNodes": false,
-        "color": "#ff1744",
-        "fillColor": "#ff1744",
-        "fillOpacity": 0.3,
-        "lineWidth": 1.5,
-        "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 5,
@@ -5106,7 +5795,14 @@
         "fillOpacity": 0.25,
         "lineWidth": 1.5,
         "lineType": "dashed",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 6,
@@ -5119,7 +5815,14 @@
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 7,
@@ -5132,7 +5835,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 8,
@@ -5145,7 +5855,14 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": true,
+        "gradDist": 20,
+        "gradSide": 1,
+        "gradScale": "plasma",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": true
       },
       {
         "id": 9,
@@ -5158,7 +5875,14 @@
         "fillOpacity": 0.2,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 10,
@@ -5171,7 +5895,14 @@
         "fillOpacity": 0.08,
         "lineWidth": 2,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 11,
@@ -5184,7 +5915,34 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 3,
+        "name": "Lote#5",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.3,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 12,
@@ -5197,7 +5955,34 @@
         "fillOpacity": 0.15,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 14,
+        "name": "JimmyInvasion",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.02,
+        "lineWidth": 2.5,
+        "lineType": "dashed",
+        "lineOpacity": 0.91,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       },
       {
         "id": 13,
@@ -5210,7 +5995,14 @@
         "fillOpacity": 0.28,
         "lineWidth": 1,
         "lineType": "dashdot",
-        "lineOpacity": 1
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -5635,9 +6427,15 @@
       }
     },
     "camera": {
-      "scale": 1.3475543933678371,
-      "offsetX": -6258783.105103101,
-      "offsetY": -2618384.1887783
+      "scale": 1.7830317555715787,
+      "offsetX": -8281138.464741474,
+      "offsetY": -3464717.7003766303,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4644831.44445545,
+        "y": 1943397.0761030142
+      }
     },
     "layers": {
       "reconstructed": true,
@@ -5674,8 +6472,8 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 477.30438796337694,
-          "y": 256.27152746682987,
+          "x": 873.9785624826327,
+          "y": 326.4890808723867,
           "w": 101.13333129882812,
           "h": 60
         },
@@ -5696,8 +6494,8 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 414.8756203632802,
-          "y": 110.69031267752871,
+          "x": 791.0520750591531,
+          "y": 133.53849748522043,
           "w": 206,
           "h": 58
         },
@@ -5718,8 +6516,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 245.83677431195974,
-          "y": 507.19815266598016,
+          "x": 567.0632629692554,
+          "y": 657.8591454289854,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -5741,8 +6539,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 259.1170558286831,
-          "y": 607.4052941952832,
+          "x": 584.635216861032,
+          "y": 790.4493520739488,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -5761,7 +6559,9 @@
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-879101834",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-878861302",
@@ -5773,31 +6573,37 @@
         "color": "#004080",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": "lbl_-879210777",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_-879460400",
         "name": "Arrow 3",
-        "startX": 4644751.1576,
-        "startY": 1943212.3069,
+        "startX": 4644765.178662677,
+        "startY": 1943215.1111125355,
         "endX": 4644751.5085,
         "endY": 1943246.6193,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-879265913"
       },
       {
         "id": "arr_-879790520",
         "name": "Arrow 4",
-        "startX": 4644782.356340291,
-        "startY": 1943214.3453597093,
+        "startX": 4644778.991285249,
+        "startY": 1943212.1019896811,
         "endX": 4644781.578940291,
         "endY": 1943185.4053597094,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
-        "headSize": 18
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_-879079028"
       }
     ],
     "polygons": [
@@ -6957,9 +7763,15 @@
       "measure_polygons"
     ],
     "camera": {
-      "scale": 1.1735449876453288,
-      "offsetX": -5450172.317096247,
-      "offsetY": -2280203.3803930907
+      "scale": 0.8882562011487494,
+      "offsetX": -4124930.8931601504,
+      "offsetY": -1725776.4895195304,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4644689.6602855865,
+        "y": 1943355.4049913776
+      }
     },
     "layers": {
       "reconstructed": true,
@@ -6997,8 +7809,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 350.31079707387835,
-          "y": 45.5374987507239,
+          "x": 567.982192304451,
+          "y": 176.44833280448802,
           "w": 367.90000915527344,
           "h": 132
         }
@@ -7019,8 +7831,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 879.1491958769038,
-          "y": 574.3839136501774,
+          "x": 968.2599763586186,
+          "y": 576.7321842419915,
           "w": 367.90000915527344,
           "h": 132
         }
@@ -7041,8 +7853,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 644.5,
-          "y": 583,
+          "x": 790.6539999991655,
+          "y": 583.2537000000011,
           "w": 97.36666870117188,
           "h": 32
         }
@@ -7050,7 +7862,7 @@
       {
         "id": "lbl_1791601997067",
         "text": "La Trinidad",
-        "worldX": 4644728.471835626,
+        "worldX": 4644718.339623785,
         "worldY": 1943285.859853477,
         "fontSize": 14,
         "bold": true,
@@ -7063,8 +7875,8 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 618.4999999990687,
-          "y": 441,
+          "x": 761.9745999993756,
+          "y": 475.7738999999128,
           "w": 88.76667022705078,
           "h": 32
         }
@@ -7081,7 +7893,9 @@
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 28
+        "headSize": 28,
+        "pinTailLabelId": "lbl_1791601290272",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_1791601576670",
@@ -7093,31 +7907,37 @@
         "color": "#ff0000",
         "opacity": 0.85,
         "lineWidth": 10,
-        "headSize": 28
+        "headSize": 28,
+        "pinTailLabelId": "lbl_1791601520172",
+        "pinHeadLabelId": null
       },
       {
         "id": "arr_1791602030367",
         "name": "Arrow 3",
-        "startX": 4644748.746857566,
-        "startY": 1943213.3242364584,
-        "endX": 4644749.098526452,
+        "startX": 4644762.256473355,
+        "startY": 1943214.4500377742,
+        "endX": 4644727.708301452,
         "endY": 1943270.6272118562,
         "color": "#0000ff",
         "opacity": 0.85,
-        "lineWidth": 20,
-        "headSize": 40
+        "lineWidth": 10,
+        "headSize": 40,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_1791601997067"
       },
       {
-        "id": "arr_1791602070990",
+        "id": "arr_1791695060028",
         "name": "Arrow 4",
-        "startX": 4644788.796451314,
-        "startY": 1943206.5072843314,
-        "endX": 4644789.1481202,
-        "endY": 1943164.1123348672,
-        "color": "#0000ff",
+        "startX": 4644797.008046111,
+        "startY": 1943213.5668466422,
+        "endX": 4644784.956761901,
+        "endY": 1943167.3833505905,
+        "color": "#0000a0",
         "opacity": 0.85,
-        "lineWidth": 20,
-        "headSize": 40
+        "lineWidth": 10,
+        "headSize": 18,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_1791601994793"
       }
     ]
   }
