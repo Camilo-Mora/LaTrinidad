@@ -1605,8 +1605,8 @@ Do NOT modify dormant/parked sections unless specifically requested.
           <div class="canvas-container" id="true-container">
             <canvas id="true-canvas"></canvas>
             <!-- Floating Drone Imagery Loading Banner -->
-            <div id="field-drone-loading-hud" style="display:flex;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(15,20,32,0.94);border:1.5px solid #ffb300;border-radius:24px;padding:8px 20px;font-size:0.8rem;font-weight:600;color:#ffb300;box-shadow:0 4px 24px rgba(0,0,0,0.8), 0 0 14px rgba(255,179,0,0.3);backdrop-filter:blur(8px);z-index:40;align-items:center;gap:10px;pointer-events:none;">
-              <span style="display:inline-block;animation:spin-indicator 1.2s linear infinite;font-size:1rem;">⏳</span>
+            <div id="field-drone-loading-hud" style="display:flex;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(15,20,32,0.94);border:1.5px solid #ffb300;border-radius:24px;padding:8px 20px;font-size:0.82rem;font-weight:600;color:#ffb300;box-shadow:0 4px 24px rgba(0,0,0,0.8), 0 0 14px rgba(255,179,0,0.3);backdrop-filter:blur(8px);z-index:40;align-items:center;gap:10px;pointer-events:none;transition:opacity 0.4s ease;">
+              <span id="field-drone-loading-spinner" style="display:inline-block;animation:spin-indicator 1.2s linear infinite;font-size:1.15rem;line-height:1;">⏳</span>
               <span id="field-drone-loading-text">Loading Drone Imagery (51.5 MB)… please wait</span>
             </div>
 
@@ -28117,11 +28117,19 @@ EOF`;
       const statusEl = document.getElementById("geotiff-status");
       const loadingHud = document.getElementById("field-drone-loading-hud");
       const loadingText = document.getElementById("field-drone-loading-text");
+      const spinner = document.getElementById("field-drone-loading-spinner");
+      const sizeMB = fileOrBlob && fileOrBlob.size ? `${(fileOrBlob.size / 1024 / 1024).toFixed(1)} MB` : "51.5 MB";
       if (statusEl) { statusEl.textContent = "⏳ Reading…"; statusEl.className = "geotiff-status"; }
-      if (loadingHud) { loadingHud.style.display = "flex"; }
-      if (loadingText) { loadingText.textContent = "⚙️ Processing Drone GeoTIFF… please wait"; }
+      if (loadingHud) {
+        loadingHud.style.display = "flex";
+        loadingHud.style.opacity = "1";
+        if (spinner) {
+          spinner.style.animation = "spin-indicator 1.2s linear infinite";
+          spinner.textContent = "⏳";
+        }
+      }
+      if (loadingText) { loadingText.textContent = `Processing Drone GeoTIFF (${sizeMB})… please wait`; }
       if (trueStatus) { trueStatus.textContent = "⚙️ Reading GeoTIFF…"; trueStatus.className = "view-badge loading"; }
-      const sizeMB = fileOrBlob && fileOrBlob.size ? `${(fileOrBlob.size / 1024 / 1024).toFixed(1)} MB` : "file";
       updateStatus(`Loading GeoTIFF (${sizeMB}) — please wait…`);
       await new Promise(r => setTimeout(r, 20));
       try {
@@ -28242,7 +28250,14 @@ EOF`;
           statusEl.textContent = `${tW}×${tH} · ${hasGeoRef ? "Georef ✓" : "No georef"}${useFullRes ? " · HD" : ""}`;
           statusEl.className = "geotiff-status ok";
         }
-        if (loadingHud) loadingHud.style.display = "none";
+        if (loadingText) loadingText.textContent = `Drone GeoTIFF ready (${tW}×${tH}${useFullRes ? " HD" : ""}) ✓`;
+        if (spinner) { spinner.style.animation = "none"; spinner.textContent = "✅"; }
+        setTimeout(() => {
+          if (loadingHud) {
+            loadingHud.style.opacity = "0";
+            setTimeout(() => { if (loadingHud) loadingHud.style.display = "none"; }, 400);
+          }
+        }, 1200);
         if (trueStatus) {
           trueStatus.textContent = `Field & Drone Ready (${state.trueEntities.length} ents)${useFullRes ? " [HD]" : ""}`;
           trueStatus.className = "view-badge green";
@@ -28370,7 +28385,17 @@ EOF`;
           statusEl.textContent = "Use '🛸 Drone GeoTIFF'";
           statusEl.className = "geotiff-status";
         }
-        if (loadingHud) loadingHud.style.display = "none";
+        if (loadingHud && !state.geoTiff) {
+          const spinner = document.getElementById("field-drone-loading-spinner");
+          if (spinner) { spinner.style.animation = "none"; spinner.textContent = "ℹ️"; }
+          if (loadingText) loadingText.textContent = "Auto-load unavailable — Click '🛸 Drone GeoTIFF' to load manually";
+          setTimeout(() => {
+            if (loadingHud && !state.geoTiff) {
+              loadingHud.style.opacity = "0";
+              setTimeout(() => { if (loadingHud && !state.geoTiff) loadingHud.style.display = "none"; }, 400);
+            }
+          }, 3500);
+        }
         if (trueStatus) {
           trueStatus.textContent = `Field DXF: ${state.trueEntities.length} ents`;
           trueStatus.className = "view-badge green";
