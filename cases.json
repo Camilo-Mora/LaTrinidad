@@ -2037,6 +2037,23 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      "15": {
+        "color": "#ff8000",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.27,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
@@ -2117,7 +2134,7 @@
       {
         "id": "lbl_-891256621",
         "text": "La Trinidad",
-        "worldX": 4644738.429653872,
+        "worldX": 4644735.458142017,
         "worldY": 1943255.3871222734,
         "fontSize": 20,
         "bold": true,
@@ -2129,7 +2146,7 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 302.7539588417858,
+          "x": 295.75395884364843,
           "y": 442.66951679065824,
           "w": 113.53333282470703,
           "h": 31
@@ -2140,8 +2157,8 @@
       {
         "id": "lbl_-891695788",
         "text": "Casa del Sol",
-        "worldX": 4644748.513942339,
-        "worldY": 1943187.8461292258,
+        "worldX": 4644759.975488068,
+        "worldY": 1943186.9971258387,
         "fontSize": 20,
         "bold": true,
         "italic": false,
@@ -2152,8 +2169,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 326.50954950228333,
-          "y": 601.7760505564511,
+          "x": 353.50954950228333,
+          "y": 603.7760505564511,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -2195,7 +2212,7 @@
         "name": "Arrow 3",
         "startX": 4644757.122683097,
         "startY": 1943211.9340823062,
-        "endX": 4644757.473583098,
+        "endX": 4644754.502071243,
         "endY": 1943246.2464823062,
         "color": "#0080ff",
         "opacity": 0.85,
@@ -2209,8 +2226,8 @@
         "name": "Arrow 4",
         "startX": 4644786.471536178,
         "startY": 1943215.8224292258,
-        "endX": 4644785.694136178,
-        "endY": 1943186.8824292258,
+        "endX": 4644797.155681906,
+        "endY": 1943186.0334258387,
         "color": "#0080ff",
         "opacity": 0.85,
         "lineWidth": 8,
@@ -2499,6 +2516,26 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      {
+        "id": 15,
+        "name": "Parra",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff8000",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.27,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -2644,7 +2681,7 @@
         "showNodes": false
       },
       "e296": {
-        "color": "#80ffff",
+        "color": "#0000ff",
         "dash": "solid",
         "width": 3.5,
         "showNodes": false
@@ -6424,11 +6461,28 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      "15": {
+        "color": "#ff8000",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.27,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
       "scale": 1.7830317555715787,
-      "offsetX": -8281138.464741474,
+      "offsetX": -8281138.464741473,
       "offsetY": -3464717.7003766303,
       "canvasW": 1487,
       "canvasH": 842,
@@ -6460,8 +6514,8 @@
       {
         "id": "lbl_-879101834",
         "text": "Lote A\n[size=14]Area 8,105 m²[/size]",
-        "worldX": 4644907.426592089,
-        "worldY": 1943447.2776313089,
+        "worldX": 4644899.013954483,
+        "worldY": 1943448.399316323,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -6472,8 +6526,8 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 873.9785624826327,
-          "y": 326.4890808723867,
+          "x": 858.978562483564,
+          "y": 324.4890808723867,
           "w": 101.13333129882812,
           "h": 60
         },
@@ -6494,7 +6548,7 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 791.0520750591531,
+          "x": 791.0520750600845,
           "y": 133.53849748522043,
           "w": 206,
           "h": 58
@@ -6516,7 +6570,7 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 567.0632629692554,
+          "x": 567.0632629701868,
           "y": 657.8591454289854,
           "w": 113.53333282470703,
           "h": 31
@@ -6539,7 +6593,7 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 584.635216861032,
+          "x": 584.6352168619633,
           "y": 790.4493520739488,
           "w": 125.03333282470703,
           "h": 31
@@ -6552,8 +6606,8 @@
       {
         "id": "arr_-879455096",
         "name": "Arrow 1",
-        "startX": 4644923.6220937995,
-        "startY": 1943405.7864550906,
+        "startX": 4644915.209456193,
+        "startY": 1943406.9081401047,
         "endX": 4644923.329316254,
         "endY": 1943372.7475804542,
         "color": "#ff8000",
@@ -6886,6 +6940,26 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      {
+        "id": 15,
+        "name": "Parra",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff8000",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.27,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -7031,7 +7105,7 @@
         "showNodes": false
       },
       "e296": {
-        "color": "#80ffff",
+        "color": "#0000ff",
         "dash": "solid",
         "width": 3.5,
         "showNodes": false
