@@ -1,7 +1,7 @@
 {
   "version": 2,
   "description": "La Trinidad - Polygons and Layer Settings",
-  "exportedAt": "2026-10-12T05:11:16.796Z",
+  "exportedAt": "2026-10-12T05:14:19.783Z",
   "polygons": [
     {
       "id": 4,
@@ -994,7 +994,7 @@
       "lineType": "solid",
       "showArea": false,
       "showNodes": false,
-      "visible": true,
+      "visible": false,
       "closed": true,
       "gradBuffer": false,
       "gradDist": 50,
@@ -1056,7 +1056,7 @@
       "lineWidth": 3.5,
       "lineType": "solid",
       "lineOpacity": 1,
-      "showNodes": true,
+      "showNodes": false,
       "showArea": false,
       "visible": true
     },
@@ -1195,19 +1195,19 @@
   },
   "trinidadSectionStyles": {
     "1073": {
-      "color": "#ff1744",
+      "color": "#00ffff",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
     },
     "e1073": {
-      "color": "#ff1744",
+      "color": "#00ffff",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
     },
     "e296": {
-      "color": "#80ffff",
+      "color": "#0000ff",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
