@@ -1,7 +1,7 @@
 {
   "version": 2,
   "description": "La Trinidad - Polygons and Layer Settings",
-  "exportedAt": "2026-10-10T05:37:22.096Z",
+  "exportedAt": "2026-10-12T05:11:16.796Z",
   "polygons": [
     {
       "id": 4,
@@ -807,7 +807,7 @@
       "lineWidth": 2.5,
       "lineType": "solid",
       "showArea": false,
-      "showNodes": true,
+      "showNodes": false,
       "visible": false,
       "points": [
         {
@@ -982,6 +982,69 @@
       "gradStartOpacity": 0.6,
       "gradEndOpacity": 0.05,
       "gradReverseColors": false
+    },
+    {
+      "id": 15,
+      "name": "Parra",
+      "color": "#ff8000",
+      "fillColor": "#ff8000",
+      "fillOpacity": 0.27,
+      "lineOpacity": 1,
+      "lineWidth": 3,
+      "lineType": "solid",
+      "showArea": false,
+      "showNodes": false,
+      "visible": true,
+      "closed": true,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": 1,
+      "gradScale": "viridis",
+      "gradReverseColors": false,
+      "gradStartOp": 0.7,
+      "gradEndOp": 0,
+      "points": [
+        {
+          "x": 4644813.47277872,
+          "y": 1943432.64871823
+        },
+        {
+          "x": 4644806.14179212,
+          "y": 1943456.26174128
+        },
+        {
+          "x": 4644792.31572011,
+          "y": 1943460.11474419
+        },
+        {
+          "x": 4644767.4597331,
+          "y": 1943478.14270956
+        },
+        {
+          "x": 4644758.26074,
+          "y": 1943492.32275985
+        },
+        {
+          "x": 4644752.62278561,
+          "y": 1943506.29677807
+        },
+        {
+          "x": 4644749.678432956,
+          "y": 1943513.971288046
+        },
+        {
+          "x": 4644750.870210281,
+          "y": 1943496.9280800226
+        },
+        {
+          "x": 4644782.195554763,
+          "y": 1943435.4486298535
+        },
+        {
+          "x": 4644812.470361635,
+          "y": 1943430.6535717277
+        }
+      ]
     }
   ],
   "layerStyles": {
@@ -1085,34 +1148,34 @@
     "dxf_296": {
       "show": true,
       "area": false,
-      "nodes": true
+      "nodes": false
     },
     "dxf_1073": {
-      "show": true,
+      "show": false,
       "area": false,
       "nodes": false,
-      "showPdf": true,
+      "showPdf": false,
       "pdfOpacity": 0.5
     },
     "dxf_196": {
-      "show": true,
+      "show": false,
       "area": false,
       "nodes": false,
-      "showPdf": true,
+      "showPdf": false,
       "pdfOpacity": 0.5
     },
     "dxf_survey_cortez_2019": {
-      "show": true,
+      "show": false,
       "area": false,
       "nodes": false
     },
     "dxf_survey_valoy_2025": {
-      "show": true,
+      "show": false,
       "area": false,
       "nodes": false
     },
     "dxf_survey_cortez_sep_2026": {
-      "show": true,
+      "show": false,
       "area": false,
       "nodes": false
     },
@@ -1122,11 +1185,11 @@
       "nodes": false
     },
     "mojones": {
-      "show": true,
+      "show": false,
       "items": {
-        "1": true,
-        "2": true,
-        "4": true
+        "1": false,
+        "2": false,
+        "4": false
       }
     }
   },
