@@ -1,7 +1,7 @@
 {
   "version": 2,
   "description": "La Trinidad - Polygons and Layer Settings",
-  "exportedAt": "2026-10-12T05:14:19.783Z",
+  "exportedAt": "2026-10-12T05:30:18.159Z",
   "polygons": [
     {
       "id": 4,
@@ -136,7 +136,7 @@
       "id": 1,
       "name": "LoteA",
       "color": "#ffd600",
-      "fillOpacity": 0.1,
+      "fillOpacity": 0.36,
       "lineWidth": 1.5,
       "lineType": "dashed",
       "showArea": false,
@@ -211,7 +211,7 @@
           "y": 1943379.2349
         }
       ],
-      "visible": false,
+      "visible": true,
       "fillColor": "#ffd600",
       "lineOpacity": 1,
       "gradBuffer": false,
@@ -226,7 +226,7 @@
       "id": 2,
       "name": "LoteB",
       "color": "#00e676",
-      "fillOpacity": 0.1,
+      "fillOpacity": 0.35,
       "lineWidth": 1.5,
       "lineType": "dashed",
       "showArea": false,
@@ -265,7 +265,7 @@
           "y": 1943345.497726665
         }
       ],
-      "visible": false,
+      "visible": true,
       "fillColor": "#00e676",
       "lineOpacity": 1,
       "gradBuffer": false,
@@ -330,9 +330,9 @@
       "id": 6,
       "name": "Jimmy Ruiz",
       "color": "#ff9100",
-      "fillOpacity": 0.3,
-      "lineWidth": 6,
-      "lineType": "dotted",
+      "fillOpacity": 0.18,
+      "lineWidth": 2.5,
+      "lineType": "solid",
       "showArea": false,
       "showNodes": false,
       "visible": false,
@@ -399,9 +399,9 @@
       "id": 7,
       "name": "Pedro Ruiz",
       "color": "#ff9100",
-      "fillOpacity": 0.3,
-      "lineWidth": 6,
-      "lineType": "dotted",
+      "fillOpacity": 0.15,
+      "lineWidth": 2.5,
+      "lineType": "solid",
       "showArea": false,
       "showNodes": false,
       "visible": false,
@@ -480,9 +480,9 @@
       "id": 8,
       "name": "Nacho196",
       "color": "#ff9100",
-      "fillOpacity": 0.3,
-      "lineWidth": 6,
-      "lineType": "dotted",
+      "fillOpacity": 0.15,
+      "lineWidth": 2.5,
+      "lineType": "solid",
       "showArea": false,
       "showNodes": false,
       "visible": false,
@@ -730,8 +730,8 @@
       "id": 3,
       "name": "Lote#5",
       "color": "#ff1744",
-      "fillOpacity": 0.36,
-      "lineWidth": 6.5,
+      "fillOpacity": 0.3,
+      "lineWidth": 1.5,
       "lineType": "dashed",
       "showArea": false,
       "showNodes": false,
@@ -787,7 +787,7 @@
       ],
       "visible": false,
       "fillColor": "#ff1744",
-      "lineOpacity": 0.48,
+      "lineOpacity": 1,
       "closed": true,
       "gradBuffer": false,
       "gradDist": 50,
@@ -990,11 +990,11 @@
       "fillColor": "#ff8000",
       "fillOpacity": 0.27,
       "lineOpacity": 1,
-      "lineWidth": 3,
-      "lineType": "solid",
+      "lineWidth": 1.5,
+      "lineType": "dashed",
       "showArea": false,
       "showNodes": false,
-      "visible": false,
+      "visible": true,
       "closed": true,
       "gradBuffer": false,
       "gradDist": 50,
@@ -1044,7 +1044,9 @@
           "x": 4644812.470361635,
           "y": 1943430.6535717277
         }
-      ]
+      ],
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05
     }
   ],
   "layerStyles": {
@@ -1053,7 +1055,7 @@
       "color": "#00e5ff",
       "fillColor": "#00e5ff",
       "fillOpacity": 0.08,
-      "lineWidth": 3.5,
+      "lineWidth": 5,
       "lineType": "solid",
       "lineOpacity": 1,
       "showNodes": false,
@@ -1130,7 +1132,7 @@
       "lineOpacity": 1,
       "showNodes": false,
       "showArea": false,
-      "visible": false
+      "visible": true
     }
   },
   "layerOrder": [
@@ -1200,12 +1202,6 @@
       "width": 3.5,
       "showNodes": false
     },
-    "e1073": {
-      "color": "#00ffff",
-      "dash": "solid",
-      "width": 3.5,
-      "showNodes": false
-    },
     "e296": {
       "color": "#0000ff",
       "dash": "solid",
@@ -1213,7 +1209,13 @@
       "showNodes": false
     },
     "quebrada": {
-      "color": "#00e676",
+      "color": "#00ff40",
+      "dash": "solid",
+      "width": 3.5,
+      "showNodes": false
+    },
+    "e1073": {
+      "color": "#00ffff",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
