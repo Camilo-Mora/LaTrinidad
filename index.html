@@ -326,6 +326,137 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       cursor: pointer;
     }
 
+    /* Historical Timeline Control Overlay */
+    .historical-timeline-overlay {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 35;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(10, 16, 28, 0.90);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      border-radius: 22px;
+      padding: 5px 16px 7px 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.65), 0 0 10px rgba(0, 229, 255, 0.15);
+      user-select: none;
+      pointer-events: auto;
+    }
+
+    .timeline-title-row {
+      font-size: 0.58rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      opacity: 0.9;
+    }
+
+    .timeline-track-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 240px;
+      padding: 4px 8px;
+    }
+
+    .timeline-connecting-line {
+      position: absolute;
+      top: 14px;
+      left: 28px;
+      right: 28px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.22);
+      z-index: 1;
+    }
+
+    .timeline-dots-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      z-index: 2;
+    }
+
+    .timeline-dot-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      gap: 3px;
+      transition: all 0.2s ease;
+      padding: 0 4px;
+    }
+
+    .timeline-dot-node {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #090e18;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .timeline-dot-core {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: transparent;
+      transition: all 0.2s ease;
+    }
+
+    .timeline-dot-item:hover .timeline-dot-node {
+      border-color: var(--accent-cyan);
+      transform: scale(1.18);
+    }
+
+    .timeline-dot-item.active .timeline-dot-node {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.2);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.85);
+      transform: scale(1.25);
+    }
+
+    .timeline-dot-item.active .timeline-dot-core {
+      background: var(--accent-cyan);
+    }
+
+    .timeline-dot-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+    }
+
+    .timeline-dot-item:hover .timeline-dot-label {
+      color: #fff;
+    }
+
+    .timeline-dot-item.active .timeline-dot-label {
+      color: var(--accent-cyan);
+      font-weight: 700;
+      text-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+    }
+
+    .timeline-dot-sub {
+      font-size: 0.58rem;
+      color: rgba(255, 255, 255, 0.45);
+      margin-top: -2px;
+    }
+
+    .timeline-dot-item.active .timeline-dot-sub {
+      color: rgba(0, 229, 255, 0.85);
+    }
+
     .preset-btn {
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--border-color);
@@ -1010,6 +1141,13 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
 
         <span style="color:var(--border-color);font-size:0.8rem;user-select:none;margin:0 4px;">|</span>
 
+        <label class="window-checkbox" title="Toggle Histórico Satellite Window">
+          <input type="checkbox" id="chk-show-historical">
+          <span style="color:var(--accent-cyan);font-weight:700;">🛰️ Histórico</span>
+        </label>
+
+        <span style="color:var(--border-color);font-size:0.8rem;user-select:none;margin:0 4px;">|</span>
+
         <label class="window-checkbox" title="Toggle Campo Window">
           <input type="checkbox" id="chk-show-true" checked>
           <span style="color:var(--accent-green);font-weight:600;">Campo</span>
@@ -1084,6 +1222,44 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
             <button class="vp-tool-btn" data-map="196" data-mode="fit" title="Center Map View">⛶</button>
             <div class="vp-tool-sep"></div>
             <button class="vp-tool-btn" data-map="196" data-mode="measure" title="Measure Distances [M]">📏</button>
+          </div>
+        </div>
+
+        <!-- Historical Satellite Viewport -->
+        <div class="viewport-card hidden" id="card-historical">
+          <div class="viewport-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="view-title" style="color:var(--accent-cyan);font-weight:700;">🛰️ Satélite Histórico</span>
+              <span id="historical-date-badge" class="view-badge" style="background:rgba(0,229,255,0.12);color:var(--accent-cyan);border-color:rgba(0,229,255,0.3);font-size:0.7rem;font-weight:600;">14 Jun 2017</span>
+            </div>
+            <div class="view-controls" style="display:flex;align-items:center;gap:8px;">
+              <label style="font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;cursor:pointer;" title="Sincronizar cámara (zoom y paneo) con panel Campo">
+                <input type="checkbox" id="chk-sync-historical-cam" checked>
+                <span style="color:var(--accent-cyan);font-weight:600;">🔗 Sync</span>
+              </label>
+              <button class="vp-tool-btn" data-map="historical" data-mode="fit" title="Centrar satélite en límites">⛶</button>
+            </div>
+          </div>
+          <div class="canvas-container" id="container-historical" style="position:relative;">
+            <canvas id="canvas-historical"></canvas>
+
+            <!-- Floating Top Timeline Control with Line and Dots -->
+            <div class="historical-timeline-overlay" id="historical-timeline-overlay">
+              <div class="timeline-title-row">
+                <span class="timeline-title">LÍNEA DE TIEMPO HISTÓRICA</span>
+              </div>
+              <div class="timeline-track-wrap">
+                <div class="timeline-connecting-line"></div>
+                <div class="timeline-dots-row" id="historical-timeline-dots"></div>
+              </div>
+            </div>
+          </div>
+          <div class="viewport-hint" id="hint-historical">
+            <button class="vp-tool-btn active" data-map="historical" data-mode="pan" title="Pan Mode [P]">🖐️</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="historical" data-mode="fit" title="Center Map View">⛶</button>
+            <div class="vp-tool-sep"></div>
+            <button class="vp-tool-btn" data-map="historical" data-mode="measure" title="Measure Distances [M]">📏</button>
           </div>
         </div>
 
@@ -2322,6 +2498,14 @@ const state = {
   vp1073: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
   vp196: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
   vpTrue: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+  vpHistorical: { scale: 1.0, offsetX: 0, offsetY: 0, bbox: null },
+
+  // Historical Imagery System
+  showHistoricalWindow: false,
+  syncHistoricalCam: true,
+  activeHistoricalId: "esri_2017_06_14",
+  historicalCatalog: [],
+  historicalImages: {},
   
   // Background PDFs
   pdf296Doc: null,
@@ -2755,15 +2939,20 @@ const canvas196  = document.getElementById("canvas-196");
 const ctx196     = canvas196.getContext("2d");
 const canvasTrue = document.getElementById("canvas-true");
 const ctxTrue    = canvasTrue.getContext("2d");
+const canvasHistorical = document.getElementById("canvas-historical");
+const ctxHistorical    = canvasHistorical ? canvasHistorical.getContext("2d") : null;
 
 const card296  = document.getElementById("card-296");
 const card1073 = document.getElementById("card-1073");
 const card196  = document.getElementById("card-196");
 const cardTrue = document.getElementById("card-true");
+const cardHistorical = document.getElementById("card-historical");
 
 const chkShow296 = document.getElementById("chk-show-296");
 const chkShow1073 = document.getElementById("chk-show-1073");
 const chkShow196  = document.getElementById("chk-show-196");
+const chkShowHistorical = document.getElementById("chk-show-historical");
+const chkSyncHistoricalCam = document.getElementById("chk-sync-historical-cam");
 const chkShowTrue = document.getElementById("chk-show-true");
 const chkShowSidebar = document.getElementById("chk-show-sidebar");
 const sidebar = document.querySelector(".sidebar");
@@ -2809,6 +2998,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   await autoLoadPolygons();
   await autoLoadReconstructedPolygon();
   await autoLoadCases();
+  await autoLoadHistoricalCatalog();
 });
 
 function loadDefaultPdf(url, target) {
@@ -2931,6 +3121,28 @@ function centerMapView(map) {
         state.vp196 = fitViewport(canvas196, { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY });
       }
     }
+  } else if (map === "historical") {
+    if (canvasHistorical && canvasHistorical.width <= 10) {
+      const ch = document.getElementById("container-historical");
+      if (ch && ch.clientWidth > 10) { canvasHistorical.width = ch.clientWidth; canvasHistorical.height = ch.clientHeight; }
+    }
+    if (state.syncHistoricalCam && state.vpTrue && state.vpTrue.scale > 0.0001) {
+      syncHistoricalViewportWithTrue();
+    } else {
+      const active = state.historicalImages[state.activeHistoricalId];
+      if (active && active.meta) {
+        state.vpHistorical = fitViewport(canvasHistorical, {
+          minX: active.meta.minX,
+          minY: active.meta.minY,
+          maxX: active.meta.maxX,
+          maxY: active.meta.maxY,
+          width: active.meta.maxX - active.meta.minX,
+          height: active.meta.maxY - active.meta.minY
+        });
+      } else if (state.vpTrue && state.vpTrue.bbox) {
+        state.vpHistorical = fitViewport(canvasHistorical, state.vpTrue.bbox);
+      }
+    }
   } else if (map === "true") {
     if (canvasTrue.width <= 10) {
       const c4 = document.getElementById("container-true");
@@ -2969,6 +3181,7 @@ function resizeCanvases() {
   const c2 = document.getElementById("container-1073");
   const c3 = document.getElementById("container-196");
   const c4 = document.getElementById("container-true");
+  const ch = document.getElementById("container-historical");
 
   const prevW = canvasTrue.width, prevH = canvasTrue.height;
   canvas296.width  = c1.clientWidth  || 300;
@@ -2979,11 +3192,19 @@ function resizeCanvases() {
   canvas196.height = c3.clientHeight || 500;
   canvasTrue.width  = c4.clientWidth  || 300;
   canvasTrue.height = c4.clientHeight || 500;
+  if (ch && canvasHistorical) {
+    canvasHistorical.width = ch.clientWidth || 300;
+    canvasHistorical.height = ch.clientHeight || 500;
+  }
 
   if (state.caseMode && prevW > 0 && prevH > 0 && (canvasTrue.width !== prevW || canvasTrue.height !== prevH)) {
     const prevCenter = screenToWorldGIS(prevW / 2, prevH / 2, state.vpTrue, prevH);
     state.vpTrue.offsetX = (canvasTrue.width / 2) - prevCenter.x * state.vpTrue.scale;
     state.vpTrue.offsetY = (canvasTrue.height / 2) - prevCenter.y * state.vpTrue.scale;
+  }
+
+  if (state.syncHistoricalCam && state.vpTrue) {
+    syncHistoricalViewportWithTrue();
   }
 
   if (!state.vp296.bbox) {
@@ -3685,11 +3906,168 @@ function getFieldSnapTarget(mouseX, mouseY, vp, canvas, mapName, isShiftPressed 
   return closestTarget;
 }
 
+/* ==========================================================================
+   HISTORICAL SATELLITE IMAGERY SYSTEM (ESRI MULTI-TEMPORAL EPSG:9377)
+   ========================================================================== */
+
+function syncHistoricalViewportWithTrue() {
+  if (!state.vpHistorical || !state.vpTrue || !canvasHistorical || !canvasTrue) return;
+  if (!canvasTrue.width || !canvasHistorical.width) return;
+  const centerTrue = screenToWorldGIS(canvasTrue.width / 2, canvasTrue.height / 2, state.vpTrue, canvasTrue.height);
+  state.vpHistorical.scale = state.vpTrue.scale;
+  state.vpHistorical.offsetX = (canvasHistorical.width / 2) - centerTrue.x * state.vpHistorical.scale;
+  state.vpHistorical.offsetY = (canvasHistorical.height / 2) - centerTrue.y * state.vpHistorical.scale;
+}
+
+function syncTrueViewportWithHistorical() {
+  if (!state.vpHistorical || !state.vpTrue || !canvasHistorical || !canvasTrue) return;
+  if (!canvasTrue.width || !canvasHistorical.width) return;
+  const centerHist = screenToWorldGIS(canvasHistorical.width / 2, canvasHistorical.height / 2, state.vpHistorical, canvasHistorical.height);
+  state.vpTrue.scale = state.vpHistorical.scale;
+  state.vpTrue.offsetX = (canvasTrue.width / 2) - centerHist.x * state.vpTrue.scale;
+  state.vpTrue.offsetY = (canvasTrue.height / 2) - centerHist.y * state.vpTrue.scale;
+}
+
+async function autoLoadHistoricalCatalog() {
+  try {
+    const res = await fetch("historical_catalog.json?_t=" + Date.now(), { cache: "no-store" });
+    if (res.ok) {
+      state.historicalCatalog = await res.json();
+      buildHistoricalTimelineUI();
+      if (state.historicalCatalog.length > 0) {
+        selectHistoricalRaster(state.activeHistoricalId || state.historicalCatalog[0].id);
+      }
+    }
+  } catch (err) {
+    console.warn("historical_catalog.json auto-load skipped or error:", err);
+  }
+}
+
+function buildHistoricalTimelineUI() {
+  const container = document.getElementById("historical-timeline-dots");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  (state.historicalCatalog || []).forEach(item => {
+    const dot = document.createElement("div");
+    dot.className = "timeline-dot-item" + (item.id === state.activeHistoricalId ? " active" : "");
+    dot.dataset.id = item.id;
+    dot.title = `${item.label} (${item.source} • EPSG:9377)`;
+    dot.innerHTML = `
+      <div class="timeline-dot-node">
+        <div class="timeline-dot-core"></div>
+      </div>
+      <span class="timeline-dot-label">${item.year}</span>
+      <span class="timeline-dot-sub">${item.label.split(" ").slice(0, 2).join(" ")}</span>
+    `;
+    dot.addEventListener("click", () => {
+      selectHistoricalRaster(item.id);
+    });
+    container.appendChild(dot);
+  });
+}
+
+function updateHistoricalTimelineDots() {
+  const dots = document.querySelectorAll("#historical-timeline-dots .timeline-dot-item");
+  dots.forEach(d => {
+    const isActive = d.dataset.id === state.activeHistoricalId;
+    d.classList.toggle("active", isActive);
+  });
+}
+
+function selectHistoricalRaster(id) {
+  const item = (state.historicalCatalog || []).find(c => c.id === id);
+  if (!item) return;
+  state.activeHistoricalId = id;
+  
+  const badge = document.getElementById("historical-date-badge");
+  if (badge) badge.textContent = item.label;
+  
+  updateHistoricalTimelineDots();
+  
+  if (!state.historicalImages[id]) {
+    state.historicalImages[id] = { loaded: false, meta: item };
+    const img = new Image();
+    img.src = item.file;
+    img.onload = () => {
+      state.historicalImages[id].img = img;
+      state.historicalImages[id].loaded = true;
+      if (!state.vpHistorical.bbox) {
+        state.vpHistorical.bbox = {
+          minX: item.minX,
+          minY: item.minY,
+          maxX: item.maxX,
+          maxY: item.maxY,
+          width: item.maxX - item.minX,
+          height: item.maxY - item.minY
+        };
+      }
+      if (state.syncHistoricalCam && state.vpTrue) {
+        syncHistoricalViewportWithTrue();
+      }
+      redrawAll();
+    };
+  } else {
+    redrawAll();
+  }
+}
+
+function drawHistoricalRaster(ctx, vp, canvasH) {
+  if (!state.activeHistoricalId || !vp) return;
+  const raster = state.historicalImages[state.activeHistoricalId];
+  if (!raster || !raster.loaded || !raster.img) return;
+  const meta = raster.meta;
+  const tl = worldToScreenGIS({ x: meta.minX, y: meta.maxY }, vp, canvasH);
+  const br = worldToScreenGIS({ x: meta.maxX, y: meta.minY }, vp, canvasH);
+  const sw = br.x - tl.x, sh = br.y - tl.y;
+  if (sw <= 0 || sh <= 0) return;
+  ctx.save();
+  ctx.drawImage(raster.img, tl.x, tl.y, sw, sh);
+  ctx.restore();
+}
+
+function drawViewportHistorical() {
+  if (!canvasHistorical || !ctxHistorical) return;
+  if (!state.showHistoricalWindow && cardHistorical && cardHistorical.classList.contains("hidden")) return;
+  const w = canvasHistorical.width, h = canvasHistorical.height, vp = state.vpHistorical;
+  ctxHistorical.clearRect(0, 0, w, h);
+  drawGrid(ctxHistorical, w, h);
+
+  // 1. Draw Historical Satellite Raster in EPSG:9377
+  drawHistoricalRaster(ctxHistorical, vp, h);
+
+  // 2. Draw Vector Layers in user-configured stack order
+  const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
+  order.forEach(key => drawLayerByKey(key, ctxHistorical, vp, h));
+
+  // 3. Draw Reconstructed Lindero 296
+  if (!order.includes("dxf_296") && state.showReconstructedPolygon !== false) {
+    drawReconstructedPolygon(ctxHistorical, vp, h);
+  }
+
+  // 4. Draw Mojones 1073
+  if (state.showMojones1073 !== false) {
+    drawMojones1073(ctxHistorical, vp, h);
+  }
+
+  // 5. Case labels & arrows if active
+  if (state.caseMode) {
+    drawCaseLabels(ctxHistorical, vp, h);
+    drawCaseArrows(ctxHistorical, vp, h);
+  }
+
+  // 6. Live measure tool preview if active
+  if (typeof drawMeasuringToolGIS === "function") {
+    drawMeasuringToolGIS(ctxHistorical, vp, h);
+  }
+}
+
 // [SECTION: JS_CANVAS_RENDERERS]
 function redrawAll() {
   drawViewport296();
   drawViewport1073();
   drawViewport196();
+  drawViewportHistorical();
   drawViewportTrue();
   updateAnalyticsUI();
   updateMeasurementUI();
@@ -8505,6 +8883,21 @@ function setupEventListeners() {
   chkShow196.addEventListener("change", () => {
     updateWindowLayout(chkShow196.checked ? ["196"] : []);
   });
+  if (chkShowHistorical) {
+    chkShowHistorical.addEventListener("change", () => {
+      state.showHistoricalWindow = chkShowHistorical.checked;
+      updateWindowLayout(chkShowHistorical.checked ? ["historical"] : []);
+    });
+  }
+  if (chkSyncHistoricalCam) {
+    chkSyncHistoricalCam.addEventListener("change", (e) => {
+      state.syncHistoricalCam = e.target.checked;
+      if (state.syncHistoricalCam) {
+        syncHistoricalViewportWithTrue();
+        redrawAll();
+      }
+    });
+  }
   chkShowTrue.addEventListener("change", () => {
     updateWindowLayout(chkShowTrue.checked ? ["true"] : []);
   });
@@ -9121,6 +9514,7 @@ function setupEventListeners() {
   attachCanvasInteractions(canvas1073, "1073");
   attachCanvasInteractions(canvas196,  "196");
   attachCanvasInteractions(canvasTrue, "true");
+  if (canvasHistorical) attachCanvasInteractions(canvasHistorical, "historical");
 
   // (Center buttons are now in the per-panel toolbars above)
 
@@ -9602,6 +9996,7 @@ let lastOpenWindowState = {
   "296": false,
   "1073": false,
   "196": false,
+  "historical": false,
   "true": false
 };
 
@@ -9609,11 +10004,13 @@ function updateWindowLayout(forceCenterMaps = null) {
   const is296 = !!(chkShow296 && chkShow296.checked);
   const is1073 = !!(chkShow1073 && chkShow1073.checked);
   const is196 = !!(chkShow196 && chkShow196.checked);
+  const isHistorical = !!(chkShowHistorical && chkShowHistorical.checked);
   const isTrue = !!(chkShowTrue && chkShowTrue.checked);
 
   if (card296) card296.classList.toggle("hidden", !is296);
   if (card1073) card1073.classList.toggle("hidden", !is1073);
   if (card196) card196.classList.toggle("hidden", !is196);
+  if (cardHistorical) cardHistorical.classList.toggle("hidden", !isHistorical);
   if (cardTrue) cardTrue.classList.toggle("hidden", !isTrue);
   if (chkShowSidebar && sidebar) {
     sidebar.classList.toggle("collapsed", !chkShowSidebar.checked);
@@ -9624,11 +10021,13 @@ function updateWindowLayout(forceCenterMaps = null) {
   if (is296 && !lastOpenWindowState["296"]) newlyOpened.push("296");
   if (is1073 && !lastOpenWindowState["1073"]) newlyOpened.push("1073");
   if (is196 && !lastOpenWindowState["196"]) newlyOpened.push("196");
+  if (isHistorical && !lastOpenWindowState["historical"]) newlyOpened.push("historical");
   if (isTrue && !lastOpenWindowState["true"]) newlyOpened.push("true");
 
   lastOpenWindowState["296"] = is296;
   lastOpenWindowState["1073"] = is1073;
   lastOpenWindowState["196"] = is196;
+  lastOpenWindowState["historical"] = isHistorical;
   lastOpenWindowState["true"] = isTrue;
 
   const toCenter = Array.isArray(forceCenterMaps) ? forceCenterMaps : newlyOpened;
@@ -9722,6 +10121,7 @@ function attachCanvasInteractions(canvas, mapName) {
     if (mapName === "296")   return state.vp296;
     if (mapName === "1073")  return state.vp1073;
     if (mapName === "196")   return state.vp196;
+    if (mapName === "historical") return state.vpHistorical;
     return state.vpTrue;
   }
 
@@ -9806,7 +10206,7 @@ function attachCanvasInteractions(canvas, mapName) {
   });
 
   canvas.addEventListener("mousedown", (e) => {
-    const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
+    const toWorld = (mapName === "true" || mapName === "historical") ? screenToWorldGIS : screenToWorld;
     const { x: mouseX, y: mouseY } = getCanvasXY(e);
     const vp = getVP();
 
@@ -10025,7 +10425,7 @@ function attachCanvasInteractions(canvas, mapName) {
   });
 
   canvas.addEventListener("mousemove", (e) => {
-    const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
+    const toWorld = (mapName === "true" || mapName === "historical") ? screenToWorldGIS : screenToWorld;
     const { x: mouseX, y: mouseY } = getCanvasXY(e);
     const vp = getVP();
     const worldPt = toWorld(mouseX, mouseY, vp, canvas.height);
@@ -10180,10 +10580,15 @@ function attachCanvasInteractions(canvas, mapName) {
       const dy = e.clientY - lastY;
       lastX = e.clientX; lastY = e.clientY;
       vp.offsetX += dx;
-      if (mapName === "true") {
+      if (mapName === "true" || mapName === "historical") {
         vp.offsetY -= dy;
       } else {
         vp.offsetY += dy;
+      }
+      if (mapName === "true" && state.showHistoricalWindow && state.syncHistoricalCam) {
+        syncHistoricalViewportWithTrue();
+      } else if (mapName === "historical" && state.syncHistoricalCam) {
+        syncTrueViewportWithHistorical();
       }
       redrawAll();
       return;
@@ -10467,7 +10872,7 @@ function attachCanvasInteractions(canvas, mapName) {
     if (mapName === "true") {
       hideReconstructedTooltip();
     }
-    const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
+    const toWorld = (mapName === "true" || mapName === "historical") ? screenToWorldGIS : screenToWorld;
     const { x: mouseX, y: mouseY } = getCanvasXY(e);
     const vp = getVP();
     const ptBefore = toWorld(mouseX, mouseY, vp, canvas.height);
@@ -10476,6 +10881,11 @@ function attachCanvasInteractions(canvas, mapName) {
     const ptAfter = toWorld(mouseX, mouseY, vp, canvas.height);
     vp.offsetX += (ptAfter.x - ptBefore.x) * vp.scale;
     vp.offsetY += (ptAfter.y - ptBefore.y) * vp.scale;
+    if (mapName === "true" && state.showHistoricalWindow && state.syncHistoricalCam) {
+      syncHistoricalViewportWithTrue();
+    } else if (mapName === "historical" && state.syncHistoricalCam) {
+      syncTrueViewportWithHistorical();
+    }
     redrawAll();
   }, { passive: false });
 
@@ -10633,10 +11043,15 @@ function attachCanvasInteractions(canvas, mapName) {
 
         const vp = getVP();
         vp.offsetX += dx;
-        if (mapName === "true") {
+        if (mapName === "true" || mapName === "historical") {
           vp.offsetY -= dy;
         } else {
           vp.offsetY += dy;
+        }
+        if (mapName === "true" && state.showHistoricalWindow && state.syncHistoricalCam) {
+          syncHistoricalViewportWithTrue();
+        } else if (mapName === "historical" && state.syncHistoricalCam) {
+          syncTrueViewportWithHistorical();
         }
         redrawAll();
         e.preventDefault();
@@ -10648,12 +11063,17 @@ function attachCanvasInteractions(canvas, mapName) {
         lastTouchDist = newDist;
         const mid = getTouchMidpoint(e.touches[0], e.touches[1]);
         const vp = getVP();
-        const toWorld = mapName === "true" ? screenToWorldGIS : screenToWorld;
+        const toWorld = (mapName === "true" || mapName === "historical") ? screenToWorldGIS : screenToWorld;
         const ptBefore = toWorld(mid.x, mid.y, vp, canvas.height);
         vp.scale *= factor;
         const ptAfter = toWorld(mid.x, mid.y, vp, canvas.height);
         vp.offsetX += (ptAfter.x - ptBefore.x) * vp.scale;
         vp.offsetY += (ptAfter.y - ptBefore.y) * vp.scale;
+        if (mapName === "true" && state.showHistoricalWindow && state.syncHistoricalCam) {
+          syncHistoricalViewportWithTrue();
+        } else if (mapName === "historical" && state.syncHistoricalCam) {
+          syncTrueViewportWithHistorical();
+        }
         redrawAll();
       }
       e.preventDefault();
@@ -11627,6 +12047,10 @@ function captureCaseSnapshot(name, id = Date.now()) {
     layers,
     dxfOpacity: Object.assign({}, state.dxfOpacity),
     geotiffBW: document.getElementById("case-geotiff-bw") ? document.getElementById("case-geotiff-bw").checked : true,
+    historical: {
+      show: state.showHistoricalWindow === true,
+      activeId: state.activeHistoricalId || "esri_2017_06_14"
+    },
     labels: [],
     arrows: []
   };
@@ -11865,7 +12289,18 @@ function applyActiveCase(caseObj) {
   const inspector = document.getElementById("case-label-inspector");
   if (inspector) inspector.style.display = "none";
   const arrInsp = document.getElementById("case-arrow-inspector");
-  if (arrInsp) arrInsp.style.display = "none";
+  // 9. Historical Satellite Window
+  if (caseObj && caseObj.historical) {
+    state.showHistoricalWindow = !!caseObj.historical.show;
+    if (caseObj.historical.activeId) {
+      selectHistoricalRaster(caseObj.historical.activeId);
+    }
+  } else {
+    state.showHistoricalWindow = false;
+  }
+  if (chkShowHistorical) chkShowHistorical.checked = state.showHistoricalWindow;
+  if (cardHistorical) cardHistorical.classList.toggle("hidden", !state.showHistoricalWindow);
+  updateWindowLayout();
 
   drawViewportTrue();
   const selectors = [document.getElementById("case-selector"), document.getElementById("case-selector-side")].filter(Boolean);
@@ -12727,37 +13162,131 @@ async function exportCaseImageHD() {
     ctx.fillStyle = "#06080e";
     ctx.fillRect(0, 0, EXP_W, EXP_H);
 
-    const scaleRatio = EXP_W / canvasTrue.width;
-    const vpExp = {
-      scale: state.vpTrue.scale * scaleRatio,
-      offsetX: state.vpTrue.offsetX * scaleRatio,
-      offsetY: state.vpTrue.offsetY * scaleRatio,
-      bbox: state.vpTrue.bbox
-    };
-
-    const showGeo = ac.layers ? (ac.layers.geotiff !== false) : true;
-    if (showGeo && state.geoTiff) {
-      drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds, ac.geotiffBW !== false);
-    }
-
+    const isDualExport = state.showHistoricalWindow && state.activeHistoricalId && state.historicalImages[state.activeHistoricalId] && state.historicalImages[state.activeHistoricalId].loaded;
     const order = state.layerOrder && state.layerOrder.length > 0 ? state.layerOrder : DEFAULT_LAYER_ORDER;
-    order.forEach(key => drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac));
-    if (!order.includes("dxf_296") && state.showReconstructedPolygon !== false) {
-      drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio);
-    }
-
-    if (state.showMojones1073 !== false) {
-      drawMojones1073(ctx, vpExp, EXP_H, (state.mojonesSize || 1.0) * scaleRatio);
-    }
-
-    if (ac.labels && ac.labels.length > 0) {
-      drawCaseLabelsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.labels);
-    }
-    if (ac.arrows && ac.arrows.length > 0) {
-      drawCaseArrowsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.arrows);
-    }
-
     const safeName = (ac.name || "Caso").replace(/[^a-z0-9_\-]/gi, "_");
+
+    if (isDualExport) {
+      // DUAL PANEL 4K EXPORT: Historical Satellite on Left, Dron on Right
+      const halfW = (EXP_W - 20) / 2;
+      const centerWorld = screenToWorldGIS(canvasTrue.width / 2, canvasTrue.height / 2, state.vpTrue, canvasTrue.height);
+      const scaleRatio = halfW / canvasTrue.width;
+      const targetScale = state.vpTrue.scale * scaleRatio;
+
+      const vpLeft = {
+        scale: targetScale,
+        offsetX: (halfW / 2) - centerWorld.x * targetScale,
+        offsetY: (EXP_H / 2) - centerWorld.y * targetScale,
+        bbox: state.vpTrue.bbox
+      };
+
+      const vpRight = {
+        scale: targetScale,
+        offsetX: (halfW + 20) + (halfW / 2) - centerWorld.x * targetScale,
+        offsetY: (EXP_H / 2) - centerWorld.y * targetScale,
+        bbox: state.vpTrue.bbox
+      };
+
+      // --- LEFT PANEL (HISTORICAL) ---
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, halfW, EXP_H);
+      ctx.clip();
+      drawHistoricalRaster(ctx, vpLeft, EXP_H);
+      order.forEach(key => drawLayerByKeyExport(key, ctx, vpLeft, EXP_H, scaleRatio, ac));
+      if (!order.includes("dxf_296") && state.showReconstructedPolygon !== false) {
+        drawReconstructedPolygonExport(ctx, vpLeft, EXP_H, scaleRatio);
+      }
+      if (state.showMojones1073 !== false) {
+        drawMojones1073(ctx, vpLeft, EXP_H, (state.mojonesSize || 1.0) * scaleRatio);
+      }
+      if (ac.labels && ac.labels.length > 0) {
+        drawCaseLabelsForExport(ctx, vpLeft, EXP_H, scaleRatio, ac.labels);
+      }
+      if (ac.arrows && ac.arrows.length > 0) {
+        drawCaseArrowsForExport(ctx, vpLeft, EXP_H, scaleRatio, ac.arrows);
+      }
+      // Left Badge
+      const histItem = state.historicalImages[state.activeHistoricalId].meta;
+      ctx.fillStyle = "rgba(10, 16, 28, 0.85)";
+      ctx.fillRect(30, 30, 720, 64);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.5)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(30, 30, 720, 64);
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 26px sans-serif";
+      ctx.fillText(`🛰️ SATÉLITE HISTÓRICO: ${histItem.label.toUpperCase()}`, 50, 72);
+      ctx.restore();
+
+      // --- RIGHT PANEL (CAMPO DRON) ---
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(halfW + 20, 0, halfW, EXP_H);
+      ctx.clip();
+      const showGeo = ac.layers ? (ac.layers.geotiff !== false) : true;
+      if (showGeo && state.geoTiff) {
+        drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpRight, EXP_H, ac.selectedPolyIds, ac.geotiffBW !== false);
+      }
+      order.forEach(key => drawLayerByKeyExport(key, ctx, vpRight, EXP_H, scaleRatio, ac));
+      if (!order.includes("dxf_296") && state.showReconstructedPolygon !== false) {
+        drawReconstructedPolygonExport(ctx, vpRight, EXP_H, scaleRatio);
+      }
+      if (state.showMojones1073 !== false) {
+        drawMojones1073(ctx, vpRight, EXP_H, (state.mojonesSize || 1.0) * scaleRatio);
+      }
+      if (ac.labels && ac.labels.length > 0) {
+        drawCaseLabelsForExport(ctx, vpRight, EXP_H, scaleRatio, ac.labels);
+      }
+      if (ac.arrows && ac.arrows.length > 0) {
+        drawCaseArrowsForExport(ctx, vpRight, EXP_H, scaleRatio, ac.arrows);
+      }
+      // Right Badge
+      ctx.fillStyle = "rgba(10, 16, 28, 0.85)";
+      ctx.fillRect(halfW + 50, 30, 750, 64);
+      ctx.strokeStyle = "rgba(0, 230, 118, 0.5)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(halfW + 50, 30, 750, 64);
+      ctx.fillStyle = "#00e676";
+      ctx.font = "bold 26px sans-serif";
+      ctx.fillText("🚁 ESTADO ACTUAL: SEPTIEMBRE 2026 (DRON)", halfW + 70, 72);
+      ctx.restore();
+
+      // Center Divider Line
+      ctx.fillStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.fillRect(halfW, 0, 20, EXP_H);
+      ctx.fillStyle = "rgba(0, 229, 255, 0.9)";
+      ctx.fillRect(halfW + 9, 0, 2, EXP_H);
+    } else {
+      // SINGLE PANEL 4K EXPORT
+      const scaleRatio = EXP_W / canvasTrue.width;
+      const vpExp = {
+        scale: state.vpTrue.scale * scaleRatio,
+        offsetX: state.vpTrue.offsetX * scaleRatio,
+        offsetY: state.vpTrue.offsetY * scaleRatio,
+        bbox: state.vpTrue.bbox
+      };
+
+      const showGeo = ac.layers ? (ac.layers.geotiff !== false) : true;
+      if (showGeo && state.geoTiff) {
+        drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds, ac.geotiffBW !== false);
+      }
+
+      order.forEach(key => drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleRatio, ac));
+      if (!order.includes("dxf_296") && state.showReconstructedPolygon !== false) {
+        drawReconstructedPolygonExport(ctx, vpExp, EXP_H, scaleRatio);
+      }
+
+      if (state.showMojones1073 !== false) {
+        drawMojones1073(ctx, vpExp, EXP_H, (state.mojonesSize || 1.0) * scaleRatio);
+      }
+
+      if (ac.labels && ac.labels.length > 0) {
+        drawCaseLabelsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.labels);
+      }
+      if (ac.arrows && ac.arrows.length > 0) {
+        drawCaseArrowsForExport(ctx, vpExp, EXP_H, scaleRatio, ac.arrows);
+      }
+    }
 
     const triggerDownload = (url) => {
       const a = document.createElement("a");

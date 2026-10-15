@@ -1,0 +1,47 @@
+[
+  {
+    "id": "esri_2017_06_14",
+    "date": "2017-06-14",
+    "year": "2017",
+    "label": "14 Jun 2017",
+    "source": "ESRI World Imagery",
+    "crs": "EPSG:9377",
+    "minX": 4643786.81,
+    "maxX": 4646847.15,
+    "minY": 1942591.28,
+    "maxY": 1944421.91,
+    "width": 2560,
+    "height": 1536,
+    "file": "esri_2017_06_14.webp"
+  },
+  {
+    "id": "esri_2021_02_24",
+    "date": "2021-02-24",
+    "year": "2021",
+    "label": "24 Feb 2021",
+    "source": "ESRI World Imagery",
+    "crs": "EPSG:9377",
+    "minX": 4643786.81,
+    "maxX": 4646848.18,
+    "minY": 1942591.28,
+    "maxY": 1944725.29,
+    "width": 2560,
+    "height": 1792,
+    "file": "esri_2021_02_24.webp"
+  },
+  {
+    "id": "esri_2022_08_31",
+    "date": "2022-08-31",
+    "year": "2022",
+    "label": "31 Ago 2022",
+    "source": "ESRI World Imagery",
+    "crs": "EPSG:9377",
+    "minX": 4643787.33,
+    "maxX": 4646694.96,
+    "minY": 1942743.49,
+    "maxY": 1944573.6,
+    "width": 4864,
+    "height": 3072,
+    "file": "esri_2022_08_31.webp"
+  }
+]
