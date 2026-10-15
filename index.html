@@ -2724,6 +2724,26 @@ function colorToRgba(hexOrRgb, opacity = 1) {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
+function getContrastTextColor(hexOrRgb) {
+  if (!hexOrRgb) return "#ffffff";
+  let h = String(hexOrRgb).trim();
+  if (h.startsWith("rgb")) {
+    const parts = h.match(/\d+/g);
+    if (parts && parts.length >= 3) {
+      const r = parseInt(parts[0], 10) || 0;
+      const g = parseInt(parts[1], 10) || 0;
+      const b = parseInt(parts[2], 10) || 0;
+      return (r * 299 + g * 587 + b * 114) / 1000 >= 145 ? "#000000" : "#ffffff";
+    }
+  }
+  h = h.replace("#", "");
+  if (h.length === 3) h = h.split("").map(c => c + c).join("");
+  const r = parseInt(h.slice(0, 2), 16) || 0;
+  const g = parseInt(h.slice(2, 4), 16) || 0;
+  const b = parseInt(h.slice(4, 6), 16) || 0;
+  return (r * 299 + g * 587 + b * 114) / 1000 >= 145 ? "#000000" : "#ffffff";
+}
+
 const anchorColors = ["#ff1744", "#00e676", "#00e5ff", "#ff9100", "#d500f9", "#ffff00", "#76ff03"];
 
 // DOM Elements
@@ -4629,8 +4649,8 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist, uiScale = 1.0) {
     if (dist >= 10) {
       const ux = dx / dist;
       const uy = dy / dist;
-      const tipX = pt.x - ux * (6.5 * uiScale);
-      const tipY = pt.y - uy * (6.5 * uiScale);
+      const tipX = pt.x - ux * (9.5 * uiScale);
+      const tipY = pt.y - uy * (9.5 * uiScale);
 
       const headLen = 12 * uiScale;
       const headHalfW = 6.5 * uiScale;
@@ -4819,8 +4839,8 @@ function drawMojones1073(ctx, vp, h, customScale = null) {
   }
   const baseScale = customScale !== null ? customScale : (state.mojonesSize || 1.0);
   const uiScale = baseScale * zoomFactor;
-  const pinRadius = Math.max(3, Math.round(7 * uiScale));
-  const pinLineWidth = Math.max(1, Math.round(2 * uiScale));
+  const pinRadius = Math.max(7, Math.round(10 * uiScale));
+  const pinLineWidth = Math.max(1, Math.round(1.8 * uiScale));
 
   state.anchors1073.forEach(anc => {
     const isMarkerVisible = anc.showMarker !== undefined ? anc.showMarker !== false : (anc.showMojon !== false);
@@ -4832,6 +4852,10 @@ function drawMojones1073(ctx, vp, h, customScale = null) {
     // Anchor pin on ground (Marker)
     if (isMarkerVisible) {
       ctx.save();
+      ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+      ctx.shadowBlur = Math.round(3 * uiScale);
+      ctx.shadowOffsetY = Math.round(1 * uiScale);
+
       ctx.beginPath();
       ctx.arc(sp.x, sp.y, pinRadius, 0, Math.PI * 2);
       ctx.fillStyle = anc.color || "#ff1744";
@@ -4839,6 +4863,23 @@ function drawMojones1073(ctx, vp, h, customScale = null) {
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = pinLineWidth;
       ctx.stroke();
+
+      // Number inside Marcador
+      if (anc.id != null) {
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        const markerNum = String(anc.id);
+        const fontSize = Math.max(7, Math.round(pinRadius * 1.05));
+        const textColor = (typeof getContrastTextColor === "function") 
+          ? getContrastTextColor(anc.color || "#ff1744") 
+          : "#ffffff";
+        ctx.fillStyle = textColor;
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(markerNum, sp.x, sp.y);
+      }
       ctx.restore();
     }
 
