@@ -1108,7 +1108,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
           </svg>
         </button>
 
-        <button type="button" id="btn-case-export-hd" class="btn-case-hd" title="Descargar imagen optimizada del caso (JPG)">
+        <button type="button" id="btn-case-export-hd" class="btn-case-hd" title="Descargar imagen del caso en máxima resolución 4K (PNG)">
           📸
         </button>
       </div>
@@ -1516,7 +1516,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
               </label>
             </div>
             <!-- HD Export -->
-            <button id="btn-case-export-hd-side" class="btn btn-success" style="width:100%;" title="Exportar vista del caso como imagen optimizada (JPG)">📸 Descargar Imagen (JPG)</button>
+            <button id="btn-case-export-hd-side" class="btn btn-success" style="width:100%;" title="Exportar vista del caso en máxima resolución 4K (PNG)">📸 Descargar Imagen 4K (PNG)</button>
             <p style="font-size:0.68rem;color:var(--text-muted);margin-top:4px;margin-bottom:0;">In Case mode: selected polygons shown in full color. Toggle B&amp;W above to switch the background between greyscale-spotlight and full color. Drag labels on the Field map.</p>
           </div>
         </section>
@@ -13161,13 +13161,30 @@ async function exportCaseImageHD() {
 
     const isDualExport = state.showHistoricalWindow && state.activeHistoricalId && state.historicalImages[state.activeHistoricalId] && state.historicalImages[state.activeHistoricalId].loaded;
 
-    // Scale factor 1.0 strictly crops to the exact dimensions and framing defined in the active canvas viewport(s)
-    const scaleFactor = 1.0;
-    const panelW_hist = Math.round((canvasHistorical?.width || 800) * scaleFactor);
-    const panelW_true = Math.round((canvasTrue?.width || 800) * scaleFactor);
-    const EXP_H = Math.round((canvasTrue?.height || 600) * scaleFactor);
-    const gap = isDualExport ? Math.round(8 * scaleFactor) : 0;
-    const EXP_W = isDualExport ? (panelW_hist + gap + panelW_true) : panelW_true;
+    // MAXIMUM RESOLUTION 4K EXPORT (3840px width) strictly cropped to the active canvas viewport
+    const TARGET_4K_W = 3840;
+    const canvasW = canvasTrue?.width || 800;
+    const canvasH = canvasTrue?.height || 600;
+
+    let scaleFactor, EXP_W, EXP_H, panelW_hist, panelW_true, gap, rightOffset;
+
+    if (isDualExport) {
+      gap = 16;
+      panelW_hist = Math.round((TARGET_4K_W - gap) / 2); // 1912 px
+      panelW_true = panelW_hist;
+      EXP_W = panelW_hist + gap + panelW_true; // 3840 px
+      rightOffset = panelW_hist + gap;
+      scaleFactor = panelW_true / canvasW;
+      EXP_H = Math.round(canvasH * scaleFactor);
+    } else {
+      gap = 0;
+      EXP_W = TARGET_4K_W;
+      panelW_true = EXP_W;
+      panelW_hist = 0;
+      rightOffset = 0;
+      scaleFactor = EXP_W / canvasW;
+      EXP_H = Math.round(canvasH * scaleFactor);
+    }
 
     const offCanvas = document.createElement("canvas");
     offCanvas.width = EXP_W;
@@ -13181,9 +13198,7 @@ async function exportCaseImageHD() {
     const safeName = (ac.name || "Caso").replace(/[^a-z0-9_\-]/gi, "_");
 
     if (isDualExport) {
-      // DUAL PANEL EXPORT: Historical Satellite on Left, Dron on Right
-      const rightOffset = panelW_hist + gap;
-
+      // DUAL PANEL 4K EXPORT: Historical Satellite on Left, Dron on Right
       const vpLeft = {
         scale: state.vpHistorical.scale * scaleFactor,
         offsetX: state.vpHistorical.offsetX * scaleFactor,
@@ -13218,25 +13233,25 @@ async function exportCaseImageHD() {
         drawCaseArrowsForExport(ctx, vpLeft, EXP_H, scaleFactor, ac.arrows);
       }
 
-      // Left Panel Title Badge
+      // Left Panel Title Badge (Ultra-crisp 4K badge)
       const histItem = state.historicalImages[state.activeHistoricalId].meta;
       const leftTitle = `🛰️ SATÉLITE HISTÓRICO: ${histItem.label.toUpperCase()}`;
-      ctx.font = `bold ${Math.round(13 * scaleFactor)}px system-ui, -apple-system, sans-serif`;
+      ctx.font = `bold ${Math.round(15 * scaleFactor)}px system-ui, -apple-system, sans-serif`;
       const tw = ctx.measureText(leftTitle).width;
-      const padX = Math.round(12 * scaleFactor);
+      const padX = Math.round(16 * scaleFactor);
       const bW = tw + padX * 2;
-      const bH = Math.round(28 * scaleFactor);
-      const bX = Math.round(12 * scaleFactor);
-      const bY = Math.round(12 * scaleFactor);
-      const radius = Math.round(5 * scaleFactor);
+      const bH = Math.round(38 * scaleFactor);
+      const bX = Math.round(18 * scaleFactor);
+      const bY = Math.round(18 * scaleFactor);
+      const radius = Math.round(8 * scaleFactor);
 
       ctx.fillStyle = "rgba(8, 14, 26, 0.88)";
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(bX, bY, bW, bH, radius);
       else ctx.rect(bX, bY, bW, bH);
       ctx.fill();
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.75)";
-      ctx.lineWidth = Math.max(1, Math.round(1.5 * scaleFactor));
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.80)";
+      ctx.lineWidth = Math.max(2, Math.round(2 * scaleFactor));
       ctx.stroke();
 
       ctx.fillStyle = "#00e5ff";
@@ -13267,22 +13282,22 @@ async function exportCaseImageHD() {
         drawCaseArrowsForExport(ctx, vpRight, EXP_H, scaleFactor, ac.arrows);
       }
 
-      // Right Panel Title Badge
+      // Right Panel Title Badge (Ultra-crisp 4K badge)
       const rightTitle = "🚁 ESTADO ACTUAL: SEPTIEMBRE 2026 (DRON)";
-      ctx.font = `bold ${Math.round(13 * scaleFactor)}px system-ui, -apple-system, sans-serif`;
+      ctx.font = `bold ${Math.round(15 * scaleFactor)}px system-ui, -apple-system, sans-serif`;
       const rtw = ctx.measureText(rightTitle).width;
       const rbW = rtw + padX * 2;
-      const rbH = Math.round(28 * scaleFactor);
-      const rbX = rightOffset + Math.round(12 * scaleFactor);
-      const rbY = Math.round(12 * scaleFactor);
+      const rbH = Math.round(38 * scaleFactor);
+      const rbX = rightOffset + Math.round(18 * scaleFactor);
+      const rbY = Math.round(18 * scaleFactor);
 
       ctx.fillStyle = "rgba(8, 14, 26, 0.88)";
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(rbX, rbY, rbW, rbH, radius);
       else ctx.rect(rbX, rbY, rbW, rbH);
       ctx.fill();
-      ctx.strokeStyle = "rgba(0, 230, 118, 0.75)";
-      ctx.lineWidth = Math.max(1, Math.round(1.5 * scaleFactor));
+      ctx.strokeStyle = "rgba(0, 230, 118, 0.80)";
+      ctx.lineWidth = Math.max(2, Math.round(2 * scaleFactor));
       ctx.stroke();
 
       ctx.fillStyle = "#00e676";
@@ -13293,10 +13308,10 @@ async function exportCaseImageHD() {
       // Center Divider Line
       ctx.fillStyle = "rgba(0, 229, 255, 0.35)";
       ctx.fillRect(panelW_hist, 0, gap, EXP_H);
-      ctx.fillStyle = "rgba(0, 229, 255, 0.85)";
-      ctx.fillRect(panelW_hist + Math.floor(gap / 2), 0, Math.max(1, Math.round(1.5 * scaleFactor)), EXP_H);
+      ctx.fillStyle = "rgba(0, 229, 255, 0.90)";
+      ctx.fillRect(panelW_hist + Math.floor(gap / 2) - 1, 0, Math.max(2, Math.round(2 * scaleFactor)), EXP_H);
     } else {
-      // SINGLE PANEL EXPORT: Matches canvas viewport strictly 1:1
+      // SINGLE PANEL 4K EXPORT: Matches canvas viewport strictly 1:1, scaled to 4K UHD
       const vpExp = {
         scale: state.vpTrue.scale * scaleFactor,
         offsetX: state.vpTrue.offsetX * scaleFactor,
@@ -13330,24 +13345,24 @@ async function exportCaseImageHD() {
         drawCaseArrowsForExport(ctx, vpExp, EXP_H, scaleFactor, ac.arrows);
       }
 
-      // Single Panel Title Badge
+      // Single Panel Title Badge (Ultra-crisp 4K badge)
       const singleTitle = "🚁 ESTADO ACTUAL: SEPTIEMBRE 2026 (DRON)";
-      ctx.font = `bold ${Math.round(13 * scaleFactor)}px system-ui, -apple-system, sans-serif`;
+      ctx.font = `bold ${Math.round(15 * scaleFactor)}px system-ui, -apple-system, sans-serif`;
       const stw = ctx.measureText(singleTitle).width;
-      const padX = Math.round(12 * scaleFactor);
+      const padX = Math.round(16 * scaleFactor);
       const sbW = stw + padX * 2;
-      const sbH = Math.round(28 * scaleFactor);
-      const sbX = Math.round(12 * scaleFactor);
-      const sbY = Math.round(12 * scaleFactor);
-      const radius = Math.round(5 * scaleFactor);
+      const sbH = Math.round(38 * scaleFactor);
+      const sbX = Math.round(18 * scaleFactor);
+      const sbY = Math.round(18 * scaleFactor);
+      const radius = Math.round(8 * scaleFactor);
 
       ctx.fillStyle = "rgba(8, 14, 26, 0.88)";
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(sbX, sbY, sbW, sbH, radius);
       else ctx.rect(sbX, sbY, sbW, sbH);
       ctx.fill();
-      ctx.strokeStyle = "rgba(0, 230, 118, 0.75)";
-      ctx.lineWidth = Math.max(1, Math.round(1.5 * scaleFactor));
+      ctx.strokeStyle = "rgba(0, 230, 118, 0.80)";
+      ctx.lineWidth = Math.max(2, Math.round(2 * scaleFactor));
       ctx.stroke();
 
       ctx.fillStyle = "#00e676";
@@ -13359,31 +13374,32 @@ async function exportCaseImageHD() {
     const triggerDownload = (url, sizeStr = "") => {
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Caso_${safeName}.jpg`;
+      a.download = `Caso_${safeName}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      statusBar.textContent = `✅ Imagen exportada${sizeStr ? " (" + sizeStr + ")" : ""}: Caso_${safeName}.jpg`;
+      statusBar.textContent = `✅ Imagen 4K exportada${sizeStr ? " (" + sizeStr + ")" : ""}: Caso_${safeName}.png`;
     };
 
     if (offCanvas.toBlob) {
       offCanvas.toBlob(blob => {
         if (!blob) {
           try {
-            const dataUrl = offCanvas.toDataURL("image/jpeg", 0.90);
+            const dataUrl = offCanvas.toDataURL("image/png");
             triggerDownload(dataUrl);
           } catch (e) {
             statusBar.textContent = "❌ Export error: " + e.message;
           }
           return;
         }
-        const sizeKb = (blob.size / 1024).toFixed(0);
+        const sizeMb = (blob.size / (1024 * 1024)).toFixed(1);
+        const sizeStr = blob.size > 1024 * 1024 ? `${sizeMb} MB` : `${(blob.size / 1024).toFixed(0)} KB`;
         const url = URL.createObjectURL(blob);
-        triggerDownload(url, `${sizeKb} KB`);
+        triggerDownload(url, sizeStr);
         setTimeout(() => URL.revokeObjectURL(url), 10000);
-      }, "image/jpeg", 0.90);
+      }, "image/png");
     } else {
-      const dataUrl = offCanvas.toDataURL("image/jpeg", 0.90);
+      const dataUrl = offCanvas.toDataURL("image/png");
       triggerDownload(dataUrl);
     }
   } catch (err) {
