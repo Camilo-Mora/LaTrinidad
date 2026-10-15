@@ -11152,7 +11152,7 @@
         "area": false,
         "nodes": false,
         "showPdf": true,
-        "pdfOpacity": 0.45
+        "pdfOpacity": 0.27
       },
       "dxf_196": {
         "show": false,
@@ -11326,14 +11326,14 @@
       "measure_polygons"
     ],
     "camera": {
-      "scale": 0.7682088676156903,
-      "offsetX": -3567386.8635281045,
-      "offsetY": -1492531.561604038,
+      "scale": 0.8834401977580437,
+      "offsetX": -4102649.64305732,
+      "offsetY": -1716460.0958446437,
       "canvasW": 1487,
       "canvasH": 842,
       "centerWorld": {
-        "x": 4644739.87992693,
-        "y": 1943420.1094784983
+        "x": 4644788.807969949,
+        "y": 1943403.8661605734
       }
     },
     "layers": {
