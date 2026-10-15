@@ -11361,11 +11361,7 @@
   {
     "id": 1792000000000,
     "name": "Comparativa 2017 vs 2026 (Vegetación)",
-    "selectedPolyIds": [
-      4,
-      1,
-      5
-    ],
+    "selectedPolyIds": [],
     "polyStyles": {
       "1": {
         "color": "#ffd600",
@@ -11624,20 +11620,20 @@
       }
     },
     "camera": {
-      "scale": 1.7830317555715787,
-      "offsetX": -8281138.464741473,
-      "offsetY": -3464717.7003766303,
-      "canvasW": 1487,
+      "scale": 1.5516054541621147,
+      "offsetX": -7206549.922338258,
+      "offsetY": -3014892.659283464,
+      "canvasW": 738,
       "canvasH": 842,
       "centerWorld": {
-        "x": 4644831.44445545,
-        "y": 1943397.0761030142
+        "x": 4644814.12011411,
+        "y": 1943350.7733522172
       }
     },
     "layers": {
       "reconstructed": true,
       "dxf296": true,
-      "dxf1073": true,
+      "dxf1073": false,
       "dxf196": false,
       "dxfTrue": false,
       "surveyValoy2025": false,
@@ -11656,9 +11652,9 @@
     "labels": [
       {
         "id": "lbl_-879101834",
-        "text": "Lote A\n[size=14]Area 8,105 m²[/size]",
-        "worldX": 4644899.013954483,
-        "worldY": 1943448.399316323,
+        "text": "Carretera",
+        "worldX": 4644727.578620013,
+        "worldY": 1943396.8398172343,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -11669,90 +11665,44 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 858.978562483564,
-          "y": 324.4890808723867,
-          "w": 101.13333129882812,
-          "h": 60
+          "x": 229.72174574714154,
+          "y": 344.5230216253549,
+          "w": 98.93333435058594,
+          "h": 35
         },
         "showBorder": true
       },
       {
-        "id": "lbl_-879210777",
-        "text": "Restitucion sugerida\n[size=14]Area: $Restitucion$m²[/size]",
-        "worldX": 4644860.357050472,
-        "worldY": 1943556.0533627456,
-        "fontSize": 20,
-        "bold": true,
-        "italic": true,
-        "textColor": "#ffffff",
-        "bgColor": "#004080",
-        "bgOpacity": 0.4,
-        "borderColor": "#ff0000",
-        "borderWidth": 1.5,
-        "padding": 4,
-        "_box": {
-          "x": 791.0520750600845,
-          "y": 133.53849748522043,
-          "w": 206,
-          "h": 58
-        },
-        "showBorder": false
-      },
-      {
-        "id": "lbl_-879265913",
-        "text": "La Trinidad",
-        "worldX": 4644734.173761034,
-        "worldY": 1943262.5528985455,
-        "fontSize": 20,
-        "bold": true,
-        "italic": true,
-        "textColor": "#000000",
-        "bgColor": "#ffffff",
-        "bgOpacity": 0.45,
-        "borderColor": "#000000",
-        "borderWidth": 1.5,
-        "padding": 3,
-        "_box": {
-          "x": 567.0632629701868,
-          "y": 657.8591454289854,
-          "w": 113.53333282470703,
-          "h": 31
-        },
-        "showBg": true,
-        "showBorder": false
-      },
-      {
-        "id": "lbl_-879079028",
-        "text": "Casa del Sol",
-        "worldX": 4644744.028859709,
-        "worldY": 1943188.1906746363,
-        "fontSize": 20,
+        "id": "lbl_1792098184108",
+        "text": "Carretera\nGualanday",
+        "worldX": 4644900.482275084,
+        "worldY": 1943155.4917494184,
+        "fontSize": 14,
         "bold": true,
         "italic": false,
         "textColor": "#000000",
         "bgColor": "#ffffff",
-        "bgOpacity": 0.45,
+        "bgOpacity": 0.85,
+        "showBorder": true,
         "borderColor": "#000000",
         "borderWidth": 1.5,
-        "padding": 3,
+        "padding": 7,
         "_box": {
-          "x": 584.6352168619633,
-          "y": 790.4493520739488,
-          "w": 125.03333282470703,
-          "h": 31
-        },
-        "showBg": true,
-        "showBorder": false
+          "x": 495.9999999990687,
+          "y": 717,
+          "w": 85.69999694824219,
+          "h": 50
+        }
       }
     ],
     "arrows": [
       {
         "id": "arr_-879455096",
         "name": "Arrow 1",
-        "startX": 4644915.209456193,
-        "startY": 1943406.9081401047,
-        "endX": 4644923.329316254,
-        "endY": 1943372.7475804542,
+        "startX": 4644743.774121723,
+        "startY": 1943355.348641016,
+        "endX": 4644821.499305553,
+        "endY": 1943271.5620634921,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -11761,53 +11711,25 @@
         "pinHeadLabelId": null
       },
       {
-        "id": "arr_-878861302",
+        "id": "arr_1792098098150",
         "name": "Arrow 2",
-        "startX": 4645005.3735,
-        "startY": 1943525.9219,
-        "endX": 4645084.832,
-        "endY": 1943523.5288,
-        "color": "#004080",
+        "startX": 4644948.466017455,
+        "startY": 1943142.003205589,
+        "endX": 4644983.33076165,
+        "endY": 1943154.1569372597,
+        "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
         "headSize": 18,
-        "pinTailLabelId": "lbl_-879210777",
+        "pinTailLabelId": "lbl_1792098184108",
         "pinHeadLabelId": null
-      },
-      {
-        "id": "arr_-879460400",
-        "name": "Arrow 3",
-        "startX": 4644765.178662677,
-        "startY": 1943215.1111125355,
-        "endX": 4644751.5085,
-        "endY": 1943246.6193,
-        "color": "#0080ff",
-        "opacity": 0.85,
-        "lineWidth": 8,
-        "headSize": 18,
-        "pinTailLabelId": null,
-        "pinHeadLabelId": "lbl_-879265913"
-      },
-      {
-        "id": "arr_-879790520",
-        "name": "Arrow 4",
-        "startX": 4644778.991285249,
-        "startY": 1943212.1019896811,
-        "endX": 4644781.578940291,
-        "endY": 1943185.4053597094,
-        "color": "#0080ff",
-        "opacity": 0.85,
-        "lineWidth": 8,
-        "headSize": 18,
-        "pinTailLabelId": null,
-        "pinHeadLabelId": "lbl_-879079028"
       }
     ],
     "polygons": [
       {
         "id": 4,
         "name": "LinderoHistorico_1073_296",
-        "visible": true,
+        "visible": false,
         "showArea": false,
         "showNodes": false,
         "color": "#2979ff",
@@ -11827,7 +11749,7 @@
       {
         "id": 1,
         "name": "LoteA",
-        "visible": true,
+        "visible": false,
         "showArea": false,
         "showNodes": false,
         "color": "#ffd600",
@@ -11867,7 +11789,7 @@
       {
         "id": 5,
         "name": "Restitucion",
-        "visible": true,
+        "visible": false,
         "showArea": false,
         "showNodes": false,
         "color": "#0000ff",
@@ -12112,7 +12034,7 @@
         "nodes": false
       },
       "dxf_1073": {
-        "show": true,
+        "show": false,
         "area": false,
         "nodes": false,
         "showPdf": false,
@@ -12148,9 +12070,21 @@
       "mojones": {
         "show": false,
         "items": {
-          "1": false,
-          "2": false,
-          "4": false
+          "1": {
+            "show": false,
+            "marker": false,
+            "label": false
+          },
+          "2": {
+            "show": false,
+            "marker": false,
+            "label": false
+          },
+          "4": {
+            "show": false,
+            "marker": false,
+            "label": false
+          }
         }
       }
     },
