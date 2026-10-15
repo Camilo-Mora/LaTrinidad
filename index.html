@@ -997,7 +997,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
         <label class="window-checkbox" title="Toggle Escritura 1073 Window">
           <input type="checkbox" id="chk-show-1073">
         </label>
-        <button type="button" id="btn-dl-dxf-1073" class="btn-deed-dl disabled" disabled title="Escritura 1073 requires unavailable field data for reconstruction">📥</button>
+        <button type="button" id="btn-dl-dxf-1073" class="btn-deed-dl" title="Download Escritura 1073 Reconstructed DXF">📥</button>
         <label for="chk-show-1073" style="cursor:pointer;"><span style="color:var(--accent-red);font-weight:700;">1073</span></label>
 
         <span style="color:var(--border-color);font-size:0.8rem;user-select:none;margin:0 2px;">|</span>
@@ -9427,6 +9427,9 @@ function setupEventListeners() {
   const btnDl296 = document.getElementById("btn-dl-dxf-296");
   if (btnDl296) btnDl296.addEventListener("click", exportDXF296);
 
+  const btnDl1073 = document.getElementById("btn-dl-dxf-1073");
+  if (btnDl1073) btnDl1073.addEventListener("click", exportDXF1073);
+
   const btnDl196 = document.getElementById("btn-dl-dxf-196");
   if (btnDl196) btnDl196.addEventListener("click", exportDXF196);
 
@@ -11147,6 +11150,36 @@ function exportDXF296() {
   a.download = "Reconstruccion_Escritura_296.dxf";
   a.click();
   if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "✅ Downloaded Reconstruccion_Escritura_296.dxf";
+}
+
+function exportDXF1073() {
+  let entities = [];
+  if (getActiveAnchors(state.anchors1073).length >= 2 && state.entities1073 && state.entities1073.length > 0) {
+    const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
+    state.entities1073.forEach(ent => {
+      const rawPts = ent.points || ent.vertices || [];
+      entities.push({
+        ...ent,
+        layer: "RECONSTRUCCION_ESCRITURA_1073",
+        points: rawPts.map(p => warper(p))
+      });
+    });
+  } else if (state.entities1073 && state.entities1073.length > 0) {
+    entities = state.entities1073;
+  }
+
+  if (entities.length === 0) {
+    if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "⚠️ No reconstructed data available for Escritura 1073.";
+    return;
+  }
+
+  const dxfText = DXFParser.serialize(entities);
+  const blob = new Blob([dxfText], { type: "application/dxf" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Reconstruccion_Escritura_1073.dxf";
+  a.click();
+  if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "✅ Downloaded Reconstruccion_Escritura_1073.dxf";
 }
 
 function exportDXF196() {
