@@ -1766,8 +1766,8 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
               </div>
 
               <!-- Global Controls inside subpanel -->
-              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.72rem;color:#fff;margin:0;">
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.72rem;color:#fff;margin:0;" title="Mostrar u ocultar todos los mojones">
                   <input type="checkbox" id="mojones-modal-show-all" checked style="accent-color:var(--accent-cyan);cursor:pointer;width:13px;height:13px;">
                   <span>Mostrar Todos</span>
                 </label>
@@ -1775,6 +1775,21 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                   <span style="font-size:0.68rem;color:var(--text-muted);font-family:monospace;">Tamaño:</span>
                   <input type="range" id="mojones-modal-size-slider" min="50" max="250" value="100" step="5" style="width:60px;accent-color:var(--accent-cyan);cursor:pointer;" title="Tamaño de pines y etiquetas (50% a 250%)">
                   <span id="mojones-modal-size-val" style="min-width:26px;text-align:right;font-family:monospace;font-size:0.68rem;color:var(--accent-cyan);">100%</span>
+                </div>
+              </div>
+
+              <!-- Column Header & Master Checkboxes for Markers and Labels -->
+              <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.08);padding:4px 8px;margin-bottom:6px;border-radius:4px 4px 0 0;">
+                <span style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Mojón</span>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-size:0.68rem;color:var(--accent-cyan);font-weight:600;margin:0;white-space:nowrap;" title="Mostrar u ocultar todos los marcadores (puntos en el mapa)">
+                    <input type="checkbox" id="mojones-modal-master-marker" checked style="accent-color:var(--accent-cyan);cursor:pointer;width:12px;height:12px;margin:0;">
+                    <span>Marcador</span>
+                  </label>
+                  <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-size:0.68rem;color:var(--accent-cyan);font-weight:600;margin:0;white-space:nowrap;" title="Mostrar u ocultar todas las etiquetas (tarjetas y flechas)">
+                    <input type="checkbox" id="mojones-modal-master-label" checked style="accent-color:var(--accent-cyan);cursor:pointer;width:12px;height:12px;margin:0;">
+                    <span>Etiqueta</span>
+                  </label>
                 </div>
               </div>
 
@@ -2086,7 +2101,10 @@ const DEFAULT_ANCHORS_1073 = [
     "active": true,
     "color": "#ff1744",
     "src": { "x": 252.71, "y": 606.42 },
-    "dst": { "x": 4644724.8857, "y": 1943202.4054 }
+    "dst": { "x": 4644724.8857, "y": 1943202.4054 },
+    "showMojon": true,
+    "showMarker": true,
+    "showLabel": true
   },
   {
     "id": 2,
@@ -2094,7 +2112,10 @@ const DEFAULT_ANCHORS_1073 = [
     "active": true,
     "color": "#00e676",
     "src": { "x": 283, "y": 86.45 },
-    "dst": { "x": 4645154.4145, "y": 1943602.7067 }
+    "dst": { "x": 4645154.4145, "y": 1943602.7067 },
+    "showMojon": true,
+    "showMarker": true,
+    "showLabel": true
   }
 ];
 
@@ -2545,7 +2566,11 @@ function captureLayerDisplaySnapshot() {
   });
   ld.mojones = {
     show: state.showMojones1073 !== false,
-    items: Object.fromEntries((state.anchors1073 || []).map(a => [String(a.id), a.showMojon !== false]))
+    items: Object.fromEntries((state.anchors1073 || []).map(a => [String(a.id), {
+      show: a.showMojon !== false,
+      marker: a.showMarker !== undefined ? a.showMarker !== false : (a.showMojon !== false),
+      label: a.showLabel !== undefined ? a.showLabel !== false : (a.showMojon !== false)
+    }]))
   };
   return ld;
 }
@@ -2581,7 +2606,17 @@ function applyLayerDisplaySnapshot(ld) {
     if (ld.mojones.items) {
       (state.anchors1073 || []).forEach(a => {
         const v = ld.mojones.items[String(a.id)];
-        if (v !== undefined) a.showMojon = v !== false;
+        if (v !== undefined) {
+          if (typeof v === "boolean") {
+            a.showMojon = v;
+            a.showMarker = v;
+            a.showLabel = v;
+          } else if (typeof v === "object" && v !== null) {
+            a.showMarker = v.marker !== undefined ? v.marker !== false : (v.show !== false);
+            a.showLabel = v.label !== undefined ? v.label !== false : (v.show !== false);
+            a.showMojon = v.show !== undefined ? v.show !== false : (a.showMarker || a.showLabel);
+          }
+        }
       });
     }
   }
@@ -4776,7 +4811,7 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist, uiScale = 1.0) {
 }
 
 function drawMojones1073(ctx, vp, h, customScale = null) {
-  if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length === 0) return;
+  if (state.showMojones1073 === false || !state.anchors1073 || state.anchors1073.length === 0) return;
   let zoomFactor = 1.0;
   if (state.caseMode && vp) {
     const ac = getActiveCase();
@@ -4788,27 +4823,34 @@ function drawMojones1073(ctx, vp, h, customScale = null) {
   const pinLineWidth = Math.max(1, Math.round(2 * uiScale));
 
   state.anchors1073.forEach(anc => {
-    if (anc.showMojon === false) return;
+    const isMarkerVisible = anc.showMarker !== undefined ? anc.showMarker !== false : (anc.showMojon !== false);
+    const isLabelVisible = anc.showLabel !== undefined ? anc.showLabel !== false : (anc.showMojon !== false);
+    if (!isMarkerVisible && !isLabelVisible) return;
+
     const sp = worldToScreenGIS(anc.dst, vp, h);
 
-    // Anchor pin on ground
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(sp.x, sp.y, pinRadius, 0, Math.PI * 2);
-    ctx.fillStyle = anc.color || "#ff1744";
-    ctx.fill();
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = pinLineWidth;
-    ctx.stroke();
-    ctx.restore();
+    // Anchor pin on ground (Marker)
+    if (isMarkerVisible) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, pinRadius, 0, Math.PI * 2);
+      ctx.fillStyle = anc.color || "#ff1744";
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = pinLineWidth;
+      ctx.stroke();
+      ctx.restore();
+    }
 
-    // Corner card and connecting arrow
-    drawAnchorLabelCard(ctx, anc, sp, false, uiScale);
+    // Corner card and connecting arrow (Label)
+    if (isLabelVisible) {
+      drawAnchorLabelCard(ctx, anc, sp, false, uiScale);
+    }
   });
 }
 
 function hitTestMojonLabel(mouseX, mouseY, vp, canvasH) {
-  if (!state.showMojones1073 || !state.anchors1073 || state.anchors1073.length === 0) return null;
+  if (state.showMojones1073 === false || !state.anchors1073 || state.anchors1073.length === 0) return null;
   const ctx = (typeof canvasTrue !== "undefined" && canvasTrue) ? canvasTrue.getContext("2d") : null;
   let zoomFactor = 1.0;
   if (state.caseMode && vp) {
@@ -4818,7 +4860,8 @@ function hitTestMojonLabel(mouseX, mouseY, vp, canvasH) {
   const uiScale = (state.mojonesSize || 1.0) * zoomFactor;
   for (let i = state.anchors1073.length - 1; i >= 0; i--) {
     const anc = state.anchors1073[i];
-    if (anc.showMojon === false) continue;
+    const isLabelVisible = anc.showLabel !== undefined ? anc.showLabel !== false : (anc.showMojon !== false);
+    if (!isLabelVisible) continue;
     const sp = worldToScreenGIS(anc.dst, vp, canvasH);
     const bounds = getAnchorCardBounds(anc, sp, false, ctx, uiScale);
     if (mouseX >= bounds.cardX && mouseX <= bounds.cardX + bounds.cardW &&
@@ -4851,6 +4894,52 @@ function toggleMojonesSpecs() {
   } else {
     openMojonesSpecs();
   }
+}
+
+function syncMojonesModalCheckboxes() {
+  const masterChk = document.getElementById("chk-show-mojones-1073");
+  const modalMasterChk = document.getElementById("mojones-modal-show-all");
+  const masterMarkerChk = document.getElementById("mojones-modal-master-marker");
+  const masterLabelChk = document.getElementById("mojones-modal-master-label");
+  const list = state.anchors1073 || [];
+
+  const allMarkersOn = list.length > 0 && list.every(a => (a.showMarker !== undefined ? a.showMarker !== false : (a.showMojon !== false)));
+  const someMarkersOn = list.some(a => (a.showMarker !== undefined ? a.showMarker !== false : (a.showMojon !== false)));
+
+  const allLabelsOn = list.length > 0 && list.every(a => (a.showLabel !== undefined ? a.showLabel !== false : (a.showMojon !== false)));
+  const someLabelsOn = list.some(a => (a.showLabel !== undefined ? a.showLabel !== false : (a.showMojon !== false)));
+
+  if (masterMarkerChk) {
+    masterMarkerChk.checked = allMarkersOn;
+    masterMarkerChk.indeterminate = !allMarkersOn && someMarkersOn;
+  }
+  if (masterLabelChk) {
+    masterLabelChk.checked = allLabelsOn;
+    masterLabelChk.indeterminate = !allLabelsOn && someLabelsOn;
+  }
+  if (modalMasterChk) {
+    modalMasterChk.checked = state.showMojones1073 !== false;
+  }
+  if (masterChk) {
+    masterChk.checked = state.showMojones1073 !== false;
+  }
+
+  // Update item checkboxes in list
+  document.querySelectorAll(".chk-mojon-marker-single").forEach(chk => {
+    const id = chk.dataset.mojonId;
+    const anc = list.find(a => String(a.id) === String(id));
+    if (anc) {
+      chk.checked = anc.showMarker !== undefined ? anc.showMarker !== false : (anc.showMojon !== false);
+    }
+  });
+
+  document.querySelectorAll(".chk-mojon-label-single").forEach(chk => {
+    const id = chk.dataset.mojonId;
+    const anc = list.find(a => String(a.id) === String(id));
+    if (anc) {
+      chk.checked = anc.showLabel !== undefined ? anc.showLabel !== false : (anc.showMojon !== false);
+    }
+  });
 }
 
 function syncMojonesUI() {
@@ -4887,35 +4976,61 @@ function syncMojonesUI() {
       modalList.innerHTML = '<div style="font-size:0.7rem;color:var(--text-muted);padding:6px;text-align:center;">No hay mojones registrados.</div>';
     } else {
       list.forEach(anc => {
-        const itemShown = anc.showMojon !== false;
+        if (anc.showMarker === undefined) anc.showMarker = (anc.showMojon !== false);
+        if (anc.showLabel === undefined) anc.showLabel = (anc.showMojon !== false);
+        const markerShown = anc.showMarker !== false;
+        const labelShown = anc.showLabel !== false;
         const col = anc.color || "#ff1744";
         const name = anc.name ? `${anc.name}` : `#${anc.id}`;
         const item = document.createElement("div");
         item.style.cssText = "display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:4px 8px;";
         item.innerHTML = `
-          <div style="display:flex;align-items:center;gap:6px;">
+          <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;margin-right:8px;">
             <span style="width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 5px ${col};display:inline-block;flex-shrink:0;"></span>
-            <span style="font-size:0.72rem;font-weight:600;color:${col};">Mojón #${anc.id} (${name})</span>
+            <span style="font-size:0.72rem;font-weight:600;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="Mojón #${anc.id} (${name})">Mojón #${anc.id} (${name})</span>
           </div>
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.68rem;color:var(--text-muted);margin:0;">
-            <span>Ver:</span>
-            <input type="checkbox" class="chk-mojon-modal-single" data-mojon-id="${anc.id}" ${itemShown ? "checked" : ""} style="accent-color:${col};cursor:pointer;width:13px;height:13px;margin:0;">
-          </label>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+            <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-size:0.68rem;color:var(--text-muted);margin:0;white-space:nowrap;" title="Mostrar u ocultar marcador (punto) de Mojón #${anc.id}">
+              <input type="checkbox" class="chk-mojon-marker-single" data-mojon-id="${anc.id}" ${markerShown ? "checked" : ""} style="accent-color:${col};cursor:pointer;width:13px;height:13px;margin:0;">
+              <span>Marcador</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-size:0.68rem;color:var(--text-muted);margin:0;white-space:nowrap;" title="Mostrar u ocultar etiqueta (tarjeta y flecha) de Mojón #${anc.id}">
+              <input type="checkbox" class="chk-mojon-label-single" data-mojon-id="${anc.id}" ${labelShown ? "checked" : ""} style="accent-color:${col};cursor:pointer;width:13px;height:13px;margin:0;">
+              <span>Etiqueta</span>
+            </label>
+          </div>
         `;
         modalList.appendChild(item);
       });
 
-      modalList.querySelectorAll(".chk-mojon-modal-single").forEach(chk => {
+      modalList.querySelectorAll(".chk-mojon-marker-single").forEach(chk => {
         chk.addEventListener("change", (e) => {
           const id = chk.dataset.mojonId;
           const anc = (state.anchors1073 || []).find(a => String(a.id) === String(id));
           if (anc) {
-            anc.showMojon = e.target.checked;
+            anc.showMarker = e.target.checked;
+            anc.showMojon = (anc.showMarker || anc.showLabel !== false);
             if (e.target.checked && state.showMojones1073 === false) {
               state.showMojones1073 = true;
-              if (masterChk) masterChk.checked = true;
-              if (modalMasterChk) modalMasterChk.checked = true;
             }
+            syncMojonesModalCheckboxes();
+            updateMasterCheckboxes();
+            redrawAll();
+          }
+        });
+      });
+
+      modalList.querySelectorAll(".chk-mojon-label-single").forEach(chk => {
+        chk.addEventListener("change", (e) => {
+          const id = chk.dataset.mojonId;
+          const anc = (state.anchors1073 || []).find(a => String(a.id) === String(id));
+          if (anc) {
+            anc.showLabel = e.target.checked;
+            anc.showMojon = (anc.showMarker !== false || anc.showLabel);
+            if (e.target.checked && state.showMojones1073 === false) {
+              state.showMojones1073 = true;
+            }
+            syncMojonesModalCheckboxes();
             updateMasterCheckboxes();
             redrawAll();
           }
@@ -4923,6 +5038,8 @@ function syncMojonesUI() {
       });
     }
   }
+
+  syncMojonesModalCheckboxes();
 }
 
 // [SECTION: JS_RECONSTRUCTED_POLYGON]
@@ -7971,16 +8088,22 @@ function setupPolygonSummaryListeners() {
       state.showWarpedPdf196 = v;
 
       // Mojones de campo
-      const barChkMojones = document.getElementById("chk-show-mojones-1073");
-      if (barChkMojones) barChkMojones.checked = v;
-      const modalChkMojones = document.getElementById("mojones-modal-show-all");
-      if (modalChkMojones) modalChkMojones.checked = v;
       state.showMojones1073 = v;
-      document.querySelectorAll(".chk-mojon-modal-single").forEach(sc => {
-        sc.checked = v;
-        const anc = (state.anchors1073 || []).find(a => String(a.id) === String(sc.dataset.mojonId));
-        if (anc) anc.showMojon = v;
-      });
+      if (v) {
+        const allOff = (state.anchors1073 || []).every(a => 
+          a.showMojon === false || (a.showMarker === false && a.showLabel === false)
+        );
+        if (allOff) {
+          (state.anchors1073 || []).forEach(a => {
+            a.showMojon = true;
+            a.showMarker = true;
+            a.showLabel = true;
+          });
+        }
+      }
+      if (typeof syncMojonesModalCheckboxes === "function") {
+        syncMojonesModalCheckboxes();
+      }
 
       document.querySelectorAll(".sum-poly-show").forEach(chk => {
         const i = parseInt(chk.dataset.idx, 10);
@@ -8162,6 +8285,8 @@ function setupEventListeners() {
 
   const chkShowMojones = document.getElementById("chk-show-mojones-1073");
   const modalChkShowMojones = document.getElementById("mojones-modal-show-all");
+  const modalMasterMarker = document.getElementById("mojones-modal-master-marker");
+  const modalMasterLabel = document.getElementById("mojones-modal-master-label");
   const rngMojonesSize = document.getElementById("mojones-size-slider");
   const valMojonesSize = document.getElementById("mojones-size-val");
   const modalRngMojonesSize = document.getElementById("mojones-modal-size-slider");
@@ -8169,18 +8294,19 @@ function setupEventListeners() {
 
   function setMojonesVisibility(vis) {
     state.showMojones1073 = vis;
-    if (chkShowMojones) chkShowMojones.checked = vis;
-    if (modalChkShowMojones) modalChkShowMojones.checked = vis;
     if (vis) {
-      const allOff = (state.anchors1073 || []).every(a => a.showMojon === false);
+      const allOff = (state.anchors1073 || []).every(a => 
+        a.showMojon === false || (a.showMarker === false && a.showLabel === false)
+      );
       if (allOff) {
-        (state.anchors1073 || []).forEach(a => a.showMojon = true);
+        (state.anchors1073 || []).forEach(a => {
+          a.showMojon = true;
+          a.showMarker = true;
+          a.showLabel = true;
+        });
       }
     }
-    document.querySelectorAll(".chk-mojon-modal-single").forEach(sc => {
-      const anc = (state.anchors1073 || []).find(a => String(a.id) === String(sc.dataset.mojonId));
-      if (anc) sc.checked = anc.showMojon !== false;
-    });
+    syncMojonesModalCheckboxes();
     updateMasterCheckboxes();
     redrawAll();
   }
@@ -8193,6 +8319,36 @@ function setupEventListeners() {
   if (modalChkShowMojones) {
     modalChkShowMojones.addEventListener("change", e => {
       setMojonesVisibility(e.target.checked);
+    });
+  }
+  if (modalMasterMarker) {
+    modalMasterMarker.addEventListener("change", e => {
+      const v = e.target.checked;
+      (state.anchors1073 || []).forEach(a => {
+        a.showMarker = v;
+        a.showMojon = v || (a.showLabel !== false);
+      });
+      if (v && state.showMojones1073 === false) {
+        state.showMojones1073 = true;
+      }
+      syncMojonesModalCheckboxes();
+      updateMasterCheckboxes();
+      redrawAll();
+    });
+  }
+  if (modalMasterLabel) {
+    modalMasterLabel.addEventListener("change", e => {
+      const v = e.target.checked;
+      (state.anchors1073 || []).forEach(a => {
+        a.showLabel = v;
+        a.showMojon = (a.showMarker !== false) || v;
+      });
+      if (v && state.showMojones1073 === false) {
+        state.showMojones1073 = true;
+      }
+      syncMojonesModalCheckboxes();
+      updateMasterCheckboxes();
+      redrawAll();
     });
   }
 
@@ -11553,7 +11709,17 @@ function applyActiveCase(caseObj) {
       if (ld.mojones.items) {
         (state.anchors1073 || []).forEach(a => {
           const v = ld.mojones.items[String(a.id)];
-          if (v !== undefined) a.showMojon = v !== false;
+          if (v !== undefined) {
+            if (typeof v === "boolean") {
+              a.showMojon = v;
+              a.showMarker = v;
+              a.showLabel = v;
+            } else if (typeof v === "object" && v !== null) {
+              a.showMarker = v.marker !== undefined ? v.marker !== false : (v.show !== false);
+              a.showLabel = v.label !== undefined ? v.label !== false : (v.show !== false);
+              a.showMojon = v.show !== undefined ? v.show !== false : (a.showMarker || a.showLabel);
+            }
+          }
         });
       }
     }
