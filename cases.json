@@ -6513,7 +6513,7 @@
     "labels": [
       {
         "id": "lbl_-879101834",
-        "text": "Lote A\n[size=14]Area 8,105 m²[/size]",
+        "text": "[size=25]Lote A[/size]\n[size=15]$LoteA$m2[/size]",
         "worldX": 4644899.013954483,
         "worldY": 1943448.399316323,
         "fontSize": 20,
@@ -6528,8 +6528,8 @@
         "_box": {
           "x": 858.978562483564,
           "y": 324.4890808723867,
-          "w": 101.13333129882812,
-          "h": 60
+          "w": 87.76667022705078,
+          "h": 66
         },
         "showBorder": true
       },
@@ -7005,9 +7005,21 @@
       "mojones": {
         "show": false,
         "items": {
-          "1": false,
-          "2": false,
-          "4": false
+          "1": {
+            "show": false,
+            "marker": false,
+            "label": false
+          },
+          "2": {
+            "show": false,
+            "marker": false,
+            "label": false
+          },
+          "4": {
+            "show": false,
+            "marker": false,
+            "label": false
+          }
         }
       }
     },
@@ -7133,7 +7145,11 @@
       "dxf_survey_cortez_oct_2026",
       "dxf_anchors",
       "measure_polygons"
-    ]
+    ],
+    "historical": {
+      "show": false,
+      "activeId": "esri_2017_06_14"
+    }
   },
   {
     "id": 1791601280976,
