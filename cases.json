@@ -12231,5 +12231,265 @@
       "show": true,
       "activeId": "esri_2017_06_14"
     }
+  },
+  {
+    "id": 1792100000000,
+    "name": "Catastro IGAC (Predios Colindantes)",
+    "selectedPolyIds": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      4
+    ],
+    "polyStyles": {
+      "4": {
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "1": {
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "2": {
+        "color": "#00e676",
+        "fillColor": "#00e676",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "5": {
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "6": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "7": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "8": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "9": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "10": {
+        "color": "#b0bec5",
+        "fillColor": "#b0bec5",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "11": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "3": {
+        "color": "#ff1744",
+        "fillColor": "#ff1744",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "12": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "14": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "13": {
+        "color": "#2979ff",
+        "fillColor": "#2979ff",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "dashdot",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "15": {
+        "color": "#ff8000",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.05,
+        "lineWidth": 1.0,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false
+      },
+      "16": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": true,
+        "showNodes": false
+      },
+      "17": {
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 3.0,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": true,
+        "showNodes": false
+      },
+      "18": {
+        "color": "#76ff03",
+        "fillColor": "#76ff03",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": true,
+        "showNodes": false
+      },
+      "19": {
+        "color": "#e040fb",
+        "fillColor": "#e040fb",
+        "fillOpacity": 0.25,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": true,
+        "showNodes": false
+      },
+      "20": {
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": true,
+        "showNodes": false
+      }
+    },
+    "camera": {
+      "scale": 0.85,
+      "canvasW": 1487,
+      "canvasH": 842,
+      "centerWorld": {
+        "x": 4645080.0,
+        "y": 1943520.0
+      }
+    },
+    "layers": {
+      "reconstructed": true,
+      "dxf296": true,
+      "dxf1073": false,
+      "dxf196": false,
+      "dxfTrue": false,
+      "surveyValoy2025": false,
+      "surveyCortez2025": false,
+      "surveyCortezOct2026": false,
+      "dxfOverlay": false,
+      "geotiff": true
+    },
+    "dxfOpacity": {
+      "dxf_296": 1,
+      "dxf_1073": 0.5,
+      "dxf_196": 0.5,
+      "dxf_true": 0.5
+    },
+    "geotiffBW": false,
+    "labels": [
+      {
+        "id": "lbl_igac_header",
+        "text": "[size=28]Catastro Oficial IGAC[/size]\nPredios colindantes y linderos oficiales\nMunicipio de Palmira, Valle del Cauca",
+        "worldX": 4644620.0,
+        "worldY": 1943820.0,
+        "fontSize": 18,
+        "bold": true,
+        "italic": false,
+        "textColor": "#ffffff",
+        "bgColor": "#0e1320",
+        "bgOpacity": 0.85,
+        "borderColor": "#00e5ff",
+        "borderWidth": 1.5,
+        "padding": 6
+      }
+    ],
+    "arrows": []
   }
 ]
