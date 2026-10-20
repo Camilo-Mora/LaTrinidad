@@ -1940,7 +1940,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
             <!-- Polygon Actions -->
             <div style="display:flex;gap:4px;margin-top:8px;">
               <button id="btn-new-measure-polygon" class="btn btn-primary btn-sm" style="flex:1;" title="Create a new polygon and click on map to add vertices">＋ New Polygon</button>
-              <button type="button" id="btn-toggle-all-igac" class="btn btn-secondary btn-sm" style="padding:2px 8px;border-color:var(--accent-green);color:var(--accent-green);" title="Mostrar u ocultar los 5 predios oficiales de IGAC">🏛️ IGAC</button>
+              <button type="button" id="btn-toggle-all-igac" class="btn btn-secondary btn-sm" style="padding:2px 8px;border-color:var(--accent-green);color:var(--accent-green);" title="Mostrar u ocultar los predios oficiales de IGAC">🏛️ IGAC</button>
               <button id="btn-save-polygons-json" class="btn btn-secondary btn-sm" style="padding:2px 8px;" title="Export all current polygons to JSON">💾 Save</button>
               <label for="load-polygons-input" class="btn btn-secondary btn-sm" style="cursor:pointer;padding:2px 8px;margin:0;" title="Load polygons from JSON">📂 Load</label>
               <input type="file" id="load-polygons-input" accept=".json" style="display:none;">
@@ -2293,7 +2293,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                 <div class="radio-card-content">
                   <span class="source-tag tag-combined" style="background:rgba(0,230,118,0.18);color:var(--accent-green);border:1px solid rgba(0,230,118,0.35);">IGAC</span>
                   <span class="source-title">Catastro Oficial IGAC</span>
-                  <span class="source-sub">5 predios colindantes oficiales</span>
+                  <span class="source-sub">Predios colindantes oficiales</span>
                 </div>
               </label>
             </div>
@@ -4919,6 +4919,71 @@ const state = {
         "predial": "765200002000000050298000000000",
         "predial_ant": "76520000200050298000",
         "direccion": "CHICHARRONAL",
+        "matricula": ""
+    },
+    {
+        "id": 22,
+        "name": "IGAC: Lote 5 (50389)",
+        "color": "#ff4081",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "showArea": true,
+        "showNodes": false,
+        "points": [
+            {
+                "x": 4645769.9459,
+                "y": 1943653.392
+            },
+            {
+                "x": 4645755.7031,
+                "y": 1943626.967
+            },
+            {
+                "x": 4645762.5319,
+                "y": 1943606.439
+            },
+            {
+                "x": 4645758.34,
+                "y": 1943598.662
+            },
+            {
+                "x": 4645756.87,
+                "y": 1943596.115
+            },
+            {
+                "x": 4645729.816,
+                "y": 1943549.247
+            },
+            {
+                "x": 4645729.664,
+                "y": 1943548.985
+            },
+            {
+                "x": 4645702.651,
+                "y": 1943501.198
+            },
+            {
+                "x": 4645699.908,
+                "y": 1943496.3461
+            },
+            {
+                "x": 4645682.109,
+                "y": 1943500.307
+            },
+            {
+                "x": 4645677.257,
+                "y": 1943501.3868
+            },
+            {
+                "x": 4645755.9231,
+                "y": 1943695.548
+            }
+        ],
+        "source": "IGAC",
+        "predial": "765200002000000050389000000000",
+        "predial_ant": "76520000200050389000",
+        "direccion": "LO 3",
         "matricula": ""
     }
 ],
@@ -14585,7 +14650,7 @@ function getExportEntitiesForSource(src) {
   if (src === "296") return { name: "Reconstruccion_Escritura_296", entities: getEntities296(), label: "Escritura 296 (Lindero La Trinidad)" };
   if (src === "1073") return { name: "Reconstruccion_Escritura_1073", entities: getEntities1073(), label: "Escritura 1073 (Fermín Suárez)" };
   if (src === "196") return { name: "Reconstruccion_Escritura_196", entities: getEntities196(), label: "Escritura 196 (Casa del Sol)" };
-  if (src === "igac") return { name: "Predios_Catastro_IGAC", entities: getIGACEntities(), label: "Catastro Oficial IGAC (5 Predios)" };
+  if (src === "igac") return { name: "Predios_Catastro_IGAC", entities: getIGACEntities(), label: "Catastro Oficial IGAC" };
   return { name: "LaTrinidad_Vectores_Combinados", entities: getCombinedEntities(), label: "Vectores Combinados del Caso" };
 }
 
