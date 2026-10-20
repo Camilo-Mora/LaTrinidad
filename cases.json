@@ -12241,7 +12241,8 @@
       18,
       19,
       20,
-      4
+      4,
+      21
     ],
     "polyStyles": {
       "4": {
@@ -12437,6 +12438,16 @@
       "20": {
         "color": "#ffd600",
         "fillColor": "#ffd600",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": true,
+        "showNodes": false
+      },
+      "21": {
+        "color": "#b388ff",
+        "fillColor": "#b388ff",
         "fillOpacity": 0.18,
         "lineWidth": 2.5,
         "lineType": "solid",
