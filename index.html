@@ -35,9 +35,10 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Trinidad</title>
   <meta name="description" content="Single-file interactive application to warp, rubber-sheet, and georectify historical DXF farm vectors onto ground-truth surveys, with embedded PDF vectorizer, subwindow selectors, and measurement tools.">
-  <!-- External Libraries: GeoTIFF & PDF.js -->
+  <!-- External Libraries: GeoTIFF, PDF.js & Proj4js -->
   <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
   <!-- [SECTION: CSS_STYLES] -->
   <style>
     /* Core Design System & Styling Tokens */
@@ -918,6 +919,198 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       overflow: hidden;
     }
 
+    /* Export Modal Styles */
+    .export-modal-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(0, 229, 255, 0.2);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(-8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .btn-modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.15rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
+    }
+    .btn-modal-close:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .modal-body-export {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .export-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .export-label {
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .export-options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .export-radio-card {
+      display: flex;
+      align-items: flex-start;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .export-radio-card input {
+      margin-top: 3px;
+      margin-right: 8px;
+      accent-color: var(--accent-cyan);
+    }
+    .export-radio-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .export-radio-card.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.08);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+    }
+    .radio-card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .source-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      border-radius: 3px;
+      padding: 1px 5px;
+      display: inline-block;
+      width: fit-content;
+      text-transform: uppercase;
+    }
+    .tag-296 { background: rgba(213, 0, 249, 0.18); color: var(--accent-purple); border: 1px solid rgba(213, 0, 249, 0.35); }
+    .tag-1073 { background: rgba(255, 23, 68, 0.18); color: var(--accent-red); border: 1px solid rgba(255, 23, 68, 0.35); }
+    .tag-196 { background: rgba(255, 145, 0, 0.18); color: var(--accent-orange); border: 1px solid rgba(255, 145, 0, 0.35); }
+    .tag-combined { background: rgba(0, 230, 118, 0.18); color: var(--accent-green); border: 1px solid rgba(0, 230, 118, 0.35); }
+    .source-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .source-sub {
+      font-size: 0.67rem;
+      color: var(--text-muted);
+      line-height: 1.2;
+    }
+    .export-formats-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .export-format-card {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .export-format-card input {
+      margin-right: 10px;
+      accent-color: var(--accent-cyan);
+    }
+    .export-format-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .export-format-card.active {
+      border-color: var(--accent-green);
+      background: rgba(0, 230, 118, 0.08);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.15);
+    }
+    .format-card-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+    .format-icon {
+      font-size: 1.25rem;
+    }
+    .format-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .format-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .format-desc {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .export-summary-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .export-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+    }
+    .sum-label {
+      color: var(--text-muted);
+    }
+    .sum-val {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+    .export-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      padding-top: 4px;
+      border-top: 1px solid var(--border-color);
+    }
+
     /* Footer Status Bar */
     .app-footer {
       display: none !important;
@@ -1111,6 +1304,9 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
         <button type="button" id="btn-case-export-hd" class="btn-case-hd" title="Descargar imagen del caso en máxima resolución 4K (PNG)">
           📸
         </button>
+        <button type="button" id="btn-open-export-modal" class="btn-case-hd" title="Exportar vectores del caso o escrituras (DXF / GeoJSON)">
+          📥
+        </button>
       </div>
 
       <!-- Subwindow Display Selector -->
@@ -1120,7 +1316,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
         <label class="window-checkbox" title="Toggle Escritura 296 Window">
           <input type="checkbox" id="chk-show-296">
         </label>
-        <button type="button" id="btn-dl-dxf-296" class="btn-deed-dl" title="Download Escritura 296 Reconstructed DXF">📥</button>
+        <button type="button" id="btn-dl-dxf-296" class="btn-deed-dl" title="Exportar Escritura 296 (DXF / GeoJSON)">📥</button>
         <label for="chk-show-296" style="cursor:pointer;"><span style="color:var(--accent-purple);font-weight:700;">296</span></label>
 
         <span style="color:var(--border-color);font-size:0.8rem;user-select:none;margin:0 2px;">|</span>
@@ -1128,7 +1324,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
         <label class="window-checkbox" title="Toggle Escritura 1073 Window">
           <input type="checkbox" id="chk-show-1073">
         </label>
-        <button type="button" id="btn-dl-dxf-1073" class="btn-deed-dl" title="Download Escritura 1073 Reconstructed DXF">📥</button>
+        <button type="button" id="btn-dl-dxf-1073" class="btn-deed-dl" title="Exportar Escritura 1073 (DXF / GeoJSON)">📥</button>
         <label for="chk-show-1073" style="cursor:pointer;"><span style="color:var(--accent-red);font-weight:700;">1073</span></label>
 
         <span style="color:var(--border-color);font-size:0.8rem;user-select:none;margin:0 2px;">|</span>
@@ -1136,7 +1332,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
         <label class="window-checkbox" title="Toggle Escritura 196 Window">
           <input type="checkbox" id="chk-show-196">
         </label>
-        <button type="button" id="btn-dl-dxf-196" class="btn-deed-dl" title="Download Escritura 196 Reconstructed DXF">📥</button>
+        <button type="button" id="btn-dl-dxf-196" class="btn-deed-dl" title="Exportar Escritura 196 (DXF / GeoJSON)">📥</button>
         <label for="chk-show-196" style="cursor:pointer;"><span style="color:var(--accent-orange);font-weight:700;">196</span></label>
 
         <span style="color:var(--border-color);font-size:0.8rem;user-select:none;margin:0 4px;">|</span>
@@ -2000,6 +2196,121 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       </div>
       <div id="coords-bar" style="flex-shrink:0;">Coords: (0.00, 0.00) m</div>
     </footer>
+
+    <!-- Export Modal Dialog -->
+    <div class="modal-overlay" id="export-modal-overlay">
+      <div class="modal-box export-modal-card" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
+        <div class="modal-header">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.2rem;">📥</span>
+            <span class="modal-title" id="export-modal-title">Exportar Datos Vectoriales</span>
+          </div>
+          <button type="button" id="btn-export-modal-close" class="btn-modal-close" title="Cerrar ventana">✕</button>
+        </div>
+        <div class="modal-body-export">
+          <!-- Scope / Layer selector -->
+          <div class="export-form-group">
+            <label class="export-label">Seleccionar Elemento / Capa a Exportar:</label>
+            <div class="export-options-grid" id="export-source-options">
+              <label class="export-radio-card active" data-source="296">
+                <input type="radio" name="export-source" value="296" checked>
+                <div class="radio-card-content">
+                  <span class="source-tag tag-296">E. 296</span>
+                  <span class="source-title">Lindero La Trinidad</span>
+                  <span class="source-sub">Polígono reconstruido y ajustado</span>
+                </div>
+              </label>
+
+              <label class="export-radio-card" data-source="1073">
+                <input type="radio" name="export-source" value="1073">
+                <div class="radio-card-content">
+                  <span class="source-tag tag-1073">E. 1073</span>
+                  <span class="source-title">Fermín Suárez</span>
+                  <span class="source-sub">Lotes y linderos georreferenciados</span>
+                </div>
+              </label>
+
+              <label class="export-radio-card" data-source="196">
+                <input type="radio" name="export-source" value="196">
+                <div class="radio-card-content">
+                  <span class="source-tag tag-196">E. 196</span>
+                  <span class="source-title">Casa del Sol</span>
+                  <span class="source-sub">Parcelas y polígono optimizado</span>
+                </div>
+              </label>
+
+              <label class="export-radio-card" data-source="combined">
+                <input type="radio" name="export-source" value="combined">
+                <div class="radio-card-content">
+                  <span class="source-tag tag-combined">Caso</span>
+                  <span class="source-title">Todas las Capas Activas</span>
+                  <span class="source-sub">296, 1073, 196, Levantamiento & Polígonos</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Format selector -->
+          <div class="export-form-group">
+            <label class="export-label">Formato de Archivo:</label>
+            <div class="export-formats-grid" id="export-format-options">
+              <label class="export-format-card active" data-format="dxf">
+                <input type="radio" name="export-format" value="dxf" checked>
+                <div class="format-card-content">
+                  <div class="format-icon">📐</div>
+                  <div class="format-info">
+                    <span class="format-name">AutoCAD DXF (.dxf)</span>
+                    <span class="format-desc">Polilíneas CAD compatibles con AutoCAD, Civil 3D y QGIS</span>
+                  </div>
+                </div>
+              </label>
+
+              <label class="export-format-card" data-format="geojson-wgs84">
+                <input type="radio" name="export-format" value="geojson-wgs84">
+                <div class="format-card-content">
+                  <div class="format-icon">🌐</div>
+                  <div class="format-info">
+                    <span class="format-name">GeoJSON — WGS84 (.geojson)</span>
+                    <span class="format-desc">Estándar GPS / Web (Lat/Lon) para Google Earth, QGIS, ArcGIS</span>
+                  </div>
+                </div>
+              </label>
+
+              <label class="export-format-card" data-format="geojson-9377">
+                <input type="radio" name="export-format" value="geojson-9377">
+                <div class="format-card-content">
+                  <div class="format-icon">🗺️</div>
+                  <div class="format-info">
+                    <span class="format-name">GeoJSON — MAGNA-SIRGAS EPSG:9377 (.geojson)</span>
+                    <span class="format-desc">Coordenadas métricas oficiales IGAC Origen Nacional</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Dynamic summary badge / details -->
+          <div class="export-summary-box" id="export-summary-box">
+            <div class="export-summary-row">
+              <span class="sum-label">Nombre del archivo:</span>
+              <span class="sum-val" id="export-filename-preview">Reconstruccion_Escritura_296.dxf</span>
+            </div>
+            <div class="export-summary-row">
+              <span class="sum-label">Detalle geométrico:</span>
+              <span class="sum-val" id="export-stats-preview">1 polígono • 49 vértices</span>
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="export-actions">
+            <button type="button" id="btn-export-cancel" class="btn btn-secondary">Cancelar</button>
+            <button type="button" id="btn-export-download" class="btn btn-success" style="font-weight:700;padding:8px 20px;font-size:0.9rem;">
+              📥 Descargar Archivo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 
@@ -2014,6 +2325,12 @@ const DEFAULT_DXF_1073 = `0\nSECTION\n2\nENTITIES\n0\nPOLYLINE\n8\nPolygon_1073\
 
 /* Configure PDF.js Worker */
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* Configure Proj4 CRS Definitions */
+if (typeof proj4 !== "undefined") {
+  proj4.defs("EPSG:3115", "+proj=tmerc +lat_0=4.59620041666667 +lon_0=-77.0775079166667 +k=1 +x_0=1000000 +y_0=1000000 +ellps=GRS80 +units=m +no_defs +type=crs");
+  proj4.defs("EPSG:9377", "+proj=tmerc +lat_0=4 +lon_0=-73 +k=0.9992 +x_0=5000000 +y_0=2000000 +ellps=GRS80 +units=m +no_defs +type=crs");
+}
 
 // [SECTION: JS_DXF_PARSER]
 /* 1. DXF PARSER & SERIALIZER */
@@ -2134,6 +2451,99 @@ class DXFParser {
     });
     dxf += "0\nENDSEC\n0\nEOF\n";
     return dxf;
+  }
+}
+
+/* 1.1 GEOJSON SERIALIZER (WGS84 & EPSG:9377) */
+class GeoJSONParser {
+  static serialize(entities, crsOption = "WGS84", collectionName = "LaTrinidad_Export") {
+    const features = [];
+
+    (entities || []).forEach((ent) => {
+      if (!ent.points || ent.points.length < 2) return;
+      const pts = ent.points;
+      const isClosed = !!ent.closed;
+
+      const coords = pts.map((p) => {
+        let x = p.x;
+        let y = p.y;
+        if (crsOption === "WGS84" && typeof proj4 !== "undefined") {
+          try {
+            const srcCrs = (x > 3000000) ? "EPSG:9377" : "EPSG:3115";
+            const trans = proj4(srcCrs, "EPSG:4326", [x, y]);
+            return [Number(trans[0].toFixed(7)), Number(trans[1].toFixed(7))];
+          } catch (e) {
+            console.warn("Projection error for point", p, e);
+            return [Number(x.toFixed(4)), Number(y.toFixed(4))];
+          }
+        }
+        return [Number(x.toFixed(4)), Number(y.toFixed(4))];
+      });
+
+      let geometry;
+      if (isClosed && coords.length >= 3) {
+        const ring = [...coords];
+        const first = ring[0];
+        const last = ring[ring.length - 1];
+        if (first[0] !== last[0] || first[1] !== last[1]) {
+          ring.push([first[0], first[1]]);
+        }
+        geometry = {
+          type: "Polygon",
+          coordinates: [ring]
+        };
+      } else {
+        geometry = {
+          type: "LineString",
+          coordinates: coords
+        };
+      }
+
+      let areaM2 = 0;
+      if (isClosed && typeof calculatePolygonArea === "function") {
+        try {
+          areaM2 = Math.abs(calculatePolygonArea(pts));
+        } catch (_) {}
+      }
+
+      const layerName = ent.layer || "Default";
+      const props = {
+        name: ent.name || layerName,
+        layer: layerName,
+        closed: isClosed,
+        vertices: pts.length,
+        source_crs: (pts[0].x > 3000000) ? "EPSG:9377 (MAGNA-SIRGAS Origen Nacional)" : "EPSG:3115 (MAGNA-SIRGAS Colombia Oeste)",
+        ...(ent.properties || {})
+      };
+
+      if (areaM2 > 0) {
+        props.area_m2 = Math.round(areaM2 * 100) / 100;
+        props.area_plazas = Math.round((areaM2 / 6400) * 100) / 100;
+        props.area_hectareas = Math.round((areaM2 / 10000) * 100) / 100;
+      }
+
+      features.push({
+        type: "Feature",
+        properties: props,
+        geometry: geometry
+      });
+    });
+
+    const isWgs = crsOption === "WGS84";
+    const geojson = {
+      type: "FeatureCollection",
+      name: collectionName,
+      crs: isWgs ? {
+        type: "name",
+        properties: { name: "urn:ogc:def:crs:OGC:1.3:CRS84" }
+      } : {
+        type: "name",
+        properties: { name: "urn:ogc:def:crs:EPSG::9377" }
+      },
+      features: features
+    };
+
+    return JSON.stringify(geojson, null, 2);
   }
 }
 
@@ -9854,19 +10264,58 @@ function setupEventListeners() {
     });
   }
 
-  // Export DXF
+  // Vector Export Modal & Triggers
   const btnExportDxf = document.getElementById("btn-export-dxf");
-  if (btnExportDxf) btnExportDxf.addEventListener("click", exportRectifiedDXF);
+  if (btnExportDxf) btnExportDxf.addEventListener("click", () => openExportModal("combined"));
 
-  // Per-Deed DXF Downloads
+  const btnHeaderExport = document.getElementById("btn-open-export-modal");
+  if (btnHeaderExport) btnHeaderExport.addEventListener("click", () => openExportModal("combined"));
+
+  // Per-Deed Download Buttons (Open Export Modal pre-selected to that deed)
   const btnDl296 = document.getElementById("btn-dl-dxf-296");
-  if (btnDl296) btnDl296.addEventListener("click", exportDXF296);
+  if (btnDl296) btnDl296.addEventListener("click", () => openExportModal("296"));
 
   const btnDl1073 = document.getElementById("btn-dl-dxf-1073");
-  if (btnDl1073) btnDl1073.addEventListener("click", exportDXF1073);
+  if (btnDl1073) btnDl1073.addEventListener("click", () => openExportModal("1073"));
 
   const btnDl196 = document.getElementById("btn-dl-dxf-196");
-  if (btnDl196) btnDl196.addEventListener("click", exportDXF196);
+  if (btnDl196) btnDl196.addEventListener("click", () => openExportModal("196"));
+
+  // Export Modal Close & Action Handlers
+  const btnExportClose = document.getElementById("btn-export-modal-close");
+  if (btnExportClose) btnExportClose.addEventListener("click", closeExportModal);
+
+  const btnExportCancel = document.getElementById("btn-export-cancel");
+  if (btnExportCancel) btnExportCancel.addEventListener("click", closeExportModal);
+
+  const btnExportDownload = document.getElementById("btn-export-download");
+  if (btnExportDownload) btnExportDownload.addEventListener("click", executeVectorExport);
+
+  // Close modal when clicking outside on overlay
+  const exportOverlay = document.getElementById("export-modal-overlay");
+  if (exportOverlay) {
+    exportOverlay.addEventListener("click", (e) => {
+      if (e.target === exportOverlay) closeExportModal();
+    });
+  }
+
+  // Radio change handlers to dynamically update previews
+  document.querySelectorAll('input[name="export-source"]').forEach((radio) => {
+    radio.addEventListener("change", updateExportModalPreview);
+  });
+  document.querySelectorAll('input[name="export-format"]').forEach((radio) => {
+    radio.addEventListener("change", updateExportModalPreview);
+  });
+
+  // ESC key to close modal
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const overlay = document.getElementById("export-modal-overlay");
+      if (overlay && overlay.classList.contains("visible")) {
+        closeExportModal();
+      }
+    }
+  });
 
   const geoInput = document.getElementById("geotiff-input");
   if (geoInput) {
@@ -11507,7 +11956,62 @@ function deleteAnchor(targetKey, index) {
 }
 
 // [SECTION: JS_PDF_AND_DXF_EXPORT]
-function exportRectifiedDXF() {
+function getEntities296() {
+  let entities = [];
+  if (state.reconstructedPolygon && state.reconstructedPolygon.vertices && state.reconstructedPolygon.vertices.length >= 2) {
+    if (typeof updateReconstructedPolygonWarp === "function") {
+      updateReconstructedPolygonWarp();
+    }
+    const pts = state.reconstructedPolygon.vertices.map(v => ({ x: v.x, y: v.y }));
+    entities.push({
+      type: "POLYLINE",
+      name: "Lindero_La_Trinidad_Escritura_296",
+      layer: "RECONSTRUCCION_ESCRITURA_296",
+      closed: state.reconstructedPolygon.closed !== false,
+      points: pts
+    });
+  } else if (state.entities296 && state.entities296.length > 0) {
+    entities = state.entities296.map(ent => ({ ...ent, layer: ent.layer || "ESCRITURA_296" }));
+  }
+  return entities;
+}
+
+function getEntities1073() {
+  let entities = [];
+  if (getActiveAnchors(state.anchors1073).length >= 2 && state.entities1073 && state.entities1073.length > 0) {
+    const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
+    state.entities1073.forEach(ent => {
+      const rawPts = ent.points || ent.vertices || [];
+      entities.push({
+        ...ent,
+        layer: "RECONSTRUCCION_ESCRITURA_1073",
+        points: rawPts.map(p => warper(p))
+      });
+    });
+  } else if (state.entities1073 && state.entities1073.length > 0) {
+    entities = state.entities1073;
+  }
+  return entities;
+}
+
+function getEntities196() {
+  let entities = [];
+  if (state.entities196Optimized && state.entities196Optimized.length > 0) {
+    state.entities196Optimized.forEach(ent => {
+      entities.push({ ...ent, layer: ent.layer || "RECONSTRUCCION_ESCRITURA_196" });
+    });
+  } else if (getActiveAnchors(state.anchors196).length >= 2 && state.entities196 && state.entities196.length > 0) {
+    const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
+    state.entities196.forEach(ent => {
+      entities.push({ ...ent, layer: "RECONSTRUCCION_ESCRITURA_196", points: ent.points.map(p => warper(p)) });
+    });
+  } else if (state.entities196 && state.entities196.length > 0) {
+    entities = state.entities196;
+  }
+  return entities;
+}
+
+function getCombinedEntities() {
   let combinedEntities = [];
 
   // 1. Reconstructed Lindero La Trinidad (Escritura 296)
@@ -11518,6 +12022,7 @@ function exportRectifiedDXF() {
     const pts = state.reconstructedPolygon.vertices.map(v => ({ x: v.x, y: v.y }));
     combinedEntities.push({
       type: "POLYLINE",
+      name: "Lindero_La_Trinidad_Escritura_296",
       layer: "LINDERO_LA_TRINIDAD_296",
       closed: state.reconstructedPolygon.closed !== false,
       points: pts
@@ -11536,7 +12041,8 @@ function exportRectifiedDXF() {
   if (getActiveAnchors(state.anchors1073).length >= 2 && state.entities1073 && state.entities1073.length > 0) {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
     state.entities1073.forEach((ent) => {
-      combinedEntities.push({ ...ent, layer: "RECTIFIED_1073", points: ent.points.map(p => warper(p)) });
+      const rawPts = ent.points || ent.vertices || [];
+      combinedEntities.push({ ...ent, layer: "RECTIFIED_1073", points: rawPts.map(p => warper(p)) });
     });
   }
 
@@ -11565,6 +12071,7 @@ function exportRectifiedDXF() {
       if (poly.visible === false || !poly.points || poly.points.length < 2) return;
       combinedEntities.push({
         type: "POLYLINE",
+        name: poly.name || "POLYGON",
         layer: (poly.name || "POLYGON").replace(/[^a-zA-Z0-9_-]/g, "_"),
         closed: poly.closed !== false,
         points: poly.points.map(p => ({ x: p.x, y: p.y }))
@@ -11572,104 +12079,189 @@ function exportRectifiedDXF() {
     });
   }
 
-  // Fallback to raw 296 if nothing was generated
-  const entitiesToExport = combinedEntities.length > 0 ? combinedEntities : state.entities296;
-  const dxfText = DXFParser.serialize(entitiesToExport);
-  const blob = new Blob([dxfText], { type: "application/dxf" });
+  return combinedEntities.length > 0 ? combinedEntities : (state.entities296 || []);
+}
+
+function downloadFileBlob(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "GeoRectified_Combined.dxf";
+  a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+
+function exportRectifiedDXF() {
+  const entities = getCombinedEntities();
+  const dxfText = DXFParser.serialize(entities);
+  downloadFileBlob(dxfText, "GeoRectified_Combined.dxf", "application/dxf");
+  if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "✅ Downloaded GeoRectified_Combined.dxf";
 }
 
 function exportDXF296() {
-  let entities = [];
-  if (state.reconstructedPolygon && state.reconstructedPolygon.vertices && state.reconstructedPolygon.vertices.length >= 2) {
-    if (typeof updateReconstructedPolygonWarp === "function") {
-      updateReconstructedPolygonWarp();
-    }
-    const pts = state.reconstructedPolygon.vertices.map(v => ({ x: v.x, y: v.y }));
-    entities.push({
-      type: "POLYLINE",
-      layer: "RECONSTRUCCION_ESCRITURA_296",
-      closed: state.reconstructedPolygon.closed !== false,
-      points: pts
-    });
-  } else if (state.entities296 && state.entities296.length > 0) {
-    entities = state.entities296;
-  }
-
+  const entities = getEntities296();
   if (entities.length === 0) {
     if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "⚠️ No reconstructed data available for Escritura 296.";
     return;
   }
-
   const dxfText = DXFParser.serialize(entities);
-  const blob = new Blob([dxfText], { type: "application/dxf" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "Reconstruccion_Escritura_296.dxf";
-  a.click();
+  downloadFileBlob(dxfText, "Reconstruccion_Escritura_296.dxf", "application/dxf");
   if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "✅ Downloaded Reconstruccion_Escritura_296.dxf";
 }
 
 function exportDXF1073() {
-  let entities = [];
-  if (getActiveAnchors(state.anchors1073).length >= 2 && state.entities1073 && state.entities1073.length > 0) {
-    const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
-    state.entities1073.forEach(ent => {
-      const rawPts = ent.points || ent.vertices || [];
-      entities.push({
-        ...ent,
-        layer: "RECONSTRUCCION_ESCRITURA_1073",
-        points: rawPts.map(p => warper(p))
-      });
-    });
-  } else if (state.entities1073 && state.entities1073.length > 0) {
-    entities = state.entities1073;
-  }
-
+  const entities = getEntities1073();
   if (entities.length === 0) {
     if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "⚠️ No reconstructed data available for Escritura 1073.";
     return;
   }
-
   const dxfText = DXFParser.serialize(entities);
-  const blob = new Blob([dxfText], { type: "application/dxf" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "Reconstruccion_Escritura_1073.dxf";
-  a.click();
+  downloadFileBlob(dxfText, "Reconstruccion_Escritura_1073.dxf", "application/dxf");
   if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "✅ Downloaded Reconstruccion_Escritura_1073.dxf";
 }
 
 function exportDXF196() {
-  let entities = [];
-  if (state.entities196Optimized && state.entities196Optimized.length > 0) {
-    state.entities196Optimized.forEach(ent => {
-      entities.push({ ...ent, layer: ent.layer || "RECONSTRUCCION_ESCRITURA_196" });
-    });
-  } else if (getActiveAnchors(state.anchors196).length >= 2 && state.entities196 && state.entities196.length > 0) {
-    const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-    state.entities196.forEach(ent => {
-      entities.push({ ...ent, layer: "RECONSTRUCCION_ESCRITURA_196", points: ent.points.map(p => warper(p)) });
-    });
-  } else if (state.entities196 && state.entities196.length > 0) {
-    entities = state.entities196;
-  }
-
+  const entities = getEntities196();
   if (entities.length === 0) {
     if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "⚠️ No reconstructed data available for Escritura 196.";
     return;
   }
-
   const dxfText = DXFParser.serialize(entities);
-  const blob = new Blob([dxfText], { type: "application/dxf" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "Reconstruccion_Escritura_196.dxf";
-  a.click();
+  downloadFileBlob(dxfText, "Reconstruccion_Escritura_196.dxf", "application/dxf");
   if (typeof statusBar !== "undefined" && statusBar) statusBar.textContent = "✅ Downloaded Reconstruccion_Escritura_196.dxf";
+}
+
+/* ==========================================================================
+   EXPORT MODAL CONTROLLER (DXF & GEOJSON)
+   ========================================================================== */
+function getExportEntitiesForSource(src) {
+  if (src === "296") return { name: "Reconstruccion_Escritura_296", entities: getEntities296(), label: "Escritura 296 (Lindero La Trinidad)" };
+  if (src === "1073") return { name: "Reconstruccion_Escritura_1073", entities: getEntities1073(), label: "Escritura 1073 (Fermín Suárez)" };
+  if (src === "196") return { name: "Reconstruccion_Escritura_196", entities: getEntities196(), label: "Escritura 196 (Casa del Sol)" };
+  return { name: "LaTrinidad_Vectores_Combinados", entities: getCombinedEntities(), label: "Vectores Combinados del Caso" };
+}
+
+function getSelectedExportSource() {
+  const checked = document.querySelector('input[name="export-source"]:checked');
+  return checked ? checked.value : "296";
+}
+
+function getSelectedExportFormat() {
+  const checked = document.querySelector('input[name="export-format"]:checked');
+  return checked ? checked.value : "dxf";
+}
+
+function updateExportModalPreview() {
+  const src = getSelectedExportSource();
+  const fmt = getSelectedExportFormat();
+  const info = getExportEntitiesForSource(src);
+
+  // Update active visual classes
+  document.querySelectorAll(".export-radio-card").forEach(card => {
+    const isThis = card.dataset.source === src;
+    card.classList.toggle("active", isThis);
+    const radio = card.querySelector('input[type="radio"]');
+    if (radio) radio.checked = isThis;
+  });
+  document.querySelectorAll(".export-format-card").forEach(card => {
+    const isThis = card.dataset.format === fmt;
+    card.classList.toggle("active", isThis);
+    const radio = card.querySelector('input[type="radio"]');
+    if (radio) radio.checked = isThis;
+  });
+
+  // Calculate target filename
+  let ext = ".dxf";
+  let suffix = "";
+  if (fmt === "geojson-wgs84") {
+    ext = ".geojson";
+    suffix = "_WGS84";
+  } else if (fmt === "geojson-9377") {
+    ext = ".geojson";
+    suffix = "_EPSG9377";
+  }
+  const filename = `${info.name}${suffix}${ext}`;
+  const filenameEl = document.getElementById("export-filename-preview");
+  if (filenameEl) filenameEl.textContent = filename;
+
+  // Calculate entity and vertex stats
+  const statsEl = document.getElementById("export-stats-preview");
+  if (statsEl) {
+    const entCount = info.entities.length;
+    let totalVerts = 0;
+    info.entities.forEach(e => {
+      if (e.points) totalVerts += e.points.length;
+    });
+    if (entCount === 0) {
+      statsEl.textContent = "⚠️ Sin datos vectoriales disponibles en esta capa";
+      statsEl.style.color = "var(--accent-red)";
+    } else {
+      statsEl.textContent = `${entCount} ${entCount === 1 ? 'polígono / entidad' : 'polígonos / entidades'} • ${totalVerts} vértices totales`;
+      statsEl.style.color = "var(--accent-cyan)";
+    }
+  }
+}
+
+function openExportModal(initialSource = "296") {
+  const overlay = document.getElementById("export-modal-overlay");
+  if (!overlay) return;
+
+  const targetRadio = document.querySelector(`input[name="export-source"][value="${initialSource}"]`);
+  if (targetRadio) {
+    targetRadio.checked = true;
+  }
+
+  updateExportModalPreview();
+  overlay.classList.add("visible");
+}
+
+function closeExportModal() {
+  const overlay = document.getElementById("export-modal-overlay");
+  if (overlay) overlay.classList.remove("visible");
+}
+
+function executeVectorExport() {
+  const src = getSelectedExportSource();
+  const fmt = getSelectedExportFormat();
+  const info = getExportEntitiesForSource(src);
+
+  if (!info.entities || info.entities.length === 0) {
+    alert("⚠️ No hay entidades vectoriales disponibles para exportar en la capa seleccionada.");
+    return;
+  }
+
+  let ext = ".dxf";
+  let mime = "application/dxf";
+  let content = "";
+  let desc = "";
+
+  if (fmt === "dxf") {
+    content = DXFParser.serialize(info.entities);
+    ext = ".dxf";
+    mime = "application/dxf";
+    desc = "AutoCAD DXF";
+  } else if (fmt === "geojson-wgs84") {
+    content = GeoJSONParser.serialize(info.entities, "WGS84", info.name);
+    ext = ".geojson";
+    mime = "application/geo+json";
+    desc = "GeoJSON (WGS84)";
+  } else if (fmt === "geojson-9377") {
+    content = GeoJSONParser.serialize(info.entities, "EPSG:9377", info.name);
+    ext = ".geojson";
+    mime = "application/geo+json";
+    desc = "GeoJSON (EPSG:9377)";
+  }
+
+  const filename = `${info.name}${fmt === "dxf" ? "" : (fmt === "geojson-wgs84" ? "_WGS84" : "_EPSG9377")}${ext}`;
+  downloadFileBlob(content, filename, mime);
+
+  closeExportModal();
+
+  if (typeof statusBar !== "undefined" && statusBar) {
+    statusBar.textContent = `✅ Descargado: ${filename} [${desc}]`;
+  }
 }
 
 // [SECTION: JS_CASE_BUILDER_SYSTEM]
