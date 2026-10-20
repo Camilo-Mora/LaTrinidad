@@ -12648,7 +12648,7 @@
     "labels": [
       {
         "id": "lbl_igac_header",
-        "text": "1. La Querella\nPredial: 765200002000000050278000000000\nMatricula : 378-147359\nLocalidad verdadera: Chicharronal",
+        "text": "Caso 1. La Querella\nPredial: 765200002000000050278000000000\nMatricula : 378-147359\nLocalidad verdadera: Chicharronal",
         "worldX": 4644049.701151925,
         "worldY": 1943945.790242056,
         "fontSize": 18,
@@ -12669,7 +12669,7 @@
       },
       {
         "id": "lbl_1792466587789",
-        "text": "2. La Esmeralda\nPredial: 765200002000000051774000000000\nMatricula: 378-77772\nLocalidad verdadera: Tenjo",
+        "text": "Caso 2. La Esmeralda\nPredial: 765200002000000051774000000000\nMatricula: 378-77772\nLocalidad verdadera: Tenjo",
         "worldX": 4645219.7567057405,
         "worldY": 1943448.2219215406,
         "fontSize": 14,
@@ -12713,7 +12713,7 @@
       },
       {
         "id": "lbl_1792467969815",
-        "text": "4. LO DE TERRENO\nPredial: 765200002000000052754000000000\nMatricula: No Tiene\nLocalidad verdadera: no se sabe",
+        "text": "Caso 4. LO DE TERRENO\nPredial: 765200002000000052754000000000\nMatricula: No Tiene\nLocalidad verdadera: no se sabe",
         "worldX": 4645098.217127733,
         "worldY": 1943229.4168014051,
         "fontSize": 14,
@@ -12735,7 +12735,7 @@
       },
       {
         "id": "lbl_1792468229789",
-        "text": "3. Lo 1\nPredial: 765200002000000052375000000000\nMatricula: 378-185655\nLocalidad verdadera: Lote 5 escritura 1073",
+        "text": "Caso 3. Lo 1\nPredial: 765200002000000052375000000000\nMatricula: 378-185655\nLocalidad verdadera: Lote 5 escritura 1073",
         "worldX": 4644003.884110354,
         "worldY": 1943564.3537051724,
         "fontSize": 14,
