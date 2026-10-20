@@ -431,6 +431,26 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
       background: var(--accent-cyan);
     }
 
+    .timeline-dot-item[data-id="dron"].active .timeline-dot-node {
+      border-color: #00e676;
+      background: rgba(0, 230, 118, 0.2);
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.85);
+      transform: scale(1.25);
+    }
+
+    .timeline-dot-item[data-id="dron"].active .timeline-dot-core {
+      background: #00e676;
+    }
+
+    .timeline-dot-item[data-id="dron"].active .timeline-dot-label {
+      color: #00e676;
+      text-shadow: 0 0 6px rgba(0, 230, 118, 0.5);
+    }
+
+    .timeline-dot-item[data-id="dron"].active .timeline-dot-sub {
+      color: rgba(0, 230, 118, 0.85);
+    }
+
     .timeline-dot-label {
       font-size: 0.72rem;
       font-weight: 600;
@@ -1468,6 +1488,18 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
             <div style="position:absolute;top:10px;left:10px;z-index:30;display:flex;align-items:center;gap:5px;background:rgba(15,22,36,0.85);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.18);border-radius:6px;padding:3px 6px;box-shadow:0 3px 12px rgba(0,0,0,0.5);">
               <button class="vp-tool-btn" data-map="true" data-mode="fit" title="Center Map View (Centrar mapa en límites)" style="padding:3px 8px;font-size:0.85rem;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);cursor:pointer;color:var(--text-main);line-height:1.2;">⛶</button>
               <button class="vp-tool-btn" id="btn-measure-tool" data-map="true" data-mode="measure" title="Measure Distances [M] (Medir distancias en el mapa)" style="padding:3px 8px;font-size:0.85rem;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);cursor:pointer;color:var(--text-main);line-height:1.2;">📏</button>
+            </div>
+
+            <!-- Floating Top Timeline Control on Field Canvas -->
+            <div class="historical-timeline-overlay field-timeline-overlay" id="field-timeline-overlay">
+              <div class="timeline-title-row" style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                <span class="timeline-title">LÍNEA DE TIEMPO • FONDO</span>
+                <button id="btn-toggle-field-bg" title="Alternar visibilidad del fondo" style="background:none;border:none;color:var(--accent-cyan);cursor:pointer;font-size:0.75rem;padding:0 2px;line-height:1;opacity:0.9;">👁️</button>
+              </div>
+              <div class="timeline-track-wrap">
+                <div class="timeline-connecting-line"></div>
+                <div class="timeline-dots-row" id="field-timeline-dots"></div>
+              </div>
             </div>
 
             <div id="reconstructed-segment-tooltip" class="reconstructed-segment-tooltip"></div>
@@ -4913,7 +4945,55 @@ const state = {
   showHistoricalWindow: false,
   syncHistoricalCam: true,
   activeHistoricalId: "esri_2017_06_14",
-  historicalCatalog: [],
+  activeFieldBackgroundId: "dron",
+  showFieldBackground: true,
+  historicalCatalog: [
+    {
+      "id": "esri_2017_06_14",
+      "date": "2017-06-14",
+      "year": "2017",
+      "label": "14 Jun 2017",
+      "source": "ESRI World Imagery",
+      "crs": "EPSG:9377",
+      "minX": 4643786.81,
+      "maxX": 4646847.15,
+      "minY": 1942591.28,
+      "maxY": 1944421.91,
+      "width": 2560,
+      "height": 1536,
+      "file": "esri_2017_06_14.webp"
+    },
+    {
+      "id": "esri_2021_02_24",
+      "date": "2021-02-24",
+      "year": "2021",
+      "label": "24 Feb 2021",
+      "source": "ESRI World Imagery",
+      "crs": "EPSG:9377",
+      "minX": 4643786.81,
+      "maxX": 4646848.18,
+      "minY": 1942591.28,
+      "maxY": 1944725.29,
+      "width": 2560,
+      "height": 1792,
+      "file": "esri_2021_02_24.webp"
+    },
+    {
+      "id": "esri_2022_08_31",
+      "date": "2022-08-31",
+      "year": "2022",
+      "label": "31 Ago 2022",
+      "source": "ESRI World Imagery",
+      "crs": "EPSG:9377",
+      "minX": 4643787.33,
+      "maxX": 4646694.96,
+      "minY": 1942743.49,
+      "maxY": 1944573.6,
+      "width": 4864,
+      "height": 3072,
+      "file": "esri_2022_08_31.webp"
+    }
+  ],
   historicalImages: {},
   
   // Background PDFs
@@ -5408,6 +5488,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   await autoLoadReconstructedPolygon();
   await autoLoadCases();
   await autoLoadHistoricalCatalog();
+  buildFieldTimelineUI();
 });
 
 function loadDefaultPdf(url, target) {
@@ -6337,18 +6418,339 @@ function syncTrueViewportWithHistorical() {
   state.vpTrue.offsetY = (canvasTrue.height / 2) - centerHist.y * state.vpTrue.scale;
 }
 
+const DEFAULT_HISTORICAL_CATALOG = [
+  {
+    "id": "esri_2017_06_14",
+    "date": "2017-06-14",
+    "year": "2017",
+    "label": "14 Jun 2017",
+    "source": "ESRI World Imagery",
+    "crs": "EPSG:9377",
+    "minX": 4643786.81,
+    "maxX": 4646847.15,
+    "minY": 1942591.28,
+    "maxY": 1944421.91,
+    "width": 2560,
+    "height": 1536,
+    "file": "esri_2017_06_14.webp"
+  },
+  {
+    "id": "esri_2021_02_24",
+    "date": "2021-02-24",
+    "year": "2021",
+    "label": "24 Feb 2021",
+    "source": "ESRI World Imagery",
+    "crs": "EPSG:9377",
+    "minX": 4643786.81,
+    "maxX": 4646848.18,
+    "minY": 1942591.28,
+    "maxY": 1944725.29,
+    "width": 2560,
+    "height": 1792,
+    "file": "esri_2021_02_24.webp"
+  },
+  {
+    "id": "esri_2022_08_31",
+    "date": "2022-08-31",
+    "year": "2022",
+    "label": "31 Ago 2022",
+    "source": "ESRI World Imagery",
+    "crs": "EPSG:9377",
+    "minX": 4643787.33,
+    "maxX": 4646694.96,
+    "minY": 1942743.49,
+    "maxY": 1944573.6,
+    "width": 4864,
+    "height": 3072,
+    "file": "esri_2022_08_31.webp"
+  }
+];
+
+function getFieldTimelineItems() {
+  const cat = (state.historicalCatalog && state.historicalCatalog.length > 0)
+    ? state.historicalCatalog
+    : DEFAULT_HISTORICAL_CATALOG;
+  const list = [...cat];
+  list.push({
+    id: "dron",
+    year: "2026",
+    label: "Sep 2026",
+    sub: "Dron",
+    source: "Ortofoto Dron",
+    title: "Ortofoto de Dron de Alta Resolución (Sep 2026)"
+  });
+  return list;
+}
+
+function buildFieldTimelineUI() {
+  const container = document.getElementById("field-timeline-dots");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const items = getFieldTimelineItems();
+  const activeId = state.activeFieldBackgroundId || "dron";
+
+  items.forEach(item => {
+    const dot = document.createElement("div");
+    dot.className = "timeline-dot-item" + (item.id === activeId ? " active" : "");
+    dot.dataset.id = item.id;
+    dot.title = item.title || `${item.label} (${item.source} • EPSG:9377)`;
+    const subText = item.sub || (item.label ? item.label.split(" ").slice(0, 2).join(" ") : "");
+    dot.innerHTML = `
+      <div class="timeline-dot-node">
+        <div class="timeline-dot-core"></div>
+      </div>
+      <span class="timeline-dot-label">${item.year}</span>
+      <span class="timeline-dot-sub">${subText}</span>
+    `;
+    dot.addEventListener("click", () => {
+      selectFieldBackground(item.id);
+    });
+    container.appendChild(dot);
+  });
+
+  updateFieldTimelineDots();
+}
+
+function updateFieldTimelineDots() {
+  const activeId = state.activeFieldBackgroundId || "dron";
+  const dots = document.querySelectorAll("#field-timeline-dots .timeline-dot-item");
+  dots.forEach(d => {
+    const isActive = (d.dataset.id === activeId) && (state.showFieldBackground !== false);
+    d.classList.toggle("active", isActive);
+  });
+
+  const btnToggle = document.getElementById("btn-toggle-field-bg");
+  if (btnToggle) {
+    const isVis = state.showFieldBackground !== false;
+    btnToggle.textContent = isVis ? "👁️" : "👁️‍🗨️";
+    btnToggle.title = isVis ? "Fondo activo (Click para ocultar fondo)" : "Fondo oculto (Click para mostrar fondo)";
+    btnToggle.style.opacity = isVis ? "1.0" : "0.45";
+  }
+
+  const trackWrap = document.querySelector("#field-timeline-overlay .timeline-track-wrap");
+  if (trackWrap) {
+    trackWrap.style.opacity = (state.showFieldBackground !== false) ? "1.0" : "0.45";
+  }
+}
+
+function selectFieldBackground(id) {
+  state.activeFieldBackgroundId = id;
+  state.showFieldBackground = true;
+
+  if (state.caseMode) {
+    const ac = getActiveCase();
+    if (ac) {
+      ac.fieldBackground = id;
+      if (!ac.layers) ac.layers = {};
+      ac.layers.geotiff = true;
+    }
+  }
+
+  updateFieldTimelineDots();
+
+  if (id !== "dron") {
+    loadHistoricalRasterIfNeeded(id, () => {
+      drawViewportTrue();
+    });
+  } else {
+    drawViewportTrue();
+  }
+
+  const items = getFieldTimelineItems();
+  const found = items.find(i => i.id === id);
+  const name = found ? `${found.label} (${found.source})` : id;
+  statusBar.textContent = `🗺️ Fondo del mapa de campo: ${name}`;
+}
+
+function toggleFieldBackgroundVisibility() {
+  state.showFieldBackground = (state.showFieldBackground === false);
+  if (state.caseMode) {
+    const ac = getActiveCase();
+    if (ac) {
+      if (!ac.layers) ac.layers = {};
+      ac.layers.geotiff = state.showFieldBackground;
+    }
+  }
+  updateFieldTimelineDots();
+  drawViewportTrue();
+  statusBar.textContent = state.showFieldBackground ? "👁️ Fondo de campo visible" : "🚫 Fondo de campo oculto";
+}
+
+function loadHistoricalRasterIfNeeded(id, callback) {
+  if (id === "dron") {
+    if (callback) callback();
+    return;
+  }
+  const item = (state.historicalCatalog || []).find(c => c.id === id) || DEFAULT_HISTORICAL_CATALOG.find(c => c.id === id);
+  if (!item) {
+    if (callback) callback();
+    return;
+  }
+  if (state.historicalImages[id] && state.historicalImages[id].loaded) {
+    if (callback) callback();
+    return;
+  }
+  if (!state.historicalImages[id]) {
+    state.historicalImages[id] = { loaded: false, meta: item };
+  }
+  const img = new Image();
+  img.src = item.file;
+  img.onload = () => {
+    state.historicalImages[id].img = img;
+    state.historicalImages[id].loaded = true;
+    if (callback) callback();
+  };
+  img.onerror = (e) => {
+    console.warn("Failed to load historical image " + item.file, e);
+    if (callback) callback();
+  };
+}
+
+function drawFieldBackground(ctx, vp, canvasH, selectedPolyIds, bw) {
+  if (state.showFieldBackground === false) return;
+  const bgId = (state.caseMode && getActiveCase()?.fieldBackground)
+    ? getActiveCase().fieldBackground
+    : (state.activeFieldBackgroundId || "dron");
+
+  if (bgId === "dron") {
+    if (!state.geoTiff || !state.geoTiff.offscreen || !state.geoTiff.bbox) return;
+    if (state.caseMode) {
+      drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vp, canvasH, selectedPolyIds, bw);
+    } else {
+      const tiff = state.geoTiff;
+      const tl = worldToScreenGIS({ x: tiff.bbox.minX, y: tiff.bbox.maxY }, vp, canvasH);
+      const br = worldToScreenGIS({ x: tiff.bbox.maxX, y: tiff.bbox.minY }, vp, canvasH);
+      const sw = br.x - tl.x, sh = br.y - tl.y;
+      if (sw <= 0 || sh <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = 0.7;
+      ctx.drawImage(tiff.offscreen, tl.x, tl.y, sw, sh);
+      ctx.restore();
+    }
+    return;
+  }
+
+  // Historical satellite raster as field background
+  const raster = state.historicalImages[bgId];
+  if (!raster || !raster.loaded || !raster.img) {
+    loadHistoricalRasterIfNeeded(bgId, () => {
+      drawViewportTrue();
+    });
+    return;
+  }
+
+  const meta = raster.meta;
+  if (!meta || meta.minX === undefined) return;
+  const tl = worldToScreenGIS({ x: meta.minX, y: meta.maxY }, vp, canvasH);
+  const br = worldToScreenGIS({ x: meta.maxX, y: meta.minY }, vp, canvasH);
+  const sw = br.x - tl.x, sh = br.y - tl.y;
+  if (sw <= 0 || sh <= 0) return;
+
+  if (state.caseMode && bw !== false) {
+    // Spotlight B&W mode for historical satellite
+    ctx.save();
+    ctx.filter = "grayscale(100%) brightness(0.88) contrast(1.05)";
+    ctx.globalAlpha = 0.7;
+    ctx.drawImage(raster.img, tl.x, tl.y, sw, sh);
+    ctx.restore();
+
+    const polys = state.measurePolygons.filter(p => p.visible !== false);
+    if (polys.length > 0) {
+      ctx.save();
+      ctx.beginPath();
+      polys.forEach(poly => {
+        if (!poly.points || poly.points.length < 2) return;
+        const first = worldToScreenGIS(poly.points[0], vp, canvasH);
+        ctx.moveTo(first.x, first.y);
+        for (let i = 1; i < poly.points.length; i++) {
+          const p = worldToScreenGIS(poly.points[i], vp, canvasH);
+          ctx.lineTo(p.x, p.y);
+        }
+        ctx.closePath();
+      });
+      ctx.clip();
+      ctx.filter = "none";
+      ctx.globalAlpha = 0.85;
+      ctx.drawImage(raster.img, tl.x, tl.y, sw, sh);
+      ctx.restore();
+    }
+  } else {
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.drawImage(raster.img, tl.x, tl.y, sw, sh);
+    ctx.restore();
+  }
+}
+
+function drawFieldBackgroundForExport(ctx, vpExp, EXP_H, scaleFactor, ac) {
+  if (ac.layers && ac.layers.geotiff === false) return;
+  const bgId = ac.fieldBackground || "dron";
+
+  if (bgId === "dron") {
+    if (state.geoTiff) {
+      drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds, ac.geotiffBW !== false);
+    }
+    return;
+  }
+
+  const raster = state.historicalImages[bgId];
+  if (!raster || !raster.loaded || !raster.img) return;
+
+  const meta = raster.meta;
+  const tl = worldToScreenGIS({ x: meta.minX, y: meta.maxY }, vpExp, EXP_H);
+  const br = worldToScreenGIS({ x: meta.maxX, y: meta.minY }, vpExp, EXP_H);
+  const sw = br.x - tl.x, sh = br.y - tl.y;
+  if (sw <= 0 || sh <= 0) return;
+
+  if (ac.geotiffBW !== false) {
+    ctx.save();
+    ctx.filter = "grayscale(100%) brightness(0.88) contrast(1.05)";
+    ctx.globalAlpha = 0.7;
+    ctx.drawImage(raster.img, tl.x, tl.y, sw, sh);
+    ctx.restore();
+
+    const polys = state.measurePolygons.filter(p => p.visible !== false);
+    if (polys.length > 0) {
+      ctx.save();
+      ctx.beginPath();
+      polys.forEach(poly => {
+        if (!poly.points || poly.points.length < 2) return;
+        const first = worldToScreenGIS(poly.points[0], vpExp, EXP_H);
+        ctx.moveTo(first.x, first.y);
+        for (let i = 1; i < poly.points.length; i++) {
+          const p = worldToScreenGIS(poly.points[i], vpExp, EXP_H);
+          ctx.lineTo(p.x, p.y);
+        }
+        ctx.closePath();
+      });
+      ctx.clip();
+      ctx.filter = "none";
+      ctx.globalAlpha = 0.85;
+      ctx.drawImage(raster.img, tl.x, tl.y, sw, sh);
+      ctx.restore();
+    }
+  } else {
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.drawImage(raster.img, tl.x, tl.y, sw, sh);
+    ctx.restore();
+  }
+}
+
 async function autoLoadHistoricalCatalog() {
   try {
     const res = await fetch("historical_catalog.json?_t=" + Date.now(), { cache: "no-store" });
     if (res.ok) {
       state.historicalCatalog = await res.json();
-      buildHistoricalTimelineUI();
-      if (state.historicalCatalog.length > 0) {
-        selectHistoricalRaster(state.activeHistoricalId || state.historicalCatalog[0].id);
-      }
     }
   } catch (err) {
     console.warn("historical_catalog.json auto-load skipped or error:", err);
+  }
+  buildHistoricalTimelineUI();
+  buildFieldTimelineUI();
+  if (state.historicalCatalog.length > 0) {
+    selectHistoricalRaster(state.activeHistoricalId || state.historicalCatalog[0].id);
   }
 }
 
@@ -6963,10 +7365,10 @@ function drawViewportTrue() {
     const ac = getActiveCase();
     const showGeo = ac ? (ac.layers?.geotiff !== false) : true;
     if (showGeo) {
-      drawGeoTiffWithCaseSpotlight(ctxTrue, state.geoTiff, vp, h, ac ? ac.selectedPolyIds : [], ac ? (ac.geotiffBW !== false) : true);
+      drawFieldBackground(ctxTrue, vp, h, ac ? ac.selectedPolyIds : [], ac ? (ac.geotiffBW !== false) : true);
     }
   } else {
-    drawGeoTiff(ctxTrue, state.geoTiff, vp, h);
+    drawFieldBackground(ctxTrue, vp, h, [], false);
   }
 
   // Draw layers in user-configured stack order
@@ -14676,6 +15078,7 @@ function captureCaseSnapshot(name, id = Date.now()) {
     layers,
     dxfOpacity: Object.assign({}, state.dxfOpacity),
     geotiffBW: document.getElementById("case-geotiff-bw") ? document.getElementById("case-geotiff-bw").checked : true,
+    fieldBackground: state.activeFieldBackgroundId || "dron",
     historical: {
       show: state.showHistoricalWindow === true,
       activeId: state.activeHistoricalId || "esri_2017_06_14"
@@ -14708,6 +15111,9 @@ function applyActiveCase(caseObj) {
     buildCaseArrowsList();
     const selectors = [document.getElementById("case-selector"), document.getElementById("case-selector-side")].filter(Boolean);
     selectors.forEach(sel => { sel.value = ""; });
+    state.activeFieldBackgroundId = "dron";
+    state.showFieldBackground = true;
+    updateFieldTimelineDots();
     updateCaseBadge();
     drawViewportTrue();
     return;
@@ -14757,6 +15163,11 @@ function applyActiveCase(caseObj) {
   // 2. Spotlight B&W mode
   const chkBW = document.getElementById("case-geotiff-bw");
   if (chkBW) chkBW.checked = caseObj.geotiffBW !== false;
+
+  // 2b. Field Canvas Background Image & Visibility
+  state.activeFieldBackgroundId = caseObj.fieldBackground || "dron";
+  state.showFieldBackground = caseObj.layers ? (caseObj.layers.geotiff !== false) : true;
+  updateFieldTimelineDots();
 
   // 3. Layer Styles & Sub-tramos
   if (caseObj.layerStyles) {
@@ -15894,8 +16305,8 @@ async function exportCaseImageHD() {
       ctx.rect(rightOffset, 0, panelW_true, EXP_H);
       ctx.clip();
       const showGeo = ac.layers ? (ac.layers.geotiff !== false) : true;
-      if (showGeo && state.geoTiff) {
-        drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpRight, EXP_H, ac.selectedPolyIds, ac.geotiffBW !== false);
+      if (showGeo) {
+        drawFieldBackgroundForExport(ctx, vpRight, EXP_H, scaleFactor, ac);
       }
       order.forEach(key => drawLayerByKeyExport(key, ctx, vpRight, EXP_H, scaleFactor, ac));
       if (!order.includes("dxf_296") && state.showReconstructedPolygon !== false) {
@@ -15912,7 +16323,12 @@ async function exportCaseImageHD() {
       }
 
       // Right Panel Title Badge (Ultra-crisp 4K badge)
-      const rightTitle = "🚁 ESTADO ACTUAL: SEPTIEMBRE 2026 (DRON)";
+      const rBgId = ac.fieldBackground || "dron";
+      let rightTitle = "🚁 ESTADO ACTUAL: SEPTIEMBRE 2026 (DRON)";
+      if (rBgId !== "dron") {
+        const item = (state.historicalCatalog || []).find(c => c.id === rBgId);
+        rightTitle = `🛰️ SATÉLITE: ${(item ? item.label : rBgId).toUpperCase()}`;
+      }
       ctx.font = `bold ${Math.round(15 * scaleFactor)}px system-ui, -apple-system, sans-serif`;
       const rtw = ctx.measureText(rightTitle).width;
       const rbW = rtw + padX * 2;
@@ -15954,8 +16370,8 @@ async function exportCaseImageHD() {
       ctx.clip();
 
       const showGeo = ac.layers ? (ac.layers.geotiff !== false) : true;
-      if (showGeo && state.geoTiff) {
-        drawGeoTiffWithCaseSpotlight(ctx, state.geoTiff, vpExp, EXP_H, ac.selectedPolyIds, ac.geotiffBW !== false);
+      if (showGeo) {
+        drawFieldBackgroundForExport(ctx, vpExp, EXP_H, scaleFactor, ac);
       }
 
       order.forEach(key => drawLayerByKeyExport(key, ctx, vpExp, EXP_H, scaleFactor, ac));
@@ -15975,7 +16391,12 @@ async function exportCaseImageHD() {
       }
 
       // Single Panel Title Badge (Ultra-crisp 4K badge)
-      const singleTitle = "🚁 ESTADO ACTUAL: SEPTIEMBRE 2026 (DRON)";
+      const sBgId = ac.fieldBackground || "dron";
+      let singleTitle = "🚁 ESTADO ACTUAL: SEPTIEMBRE 2026 (DRON)";
+      if (sBgId !== "dron") {
+        const item = (state.historicalCatalog || []).find(c => c.id === sBgId);
+        singleTitle = `🛰️ SATÉLITE HISTÓRICO: ${(item ? item.label : sBgId).toUpperCase()}`;
+      }
       ctx.font = `bold ${Math.round(15 * scaleFactor)}px system-ui, -apple-system, sans-serif`;
       const stw = ctx.measureText(singleTitle).width;
       const padX = Math.round(16 * scaleFactor);
@@ -16223,6 +16644,11 @@ function setupCasesPanel() {
   });
   const btnDelLbl = document.getElementById("btn-lbl-delete");
   if (btnDelLbl) btnDelLbl.addEventListener("click", deleteSelectedLabel);
+
+  const btnToggleFieldBg = document.getElementById("btn-toggle-field-bg");
+  if (btnToggleFieldBg) {
+    btnToggleFieldBg.addEventListener("click", toggleFieldBackgroundVisibility);
+  }
 
   // B&W toggle — live sync to active case
   const chkBWEl = document.getElementById("case-geotiff-bw");

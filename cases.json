@@ -906,7 +906,8 @@
       "measure_polygons",
       "dxf_196",
       "dxf_296"
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1790108986467,
@@ -1789,7 +1790,8 @@
       "dxf_survey_cortez_oct_2026",
       "dxf_anchors",
       "measure_polygons"
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1790109535093,
@@ -2709,7 +2711,8 @@
       "dxf_survey_cortez_oct_2026",
       "dxf_anchors",
       "measure_polygons"
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1790109670764,
@@ -3592,7 +3595,8 @@
       "dxf_survey_cortez_oct_2026",
       "dxf_anchors",
       "measure_polygons"
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1790109720966,
@@ -4475,7 +4479,8 @@
       "dxf_survey_cortez_oct_2026",
       "dxf_anchors",
       "measure_polygons"
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1790109814597,
@@ -5321,7 +5326,8 @@
       "dxf_survey_cortez_oct_2026",
       "dxf_anchors",
       "measure_polygons"
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1790119624390,
@@ -6213,7 +6219,8 @@
       "dxf_survey_cortez_oct_2026",
       "dxf_anchors",
       "measure_polygons"
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1790121523766,
@@ -7149,7 +7156,8 @@
     "historical": {
       "show": false,
       "activeId": "esri_2017_06_14"
-    }
+    },
+    "fieldBackground": "dron"
   },
   {
     "id": 1791601280976,
@@ -8029,7 +8037,8 @@
         "pinTailLabelId": null,
         "pinHeadLabelId": "lbl_1791601994793"
       }
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1791781003083,
@@ -8837,7 +8846,8 @@
         "pinTailLabelId": "lbl_1791781391724",
         "pinHeadLabelId": null
       }
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1791782558317,
@@ -9824,7 +9834,8 @@
       "dxf_survey_cortez_oct_2026",
       "dxf_anchors",
       "measure_polygons"
-    ]
+    ],
+    "fieldBackground": "dron"
   },
   {
     "id": 1791783393202,
@@ -10592,7 +10603,8 @@
     },
     "geotiffBW": false,
     "labels": [],
-    "arrows": []
+    "arrows": [],
+    "fieldBackground": "dron"
   },
   {
     "id": 1792093952625,
@@ -11372,7 +11384,8 @@
     },
     "geotiffBW": false,
     "labels": [],
-    "arrows": []
+    "arrows": [],
+    "fieldBackground": "dron"
   },
   {
     "id": 1792000000000,
@@ -12230,7 +12243,8 @@
     "historical": {
       "show": true,
       "activeId": "esri_2017_06_14"
-    }
+    },
+    "fieldBackground": "dron"
   },
   {
     "id": 1792100000000,
@@ -12501,6 +12515,7 @@
         "padding": 6
       }
     ],
-    "arrows": []
+    "arrows": [],
+    "fieldBackground": "dron"
   }
 ]
