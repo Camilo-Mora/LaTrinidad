@@ -282,7 +282,7 @@
     "labels": [
       {
         "id": "lbl_1790055358584",
-        "text": "[size=35]Plano Lote #5[/size]\nAprobado en Curaduria 2013\nArea reportada en documento:[size=35]10,604m\u00b2[/size]\nFMI 378-185657; Escritura 196 de 2014.\n[size=15]Area invadida: $196InTrinidad$m2[/size]",
+        "text": "[size=35]Plano Lote #5[/size]\nAprobado en Curaduria 2013\nArea reportada en documento:[size=35]10,604m²[/size]\nFMI 378-185657; Escritura 196 de 2014.\n[size=15]Area invadida: $196InTrinidad$m2[/size]",
         "worldX": 4644636.735954374,
         "worldY": 1943434.638736719,
         "fontSize": 20,
@@ -310,7 +310,7 @@
       },
       {
         "id": "lbl_1790055426610",
-        "text": "[size=35]Plano original Lote #5[/size]\nEscritura 1073 de 1973\nArea reportada en documento:[size=35]10,604m\u00b2[/size]\nFMI 378-185657",
+        "text": "[size=35]Plano original Lote #5[/size]\nEscritura 1073 de 1973\nArea reportada en documento:[size=35]10,604m²[/size]\nFMI 378-185657",
         "worldX": 4644944.024715646,
         "worldY": 1943174.301652202,
         "fontSize": 20,
@@ -2091,7 +2091,7 @@
     "labels": [
       {
         "id": "lbl_-891520115",
-        "text": "[size=25]Lote Jimmy Ruiz[/size]\n[size=15]Area reportada en documento: [/size]2,413 m\u00b2\n[size=15]Area invadida: $JimmyInvasion$m\u00b2[/size]\nEscritura 373 de 2014; FMI 378-185655 ",
+        "text": "[size=25]Lote Jimmy Ruiz[/size]\n[size=15]Area reportada en documento: [/size]2,413 m²\n[size=15]Area invadida: $JimmyInvasion$m²[/size]\nEscritura 373 de 2014; FMI 378-185655 ",
         "worldX": 4644716.79320744,
         "worldY": 1943404.5759550699,
         "fontSize": 20,
@@ -2113,7 +2113,7 @@
       },
       {
         "id": "lbl_-891041296",
-        "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657.\n[size=15]Area reportada en documento: [/size]10,604m\u00b2",
+        "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657.\n[size=15]Area reportada en documento: [/size]10,604m²",
         "worldX": 4644955.1940905545,
         "worldY": 1943203.249445785,
         "fontSize": 20,
@@ -2995,7 +2995,7 @@
     "labels": [
       {
         "id": "lbl_-891177485",
-        "text": "[size=25]Lote Pedro Ruiz[/size]\n[size=15]Area reportada en documento: [/size]2,142 m\u00b2\n[size=15]Area invadida: $PedroInvasion$m\u00b2[/size]\nEscritura 623 de 2014; FMI 378-185656.",
+        "text": "[size=25]Lote Pedro Ruiz[/size]\n[size=15]Area reportada en documento: [/size]2,142 m²\n[size=15]Area invadida: $PedroInvasion$m²[/size]\nEscritura 623 de 2014; FMI 378-185656.",
         "worldX": 4644681.184622738,
         "worldY": 1943365.5645543092,
         "fontSize": 20,
@@ -3017,7 +3017,7 @@
       },
       {
         "id": "lbl_-891677727",
-        "text": "Plano original Lote #5\n[size=15]Area reportada en documento: [/size]10,604m\u00b2\nEscritura 1073 de 1973; FMI 378-185657.",
+        "text": "Plano original Lote #5\n[size=15]Area reportada en documento: [/size]10,604m²\nEscritura 1073 de 1973; FMI 378-185657.",
         "worldX": 4644910.604417801,
         "worldY": 1943171.90380657,
         "fontSize": 20,
@@ -3879,7 +3879,7 @@
     "labels": [
       {
         "id": "lbl_-890853196",
-        "text": "[size=30]Lote Nacho Ruiz[/size]\n[size=10]Area reportada en documento: [/size]5,572 m\u00b2\n[size=15]Area invadida: $NachoInvasion196$m2[/size]\nEscritura 196 de 2014; FMI 378-185657",
+        "text": "[size=30]Lote Nacho Ruiz[/size]\n[size=10]Area reportada en documento: [/size]5,572 m²\n[size=15]Area invadida: $NachoInvasion196$m2[/size]\nEscritura 196 de 2014; FMI 378-185657",
         "worldX": 4644992.046084085,
         "worldY": 1943441.6716367714,
         "fontSize": 20,
@@ -3901,7 +3901,7 @@
       },
       {
         "id": "lbl_-891057664",
-        "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657\n[size=15]Area reportada en documento: [/size]10,604m\u00b2",
+        "text": "Plano original Lote #5\nEscritura 1073 de 1973; FMI 378-185657\n[size=15]Area reportada en documento: [/size]10,604m²",
         "worldX": 4644983.776726905,
         "worldY": 1943221.811400673,
         "fontSize": 20,
@@ -6542,7 +6542,7 @@
       },
       {
         "id": "lbl_-879210777",
-        "text": "Restitucion sugerida\n[size=14]Area: $Restitucion$m\u00b2[/size]",
+        "text": "Restitucion sugerida\n[size=14]Area: $Restitucion$m²[/size]",
         "worldX": 4644860.357050472,
         "worldY": 1943556.0533627456,
         "fontSize": 20,
@@ -7893,7 +7893,7 @@
     "labels": [
       {
         "id": "lbl_1791601290272",
-        "text": "[size=30]Lote #5[/size]\nPlano pasado a Curaduria 2013\nArea reportada en documento:[size=35]10,604m\u00b2[/size]\nFMI 378-185657",
+        "text": "[size=30]Lote #5[/size]\nPlano pasado a Curaduria 2013\nArea reportada en documento:[size=35]10,604m²[/size]\nFMI 378-185657",
         "worldX": 4644499.942715951,
         "worldY": 1943622.8409708713,
         "fontSize": 14,
@@ -7915,7 +7915,7 @@
       },
       {
         "id": "lbl_1791601520172",
-        "text": "[size=30]Lote #5[/size]\nPlano Original escritura 1073 de 1973\nArea reportada en documento:[size=35]10,604m\u00b2[/size]\nFMI 378-185657",
+        "text": "[size=30]Lote #5[/size]\nPlano Original escritura 1073 de 1973\nArea reportada en documento:[size=35]10,604m²[/size]\nFMI 378-185657",
         "worldX": 4644950.575971915,
         "worldY": 1943172.2008842388,
         "fontSize": 14,
@@ -11389,7 +11389,7 @@
   },
   {
     "id": 1792000000000,
-    "name": "Comparativa 2017 vs 2026 (Vegetaci\u00f3n)",
+    "name": "Comparativa 2017 vs 2026 (Vegetación)",
     "selectedPolyIds": [],
     "polyStyles": {
       "1": {
@@ -13246,7 +13246,7 @@
       },
       {
         "id": 21,
-        "name": "IGAC: 1073 Lote 8",
+        "name": "Chicharronal",
         "visible": true,
         "showArea": true,
         "showNodes": false,
@@ -13863,7 +13863,7 @@
       },
       {
         "id": 21,
-        "name": "IGAC: 1073 Lote 8",
+        "name": "Chicharronal",
         "visible": false,
         "showArea": false,
         "showNodes": false,
@@ -15492,7 +15492,7 @@
       },
       {
         "id": 21,
-        "name": "IGAC: 1073 Lote 8",
+        "name": "Chicharronal",
         "visible": true,
         "showArea": false,
         "showNodes": false,
@@ -16615,7 +16615,7 @@
       },
       {
         "id": 21,
-        "name": "IGAC: 1073 Lote 8",
+        "name": "Chicharronal",
         "visible": false,
         "showArea": false,
         "showNodes": false,
@@ -17828,7 +17828,7 @@
       },
       {
         "id": 21,
-        "name": "IGAC: 1073 Lote 8",
+        "name": "Chicharronal",
         "visible": false,
         "showArea": false,
         "showNodes": false,
@@ -17848,7 +17848,7 @@
       },
       {
         "id": 22,
-        "name": "IGAC: 1073 Lote 5",
+        "name": "IGAC: Lote 5 (50389)",
         "visible": true,
         "showArea": false,
         "showNodes": false,
@@ -18490,6 +18490,12 @@
           "y": 656.9402622401249,
           "w": 303.29998779296875,
           "h": 86
+        },
+        "_boxExport": {
+          "x": 2317.299364089871,
+          "y": 1691.9098005973717,
+          "w": 962.1110128836742,
+          "h": 273.629655314445
         }
       }
     ],
@@ -18913,7 +18919,7 @@
       },
       {
         "id": 21,
-        "name": "IGAC: 1073 Lote 8",
+        "name": "Chicharronal",
         "visible": false,
         "showArea": false,
         "showNodes": false,
@@ -18933,7 +18939,7 @@
       },
       {
         "id": 22,
-        "name": "IGAC: 1073 Lote 5",
+        "name": "IGAC: Lote 5 (50389)",
         "visible": false,
         "showArea": false,
         "showNodes": false,
