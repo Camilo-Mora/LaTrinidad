@@ -295,7 +295,7 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 214.80366925895214,
+          "x": 399.80366925895214,
           "y": 74.46630641724914,
           "w": 451.23333740234375,
           "h": 173
@@ -323,7 +323,7 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 839.3540857154876,
+          "x": 1024.3540857154876,
           "y": 603.7423709169962,
           "w": 449.23333740234375,
           "h": 146
@@ -351,7 +351,7 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 409.18011004291475,
+          "x": 594.1801100429147,
           "y": 432.42763170879334,
           "w": 113.53333282470703,
           "h": 31
@@ -380,7 +380,7 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 435.0605415441096,
+          "x": 620.0605415441096,
           "y": 576.5318284472451,
           "w": 125.03333282470703,
           "h": 31
@@ -14975,7 +14975,7 @@
         "borderWidth": 1.5,
         "padding": 6,
         "_box": {
-          "x": 332.33543958701193,
+          "x": 517.3354395870119,
           "y": 157.2509792543715,
           "w": 383,
           "h": 104
@@ -15003,7 +15003,7 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 974.5570263387635,
+          "x": 1159.5570263387635,
           "y": 185.2772774695186,
           "w": 303.29998779296875,
           "h": 50
@@ -15031,7 +15031,7 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 879.5000000004657,
+          "x": 1064.5000000004657,
           "y": 221,
           "w": 57.63333511352539,
           "h": 32
@@ -17206,6 +17206,40 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      "23": {
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": true,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "24": {
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": true,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
@@ -17255,23 +17289,23 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 203.7493703449145,
-          "y": 374.74273842480034,
+          "x": 58.47054062690586,
+          "y": 403.5433774997946,
           "w": 303.29998779296875,
           "h": 86
         },
         "_boxExport": {
-          "x": 146.79767484394654,
-          "y": 1037.5425931978023,
-          "w": 962.1110128836742,
-          "h": 273.629655314445
+          "x": 500.9521786989532,
+          "y": 831.8281580172367,
+          "w": 735.0673209410385,
+          "h": 208.65655003847755
         }
       },
       {
         "id": "lbl_1792532447853",
         "text": "Lote #5\nDeberia estar localizado aqui,\npero el IGAC reporta una area vacia en tal zona",
-        "worldX": 4644352.518845806,
-        "worldY": 1943168.465105136,
+        "worldX": 4644318.68989787,
+        "worldY": 1943171.9646514743,
         "fontSize": 14,
         "bold": true,
         "italic": false,
@@ -17283,16 +17317,16 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 288.63110250001773,
-          "y": 550.5637550000101,
+          "x": 127.03575000120327,
+          "y": 602.6365000000224,
           "w": 327.9666748046875,
           "h": 68
         },
         "_boxExport": {
-          "x": 398.7481819036399,
-          "y": 1559.423958632069,
-          "w": 1040.9443869071117,
-          "h": 216.3583321090961
+          "x": 642.7348410561568,
+          "y": 1243.5231447704025,
+          "w": 795.1673575621322,
+          "h": 164.9842488676334
         }
       },
       {
@@ -17311,16 +17345,16 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 1010.765250000637,
-          "y": 338.252000000095,
+          "x": 986.0750000011176,
+          "y": 361.60000000009313,
           "w": 303.29998779296875,
           "h": 50
         },
         "_boxExport": {
-          "x": 2542.225465023795,
-          "y": 929.2288274959643,
-          "w": 962.1110128836742,
-          "h": 159.08700890374712
+          "x": 2419.100333786558,
+          "y": 745.0954872583858,
+          "w": 735.0673209410385,
+          "h": 121.31194769678928
         }
       },
       {
@@ -17339,16 +17373,16 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 1053.7649999996647,
-          "y": 415.15999999968335,
+          "x": 1035.5,
+          "y": 449.99999999976717,
           "w": 49.83333206176758,
           "h": 32
         },
         "_boxExport": {
-          "x": 2669.8596277664396,
-          "y": 1157.5112753770297,
-          "w": 158.31103272009997,
-          "h": 101.81568569839816
+          "x": 2521.303887903679,
+          "y": 927.8935486469305,
+          "w": 120.90067970568694,
+          "h": 77.63964652594512
         }
       }
     ],
@@ -17370,8 +17404,8 @@
       {
         "id": "arr_1792532503294",
         "name": "Arrow 2",
-        "startX": 4644478.910072117,
-        "startY": 1943124.788933652,
+        "startX": 4644445.081124181,
+        "startY": 1943128.2884799903,
         "endX": 4644825.4797561485,
         "endY": 1943137.5676939243,
         "color": "#ff00ff",
@@ -17386,8 +17420,8 @@
         "name": "Arrow 3",
         "startX": 4644496.886075142,
         "startY": 1943319.3992887812,
-        "endX": 4644450.210570627,
-        "endY": 1943159.6218349484,
+        "endX": 4644416.381622691,
+        "endY": 1943163.1213812868,
         "color": "#ff00ff",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -17827,26 +17861,6 @@
         "gradReverseColors": false
       },
       {
-        "id": 21,
-        "name": "IGAC: 1073 Lote 8",
-        "visible": false,
-        "showArea": false,
-        "showNodes": false,
-        "color": "#ff6d00",
-        "fillColor": "#ff6d00",
-        "fillOpacity": 0.18,
-        "lineWidth": 2.5,
-        "lineType": "solid",
-        "lineOpacity": 1,
-        "gradBuffer": false,
-        "gradDist": 50,
-        "gradSide": 1,
-        "gradScale": "viridis",
-        "gradStartOpacity": 0.6,
-        "gradEndOpacity": 0.05,
-        "gradReverseColors": false
-      },
-      {
         "id": 22,
         "name": "IGAC: 1073 Lote 5",
         "visible": true,
@@ -17861,6 +17875,66 @@
         "gradBuffer": false,
         "gradDist": 50,
         "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 23,
+        "name": "IGAC: 1073 Lote 6",
+        "visible": false,
+        "showArea": true,
+        "showNodes": false,
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 24,
+        "name": "IGAC: 1073 Lote 7",
+        "visible": false,
+        "showArea": true,
+        "showNodes": false,
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 21,
+        "name": "IGAC: 1073 Lote 8",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
         "gradScale": "viridis",
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
