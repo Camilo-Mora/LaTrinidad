@@ -13246,7 +13246,7 @@
       },
       {
         "id": 21,
-        "name": "Chicharronal",
+        "name": "IGAC: 1073 Lote 8",
         "visible": true,
         "showArea": true,
         "showNodes": false,
@@ -13863,7 +13863,7 @@
       },
       {
         "id": 21,
-        "name": "Chicharronal",
+        "name": "IGAC: 1073 Lote 8",
         "visible": false,
         "showArea": false,
         "showNodes": false,
@@ -15492,7 +15492,7 @@
       },
       {
         "id": 21,
-        "name": "Chicharronal",
+        "name": "IGAC: 1073 Lote 8",
         "visible": true,
         "showArea": false,
         "showNodes": false,
@@ -16615,7 +16615,7 @@
       },
       {
         "id": 21,
-        "name": "Chicharronal",
+        "name": "IGAC: 1073 Lote 8",
         "visible": false,
         "showArea": false,
         "showNodes": false,
@@ -17828,7 +17828,7 @@
       },
       {
         "id": 21,
-        "name": "Chicharronal",
+        "name": "IGAC: 1073 Lote 8",
         "visible": false,
         "showArea": false,
         "showNodes": false,
@@ -17848,7 +17848,7 @@
       },
       {
         "id": 22,
-        "name": "IGAC: Lote 5 (50389)",
+        "name": "IGAC: 1073 Lote 5",
         "visible": true,
         "showArea": false,
         "showNodes": false,
@@ -18061,7 +18061,11 @@
     "name": "Caso4 Lo de terrrreno",
     "selectedPolyIds": [
       16,
-      20
+      20,
+      22,
+      23,
+      24,
+      21
     ],
     "polyStyles": {
       "1": {
@@ -18437,23 +18441,57 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      "23": {
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "24": {
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
-      "scale": 0.9927654355353263,
-      "offsetX": -4610532.979920786,
-      "offsetY": -1928975.938578145,
+      "scale": 0.3760262471296207,
+      "offsetX": -1745943.544810189,
+      "offsetY": -730608.4664118257,
       "canvasW": 1487,
       "canvasH": 842,
       "centerWorld": {
-        "x": 4644880.1649044715,
-        "y": 1943457.0035546832
+        "x": 4645120.009955277,
+        "y": 1944091.594648262
       }
     },
     "layers": {
       "reconstructed": true,
       "dxf296": true,
-      "dxf1073": false,
+      "dxf1073": true,
       "dxf196": false,
       "dxfTrue": false,
       "surveyValoy2025": false,
@@ -18486,16 +18524,128 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 898.9747103946283,
-          "y": 656.9402622401249,
+          "x": 707.8519361400977,
+          "y": 744.6405298891477,
           "w": 303.29998779296875,
           "h": 86
         },
         "_boxExport": {
-          "x": 2317.299364089871,
-          "y": 1691.9098005973717,
+          "x": 1823.7476134932583,
+          "y": 1918.3852732080484,
           "w": 962.1110128836742,
           "h": 273.629655314445
+        }
+      },
+      {
+        "id": "lbl_1792544668227",
+        "text": "Lote #5",
+        "worldX": 4645748.977709832,
+        "worldY": 1943571.6214857157,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 973.0083843108732,
+          "y": 609.5235569203505,
+          "w": 63.099998474121094,
+          "h": 32
+        },
+        "_boxExport": {
+          "x": 2508.482489737587,
+          "y": 1569.46181913968,
+          "w": 200.27769989539294,
+          "h": 101.81568569839816
+        }
+      },
+      {
+        "id": "lbl_1792544700382",
+        "text": "Lote #6",
+        "worldX": 4645283.628852813,
+        "worldY": 1945040.3316120333,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 798.0249999999069,
+          "y": 57.249999999883585,
+          "w": 63.099998474121094,
+          "h": 32
+        },
+        "_boxExport": {
+          "x": 2056.6087871453706,
+          "y": 143.2812821023614,
+          "w": 200.27769989539294,
+          "h": 101.81568569839816
+        }
+      },
+      {
+        "id": "lbl_1792544724697",
+        "text": "Lote #7",
+        "worldX": 4645803.539368348,
+        "worldY": 1943869.0038035035,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 993.5249999999069,
+          "y": 497.69999999995343,
+          "w": 63.099998474121094,
+          "h": 32
+        },
+        "_boxExport": {
+          "x": 2561.4642007303405,
+          "y": 1280.6908315307444,
+          "w": 200.27769989539294,
+          "h": 101.81568569839816
+        }
+      },
+      {
+        "id": "lbl_1792544735404",
+        "text": "Lote #8",
+        "worldX": 4645788.247882596,
+        "worldY": 1944153.4254384728,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 987.774999999674,
+          "y": 390.75,
+          "w": 63.099998474121094,
+          "h": 32
+        },
+        "_boxExport": {
+          "x": 2546.6155120943654,
+          "y": 1004.5052229227946,
+          "w": 200.27769989539294,
+          "h": 101.81568569839816
         }
       }
     ],
@@ -18918,29 +19068,9 @@
         "gradReverseColors": false
       },
       {
-        "id": 21,
-        "name": "Chicharronal",
-        "visible": false,
-        "showArea": false,
-        "showNodes": false,
-        "color": "#ff6d00",
-        "fillColor": "#ff6d00",
-        "fillOpacity": 0.18,
-        "lineWidth": 2.5,
-        "lineType": "solid",
-        "lineOpacity": 1,
-        "gradBuffer": false,
-        "gradDist": 50,
-        "gradSide": 1,
-        "gradScale": "viridis",
-        "gradStartOpacity": 0.6,
-        "gradEndOpacity": 0.05,
-        "gradReverseColors": false
-      },
-      {
         "id": 22,
-        "name": "IGAC: Lote 5 (50389)",
-        "visible": false,
+        "name": "IGAC: 1073 Lote 5",
+        "visible": true,
         "showArea": false,
         "showNodes": false,
         "color": "#ff4081",
@@ -18956,6 +19086,66 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      {
+        "id": 23,
+        "name": "IGAC: 1073 Lote 6",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 24,
+        "name": "IGAC: 1073 Lote 7",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 21,
+        "name": "IGAC: 1073 Lote 8",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -18965,7 +19155,7 @@
         "nodes": false
       },
       "dxf_1073": {
-        "show": false,
+        "show": true,
         "area": false,
         "nodes": false,
         "showPdf": false,
@@ -19024,10 +19214,10 @@
         "name": "Lindero La Trinidad (E. 296)",
         "color": "#00e5ff",
         "fillColor": "#00e5ff",
-        "fillOpacity": 0.08,
-        "lineWidth": 8,
+        "fillOpacity": 0.06,
+        "lineWidth": 3,
         "lineType": "solid",
-        "lineOpacity": 0.43,
+        "lineOpacity": 1,
         "showNodes": false,
         "showArea": false,
         "visible": true
