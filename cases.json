@@ -16828,7 +16828,9 @@
     "name": "Lo1",
     "selectedPolyIds": [
       3,
-      19
+      16,
+      19,
+      22
     ],
     "polyStyles": {
       "1": {
@@ -17089,10 +17091,10 @@
       "16": {
         "color": "#ff9100",
         "fillColor": "#ff9100",
-        "fillOpacity": 0.08,
-        "lineWidth": 2.5,
+        "fillOpacity": 0.2,
+        "lineWidth": 0.5,
         "lineType": "solid",
-        "lineOpacity": 1,
+        "lineOpacity": 0,
         "showArea": false,
         "showNodes": false,
         "gradBuffer": false,
@@ -17187,17 +17189,34 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      "22": {
+        "color": "#ff4081",
+        "fillColor": "#ff4081",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
-      "scale": 0.8568255595968024,
-      "offsetX": -3979152.2505225777,
-      "offsetY": -1664796.464975832,
+      "scale": 0.8572539723766007,
+      "offsetX": -3981226.6101478375,
+      "offsetY": -1665559.52220832,
       "canvasW": 1487,
       "canvasH": 842,
       "centerWorld": {
-        "x": 4644931.171749128,
-        "y": 1943473.1449414694
+        "x": 4645029.639359334,
+        "y": 1943392.012042421
       }
     },
     "layers": {
@@ -17223,8 +17242,8 @@
       {
         "id": "lbl_1531324558",
         "text": "Caso 3. Lo 1\nPredial: 765200002000000052375000000000\nMatricula: 378-185655\nLocalidad verdadera: Lote 5 escritura 1073",
-        "worldX": 4644350.051421399,
-        "worldY": 1943496.7728547284,
+        "worldX": 4644238.70752207,
+        "worldY": 1943404.2098540813,
         "fontSize": 14,
         "bold": true,
         "italic": false,
@@ -17236,23 +17255,23 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 252.58125000074506,
-          "y": 385.75499999988824,
+          "x": 203.7493703449145,
+          "y": 374.74273842480034,
           "w": 303.29998779296875,
           "h": 86
         },
         "_boxExport": {
-          "x": 720.3720689247344,
-          "y": 1007.1005154577066,
+          "x": 146.79767484394654,
+          "y": 1037.5425931978023,
           "w": 962.1110128836742,
           "h": 273.629655314445
         }
       },
       {
         "id": "lbl_1792532447853",
-        "text": "Lote #5 en escritura 1073\nLocalizado aqui",
-        "worldX": 4644419.982516856,
-        "worldY": 1943265.4013721906,
+        "text": "Lote #5\nDeberia estar localizado aqui,\npero el IGAC reporta una area vacia en tal zona",
+        "worldX": 4644352.518845806,
+        "worldY": 1943168.465105136,
         "fontSize": 14,
         "bold": true,
         "italic": false,
@@ -17264,16 +17283,72 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 312.499999998603,
-          "y": 584,
-          "w": 181.56666564941406,
+          "x": 288.63110250001773,
+          "y": 550.5637550000101,
+          "w": 327.9666748046875,
+          "h": 68
+        },
+        "_boxExport": {
+          "x": 398.7481819036399,
+          "y": 1559.423958632069,
+          "w": 1040.9443869071117,
+          "h": 216.3583321090961
+        }
+      },
+      {
+        "id": "lbl_1792536688266",
+        "text": "Lote #5 de de Escritura 1073 \nPredial: 765200002000000050389000000000",
+        "worldX": 4645320.772451793,
+        "worldY": 1943453.1374517959,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ff00ff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 1010.765250000637,
+          "y": 338.252000000095,
+          "w": 303.29998779296875,
           "h": 50
         },
         "_boxExport": {
-          "x": 970.6531718111579,
-          "y": 1506.1326607166773,
-          "w": 378.21101898718985,
+          "x": 2542.225465023795,
+          "y": 929.2288274959643,
+          "w": 962.1110128836742,
           "h": 159.08700890374712
+        }
+      },
+      {
+        "id": "lbl_1792538084885",
+        "text": "800m",
+        "worldX": 4645378.427477715,
+        "worldY": 1943350.0174863618,
+        "fontSize": 14,
+        "bold": true,
+        "italic": false,
+        "textColor": "#000000",
+        "bgColor": "#ffffff",
+        "bgOpacity": 0.85,
+        "showBorder": true,
+        "borderColor": "#000000",
+        "borderWidth": 1.5,
+        "padding": 7,
+        "_box": {
+          "x": 1053.7649999996647,
+          "y": 415.15999999968335,
+          "w": 49.83333206176758,
+          "h": 32
+        },
+        "_boxExport": {
+          "x": 2669.8596277664396,
+          "y": 1157.5112753770297,
+          "w": 158.31103272009997,
+          "h": 101.81568569839816
         }
       }
     ],
@@ -17281,8 +17356,8 @@
       {
         "id": "arr_1531203912",
         "name": "Arrow 6",
-        "startX": 4644741.423655171,
-        "startY": 1943426.2942615114,
+        "startX": 4644630.079755842,
+        "startY": 1943333.7312608643,
         "endX": 4644816.733072417,
         "endY": 1943347.4429958155,
         "color": "#ff00ff",
@@ -17295,10 +17370,10 @@
       {
         "id": "arr_1792532503294",
         "name": "Arrow 2",
-        "startX": 4644546.373743167,
-        "startY": 1943221.7252007066,
-        "endX": 4644908.652307456,
-        "endY": 1943244.8871149647,
+        "startX": 4644478.910072117,
+        "startY": 1943124.788933652,
+        "endX": 4644825.4797561485,
+        "endY": 1943137.5676939243,
         "color": "#ff00ff",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -17309,16 +17384,44 @@
       {
         "id": "arr_1792532552034",
         "name": "Arrow 3",
-        "startX": 4644608.229974471,
-        "startY": 1943411.9622894283,
-        "endX": 4644517.674241677,
-        "endY": 1943256.558102003,
+        "startX": 4644496.886075142,
+        "startY": 1943319.3992887812,
+        "endX": 4644450.210570627,
+        "endY": 1943159.6218349484,
         "color": "#ff00ff",
         "opacity": 0.85,
         "lineWidth": 10,
         "headSize": 28,
         "pinTailLabelId": "lbl_1531324558",
         "pinHeadLabelId": "lbl_1792532447853"
+      },
+      {
+        "id": "arr_1792536662556",
+        "name": "Arrow 4",
+        "startX": 4645581.876381364,
+        "startY": 1943457.9428287668,
+        "endX": 4645690.870030099,
+        "endY": 1943510.4490223292,
+        "color": "#ff00ff",
+        "opacity": 0.85,
+        "lineWidth": 10,
+        "headSize": 28,
+        "pinTailLabelId": "lbl_1792536688266",
+        "pinHeadLabelId": null
+      },
+      {
+        "id": "arr_1792536766814",
+        "name": "Arrow 5",
+        "startX": 4644844.755270979,
+        "startY": 1943129.685382237,
+        "endX": 4645374.919321526,
+        "endY": 1943417.4777412757,
+        "color": "#ff00ff",
+        "opacity": 0.85,
+        "lineWidth": 10,
+        "headSize": 28,
+        "pinTailLabelId": null,
+        "pinHeadLabelId": "lbl_1792536688266"
       }
     ],
     "fieldBackground": "esri_2022_08_31",
@@ -17626,15 +17729,15 @@
       {
         "id": 16,
         "name": "IGAC: La Querella (50278)",
-        "visible": false,
+        "visible": true,
         "showArea": false,
         "showNodes": false,
         "color": "#ff9100",
         "fillColor": "#ff9100",
-        "fillOpacity": 0.08,
-        "lineWidth": 2.5,
+        "fillOpacity": 0.2,
+        "lineWidth": 0.5,
         "lineType": "solid",
-        "lineOpacity": 1,
+        "lineOpacity": 0,
         "gradBuffer": false,
         "gradDist": 50,
         "gradSide": 1,
@@ -17738,6 +17841,26 @@
         "gradBuffer": false,
         "gradDist": 50,
         "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 22,
+        "name": "IGAC: Lote 5 (50389)",
+        "visible": true,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff4081",
+        "fillColor": "#ff4081",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
         "gradScale": "viridis",
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
