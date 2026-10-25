@@ -2284,7 +2284,7 @@ Use this index to quickly jump to sections using text search (Ctrl+F or grep).
                 <div class="radio-card-content">
                   <span class="source-tag tag-combined">Caso</span>
                   <span class="source-title">Todas las Capas Activas</span>
-                  <span class="source-sub">296, 1073, 196, Levantamiento & Polígonos</span>
+                  <span class="source-sub">Polígonos marcados en "Show" (Polygon Overview)</span>
                 </div>
               </label>
 
@@ -14674,11 +14674,15 @@ function getEntities1073() {
   let entities = [];
   if (getActiveAnchors(state.anchors1073).length >= 2 && state.entities1073 && state.entities1073.length > 0) {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
-    state.entities1073.forEach(ent => {
+    state.entities1073.forEach((ent, idx) => {
       const rawPts = ent.points || ent.vertices || [];
+      if (rawPts.length < 2) return;
+      const subName = (ent.layer && ent.layer !== "0") ? ent.layer : `Entidad_${idx + 1}`;
       entities.push({
         ...ent,
-        layer: "RECONSTRUCCION_ESCRITURA_1073",
+        name: `Escritura_1073_${subName}`,
+        layer: `RECONSTRUCCION_ESCRITURA_1073_${subName}`.replace(/[^a-zA-Z0-9_-]/g, "_"),
+        closed: !!ent.closed,
         points: rawPts.map(p => warper(p))
       });
     });
@@ -14691,13 +14695,31 @@ function getEntities1073() {
 function getEntities196() {
   let entities = [];
   if (state.entities196Optimized && state.entities196Optimized.length > 0) {
-    state.entities196Optimized.forEach(ent => {
-      entities.push({ ...ent, layer: ent.layer || "RECONSTRUCCION_ESCRITURA_196" });
+    state.entities196Optimized.forEach((ent, idx) => {
+      const pts = ent.points || ent.vertices || [];
+      if (pts.length < 2) return;
+      const subName = (ent.layer && ent.layer !== "0") ? ent.layer : `Parcela_${idx + 1}`;
+      entities.push({
+        ...ent,
+        name: `Escritura_196_${subName}`,
+        layer: (ent.layer && ent.layer !== "0") ? `RECONSTRUCCION_ESCRITURA_196_${ent.layer}` : "RECONSTRUCCION_ESCRITURA_196",
+        closed: !!ent.closed,
+        points: pts.map(p => ({ x: p.x, y: p.y }))
+      });
     });
   } else if (getActiveAnchors(state.anchors196).length >= 2 && state.entities196 && state.entities196.length > 0) {
     const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-    state.entities196.forEach(ent => {
-      entities.push({ ...ent, layer: "RECONSTRUCCION_ESCRITURA_196", points: ent.points.map(p => warper(p)) });
+    state.entities196.forEach((ent, idx) => {
+      const rawPts = ent.points || ent.vertices || [];
+      if (rawPts.length < 2) return;
+      const subName = (ent.layer && ent.layer !== "0") ? ent.layer : `Parcela_${idx + 1}`;
+      entities.push({
+        ...ent,
+        name: `Escritura_196_${subName}`,
+        layer: `RECONSTRUCCION_ESCRITURA_196_${subName}`.replace(/[^a-zA-Z0-9_-]/g, "_"),
+        closed: !!ent.closed,
+        points: rawPts.map(p => warper(p))
+      });
     });
   } else if (state.entities196 && state.entities196.length > 0) {
     entities = state.entities196;
@@ -14706,74 +14728,295 @@ function getEntities196() {
 }
 
 function getCombinedEntities() {
-  let combinedEntities = [];
+  const combinedEntities = [];
+  const visitedKeys = new Set();
 
-  // 1. Reconstructed Lindero La Trinidad (Escritura 296)
-  if (state.reconstructedPolygon && state.reconstructedPolygon.vertices && state.reconstructedPolygon.vertices.length >= 2) {
-    if (typeof updateReconstructedPolygonWarp === "function") {
-      updateReconstructedPolygonWarp();
+  // Check if a static layer row is checked under "Show" in Polygon Overview
+  const isStaticLayerShown = (showId, stateProp) => {
+    const chk = document.getElementById(showId);
+    if (chk) return chk.checked;
+    return state[stateProp] !== false;
+  };
+
+  const addLayerByKey = (rawKey) => {
+    const key = rawKey === "dxf_true" ? "dxf_survey_cortez_2019" : rawKey;
+    if (visitedKeys.has(key)) return;
+    visitedKeys.add(key);
+
+    const ls = (state.layerStyles && state.layerStyles[key]) ? state.layerStyles[key] : (DEFAULT_LAYER_STYLES[key] || {});
+    const layerColor = ls.color || "#00e5ff";
+
+    switch (key) {
+      // 1. Lindero La Trinidad (E. 296) - definitive reconstructed polygon displayed on canvas
+      case "dxf_296": {
+        if (!isStaticLayerShown("sum-show-dxf-296", "showReconstructedPolygon")) break;
+        if (state.reconstructedPolygon && state.reconstructedPolygon.show !== false &&
+            state.reconstructedPolygon.vertices && state.reconstructedPolygon.vertices.length >= 2) {
+          if (typeof updateReconstructedPolygonWarp === "function") {
+            updateReconstructedPolygonWarp();
+          }
+          const pts = state.reconstructedPolygon.vertices.map(v => ({ x: v.x, y: v.y }));
+          combinedEntities.push({
+            type: "POLYLINE",
+            name: ls.name || "Lindero_La_Trinidad_Escritura_296",
+            layer: "LINDERO_LA_TRINIDAD_296",
+            closed: state.reconstructedPolygon.closed !== false,
+            points: pts,
+            properties: {
+              stroke: layerColor,
+              color: layerColor,
+              source_layer: "dxf_296"
+            }
+          });
+        }
+        if (state.showWarped296OnField !== false && getActiveAnchors(state.anchors296).length >= 2 &&
+            state.entities296 && state.entities296.length > 0) {
+          try {
+            const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
+            state.entities296.forEach((ent, idx) => {
+              const rawPts = ent.points || ent.vertices || [];
+              if (rawPts.length < 2) return;
+              const subName = (ent.layer && ent.layer !== "0") ? ent.layer : `Entidad_${idx + 1}`;
+              combinedEntities.push({
+                ...ent,
+                name: `Escritura_296_${subName}`,
+                layer: `RECTIFIED_296_${subName}`.replace(/[^a-zA-Z0-9_-]/g, "_"),
+                closed: !!ent.closed,
+                points: rawPts.map(p => warper(p)),
+                properties: {
+                  stroke: layerColor,
+                  color: layerColor,
+                  source_layer: "dxf_296"
+                }
+              });
+            });
+          } catch (_) {}
+        }
+        break;
+      }
+
+      // 2. Escritura 1073 - georectified / warped with anchors1073 as displayed on canvas
+      case "dxf_1073": {
+        if (!isStaticLayerShown("sum-show-dxf-1073", "showWarped1073OnField")) break;
+        if (getActiveAnchors(state.anchors1073).length >= 2 && state.entities1073 && state.entities1073.length > 0) {
+          try {
+            const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
+            state.entities1073.forEach((ent, idx) => {
+              const rawPts = ent.points || ent.vertices || [];
+              if (rawPts.length < 2) return;
+              const subName = (ent.layer && ent.layer !== "0") ? ent.layer : `Entidad_${idx + 1}`;
+              combinedEntities.push({
+                ...ent,
+                name: `Escritura_1073_${subName}`,
+                layer: `RECTIFIED_1073_${subName}`.replace(/[^a-zA-Z0-9_-]/g, "_"),
+                closed: !!ent.closed,
+                points: rawPts.map(p => warper(p)),
+                properties: {
+                  stroke: layerColor,
+                  color: layerColor,
+                  source_layer: "dxf_1073",
+                  lote: subName
+                }
+              });
+            });
+          } catch (_) {}
+        }
+        break;
+      }
+
+      // 3. Escritura 196 - optimized MAGNA-SIRGAS parcels (or anchor-warped fallback) as displayed on canvas
+      case "dxf_196": {
+        if (!isStaticLayerShown("sum-show-dxf-196", "showWarped196OnField")) break;
+        if (state.entities196Optimized && state.entities196Optimized.length > 0) {
+          state.entities196Optimized.forEach((ent, idx) => {
+            const pts = ent.points || ent.vertices || [];
+            if (pts.length < 2) return;
+            const subName = (ent.layer && ent.layer !== "0") ? ent.layer : `Parcela_${idx + 1}`;
+            combinedEntities.push({
+              ...ent,
+              name: `Escritura_196_${subName}`,
+              layer: `RECTIFIED_196_${subName}`.replace(/[^a-zA-Z0-9_-]/g, "_"),
+              closed: !!ent.closed,
+              points: pts.map(p => ({ x: p.x, y: p.y })),
+              properties: {
+                stroke: layerColor,
+                color: layerColor,
+                source_layer: "dxf_196",
+                lote: subName
+              }
+            });
+          });
+        } else if (getActiveAnchors(state.anchors196).length >= 2 && state.entities196 && state.entities196.length > 0) {
+          try {
+            const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
+            state.entities196.forEach((ent, idx) => {
+              const rawPts = ent.points || ent.vertices || [];
+              if (rawPts.length < 2) return;
+              const subName = (ent.layer && ent.layer !== "0") ? ent.layer : `Parcela_${idx + 1}`;
+              combinedEntities.push({
+                ...ent,
+                name: `Escritura_196_${subName}`,
+                layer: `RECTIFIED_196_${subName}`.replace(/[^a-zA-Z0-9_-]/g, "_"),
+                closed: !!ent.closed,
+                points: rawPts.map(p => warper(p)),
+                properties: {
+                  stroke: layerColor,
+                  color: layerColor,
+                  source_layer: "dxf_196",
+                  lote: subName
+                }
+              });
+            });
+          } catch (_) {}
+        }
+        break;
+      }
+
+      // 4. Field Survey: In 2019 by Cristian Cortez
+      case "dxf_survey_cortez_2019": {
+        if (!isStaticLayerShown("sum-show-survey-cortez-2019", "showFieldDXFOnField")) break;
+        if (state.entitiesTrue && state.entitiesTrue.length > 0) {
+          state.entitiesTrue.forEach((ent, idx) => {
+            const pts = ent.points || ent.vertices || [];
+            if (pts.length < 2) return;
+            const baseName = ls.name || "In 2019 by Cristian Cortez";
+            const suffix = state.entitiesTrue.length > 1 ? `_${idx + 1}` : "";
+            combinedEntities.push({
+              ...ent,
+              name: `${baseName}${suffix}`,
+              layer: (ent.layer && ent.layer !== "0") ? ent.layer : `SURVEY_CORTEZ_2019${suffix}`,
+              closed: !!ent.closed,
+              points: pts.map(p => ({ x: p.x, y: p.y })),
+              properties: {
+                stroke: layerColor,
+                color: layerColor,
+                source_layer: "dxf_survey_cortez_2019"
+              }
+            });
+          });
+        }
+        break;
+      }
+
+      // 5. Field Survey: In 2025 by Wilmar Valoy
+      case "dxf_survey_valoy_2025": {
+        if (!isStaticLayerShown("sum-show-survey-valoy-2025", "showSurveyValoy2025")) break;
+        if (state.surveyValoy2025Entities && state.surveyValoy2025Entities.length > 0) {
+          state.surveyValoy2025Entities.forEach((ent, idx) => {
+            const pts = ent.points || ent.vertices || [];
+            if (pts.length < 2) return;
+            const baseName = ls.name || "In 2025 by Wilmar Valoy";
+            const suffix = state.surveyValoy2025Entities.length > 1 ? `_${idx + 1}` : "";
+            combinedEntities.push({
+              ...ent,
+              name: `${baseName}${suffix}`,
+              layer: (ent.layer && ent.layer !== "0") ? ent.layer : `SURVEY_VALOY_2025${suffix}`,
+              closed: !!ent.closed,
+              points: pts.map(p => ({ x: p.x, y: p.y })),
+              properties: {
+                stroke: layerColor,
+                color: layerColor,
+                source_layer: "dxf_survey_valoy_2025"
+              }
+            });
+          });
+        }
+        break;
+      }
+
+      // 6. Field Survey: 2026 (Sep) by Cristian Cortez
+      case "dxf_survey_cortez_sep_2026": {
+        if (!isStaticLayerShown("sum-show-survey-cortez-sep-2026", "showSurveyCortez2025")) break;
+        if (state.surveyCortez2025Entities && state.surveyCortez2025Entities.length > 0) {
+          state.surveyCortez2025Entities.forEach((ent, idx) => {
+            const pts = ent.points || ent.vertices || [];
+            if (pts.length < 2) return;
+            const baseName = ls.name || "2026 (Sep) by Cristian Cortez";
+            const suffix = state.surveyCortez2025Entities.length > 1 ? `_${idx + 1}` : "";
+            combinedEntities.push({
+              ...ent,
+              name: `${baseName}${suffix}`,
+              layer: (ent.layer && ent.layer !== "0") ? ent.layer : `SURVEY_CORTEZ_SEP_2026${suffix}`,
+              closed: !!ent.closed,
+              points: pts.map(p => ({ x: p.x, y: p.y })),
+              properties: {
+                stroke: layerColor,
+                color: layerColor,
+                source_layer: "dxf_survey_cortez_sep_2026"
+              }
+            });
+          });
+        }
+        break;
+      }
+
+      // 7. Field Survey: 2026 (Oct) by Cristian Cortez
+      case "dxf_survey_cortez_oct_2026": {
+        if (!isStaticLayerShown("sum-show-survey-cortez-oct-2026", "showSurveyCortezOct2026")) break;
+        const ents = (state.surveyCortezOct2026Entities && state.surveyCortezOct2026Entities.length > 0)
+          ? state.surveyCortezOct2026Entities
+          : (state.overlayLayer && state.overlayLayer.entities ? state.overlayLayer.entities : []);
+        if (ents && ents.length > 0) {
+          ents.forEach((ent, idx) => {
+            const pts = ent.points || ent.vertices || [];
+            if (pts.length < 2) return;
+            const baseName = ls.name || "2026 (Oct) by Cristian Cortez";
+            const suffix = ents.length > 1 ? `_${idx + 1}` : "";
+            combinedEntities.push({
+              ...ent,
+              name: `${baseName}${suffix}`,
+              layer: (ent.layer && ent.layer !== "0") ? ent.layer : `SURVEY_CORTEZ_OCT_2026${suffix}`,
+              closed: !!ent.closed,
+              points: pts.map(p => ({ x: p.x, y: p.y })),
+              properties: {
+                stroke: layerColor,
+                color: layerColor,
+                source_layer: "dxf_survey_cortez_oct_2026"
+              }
+            });
+          });
+        }
+        break;
+      }
+
+      // 8. Measurement / Case Polygons checked under "Show" in Polygon Overview
+      case "measure_polygons": {
+        if (state.measurePolygons && state.measurePolygons.length > 0) {
+          state.measurePolygons.forEach((poly, idx) => {
+            const polyChk = document.querySelector(`#poly-summary-tbody .sum-poly-show[data-idx="${idx}"]`);
+            const isPolyShown = polyChk ? polyChk.checked : (poly.visible !== false);
+            if (!isPolyShown || !poly.points || poly.points.length < 2) return;
+            const pColor = poly.color || "#00e5ff";
+            const props = {
+              stroke: pColor,
+              color: pColor,
+              source_layer: poly.source || "measure_polygon"
+            };
+            if (poly.predial) props.predial = poly.predial;
+            if (poly.direccion) props.direccion = poly.direccion;
+            if (poly.matricula) props.matricula = poly.matricula;
+            combinedEntities.push({
+              type: "POLYLINE",
+              name: poly.name || `Polygon_${idx + 1}`,
+              layer: (poly.name || `POLYGON_${idx + 1}`).replace(/[^a-zA-Z0-9_-]/g, "_"),
+              closed: poly.closed !== false,
+              points: poly.points.map(p => ({ x: p.x, y: p.y })),
+              properties: props
+            });
+          });
+        }
+        break;
+      }
     }
-    const pts = state.reconstructedPolygon.vertices.map(v => ({ x: v.x, y: v.y }));
-    combinedEntities.push({
-      type: "POLYLINE",
-      name: "Lindero_La_Trinidad_Escritura_296",
-      layer: "LINDERO_LA_TRINIDAD_296",
-      closed: state.reconstructedPolygon.closed !== false,
-      points: pts
-    });
-  }
+  };
 
-  // 2. Rectified Deed 296 (raw deed warped if anchors exist)
-  if (getActiveAnchors(state.anchors296).length >= 2 && state.entities296 && state.entities296.length > 0) {
-    const warper = TransformMath.createWarper(state.algorithm, state.anchors296);
-    state.entities296.forEach((ent) => {
-      combinedEntities.push({ ...ent, layer: "RECTIFIED_296", points: ent.points.map(p => warper(p)) });
-    });
-  }
+  const order = (state.layerOrder && state.layerOrder.length > 0) ? [...state.layerOrder] : [...DEFAULT_LAYER_ORDER];
+  DEFAULT_LAYER_ORDER.forEach(k => {
+    if (!order.includes(k)) order.push(k);
+  });
+  order.forEach(key => addLayerByKey(key));
 
-  // 3. Rectified Deed 1073
-  if (getActiveAnchors(state.anchors1073).length >= 2 && state.entities1073 && state.entities1073.length > 0) {
-    const warper = TransformMath.createWarper(state.algorithm, state.anchors1073);
-    state.entities1073.forEach((ent) => {
-      const rawPts = ent.points || ent.vertices || [];
-      combinedEntities.push({ ...ent, layer: "RECTIFIED_1073", points: rawPts.map(p => warper(p)) });
-    });
-  }
-
-  // 4. Rectified Deed 196 (prefer optimized field parcels, fallback to warped raw DXF)
-  if (state.entities196Optimized && state.entities196Optimized.length > 0) {
-    state.entities196Optimized.forEach((ent) => {
-      combinedEntities.push({ ...ent, layer: ent.layer || "RECTIFIED_196" });
-    });
-  } else if (getActiveAnchors(state.anchors196).length >= 2 && state.entities196 && state.entities196.length > 0) {
-    const warper = TransformMath.createWarper(state.algorithm, state.anchors196);
-    state.entities196.forEach((ent) => {
-      combinedEntities.push({ ...ent, layer: "RECTIFIED_196", points: ent.points.map(p => warper(p)) });
-    });
-  }
-
-  // 5. Field Survey Cristian Cortez 2019 (True DXF)
-  if (state.entitiesTrue && state.entitiesTrue.length > 0) {
-    state.entitiesTrue.forEach((ent) => {
-      combinedEntities.push({ ...ent, layer: ent.layer || "SURVEY_CORTEZ_2019" });
-    });
-  }
-
-  // 6. Visible Measurement / Case Polygons
-  if (state.measurePolygons && state.measurePolygons.length > 0) {
-    state.measurePolygons.forEach((poly) => {
-      if (poly.visible === false || !poly.points || poly.points.length < 2) return;
-      combinedEntities.push({
-        type: "POLYLINE",
-        name: poly.name || "POLYGON",
-        layer: (poly.name || "POLYGON").replace(/[^a-zA-Z0-9_-]/g, "_"),
-        closed: poly.closed !== false,
-        points: poly.points.map(p => ({ x: p.x, y: p.y }))
-      });
-    });
-  }
-
-  return combinedEntities.length > 0 ? combinedEntities : (state.entities296 || []);
+  return combinedEntities;
 }
 
 function downloadFileBlob(content, filename, mimeType) {
