@@ -1,7 +1,7 @@
 {
   "version": 2,
   "description": "La Trinidad - Polygons and Layer Settings",
-  "exportedAt": "2026-10-12T05:30:18.159Z",
+  "exportedAt": "2026-11-06T00:36:04.663Z",
   "polygons": [
     {
       "id": 4,
@@ -211,7 +211,7 @@
           "y": 1943379.2349
         }
       ],
-      "visible": true,
+      "visible": false,
       "fillColor": "#ffd600",
       "lineOpacity": 1,
       "gradBuffer": false,
@@ -265,7 +265,7 @@
           "y": 1943345.497726665
         }
       ],
-      "visible": true,
+      "visible": false,
       "fillColor": "#00e676",
       "lineOpacity": 1,
       "gradBuffer": false,
@@ -607,6 +607,10 @@
         {
           "x": 4644875.17982533,
           "y": 1943288.317582746
+        },
+        {
+          "x": 4644875.547950407,
+          "y": 1943287.9945222568
         },
         {
           "x": 4644935.701851828,
@@ -994,7 +998,7 @@
       "lineType": "dashed",
       "showArea": false,
       "showNodes": false,
-      "visible": true,
+      "visible": false,
       "closed": true,
       "gradBuffer": false,
       "gradDist": 50,
@@ -1055,7 +1059,7 @@
       "fillOpacity": 0.15,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "showArea": true,
+      "showArea": false,
       "showNodes": false,
       "points": [
         {
@@ -1190,16 +1194,26 @@
       "source": "IGAC",
       "predial": "765200002000000050278000000000",
       "direccion": "LA QUERELLA",
-      "matricula": "378-147359"
+      "matricula": "378-147359",
+      "visible": false,
+      "fillColor": "#ff9100",
+      "lineOpacity": 1,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": "both",
+      "gradScale": "viridis",
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05,
+      "gradReverseColors": false
     },
     {
       "id": 17,
       "name": "IGAC: La Trinidad (50299)",
       "color": "#00e5ff",
       "fillOpacity": 0.18,
-      "lineWidth": 3.0,
+      "lineWidth": 3,
       "lineType": "solid",
-      "showArea": true,
+      "showArea": false,
       "showNodes": false,
       "points": [
         {
@@ -1422,7 +1436,17 @@
       "source": "IGAC",
       "predial": "765200002000000050299000000000",
       "direccion": "AYACUCHO LA TRINIDAD",
-      "matricula": ""
+      "matricula": "",
+      "visible": false,
+      "fillColor": "#00e5ff",
+      "lineOpacity": 1,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": "both",
+      "gradScale": "viridis",
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05,
+      "gradReverseColors": false
     },
     {
       "id": 18,
@@ -1431,7 +1455,7 @@
       "fillOpacity": 0.15,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "showArea": true,
+      "showArea": false,
       "showNodes": false,
       "points": [
         {
@@ -1582,7 +1606,17 @@
       "source": "IGAC",
       "predial": "765200002000000051774000000000",
       "direccion": "Lo LA ESMERALDA",
-      "matricula": "378-77772"
+      "matricula": "378-77772",
+      "visible": false,
+      "fillColor": "#76ff03",
+      "lineOpacity": 1,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": "both",
+      "gradScale": "viridis",
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05,
+      "gradReverseColors": false
     },
     {
       "id": 19,
@@ -1591,7 +1625,7 @@
       "fillOpacity": 0.25,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "showArea": true,
+      "showArea": false,
       "showNodes": false,
       "points": [
         {
@@ -1694,7 +1728,17 @@
       "source": "IGAC",
       "predial": "765200002000000052375000000000",
       "direccion": "LO 1",
-      "matricula": "378-185655"
+      "matricula": "378-185655",
+      "visible": false,
+      "fillColor": "#e040fb",
+      "lineOpacity": 1,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": "both",
+      "gradScale": "viridis",
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05,
+      "gradReverseColors": false
     },
     {
       "id": 20,
@@ -1703,7 +1747,7 @@
       "fillOpacity": 0.18,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "showArea": true,
+      "showArea": false,
       "showNodes": false,
       "points": [
         {
@@ -2018,7 +2062,17 @@
       "source": "IGAC",
       "predial": "765200002000000052754000000000",
       "direccion": "CR LA BUITRERA UDAD LO DE TERRENO",
-      "matricula": ""
+      "matricula": "",
+      "visible": false,
+      "fillColor": "#ffd600",
+      "lineOpacity": 1,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": "both",
+      "gradScale": "viridis",
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05,
+      "gradReverseColors": false
     },
     {
       "id": 22,
@@ -2027,7 +2081,7 @@
       "fillOpacity": 0.18,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "showArea": true,
+      "showArea": false,
       "showNodes": false,
       "points": [
         {
@@ -2083,7 +2137,17 @@
       "predial": "765200002000000050389000000000",
       "predial_ant": "76520000200050389000",
       "direccion": "LO 3",
-      "matricula": ""
+      "matricula": "",
+      "visible": false,
+      "fillColor": "#ff4081",
+      "lineOpacity": 1,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": "both",
+      "gradScale": "viridis",
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05,
+      "gradReverseColors": false
     },
     {
       "id": 23,
@@ -2092,7 +2156,7 @@
       "fillOpacity": 0.18,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "showArea": true,
+      "showArea": false,
       "showNodes": false,
       "points": [
         {
@@ -2196,7 +2260,17 @@
       "predial": "765200002000000050388000000000",
       "predial_ant": "76520000200050388000",
       "direccion": "LO 6",
-      "matricula": ""
+      "matricula": "",
+      "visible": false,
+      "fillColor": "#00b0ff",
+      "lineOpacity": 1,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": "both",
+      "gradScale": "viridis",
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05,
+      "gradReverseColors": false
     },
     {
       "id": 24,
@@ -2205,7 +2279,7 @@
       "fillOpacity": 0.18,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "showArea": true,
+      "showArea": false,
       "showNodes": false,
       "points": [
         {
@@ -2285,7 +2359,17 @@
       "predial": "765200002000000050387000000000",
       "predial_ant": "76520000200050387000",
       "direccion": "LO 7",
-      "matricula": ""
+      "matricula": "",
+      "visible": false,
+      "fillColor": "#1de9b6",
+      "lineOpacity": 1,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": "both",
+      "gradScale": "viridis",
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05,
+      "gradReverseColors": false
     },
     {
       "id": 21,
@@ -2294,7 +2378,7 @@
       "fillOpacity": 0.18,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "showArea": true,
+      "showArea": false,
       "showNodes": false,
       "points": [
         {
@@ -2350,7 +2434,132 @@
       "predial": "765200002000000050298000000000",
       "predial_ant": "76520000200050298000",
       "direccion": "CHICHARRONAL",
-      "matricula": ""
+      "matricula": "",
+      "visible": false,
+      "fillColor": "#b388ff",
+      "lineOpacity": 1,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": "both",
+      "gradScale": "viridis",
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05,
+      "gradReverseColors": false
+    },
+    {
+      "id": 25,
+      "name": "LoteANo196",
+      "color": "#d500f9",
+      "fillColor": "#d500f9",
+      "fillOpacity": 0.15,
+      "lineOpacity": 1,
+      "lineWidth": 2.5,
+      "lineType": "solid",
+      "showArea": false,
+      "showNodes": true,
+      "visible": true,
+      "closed": true,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": 1,
+      "gradScale": "viridis",
+      "gradReverseColors": false,
+      "gradStartOp": 0.7,
+      "gradEndOp": 0,
+      "points": [
+        {
+          "x": 4644850.5456749685,
+          "y": 1943264.2574394085
+        },
+        {
+          "x": 4644829.174520936,
+          "y": 1943274.3347648142
+        },
+        {
+          "x": 4644831.19470049,
+          "y": 1943279.27034192
+        },
+        {
+          "x": 4644832.64552548,
+          "y": 1943281.71766922
+        },
+        {
+          "x": 4644834.27144966,
+          "y": 1943285.73476458
+        },
+        {
+          "x": 4644836.4948345,
+          "y": 1943286.08948627
+        },
+        {
+          "x": 4644836.74256896,
+          "y": 1943291.93663307
+        },
+        {
+          "x": 4644842.81670759,
+          "y": 1943303.9378137
+        },
+        {
+          "x": 4644845.92172813,
+          "y": 1943312.0104623
+        },
+        {
+          "x": 4644847.73836005,
+          "y": 1943313.43233809
+        },
+        {
+          "x": 4644901.27975063,
+          "y": 1943379.23491966
+        },
+        {
+          "x": 4644919.73595956,
+          "y": 1943377.7254448
+        },
+        {
+          "x": 4644934.7678274,
+          "y": 1943375.84463267
+        },
+        {
+          "x": 4644935.906376937,
+          "y": 1943375.6242092624
+        },
+        {
+          "x": 4644914.081793946,
+          "y": 1943371.2839986258
+        },
+        {
+          "x": 4644902.77094851,
+          "y": 1943371.3858567895
+        },
+        {
+          "x": 4644874.310363071,
+          "y": 1943336.3443971365
+        },
+        {
+          "x": 4644868.216301979,
+          "y": 1943330.852231427
+        },
+        {
+          "x": 4644859.837229533,
+          "y": 1943325.8258507135
+        },
+        {
+          "x": 4644851.241663794,
+          "y": 1943311.0171484658
+        },
+        {
+          "x": 4644855.035323235,
+          "y": 1943300.3589774768
+        },
+        {
+          "x": 4644875.17982533,
+          "y": 1943288.317582746
+        },
+        {
+          "x": 4644875.54794874,
+          "y": 1943287.994524564
+        }
+      ]
     }
   ],
   "layerStyles": {
@@ -2464,7 +2673,7 @@
       "pdfOpacity": 0.5
     },
     "dxf_196": {
-      "show": false,
+      "show": true,
       "area": false,
       "nodes": false,
       "showPdf": false,
@@ -2493,9 +2702,21 @@
     "mojones": {
       "show": false,
       "items": {
-        "1": false,
-        "2": false,
-        "4": false
+        "1": {
+          "show": true,
+          "marker": true,
+          "label": true
+        },
+        "2": {
+          "show": true,
+          "marker": true,
+          "label": true
+        },
+        "4": {
+          "show": true,
+          "marker": true,
+          "label": true
+        }
       }
     }
   },
