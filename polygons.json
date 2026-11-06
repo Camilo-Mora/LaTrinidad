@@ -1,12 +1,12 @@
 {
   "version": 2,
   "description": "La Trinidad - Polygons and Layer Settings",
-  "exportedAt": "2026-11-06T00:36:04.663Z",
+  "exportedAt": "2026-11-06T01:01:59.680Z",
   "polygons": [
     {
       "id": 4,
       "name": "LinderoHistorico_1073_296",
-      "color": "#2979ff",
+      "color": "#00e5ff",
       "fillOpacity": 0.15,
       "lineWidth": 6,
       "lineType": "solid",
@@ -118,7 +118,7 @@
           "y": 1943219.1261545115
         }
       ],
-      "visible": false,
+      "visible": true,
       "fillColor": "#2979ff",
       "lineOpacity": 1,
       "closed": true,
@@ -220,13 +220,16 @@
       "gradScale": "viridis",
       "gradStartOpacity": 0.6,
       "gradEndOpacity": 0.05,
-      "gradReverseColors": false
+      "gradReverseColors": false,
+      "closed": true,
+      "gradStartOp": 0.7,
+      "gradEndOp": 0
     },
     {
       "id": 2,
       "name": "LoteB",
       "color": "#00e676",
-      "fillOpacity": 0.35,
+      "fillOpacity": 0.13,
       "lineWidth": 1.5,
       "lineType": "dashed",
       "showArea": false,
@@ -265,7 +268,7 @@
           "y": 1943345.497726665
         }
       ],
-      "visible": false,
+      "visible": true,
       "fillColor": "#00e676",
       "lineOpacity": 1,
       "gradBuffer": false,
@@ -274,7 +277,10 @@
       "gradScale": "viridis",
       "gradStartOpacity": 0.6,
       "gradEndOpacity": 0.05,
-      "gradReverseColors": false
+      "gradReverseColors": false,
+      "closed": true,
+      "gradStartOp": 0.7,
+      "gradEndOp": 0
     },
     {
       "id": 5,
@@ -662,12 +668,12 @@
           "y": 1943219.1261545115
         },
         {
-          "x": 4644807.5333,
-          "y": 1943262.1012
+          "x": 4644814.6728,
+          "y": 1943240.1865
         },
         {
-          "x": 4644821.160910024,
-          "y": 1943278.127870414
+          "x": 4644829.174520936,
+          "y": 1943274.3347648142
         },
         {
           "x": 4644850.5456749685,
@@ -682,7 +688,10 @@
       "gradScale": "viridis",
       "gradStartOpacity": 0.6,
       "gradEndOpacity": 0.05,
-      "gradReverseColors": false
+      "gradReverseColors": false,
+      "closed": true,
+      "gradStartOp": 0.7,
+      "gradEndOp": 0
     },
     {
       "id": 11,
@@ -789,7 +798,7 @@
           "y": 1943283.691775514
         }
       ],
-      "visible": false,
+      "visible": true,
       "fillColor": "#ff1744",
       "lineOpacity": 1,
       "closed": true,
@@ -952,13 +961,13 @@
     {
       "id": 13,
       "name": "Lote#6",
-      "color": "#2979ff",
-      "fillOpacity": 0.06,
+      "color": "#ef28ff",
+      "fillOpacity": 0.28,
       "lineWidth": 1,
       "lineType": "dashdot",
       "showArea": false,
       "showNodes": false,
-      "visible": false,
+      "visible": true,
       "points": [
         {
           "x": 4645089.7427398935,
@@ -2456,8 +2465,8 @@
       "lineWidth": 2.5,
       "lineType": "solid",
       "showArea": false,
-      "showNodes": true,
-      "visible": true,
+      "showNodes": false,
+      "visible": false,
       "closed": true,
       "gradBuffer": false,
       "gradDist": 50,
@@ -2559,6 +2568,82 @@
           "x": 4644875.54794874,
           "y": 1943287.994524564
         }
+      ],
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05
+    },
+    {
+      "id": 26,
+      "name": "CarreteraB",
+      "color": "#ff9100",
+      "fillColor": "#808080",
+      "fillOpacity": 0.05,
+      "lineOpacity": 1,
+      "lineWidth": 4,
+      "lineType": "solid",
+      "showArea": false,
+      "showNodes": false,
+      "visible": false,
+      "closed": true,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": 1,
+      "gradScale": "viridis",
+      "gradReverseColors": false,
+      "gradStartOp": 0.7,
+      "gradEndOp": 0,
+      "points": [
+        {
+          "x": 4644820.58918003,
+          "y": 1943254.1838426334
+        },
+        {
+          "x": 4644818.013464203,
+          "y": 1943264.464159221
+        },
+        {
+          "x": 4644827.28235174,
+          "y": 1943269.9532980733
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Orlando",
+      "color": "#ff0000",
+      "fillColor": "#ff0000",
+      "fillOpacity": 0.47,
+      "lineOpacity": 1,
+      "lineWidth": 2.5,
+      "lineType": "solid",
+      "showArea": false,
+      "showNodes": false,
+      "visible": true,
+      "closed": true,
+      "gradBuffer": false,
+      "gradDist": 50,
+      "gradSide": 1,
+      "gradScale": "viridis",
+      "gradReverseColors": false,
+      "gradStartOp": 0.7,
+      "gradEndOp": 0,
+      "points": [
+        {
+          "x": 4645035.238016808,
+          "y": 1943391.6118389564
+        },
+        {
+          "x": 4645035.771608503,
+          "y": 1943413.037256488
+        },
+        {
+          "x": 4645061.031952456,
+          "y": 1943413.3981185446
+        },
+        {
+          "x": 4645060.742411419,
+          "y": 1943395.5091649417
+        }
       ]
     }
   ],
@@ -2566,9 +2651,9 @@
     "dxf_296": {
       "name": "Lindero La Trinidad (E. 296)",
       "color": "#00e5ff",
-      "fillColor": "#00e5ff",
+      "fillColor": "#ffffff",
       "fillOpacity": 0.08,
-      "lineWidth": 5,
+      "lineWidth": 3.5,
       "lineType": "solid",
       "lineOpacity": 1,
       "showNodes": false,
@@ -2577,12 +2662,12 @@
     },
     "dxf_1073": {
       "name": "Escritura 1073",
-      "color": "#ff1744",
+      "color": "#ff80ab",
       "fillColor": "#ff1744",
       "fillOpacity": 0,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "lineOpacity": 0.9,
+      "lineOpacity": 0.67,
       "showNodes": false,
       "showArea": false,
       "visible": true
@@ -2673,7 +2758,7 @@
       "pdfOpacity": 0.5
     },
     "dxf_196": {
-      "show": true,
+      "show": false,
       "area": false,
       "nodes": false,
       "showPdf": false,
@@ -2703,26 +2788,26 @@
       "show": false,
       "items": {
         "1": {
-          "show": true,
-          "marker": true,
-          "label": true
+          "show": false,
+          "marker": false,
+          "label": false
         },
         "2": {
-          "show": true,
-          "marker": true,
-          "label": true
+          "show": false,
+          "marker": false,
+          "label": false
         },
         "4": {
-          "show": true,
-          "marker": true,
-          "label": true
+          "show": false,
+          "marker": false,
+          "label": false
         }
       }
     }
   },
   "trinidadSectionStyles": {
     "1073": {
-      "color": "#00ffff",
+      "color": "#0000ff",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
@@ -2740,7 +2825,7 @@
       "showNodes": false
     },
     "e1073": {
-      "color": "#00ffff",
+      "color": "#0000ff",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
