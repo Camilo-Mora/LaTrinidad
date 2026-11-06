@@ -1,12 +1,12 @@
 {
   "version": 2,
   "description": "La Trinidad - Polygons and Layer Settings",
-  "exportedAt": "2026-11-06T01:01:59.680Z",
+  "exportedAt": "2026-11-06T01:34:55.743Z",
   "polygons": [
     {
       "id": 4,
       "name": "LinderoHistorico_1073_296",
-      "color": "#00e5ff",
+      "color": "#2979ff",
       "fillOpacity": 0.15,
       "lineWidth": 6,
       "lineType": "solid",
@@ -118,7 +118,7 @@
           "y": 1943219.1261545115
         }
       ],
-      "visible": true,
+      "visible": false,
       "fillColor": "#2979ff",
       "lineOpacity": 1,
       "closed": true,
@@ -136,7 +136,7 @@
       "id": 1,
       "name": "LoteA",
       "color": "#ffd600",
-      "fillOpacity": 0.36,
+      "fillOpacity": 0.1,
       "lineWidth": 1.5,
       "lineType": "dashed",
       "showArea": false,
@@ -211,7 +211,7 @@
           "y": 1943379.2349
         }
       ],
-      "visible": false,
+      "visible": true,
       "fillColor": "#ffd600",
       "lineOpacity": 1,
       "gradBuffer": false,
@@ -229,7 +229,7 @@
       "id": 2,
       "name": "LoteB",
       "color": "#00e676",
-      "fillOpacity": 0.13,
+      "fillOpacity": 0.1,
       "lineWidth": 1.5,
       "lineType": "dashed",
       "showArea": false,
@@ -268,7 +268,7 @@
           "y": 1943345.497726665
         }
       ],
-      "visible": true,
+      "visible": false,
       "fillColor": "#00e676",
       "lineOpacity": 1,
       "gradBuffer": false,
@@ -486,9 +486,9 @@
       "id": 8,
       "name": "Nacho196",
       "color": "#ff9100",
-      "fillOpacity": 0.15,
-      "lineWidth": 2.5,
-      "lineType": "solid",
+      "fillOpacity": 0.3,
+      "lineWidth": 6,
+      "lineType": "dotted",
       "showArea": false,
       "showNodes": false,
       "visible": false,
@@ -743,7 +743,7 @@
       "id": 3,
       "name": "Lote#5",
       "color": "#ff1744",
-      "fillOpacity": 0.3,
+      "fillOpacity": 0.13,
       "lineWidth": 1.5,
       "lineType": "dashed",
       "showArea": false,
@@ -798,7 +798,7 @@
           "y": 1943283.691775514
         }
       ],
-      "visible": true,
+      "visible": false,
       "fillColor": "#ff1744",
       "lineOpacity": 1,
       "closed": true,
@@ -961,13 +961,13 @@
     {
       "id": 13,
       "name": "Lote#6",
-      "color": "#ef28ff",
-      "fillOpacity": 0.28,
+      "color": "#2979ff",
+      "fillOpacity": 0.06,
       "lineWidth": 1,
       "lineType": "dashdot",
       "showArea": false,
       "showNodes": false,
-      "visible": true,
+      "visible": false,
       "points": [
         {
           "x": 4645089.7427398935,
@@ -2462,11 +2462,11 @@
       "fillColor": "#d500f9",
       "fillOpacity": 0.15,
       "lineOpacity": 1,
-      "lineWidth": 2.5,
+      "lineWidth": 5,
       "lineType": "solid",
       "showArea": false,
-      "showNodes": false,
-      "visible": false,
+      "showNodes": true,
+      "visible": true,
       "closed": true,
       "gradBuffer": false,
       "gradDist": 50,
@@ -2491,14 +2491,6 @@
         {
           "x": 4644832.64552548,
           "y": 1943281.71766922
-        },
-        {
-          "x": 4644834.27144966,
-          "y": 1943285.73476458
-        },
-        {
-          "x": 4644836.4948345,
-          "y": 1943286.08948627
         },
         {
           "x": 4644836.74256896,
@@ -2605,7 +2597,9 @@
           "x": 4644827.28235174,
           "y": 1943269.9532980733
         }
-      ]
+      ],
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05
     },
     {
       "id": 27,
@@ -2618,7 +2612,7 @@
       "lineType": "solid",
       "showArea": false,
       "showNodes": false,
-      "visible": true,
+      "visible": false,
       "closed": true,
       "gradBuffer": false,
       "gradDist": 50,
@@ -2644,19 +2638,21 @@
           "x": 4645060.742411419,
           "y": 1943395.5091649417
         }
-      ]
+      ],
+      "gradStartOpacity": 0.6,
+      "gradEndOpacity": 0.05
     }
   ],
   "layerStyles": {
     "dxf_296": {
       "name": "Lindero La Trinidad (E. 296)",
       "color": "#00e5ff",
-      "fillColor": "#ffffff",
+      "fillColor": "#00e5ff",
       "fillOpacity": 0.08,
       "lineWidth": 3.5,
       "lineType": "solid",
       "lineOpacity": 1,
-      "showNodes": false,
+      "showNodes": true,
       "showArea": false,
       "visible": true
     },
@@ -2667,7 +2663,7 @@
       "fillOpacity": 0,
       "lineWidth": 2.5,
       "lineType": "solid",
-      "lineOpacity": 0.67,
+      "lineOpacity": 0.3,
       "showNodes": false,
       "showArea": false,
       "visible": true
@@ -2746,7 +2742,7 @@
   ],
   "layerDisplay": {
     "dxf_296": {
-      "show": true,
+      "show": false,
       "area": false,
       "nodes": false
     },
@@ -2788,26 +2784,26 @@
       "show": false,
       "items": {
         "1": {
-          "show": false,
-          "marker": false,
-          "label": false
+          "show": true,
+          "marker": true,
+          "label": true
         },
         "2": {
-          "show": false,
-          "marker": false,
-          "label": false
+          "show": true,
+          "marker": true,
+          "label": true
         },
         "4": {
-          "show": false,
-          "marker": false,
-          "label": false
+          "show": true,
+          "marker": true,
+          "label": true
         }
       }
     }
   },
   "trinidadSectionStyles": {
     "1073": {
-      "color": "#0000ff",
+      "color": "#ff0000",
       "dash": "solid",
       "width": 3.5,
       "showNodes": false
