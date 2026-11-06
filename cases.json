@@ -1155,6 +1155,227 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      "15": {
+        "color": "#ff8000",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.27,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "16": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "17": {
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 3,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "18": {
+        "color": "#76ff03",
+        "fillColor": "#76ff03",
+        "fillOpacity": 0.09,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "19": {
+        "color": "#e040fb",
+        "fillColor": "#e040fb",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "20": {
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.21,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "21": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "22": {
+        "color": "#ff4081",
+        "fillColor": "#ff4081",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "23": {
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "24": {
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "25": {
+        "color": "#d500f9",
+        "fillColor": "#d500f9",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "26": {
+        "color": "#ff9100",
+        "fillColor": "#808080",
+        "fillOpacity": 0.05,
+        "lineWidth": 4,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "27": {
+        "color": "#ff0000",
+        "fillColor": "#ff0000",
+        "fillOpacity": 0.47,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
@@ -1208,7 +1429,13 @@
           "w": 99.16666412353516,
           "h": 91
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1504.4739592378014,
+          "y": 674.5381443114007,
+          "w": 314.45073307957756,
+          "h": 290.81740178074944
+        }
       },
       {
         "id": "lbl_-891592036",
@@ -1230,7 +1457,13 @@
           "w": 97.16666412353516,
           "h": 89
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 2120.8406266298134,
+          "y": 369.9797097749998,
+          "w": 308.08725272342764,
+          "h": 284.4539214245995
+        }
       },
       {
         "id": "lbl_-891627715",
@@ -1253,7 +1486,13 @@
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1058.756721847783,
+          "y": 1357.800663643609,
+          "w": 360.12376626376215,
+          "h": 99.09044106844965
+        }
       },
       {
         "id": "lbl_-891812000",
@@ -1276,7 +1515,13 @@
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1104.3927988792761,
+          "y": 1728.0546728028908,
+          "w": 396.6571219766528,
+          "h": 99.09044106844965
+        }
       }
     ],
     "arrows": [
@@ -1617,6 +1862,266 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      {
+        "id": 15,
+        "name": "Parra",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff8000",
+        "fillColor": "#ff8000",
+        "fillOpacity": 0.27,
+        "lineWidth": 1.5,
+        "lineType": "dashed",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 16,
+        "name": "IGAC: La Querella (50278)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 17,
+        "name": "IGAC: La Trinidad (50299)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 3,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 18,
+        "name": "IGAC: La Esmeralda (51774)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#76ff03",
+        "fillColor": "#76ff03",
+        "fillOpacity": 0.09,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 19,
+        "name": "IGAC: Lote 1 (52375)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#e040fb",
+        "fillColor": "#e040fb",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 20,
+        "name": "IGAC: La Buitrera (52754)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.21,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 22,
+        "name": "IGAC: 1073 Lote 5",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff4081",
+        "fillColor": "#ff4081",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 23,
+        "name": "IGAC: 1073 Lote 6",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 24,
+        "name": "IGAC: 1073 Lote 7",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 21,
+        "name": "IGAC: 1073 Lote 8",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 25,
+        "name": "LoteANo196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#d500f9",
+        "fillColor": "#d500f9",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 26,
+        "name": "CarreteraB",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#808080",
+        "fillOpacity": 0.05,
+        "lineWidth": 4,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 27,
+        "name": "Orlando",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff0000",
+        "fillColor": "#ff0000",
+        "fillOpacity": 0.47,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -1662,9 +2167,21 @@
       "mojones": {
         "show": false,
         "items": {
-          "1": false,
-          "2": false,
-          "4": false
+          "1": {
+            "show": false,
+            "marker": false,
+            "label": false
+          },
+          "2": {
+            "show": false,
+            "marker": false,
+            "label": false
+          },
+          "4": {
+            "show": false,
+            "marker": false,
+            "label": false
+          }
         }
       }
     },
@@ -1683,12 +2200,12 @@
       },
       "dxf_1073": {
         "name": "Escritura 1073",
-        "color": "#ff1744",
+        "color": "#ff80ab",
         "fillColor": "#ff1744",
         "fillOpacity": 0,
         "lineWidth": 2.5,
         "lineType": "solid",
-        "lineOpacity": 0.9,
+        "lineOpacity": 0.67,
         "showNodes": false,
         "showArea": false,
         "visible": true
@@ -1762,7 +2279,7 @@
         "showNodes": false
       },
       "e296": {
-        "color": "#80ffff",
+        "color": "#0000ff",
         "dash": "solid",
         "width": 3.5,
         "showNodes": false
@@ -1791,7 +2308,11 @@
       "dxf_anchors",
       "measure_polygons"
     ],
-    "fieldBackground": "dron"
+    "fieldBackground": "dron",
+    "historical": {
+      "show": false,
+      "activeId": "esri_2017_06_14"
+    }
   },
   {
     "id": 1790109535093,
@@ -2056,6 +2577,210 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      "16": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "17": {
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 3,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "18": {
+        "color": "#76ff03",
+        "fillColor": "#76ff03",
+        "fillOpacity": 0.09,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "19": {
+        "color": "#e040fb",
+        "fillColor": "#e040fb",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "20": {
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.21,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "21": {
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "22": {
+        "color": "#ff4081",
+        "fillColor": "#ff4081",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "23": {
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "24": {
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "25": {
+        "color": "#d500f9",
+        "fillColor": "#d500f9",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "26": {
+        "color": "#ff9100",
+        "fillColor": "#808080",
+        "fillOpacity": 0.05,
+        "lineWidth": 4,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "27": {
+        "color": "#ff0000",
+        "fillColor": "#ff0000",
+        "fillOpacity": 0.47,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
@@ -2092,8 +2817,8 @@
       {
         "id": "lbl_-891520115",
         "text": "[size=25]Lote Jimmy Ruiz[/size]\n[size=15]Area reportada en documento: [/size]2,413 m²\n[size=15]Area invadida: $JimmyInvasion$m²[/size]\nEscritura 373 de 2014; FMI 378-185655 ",
-        "worldX": 4644716.79320744,
-        "worldY": 1943404.5759550699,
+        "worldX": 4644667.551010981,
+        "worldY": 1943391.4164025679,
         "fontSize": 20,
         "bold": true,
         "italic": true,
@@ -2104,12 +2829,18 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 599.9172803321853,
-          "y": 326.8189968019724,
-          "w": 342,
-          "h": 108
+          "x": 133.7849126458168,
+          "y": 120.22490528039634,
+          "w": 379.4333190917969,
+          "h": 116
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 342.4867695611889,
+          "y": 307.10517690004656,
+          "w": 1203.3507269760619,
+          "h": 370.81740178074944
+        }
       },
       {
         "id": "lbl_-891041296",
@@ -2126,12 +2857,18 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 970.7337006134912,
-          "y": 640.1242533870973,
-          "w": 350,
-          "h": 77
+          "x": 812.3866369817406,
+          "y": 564.4904083758593,
+          "w": 388.5666809082031,
+          "h": 83
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 2095.494078970327,
+          "y": 1454.9671671714623,
+          "w": 1232.287295448037,
+          "h": 265.4539214245995
+        }
       },
       {
         "id": "lbl_-891256621",
@@ -2148,13 +2885,19 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 630.8710291609168,
-          "y": 560.2463278155774,
-          "w": 102.66666412353516,
-          "h": 29
+          "x": 295.75395884364843,
+          "y": 442.66951679065824,
+          "w": 113.53333282470703,
+          "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 761.9512165608808,
+          "y": 1140.978615698497,
+          "w": 360.12376626376215,
+          "h": 99.09044106844965
+        }
       },
       {
         "id": "lbl_-891695788",
@@ -2171,23 +2914,29 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 668.903258876875,
-          "y": 666.335463619791,
-          "w": 113,
-          "h": 29
+          "x": 353.50954950228333,
+          "y": 603.7760505564511,
+          "w": 125.03333282470703,
+          "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 911.0981352786525,
+          "y": 1557.0170082050367,
+          "w": 396.6571219766528,
+          "h": 99.09044106844965
+        }
       }
     ],
     "arrows": [
       {
         "id": "arr_-891058837",
         "name": "Arrow 1",
-        "startX": 4644872.508969658,
-        "startY": 1943373.2721907583,
-        "endX": 4644901.266706936,
-        "endY": 1943368.8699198111,
+        "startX": 4644823.2667732,
+        "startY": 1943360.1126382563,
+        "endX": 4644891.503167982,
+        "endY": 1943355.2858656158,
         "color": "#ff8000",
         "opacity": 0.85,
         "lineWidth": 10,
@@ -2538,6 +3287,246 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      {
+        "id": 16,
+        "name": "IGAC: La Querella (50278)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.2,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 0,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 17,
+        "name": "IGAC: La Trinidad (50299)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 3,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 18,
+        "name": "IGAC: La Esmeralda (51774)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#76ff03",
+        "fillColor": "#76ff03",
+        "fillOpacity": 0.09,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 19,
+        "name": "IGAC: Lote 1 (52375)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#e040fb",
+        "fillColor": "#e040fb",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 20,
+        "name": "IGAC: La Buitrera (52754)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.21,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 22,
+        "name": "IGAC: 1073 Lote 5",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff4081",
+        "fillColor": "#ff4081",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 23,
+        "name": "IGAC: 1073 Lote 6",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 24,
+        "name": "IGAC: 1073 Lote 7",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 21,
+        "name": "IGAC: 1073 Lote 8",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff6d00",
+        "fillColor": "#ff6d00",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 25,
+        "name": "LoteANo196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#d500f9",
+        "fillColor": "#d500f9",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 26,
+        "name": "CarreteraB",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#808080",
+        "fillOpacity": 0.05,
+        "lineWidth": 4,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 27,
+        "name": "Orlando",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff0000",
+        "fillColor": "#ff0000",
+        "fillOpacity": 0.47,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -2583,9 +3572,21 @@
       "mojones": {
         "show": false,
         "items": {
-          "1": false,
-          "2": false,
-          "4": false
+          "1": {
+            "show": false,
+            "marker": false,
+            "label": false
+          },
+          "2": {
+            "show": false,
+            "marker": false,
+            "label": false
+          },
+          "4": {
+            "show": false,
+            "marker": false,
+            "label": false
+          }
         }
       }
     },
@@ -2604,7 +3605,7 @@
       },
       "dxf_1073": {
         "name": "Escritura 1073",
-        "color": "#ff1744",
+        "color": "#ff80ab",
         "fillColor": "#ff1744",
         "fillOpacity": 0,
         "lineWidth": 2.5,
@@ -2712,7 +3713,11 @@
       "dxf_anchors",
       "measure_polygons"
     ],
-    "fieldBackground": "dron"
+    "fieldBackground": "dron",
+    "historical": {
+      "show": false,
+      "activeId": "esri_2017_06_14"
+    }
   },
   {
     "id": 1790109670764,
@@ -3013,7 +4018,13 @@
           "w": 379.4333190917969,
           "h": 116
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 330.400265027302,
+          "y": 377.25771522195885,
+          "w": 1203.3507269760619,
+          "h": 370.81740178074944
+        }
       },
       {
         "id": "lbl_-891677727",
@@ -3035,7 +4046,13 @@
           "w": 388.5666809082031,
           "h": 83
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1728.5190990630526,
+          "y": 1557.9514506988216,
+          "w": 1232.287295448037,
+          "h": 265.4539214245995
+        }
       },
       {
         "id": "lbl_-890857908",
@@ -3058,7 +4075,13 @@
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 634.3578890944823,
+          "y": 1046.583588429819,
+          "w": 360.12376626376215,
+          "h": 99.09044106844965
+        }
       },
       {
         "id": "lbl_-890787437",
@@ -3081,7 +4104,13 @@
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 834.0951511832877,
+          "y": 1465.4667105331077,
+          "w": 396.6571219766528,
+          "h": 99.09044106844965
+        }
       }
     ],
     "arrows": [
@@ -3897,7 +4926,13 @@
           "w": 373.8666687011719,
           "h": 123
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 2475.461840000468,
+          "y": 223.01585181290156,
+          "w": 1185.7174261948119,
+          "h": 390.81740178074944
+        }
       },
       {
         "id": "lbl_-891057664",
@@ -3919,7 +4954,13 @@
           "w": 383,
           "h": 83
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 2434.943669109418,
+          "y": 1388.0621186390508,
+          "w": 1214.6538725964745,
+          "h": 265.4539214245995
+        }
       },
       {
         "id": "lbl_-890993764",
@@ -3942,7 +4983,13 @@
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1102.1706266115411,
+          "y": 1160.616168166603,
+          "w": 360.12376626376215,
+          "h": 99.09044106844965
+        }
       },
       {
         "id": "lbl_-890808809",
@@ -3965,7 +5012,13 @@
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1145.61076363651,
+          "y": 1562.854651606734,
+          "w": 396.6571219766528,
+          "h": 99.09044106844965
+        }
       }
     ],
     "arrows": [
@@ -4980,12 +6033,18 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 730.7428365722299,
-          "y": 553.1235297480598,
-          "w": 131.5,
-          "h": 67
+          "x": 905.9976728670299,
+          "y": 503.60692168120295,
+          "w": 145.06666564941406,
+          "h": 73
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 2336.634045452344,
+          "y": 1297.1434707683497,
+          "w": 460.6840704819213,
+          "h": 230.81740178074944
+        }
       },
       {
         "id": "lbl_-890902859",
@@ -5002,13 +6061,19 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 420.27100013382733,
-          "y": 550.5836829366162,
-          "w": 102.66666412353516,
-          "h": 29
+          "x": 433.4792022779584,
+          "y": 498.7127286233008,
+          "w": 113.53333282470703,
+          "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1117.610217762272,
+          "y": 1285.7035204964682,
+          "w": 360.12376626376215,
+          "h": 99.09044106844965
+        }
       },
       {
         "id": "lbl_-891502063",
@@ -5025,13 +6090,19 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 459.84512798674405,
-          "y": 694.8439514925703,
-          "w": 113,
-          "h": 29
+          "x": 493.5763132274151,
+          "y": 717.7857906389982,
+          "w": 125.03333282470703,
+          "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1272.8038331317707,
+          "y": 1851.433552869688,
+          "w": 396.6571219766528,
+          "h": 99.09044106844965
+        }
       },
       {
         "id": "lbl_1793926363464",
@@ -5049,10 +6120,16 @@
         "borderWidth": 1.5,
         "padding": 7,
         "_box": {
-          "x": 517.0752909500152,
-          "y": 417.5912161907181,
-          "w": 151.5,
-          "h": 62
+          "x": 581.0415957942605,
+          "y": 297.3066928945482,
+          "w": 169.13333129882812,
+          "h": 70
+        },
+        "_boxExport": {
+          "x": 1496.2750466278737,
+          "y": 763.199036449099,
+          "w": 535.6110434012523,
+          "h": 220.81568569839814
         }
       }
     ],
@@ -6348,7 +7425,13 @@
           "w": 97.16666412353516,
           "h": 89
         },
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 1630.571881989761,
+          "y": 537.0202349822958,
+          "w": 308.08725272342764,
+          "h": 284.4539214245995
+        }
       },
       {
         "id": "lbl_-880961856",
@@ -6371,7 +7454,13 @@
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 865.7986631701692,
+          "y": 1565.586178700532,
+          "w": 360.12376626376215,
+          "h": 99.09044106844965
+        }
       },
       {
         "id": "lbl_-881357902",
@@ -6394,7 +7483,13 @@
           "h": 31
         },
         "showBg": true,
-        "showBorder": false
+        "showBorder": false,
+        "_boxExport": {
+          "x": 960.2888710285529,
+          "y": 1971.289878076966,
+          "w": 396.6571219766528,
+          "h": 99.09044106844965
+        }
       },
       {
         "id": "lbl_1790120136197",
@@ -6416,6 +7511,12 @@
           "y": 635.3370840791613,
           "w": 49.20000076293945,
           "h": 22
+        },
+        "_boxExport": {
+          "x": 1730.9239159055983,
+          "y": 1642.3007096291517,
+          "w": 149.73014905732177,
+          "h": 63.63480356149885
         }
       },
       {
@@ -6438,6 +7539,12 @@
           "y": 478.1131425695494,
           "w": 49.20000076293945,
           "h": 22
+        },
+        "_boxExport": {
+          "x": 2368.6215027959083,
+          "y": 1236.2886481654828,
+          "w": 149.73014905732177,
+          "h": 63.63480356149885
         }
       },
       {
@@ -6460,6 +7567,12 @@
           "y": 123.85043820273131,
           "w": 184.8000030517578,
           "h": 83
+        },
+        "_boxExport": {
+          "x": 1939.5392112581974,
+          "y": 315.2689638099615,
+          "w": 591.4443869071117,
+          "h": 264.45048925989704
         }
       }
     ],
