@@ -8292,12 +8292,12 @@ function drawAnchorLabelCard(ctx, anc, pt, isHist, uiScale = 1.0) {
   }
 }
 
-function drawMojones1073(ctx, vp, h, customScale = null) {
+function drawMojones1073(ctx, vp, h, customScale = null, exportScaleFactor = 1.0) {
   if (state.showMojones1073 === false || !state.anchors1073 || state.anchors1073.length === 0) return;
   let zoomFactor = 1.0;
   if (state.caseMode && vp) {
     const ac = getActiveCase();
-    zoomFactor = getCaseZoomFactor(vp, ac);
+    zoomFactor = getCaseZoomFactor(vp, ac, exportScaleFactor);
   }
   const baseScale = customScale !== null ? customScale : (state.mojonesSize || 1.0);
   const uiScale = baseScale * zoomFactor;
@@ -15615,6 +15615,7 @@ function applyActiveCase(caseObj) {
     }
     state.caseMode = false;
     state.activeCaseId = null;
+    state.caseScreenFactor = 1.0;
     state.caseSelectedLabelId = null;
     state.caseSelectedArrowId = null;
     const inspector = document.getElementById("case-label-inspector");
@@ -15666,14 +15667,17 @@ function applyActiveCase(caseObj) {
     }
 
     // Automatic internal scale calculation for initial display:
-    // If the device has a smaller screen (tablet or portable device), scale proportionally
-    // so the entire case composition fits without overflowing or clipping.
+    // Scale proportionally to fit the current canvas so the entire case composition
+    // (map, labels, spacing, and arrows) maintains identical 1:1 proportions across screens.
     const screenFactor = Math.min(curW / refW, curH / refH);
-    const initialScale = cam.scale * Math.min(1.0, screenFactor);
+    const initialScale = cam.scale * screenFactor;
 
+    state.caseScreenFactor = screenFactor;
     state.vpTrue.scale = initialScale;
     state.vpTrue.offsetX = (curW / 2) - centerWorldX * initialScale;
     state.vpTrue.offsetY = (curH / 2) - centerWorldY * initialScale;
+  } else {
+    state.caseScreenFactor = 1.0;
   }
 
   // 2. Spotlight B&W mode
@@ -16115,10 +16119,12 @@ function deleteSelectedArrow() {
   statusBar.textContent = "🗑️ Arrow deleted.";
 }
 
-function getCaseZoomFactor(vp, ac) {
+function getCaseZoomFactor(vp, ac, exportScaleFactor = 1.0) {
   if (!ac || !ac.camera || !ac.camera.scale || !vp || !vp.scale) return 1.0;
-  const scaleRatio = vp.scale / ac.camera.scale;
-  return Math.max(0.70, Math.min(1.45, Math.pow(scaleRatio, 0.22)));
+  const viewerScale = vp.scale / (exportScaleFactor || 1.0);
+  const fitFactor = (state.activeCaseId === ac.id && state.caseScreenFactor) ? state.caseScreenFactor : 1.0;
+  const manualZoomRatio = (viewerScale / ac.camera.scale) / fitFactor;
+  return fitFactor * Math.max(0.70, Math.min(1.45, Math.pow(manualZoomRatio, 0.22)));
 }
 
 function getBoxEdgeIntersection(box, targetX, targetY, margin = 3) {
@@ -16780,7 +16786,7 @@ async function exportCaseImageHD() {
         drawReconstructedPolygonExport(ctx, vpLeft, EXP_H, scaleFactor);
       }
       if (state.showMojones1073 !== false) {
-        drawMojones1073(ctx, vpLeft, EXP_H, (state.mojonesSize || 1.0) * scaleFactor);
+        drawMojones1073(ctx, vpLeft, EXP_H, (state.mojonesSize || 1.0) * scaleFactor, scaleFactor);
       }
       if (ac.labels && ac.labels.length > 0) {
         drawCaseLabelsForExport(ctx, vpLeft, EXP_H, scaleFactor, ac.labels);
@@ -16829,7 +16835,7 @@ async function exportCaseImageHD() {
         drawReconstructedPolygonExport(ctx, vpRight, EXP_H, scaleFactor);
       }
       if (state.showMojones1073 !== false) {
-        drawMojones1073(ctx, vpRight, EXP_H, (state.mojonesSize || 1.0) * scaleFactor);
+        drawMojones1073(ctx, vpRight, EXP_H, (state.mojonesSize || 1.0) * scaleFactor, scaleFactor);
       }
       if (ac.labels && ac.labels.length > 0) {
         drawCaseLabelsForExport(ctx, vpRight, EXP_H, scaleFactor, ac.labels);
@@ -16896,7 +16902,7 @@ async function exportCaseImageHD() {
       }
 
       if (state.showMojones1073 !== false) {
-        drawMojones1073(ctx, vpExp, EXP_H, (state.mojonesSize || 1.0) * scaleFactor);
+        drawMojones1073(ctx, vpExp, EXP_H, (state.mojonesSize || 1.0) * scaleFactor, scaleFactor);
       }
 
       if (ac.labels && ac.labels.length > 0) {
@@ -16976,7 +16982,7 @@ async function exportCaseImageHD() {
 
 function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
   const ac = getActiveCase();
-  const zoomFactor = ac ? getCaseZoomFactor(vp, ac) : 1.0;
+  const zoomFactor = ac ? getCaseZoomFactor(vp, ac, scaleRatio) : 1.0;
   const effectiveRatio = scaleRatio * zoomFactor;
   labels.forEach(lbl => {
     const sp = worldToScreenGISExport({ x: lbl.worldX, y: lbl.worldY }, vp, h);
@@ -17055,7 +17061,7 @@ function drawCaseLabelsForExport(ctx, vp, h, scaleRatio, labels) {
 
 function drawCaseArrowsForExport(ctx, vp, h, scaleRatio, arrows) {
   const ac = getActiveCase();
-  const zoomFactor = ac ? getCaseZoomFactor(vp, ac) : 1.0;
+  const zoomFactor = ac ? getCaseZoomFactor(vp, ac, scaleRatio) : 1.0;
   const effectiveRatio = scaleRatio * zoomFactor;
   arrows.forEach(arr => {
     const { s, e } = resolveArrowScreenPoints(arr, vp, h, true);
