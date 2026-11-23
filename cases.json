@@ -523,10 +523,10 @@
         },
         "showBorder": false,
         "_boxExport": {
-          "x": 234.2913312544102,
-          "y": 283.7469642166967,
-          "w": 1431.3173712631713,
-          "h": 549.8174017807494
+          "x": 237.28812898405863,
+          "y": 286.7437619463451,
+          "w": 1160.8238368390307,
+          "h": 446.8238063214526
         }
       },
       {
@@ -551,10 +551,10 @@
         },
         "showBorder": false,
         "_boxExport": {
-          "x": 1934.049952559917,
-          "y": 1457.7321205165226,
-          "w": 1424.9538909070213,
-          "h": 463.4539214245995
+          "x": 1936.4473907436359,
+          "y": 1460.1295587002414,
+          "w": 1155.6590755747402,
+          "h": 376.6590450571621
         }
       },
       {
@@ -580,10 +580,10 @@
         "showBg": true,
         "showBorder": false,
         "_boxExport": {
-          "x": 1393.1857370185658,
-          "y": 1101.5063029258504,
-          "w": 360.12376626376215,
-          "h": 99.09044106844965
+          "x": 1330.4242998541652,
+          "y": 1067.1510527137054,
+          "w": 292.0942898963872,
+          "h": 80.49428379287156
         }
       },
       {
@@ -609,10 +609,10 @@
         "showBg": true,
         "showBorder": false,
         "_boxExport": {
-          "x": 1433.5912376428946,
-          "y": 1326.4871812817632,
-          "w": 396.6571219766528,
-          "h": 99.09044106844965
+          "x": 1370.8298004803567,
+          "y": 1403.174298251359,
+          "w": 321.7276211952153,
+          "h": 80.49428379287156
         }
       }
     ],
@@ -1922,16 +1922,16 @@
         "padding": 5,
         "_box": {
           "x": 583.7523478157818,
-          "y": 262.5094944825396,
+          "y": 263.0094944825396,
           "w": 99.16666412353516,
           "h": 91
         },
         "showBorder": false,
         "_boxExport": {
-          "x": 1504.4739592378014,
-          "y": 674.5381443114007,
-          "w": 314.45073307957756,
-          "h": 290.81740178074944
+          "x": 1507.47075696745,
+          "y": 679.2437517241485,
+          "w": 254.79046586735103,
+          "h": 236.8238063214526
         }
       },
       {
@@ -1950,16 +1950,16 @@
         "padding": 4,
         "_box": {
           "x": 822.2018235363066,
-          "y": 144.3403174513951,
+          "y": 144.8403174513951,
           "w": 97.16666412353516,
           "h": 89
         },
         "showBorder": false,
         "_boxExport": {
-          "x": 2120.8406266298134,
-          "y": 369.9797097749998,
-          "w": 308.08725272342764,
-          "h": 284.4539214245995
+          "x": 2123.238064813532,
+          "y": 374.0859576418179,
+          "w": 249.6257046030605,
+          "h": 231.65904505716207
         }
       },
       {
@@ -1978,17 +1978,17 @@
         "padding": 3,
         "_box": {
           "x": 410.6887990422547,
-          "y": 526.6315962942317,
+          "y": 527.1315962942317,
           "w": 113.53333282470703,
           "h": 31
         },
         "showBg": true,
         "showBorder": false,
         "_boxExport": {
-          "x": 1058.756721847783,
-          "y": 1357.800663643609,
-          "w": 360.12376626376215,
-          "h": 99.09044106844965
+          "x": 1060.554800485572,
+          "y": 1361.3075519644974,
+          "w": 292.0942898963872,
+          "h": 80.49428379287156
         }
       },
       {
@@ -2007,17 +2007,17 @@
         "padding": 3,
         "_box": {
           "x": 428.36089449748397,
-          "y": 670.0086045283824,
+          "y": 670.5086045283824,
           "w": 125.03333282470703,
           "h": 31
         },
         "showBg": true,
         "showBorder": false,
         "_boxExport": {
-          "x": 1104.3927988792761,
-          "y": 1728.0546728028908,
-          "w": 396.6571219766528,
-          "h": 99.09044106844965
+          "x": 1106.1908775170652,
+          "y": 1731.5615611237793,
+          "w": 321.7276211952153,
+          "h": 80.49428379287156
         }
       }
     ],
@@ -7918,7 +7918,7 @@
         "padding": 4,
         "_box": {
           "x": 632.350359139964,
-          "y": 209.02502083266154,
+          "y": 209.52502083266154,
           "w": 97.16666412353516,
           "h": 89
         },
@@ -7946,7 +7946,7 @@
         "padding": 3,
         "_box": {
           "x": 335.96780079975724,
-          "y": 607.0943725677207,
+          "y": 607.5943725677207,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -7975,7 +7975,7 @@
         "padding": 3,
         "_box": {
           "x": 372.55814951844513,
-          "y": 764.1989040714689,
+          "y": 764.6989040714689,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -8005,7 +8005,7 @@
         "padding": 1,
         "_box": {
           "x": 669.5143517181277,
-          "y": 635.3370840791613,
+          "y": 635.8370840791613,
           "w": 49.20000076293945,
           "h": 22
         },
@@ -8033,7 +8033,7 @@
         "padding": 1,
         "_box": {
           "x": 916.4560995586216,
-          "y": 478.1131425695494,
+          "y": 478.6131425695494,
           "w": 49.20000076293945,
           "h": 22
         },
@@ -8061,7 +8061,7 @@
         "padding": 7,
         "_box": {
           "x": 752.6910262126476,
-          "y": 123.85043820273131,
+          "y": 124.35043820273131,
           "w": 184.8000030517578,
           "h": 83
         },
@@ -9126,17 +9126,221 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      "16": {
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "17": {
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 3,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "18": {
+        "color": "#76ff03",
+        "fillColor": "#76ff03",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "19": {
+        "color": "#e040fb",
+        "fillColor": "#e040fb",
+        "fillOpacity": 0.25,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "20": {
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "21": {
+        "color": "#b388ff",
+        "fillColor": "#b388ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "22": {
+        "color": "#ff4081",
+        "fillColor": "#ff4081",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "23": {
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "24": {
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "25": {
+        "color": "#d500f9",
+        "fillColor": "#d500f9",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "26": {
+        "color": "#ff9100",
+        "fillColor": "#808080",
+        "fillOpacity": 0.05,
+        "lineWidth": 4,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      "27": {
+        "color": "#ff0000",
+        "fillColor": "#ff0000",
+        "fillOpacity": 0.47,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "showArea": false,
+        "showNodes": false,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     },
     "camera": {
       "scale": 1.7830317555715787,
-      "offsetX": -8281138.464741473,
-      "offsetY": -3464717.7003766303,
+      "offsetX": -8281373.464741473,
+      "offsetY": -3464708.2003766303,
       "canvasW": 1487,
-      "canvasH": 842,
+      "canvasH": 843,
       "centerWorld": {
-        "x": 4644831.44445545,
-        "y": 1943397.0761030142
+        "x": 4644963.242444614,
+        "y": 1943392.0285204505
       }
     },
     "layers": {
@@ -9174,8 +9378,8 @@
         "borderWidth": 1.5,
         "padding": 5,
         "_box": {
-          "x": 858.978562483564,
-          "y": 324.4890808723867,
+          "x": 623.978562483564,
+          "y": 315.9890808723867,
           "w": 87.76667022705078,
           "h": 66
         },
@@ -9196,8 +9400,8 @@
         "borderWidth": 1.5,
         "padding": 4,
         "_box": {
-          "x": 791.0520750600845,
-          "y": 133.53849748522043,
+          "x": 556.0520750600845,
+          "y": 125.03849748522043,
           "w": 206,
           "h": 58
         },
@@ -9218,8 +9422,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 567.0632629701868,
-          "y": 657.8591454289854,
+          "x": 332.06326297018677,
+          "y": 649.3591454289854,
           "w": 113.53333282470703,
           "h": 31
         },
@@ -9241,8 +9445,8 @@
         "borderWidth": 1.5,
         "padding": 3,
         "_box": {
-          "x": 584.6352168619633,
-          "y": 790.4493520739488,
+          "x": 349.6352168619633,
+          "y": 781.9493520739488,
           "w": 125.03333282470703,
           "h": 31
         },
@@ -9608,6 +9812,246 @@
         "gradStartOpacity": 0.6,
         "gradEndOpacity": 0.05,
         "gradReverseColors": false
+      },
+      {
+        "id": 16,
+        "name": "IGAC: La Querella (50278)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#ff9100",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 17,
+        "name": "IGAC: La Trinidad (50299)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00e5ff",
+        "fillColor": "#00e5ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 3,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 18,
+        "name": "IGAC: La Esmeralda (51774)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#76ff03",
+        "fillColor": "#76ff03",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 19,
+        "name": "IGAC: Lote 1 (52375)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#e040fb",
+        "fillColor": "#e040fb",
+        "fillOpacity": 0.25,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 20,
+        "name": "IGAC: La Buitrera (52754)",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ffd600",
+        "fillColor": "#ffd600",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 22,
+        "name": "IGAC: 1073 Lote 5",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff4081",
+        "fillColor": "#ff4081",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 23,
+        "name": "IGAC: 1073 Lote 6",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#00b0ff",
+        "fillColor": "#00b0ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 24,
+        "name": "IGAC: 1073 Lote 7",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#1de9b6",
+        "fillColor": "#1de9b6",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 21,
+        "name": "IGAC: 1073 Lote 8",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#b388ff",
+        "fillColor": "#b388ff",
+        "fillOpacity": 0.18,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": "both",
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 25,
+        "name": "LoteANo196",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#d500f9",
+        "fillColor": "#d500f9",
+        "fillOpacity": 0.15,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 26,
+        "name": "CarreteraB",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff9100",
+        "fillColor": "#808080",
+        "fillOpacity": 0.05,
+        "lineWidth": 4,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
+      },
+      {
+        "id": 27,
+        "name": "Orlando",
+        "visible": false,
+        "showArea": false,
+        "showNodes": false,
+        "color": "#ff0000",
+        "fillColor": "#ff0000",
+        "fillOpacity": 0.47,
+        "lineWidth": 2.5,
+        "lineType": "solid",
+        "lineOpacity": 1,
+        "gradBuffer": false,
+        "gradDist": 50,
+        "gradSide": 1,
+        "gradScale": "viridis",
+        "gradStartOpacity": 0.6,
+        "gradEndOpacity": 0.05,
+        "gradReverseColors": false
       }
     ],
     "layerDisplay": {
@@ -9686,7 +10130,7 @@
       },
       "dxf_1073": {
         "name": "Escritura 1073",
-        "color": "#ff1744",
+        "color": "#ff80ab",
         "fillColor": "#ff1744",
         "fillOpacity": 0,
         "lineWidth": 2.5,
